@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, normalizeGrades, toggleGradeChoice } from "../../domain/catalog";
+import { uiLabel } from "../../domain/ui-label";
 import { ensureDailyGoal, parentView, setGoalPreset } from "../../domain/parent";
 import {
   applyIfParentUnlocked,
@@ -16,14 +17,17 @@ import type { GoalPreset, GradeBand } from "../../domain/types";
 import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
 import { DESKTOP_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
-import { FONT, button, paper } from "../ui";
+import { FONT } from "../ui";
+import { warmButton, warmChip, warmPanel, warmTab } from "../warm/kit";
+import { queueWarm, warmBackground } from "../warm/load";
+import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
 type GuideTab = "progress" | "notes";
 
 const PRESETS: { id: GoalPreset; label: string }[] = [
-  { id: "easy", label: "轻松" },
-  { id: "normal", label: "标准" },
-  { id: "more", label: "多一点" },
+  { id: "easy", label: uiLabel("轻松") },
+  { id: "normal", label: uiLabel("标准") },
+  { id: "more", label: uiLabel("多一点") },
 ];
 
 export class GuideScene extends Phaser.Scene {
@@ -37,6 +41,10 @@ export class GuideScene extends Phaser.Scene {
 
   constructor() {
     super("guide");
+  }
+
+  preload(): void {
+    queueWarm(this, ["atlas_ui_core", "atlas_parent"], ["bg_parent"]);
   }
 
   create(): void {
@@ -167,28 +175,21 @@ export class GuideScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    paper(this);
-    this.add.text(160, 40, "给家长", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
+    warmBackground(this, "bg_parent");
+    this.add.text(140, 28, uiLabel("给家长"), { fontFamily: FONT_TITLE, fontSize: "36px", color: INK });
     if (!this.pinSession.unlocked) {
-      this.add.text(160, 120, "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉浏览器数据后要重新设置。这不是安全登录。", {
+      warmPanel(this, 640, 280, 960, 220);
+      this.add.text(200, 210, "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉浏览器数据后要重新设置。这不是安全登录。", {
         fontFamily: FONT,
         fontSize: "20px",
-        color: "#17352a",
-        wordWrap: { width: 960, useAdvancedWrap: true },
+        color: INK,
+        wordWrap: { width: 880, useAdvancedWrap: true },
       });
-      button(this, 280, 220, "返回 Esc", () => this.scene.start("overworld"), { width: 180, height: 48, fill: 0x5c6b62 });
+      warmButton(this, 280, 340, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
       return;
     }
-    button(this, 430, 48, "学习进度", () => this.show("progress"), {
-      width: 170,
-      height: 42,
-      fill: this.tab === "progress" ? 0x1f7a4d : 0x5c6b62,
-    });
-    button(this, 620, 48, "说明与年级", () => this.show("notes"), {
-      width: 190,
-      height: 42,
-      fill: this.tab === "notes" ? 0x1f7a4d : 0x5c6b62,
-    });
+    warmTab(this, 360, 96, uiLabel("学习进度"), this.tab === "progress", () => this.show("progress"), 200);
+    warmTab(this, 580, 96, uiLabel("说明与年级"), this.tab === "notes", () => this.show("notes"), 220);
     if (this.tab === "progress") this.drawProgress();
     else this.drawNotes();
   }
@@ -204,67 +205,67 @@ export class GuideScene extends Phaser.Scene {
     const now = studyNow(save);
     const view = parentView(save, now, this.showAllStruggle ? 100 : undefined);
     probeNote(`parent:ready:${view.learnedToday}:${view.reviewedToday}:${view.dueNow}`);
-    this.add.text(160, 88, "今天的学习", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
-    this.add.text(360, 98, "数据只保存在这台电脑", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
+    this.add.text(760, 88, "数据只保存在这台电脑", { fontFamily: FONT, fontSize: "14px", color: MUTED });
     const cards = [
       `今天新学 ${view.learnedToday} 个`,
       `今天复习 ${view.reviewedToday} 个`,
       `现在待复习 ${view.dueNow} 个`,
     ];
     cards.forEach((label, index) => {
-      this.add.rectangle(300 + index * 280, 168, 250, 58, 0xe7f6ee).setStrokeStyle(3, 0x17352a);
-      this.add.text(300 + index * 280, 168, label, { fontFamily: FONT, fontSize: "20px", color: "#17352a" }).setOrigin(0.5);
+      warmPanel(this, 280 + index * 300, 180, 270, 72);
+      this.add.text(280 + index * 300, 180, label, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK }).setOrigin(0.5);
     });
-    this.add.text(160, 214, `${view.goalLine}  ·  ${view.daysLine}`, {
+    this.add.text(140, 232, `${view.goalLine}  ·  ${view.daysLine}`, {
       fontFamily: FONT,
       fontSize: "18px",
-      color: "#1f7a4d",
-      wordWrap: { width: 960 },
+      fontStyle: "700",
+      color: INK,
+      wordWrap: { width: 1000 },
     });
     const note = this.pinNotice || view.clockNote || view.emptyLine || view.todayLine || (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
-    this.add.text(160, 246, note, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e", wordWrap: { width: 960 } });
-    this.add.text(160, 278, view.weekLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
-    this.add.text(160, 308, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
-      fontFamily: FONT,
-      fontSize: "18px",
-      color: "#17352a",
-    });
-    this.add.text(160, 338, `${view.masteredLine}  ${view.masteredNote}`, {
+    this.add.text(140, 264, note, { fontFamily: FONT, fontSize: "16px", color: MUTED, wordWrap: { width: 1000 } });
+    this.add.text(140, 296, view.weekLine, { fontFamily: FONT, fontSize: "16px", color: INK });
+    this.add.text(140, 324, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
       fontFamily: FONT,
       fontSize: "16px",
-      color: "#17352a",
-      wordWrap: { width: 960 },
+      color: INK,
     });
-    this.add.text(160, 370, view.gradesLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
-    this.add.text(160, 402, "每日目标从明天的新一天起改档。今天的数量不会变多。", {
+    this.add.text(140, 352, `${view.masteredLine}  ${view.masteredNote}`, {
       fontFamily: FONT,
       fontSize: "15px",
-      color: "#8a5a12",
+      color: INK,
+      wordWrap: { width: 1000 },
+    });
+    this.add.text(140, 384, view.gradesLine, { fontFamily: FONT, fontSize: "16px", color: INK });
+    this.add.text(140, 414, "每日目标从明天的新一天起改档。今天的数量不会变多。", {
+      fontFamily: FONT,
+      fontSize: "14px",
+      color: MUTED,
     });
     PRESETS.forEach((preset, index) => {
       const on = save.parentGoalPreset === preset.id;
-      button(this, 230 + index * 150, 452, preset.label, () => {
+      warmChip(this, 230 + index * 160, 470, preset.label, on, () => {
         mutate((current) => applyIfParentUnlocked(this.pinSession.unlocked, current, (save) => setGoalPreset(save, preset.id)));
         this.draw();
-      }, { width: 130, height: 42, fill: on ? 0x1f7a4d : 0x5c6b62 });
+      }, { width: 146 });
     });
-    this.add.text(160, 498, view.struggleLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
+    this.add.text(140, 520, view.struggleLine, { fontFamily: FONT, fontSize: "16px", color: MUTED });
     view.struggle.slice(0, this.showAllStruggle ? view.struggle.length : 4).forEach((word, index) => {
-      this.add.text(180, 524 + index * 28, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
+      this.add.text(160, 548 + index * 26, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
         fontFamily: FONT,
-        fontSize: "16px",
-        color: "#17352a",
+        fontSize: "15px",
+        color: MUTED,
       });
     });
     if (view.struggleTotal > 4) {
-      button(this, 980, 500, this.showAllStruggle ? "收起" : "查看全部", () => {
+      warmButton(this, 1040, 520, uiLabel(this.showAllStruggle ? "收起" : "查看全部"), () => {
         this.showAllStruggle = !this.showAllStruggle;
         this.draw();
-      }, { width: 150, height: 40, fill: 0x5c6b62 });
+      }, { width: 150, tone: "secondary" });
     }
-    button(this, 300, 700, "去复习", () => this.scene.start("review"), { width: 160, height: 48 });
-    button(this, 500, 700, "修改年级", () => this.show("notes"), { width: 170, height: 48, fill: 0x8a5a12 });
-    button(this, 720, 700, "返回 Esc", () => this.scene.start("overworld"), { width: 170, height: 48, fill: 0x5c6b62 });
+    warmButton(this, 240, 730, uiLabel("去复习"), () => this.scene.start("review"), { width: 160 });
+    warmButton(this, 440, 730, uiLabel("修改年级"), () => this.show("notes"), { width: 170, tone: "secondary" });
+    warmButton(this, 660, 730, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
   }
 
 
@@ -289,29 +290,31 @@ export class GuideScene extends Phaser.Scene {
     const notice = this.notice || (selected.length === 0
       ? GRADE_REQUIRED_NOTICE
       : "学习年级可以多选。取消某个年级后，已学词卡还在册子里，战斗和到期复习会暂停，重新勾选就恢复。");
-    this.add.text(160, 96, notice, {
+    this.add.text(140, 150, notice, {
       fontFamily: FONT,
       fontSize: "16px",
-      color: selected.length === 0 || this.notice ? "#a33b24" : "#8a5a12",
-      wordWrap: { width: 960 },
+      color: selected.length === 0 || this.notice ? ERR_TEXT : MUTED,
+      wordWrap: { width: 1000 },
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = selected.includes(grade.id);
-      button(this, 250 + index * 200, 175, `${on ? "✓ " : ""}${grade.label}`, () => this.toggleGrade(grade.id), {
-        width: 180,
-        height: 46,
-        fill: on ? 0x1f7a4d : 0x5c6b62,
-      });
+      warmChip(this, 230 + index * 200, 230, grade.label, on, () => this.toggleGrade(grade.id), { width: 180 });
     });
-    this.add.text(160, 230, lines.join("\n"), { fontFamily: FONT, fontSize: "15px", color: "#17352a", wordWrap: { width: 960, useAdvancedWrap: true }, lineSpacing: 5 });
-    button(this, 360, 700, this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存", () => {
+    this.add.text(140, 280, lines.join("\n"), {
+      fontFamily: FONT,
+      fontSize: "14px",
+      color: INK,
+      wordWrap: { width: 1000, useAdvancedWrap: true },
+      lineSpacing: 4,
+    });
+    warmButton(this, 360, 730, uiLabel(this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存"), () => {
       if (!this.confirming) {
         this.confirming = true;
         this.draw();
         return;
       }
       this.clearSave();
-    }, { width: 320, height: 48, fill: 0x8c4a3a });
-    button(this, 700, 700, "返回 Esc", () => this.scene.start("overworld"), { width: 180, height: 48, fill: 0x5c6b62 });
+    }, { width: 340 });
+    warmButton(this, 700, 730, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
   }
 }

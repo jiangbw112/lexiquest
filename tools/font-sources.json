@@ -1,0 +1,21 @@
+{
+  "typescript": ["src"],
+  "chapters": ["src/domain/chapters/chapter_forest_v1.1.json"],
+  "wordlists": ["src/domain/data/pep_words_g3-6_v1.2.2_loader.json"],
+  "kuaileCall": "uiLabel",
+  "kuaileJsonKeys": ["name_zh"],
+  "bodyJsonKeys": ["goal_zh"],
+  "ignoreKeys": ["words_resolved_snapshot", "notes", "source"],
+  "fonts": {
+    "noto": "fonts/src/NotoSansSC-wght.ttf",
+    "kuaile": "fonts/src/ZCOOLKuaiLe-Regular.ttf",
+    "nunito": "fonts/src/Nunito-wght.ttf"
+  },
+  "budgets": {
+    "coreBytes": 163840,
+    "kuaileBytes": 102400,
+    "gradeBytes": 40960,
+    "bootBytes": 4194304,
+    "kuaileMaxChars": 24
+  }
+}

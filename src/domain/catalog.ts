@@ -1,4 +1,5 @@
 import type { GradeBand, Semester } from "./types";
+import { uiLabel } from "./ui-label";
 import forestChapterFile from "./chapters/chapter_forest_v1.1.json";
 
 export type SpellingLevel = "basic" | "advanced" | "none";
@@ -56,10 +57,10 @@ export interface UnitDef {
 }
 
 export const GRADE_BANDS: { id: GradeBand; label: string }[] = [
-  { id: "G3", label: "三年级" },
-  { id: "G4", label: "四年级" },
-  { id: "G5", label: "五年级" },
-  { id: "G6", label: "六年级" },
+  { id: "G3", label: uiLabel("三年级") },
+  { id: "G4", label: uiLabel("四年级") },
+  { id: "G5", label: uiLabel("五年级") },
+  { id: "G6", label: uiLabel("六年级") },
 ];
 
 export const SAMPLE_THEME = "Forest Adventure" as const;
@@ -107,6 +108,27 @@ function displayPos(value: string | null | undefined): string | undefined {
  * Part of speech, then the Chinese meaning. No pos means the meaning alone, with no extra space.
  * A sense uses its own pos, and falls back to the word's pos when that sense has none.
  */
+const POS_GLOSS: Record<string, string> = {
+  "n.": "名词",
+  "v.": "动词",
+  "adj.": "形容词",
+  "adv.": "副词",
+  "pron.": "代词",
+  "prep.": "介词",
+  "conj.": "连词",
+  "num.": "数词",
+  "interj.": "感叹词",
+  "art.": "冠词",
+  "phr.": "短语",
+  "modal v.": "情态动词",
+};
+
+/** Chinese name for a single pos token. Dual forms such as v./n. stay untranslated. */
+export function posGloss(pos: string | null | undefined): string | undefined {
+  if (!pos) return undefined;
+  return POS_GLOSS[pos];
+}
+
 export function formatMeaning(
   word: { chinese: string; pos?: string | null },
   sense?: { chinese?: string; pos?: string | null },

@@ -1,0 +1,196 @@
+{
+ "frames": {
+  "icon_map": {
+   "frame": {
+    "x": 244,
+    "y": 304,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "icon_lock_disabled": {
+   "frame": {
+    "x": 342,
+    "y": 304,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "map_node_cleared": {
+   "frame": {
+    "x": 304,
+    "y": 2,
+    "w": 240,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 240,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 240,
+    "h": 240
+   }
+  },
+  "map_node_current": {
+   "frame": {
+    "x": 546,
+    "y": 2,
+    "w": 240,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 240,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 240,
+    "h": 240
+   }
+  },
+  "map_node_locked": {
+   "frame": {
+    "x": 2,
+    "y": 304,
+    "w": 240,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 240,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 240,
+    "h": 240
+   }
+  },
+  "map_node_boss": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 300,
+    "h": 300
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 300,
+    "h": 300
+   },
+   "sourceSize": {
+    "w": 300,
+    "h": 300
+   }
+  },
+  "map_name_plate": {
+   "frame": {
+    "x": 764,
+    "y": 304,
+    "w": 96,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 60
+   }
+  },
+  "map_word_card": {
+   "frame": {
+    "x": 440,
+    "y": 304,
+    "w": 160,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 160,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 160,
+    "h": 80
+   }
+  },
+  "map_word_unknown": {
+   "frame": {
+    "x": 602,
+    "y": 304,
+    "w": 160,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 160,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 160,
+    "h": 80
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch2 export.py (code-drawn)",
+  "version": "0.3-batch2",
+  "image": "atlas_map.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1024,
+   "h": 1024
+  },
+  "scale": "2",
+  "status": "暂定 provisional"
+ }
+}

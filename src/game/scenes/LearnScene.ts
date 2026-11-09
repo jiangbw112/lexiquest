@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { forestLearnUnits, formatMeaning, GRADE_BANDS, wordById } from "../../domain/catalog";
+import { forestLearnUnits, GRADE_BANDS, posGloss, wordById } from "../../domain/catalog";
+import { uiLabel } from "../../domain/ui-label";
 import { learnWord, needsGradeChoice, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
@@ -15,7 +16,10 @@ import { browserSpeaker, speakWord } from "../../domain/speech";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
-import { FONT, button, hint, listenKeys, paper } from "../ui";
+import { FONT, listenKeys } from "../ui";
+import { warmButton, warmChip, warmOption, warmPanel, type WarmOption } from "../warm/kit";
+import { queueWarm, warmBackground } from "../warm/load";
+import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
 
 type Phase = "study" | "quiz" | "listen" | "spell" | "got";
 
@@ -26,9 +30,17 @@ export class LearnScene extends Phaser.Scene {
   private missed = false;
   private justId: string | null = null;
   private question: QuizQuestion | null = null;
+  private options: WarmOption[] = [];
+  private busy = false;
+  private fontSample = "";
+  private answerTimer = 0;
 
   constructor() {
     super("learn");
+  }
+
+  preload(): void {
+    queueWarm(this, ["atlas_ui_core"], ["bg_learn"]);
   }
 
   create(): void {
@@ -53,6 +65,7 @@ export class LearnScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       form?.removeEventListener("submit", submit);
       form?.classList.remove("open");
+      window.clearTimeout(this.answerTimer);
     });
     this.draw();
     probeNote("learn:ready");
@@ -161,14 +174,24 @@ export class LearnScene extends Phaser.Scene {
 
   private answer(choiceId: string): void {
     const id = this.currentId();
-    if (!id || !this.question) return;
-    if (choiceId !== this.question.answerId) {
-      this.missed = true;
-      this.retry += 1;
-      this.showStudy();
-      return;
-    }
-    this.grant(id);
+    if (!id || !this.question || this.busy) return;
+    const correct = choiceId === this.question.answerId;
+    this.busy = true;
+    this.options.forEach((option) => {
+      if (option.id === choiceId) option.setResult(correct ? "correct" : "wrong");
+      else option.setResult("disabled");
+    });
+    this.answerTimer = window.setTimeout(() => {
+      this.busy = false;
+      if (!this.scene.isActive()) return;
+      if (!correct) {
+        this.missed = true;
+        this.retry += 1;
+        this.showStudy();
+        return;
+      }
+      this.grant(id);
+    }, 420);
   }
 
   private grant(id: string): void {
@@ -188,74 +211,117 @@ export class LearnScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     this.children.removeAll(true);
+    this.options = [];
     if (this.phase !== "spell") {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
     }
-    paper(this);
+    warmBackground(this, "bg_learn");
     const units = this.units();
     if (this.unitIndex >= units.length) this.unitIndex = 0;
     const unit = units[this.unitIndex];
+    warmButton(this, 180, 48, uiLabel("返回"), () => this.scene.start("overworld"), { width: 140, tone: "secondary" });
     if (!unit) {
-      this.add.text(180, 250, "所选年级里没有这一章的词。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
-      this.add.text(180, 310, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
+      warmPanel(this, 640, 400, 860, 360);
+      this.add.text(280, 320, "所选年级里没有这一章的词。", { fontFamily: FONT, fontSize: "28px", color: INK });
+      this.add.text(280, 380, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
         fontFamily: FONT,
         fontSize: "20px",
-        color: "#3d5c4e",
+        color: MUTED,
         wordWrap: { width: 760 },
       });
-      button(this, 250, 680, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
       return;
     }
-    this.add.text(180, 48, `学堂 · ${unit.title}`, { fontFamily: FONT, fontSize: "34px", color: "#17352a" });
-    this.add.text(180, 92, "森林冒险 · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级", {
-      fontFamily: FONT,
-      fontSize: "16px",
-      color: "#8a5a12",
-    });
+    this.add.text(280, 28, uiLabel(`学堂 · ${unit.title}`), { fontFamily: FONT_TITLE, fontSize: "32px", color: INK });
     units.forEach((item, index) => {
       const gradeLabel = GRADE_BANDS.find((grade) => grade.id === item.grade)?.label ?? item.grade;
-      button(this, 250 + index * 170, 150, gradeLabel, () => {
+      warmChip(this, 280 + index * 180, 100, gradeLabel, index === this.unitIndex, () => {
         this.unitIndex = index;
         this.showStudy();
-      }, { width: 150, fill: index === this.unitIndex ? 0x1f7a4d : 0x5c6b62 });
+      }, { width: 160 });
     });
     const word = wordById(this.currentId() ?? "");
     probeNote(`learn:word:${word?.id ?? "none"}`);
+    const sample = [word?.chinese, this.question?.prompt, ...(this.question?.choices.map((choice) => choice.label) ?? [])].filter(Boolean).join("");
+    if (sample && sample !== this.fontSample && document.fonts && !document.fonts.check('700 46px "Noto Sans SC"', sample)) {
+      this.fontSample = sample;
+      whenGlyphsReady(sample, () => {
+        if (this.scene.isActive()) this.draw();
+      });
+    }
+    const collected = `${unit.wordIds.filter((id) => save.wordCards[id]).length}/${unit.wordIds.length}`;
+    this.add.text(1100, 36, collected, { fontFamily: FONT_LATIN, fontSize: "22px", fontStyle: "800", color: INK }).setOrigin(0.5);
     if (this.phase === "got") {
       const got = wordById(this.justId ?? "");
-      this.add.text(180, 240, "词卡入手", { fontFamily: FONT, fontSize: "28px", color: "#1f7a4d" });
-      this.add.text(180, 300, got ? `${got.english}  ${formatMeaning(got)}` : "", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
-      this.add.text(180, 370, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
-      button(this, 320, 470, "继续 Enter", () => this.showStudy());
-    } else if (!word) {
-      this.add.text(180, 250, "这一组词卡都收集了。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
-      this.add.text(180, 310, "点上面选中的年级，或按 ]。要学别的年级，去给家长里再选。已经收下的词卡还在。", {
+      warmPanel(this, 640, 400, 860, 420);
+      this.add.text(640, 250, uiLabel("词卡入手"), { fontFamily: FONT_TITLE, fontSize: "36px", color: INK }).setOrigin(0.5);
+      if (got) this.meaningRow(640, 340, got.english, got.pos, got.chinese, 64);
+      this.add.text(640, 430, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", {
         fontFamily: FONT,
         fontSize: "20px",
-        color: "#3d5c4e",
+        color: MUTED,
+      }).setOrigin(0.5);
+      warmButton(this, 640, 520, uiLabel("继续"), () => this.showStudy(), { width: 200 });
+      return;
+    }
+    if (!word) {
+      warmPanel(this, 640, 420, 860, 320);
+      this.add.text(280, 340, "这一组词卡都收集了。", { fontFamily: FONT, fontSize: "28px", color: INK });
+      this.add.text(280, 400, "点上面选中的年级，或按 ]。要学别的年级，去给家长里再选。已经收下的词卡还在。", {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: MUTED,
         wordWrap: { width: 760 },
       });
-    } else if (this.phase === "study") {
-      if (this.missed) this.add.text(180, 200, "再看一次。答对才会收下词卡。", { fontFamily: FONT, fontSize: "18px", color: "#a33b24" });
-      this.add.text(180, 250, word.english, { fontFamily: FONT, fontSize: "64px", color: "#17352a" });
-      this.add.text(180, 330, `${formatMeaning(word)} · 估计 ${word.grade} · 拼写 ${word.spelling}`, { fontFamily: FONT, fontSize: "24px", color: "#3d5c4e" });
-      button(this, 300, 460, "听一听 L", () => this.startListening(), { width: 200, fill: 0x3d6ea8 });
-      button(this, 540, 460, "选意思 Enter", () => this.startMeaning(), { width: 220 });
-      if (spellingAllowed(word, this.badgeLit(word.id))) button(this, 800, 460, "键盘拼写 P", () => this.startSpelling(), { width: 220, fill: 0x8a5a12 });
-    } else if (this.question) {
-      this.add.text(180, 220, this.question.prompt, { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
+      return;
+    }
+    if (this.phase === "study") {
+      warmPanel(this, 640, 400, 900, 460);
+      if (this.missed) this.add.text(640, 210, "再看一次。答对才会收下词卡。", { fontFamily: FONT, fontSize: "18px", color: ERR_TEXT }).setOrigin(0.5);
+      this.meaningRow(640, 300, word.english, word.pos, word.chinese, 88);
+      const gloss = posGloss(word.pos);
+      const gradeLabel = GRADE_BANDS.find((grade) => grade.id === word.grade)?.label ?? String(word.grade);
+      const meta = [gloss, gradeLabel, `拼写 ${word.spelling}`].filter(Boolean).join(" · ");
+      this.add.text(640, 430, meta, { fontFamily: FONT, fontSize: "18px", color: MUTED }).setOrigin(0.5);
+      warmButton(this, 360, 540, uiLabel("听一听"), () => this.startListening(), { width: 180, tone: "secondary" });
+      warmButton(this, 580, 540, uiLabel("选意思"), () => this.startMeaning(), { width: 180 });
+      if (spellingAllowed(word, this.badgeLit(word.id))) {
+        warmButton(this, 820, 540, uiLabel("键盘拼写"), () => this.startSpelling(), { width: 200, tone: "secondary" });
+      }
+      return;
+    }
+    if (this.question) {
+      warmPanel(this, 640, 250, 900, 120);
+      this.add.text(640, 250, this.question.prompt, {
+        fontFamily: FONT,
+        fontSize: "28px",
+        fontStyle: "700",
+        color: INK,
+        wordWrap: { width: 820 },
+        align: "center",
+      }).setOrigin(0.5);
       probeQuestion(this.question.answerId, this.question.choices.map((choice) => choice.id));
       this.question.choices.forEach((choice, index) => {
-        button(this, 640, 320 + index * 80, `${index + 1}  ${choice.label}`, () => this.answer(choice.id), { width: 520 });
+        this.options.push(warmOption(this, 640, 380 + index * 72, index, choice.id, choice.label, () => this.answer(choice.id)));
       });
-      if (this.phase === "listen") button(this, 300, 600, "再听一次", () => {
-        if (this.question?.speakText) speakWord(this.question.speakText, browserSpeaker());
-      }, { width: 200, fill: 0x3d6ea8 });
-    } else if (this.phase === "spell") {
+      if (this.phase === "listen") {
+        warmButton(this, 640, 640, uiLabel("再听一次"), () => {
+          if (this.question?.speakText) speakWord(this.question.speakText, browserSpeaker());
+        }, { width: 200, tone: "secondary" });
+      }
+      return;
+    }
+    if (this.phase === "spell") {
+      warmPanel(this, 640, 360, 860, 280);
       const prompt = spellingQuestion(word.id, this.badgeLit(word.id));
-      this.add.text(180, 240, prompt?.prompt ?? "", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
-      this.add.text(180, 310, spellingInstruction(prompt?.answer ?? null), { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e", wordWrap: { width: 760 } });
+      this.add.text(640, 280, prompt?.prompt ?? "", { fontFamily: FONT, fontSize: "32px", fontStyle: "700", color: INK }).setOrigin(0.5);
+      this.add.text(640, 350, spellingInstruction(prompt?.answer ?? null), {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: MUTED,
+        wordWrap: { width: 760 },
+        align: "center",
+      }).setOrigin(0.5);
       document.getElementById("spell-form")?.classList.add("open");
       showSpellingHint(prompt?.answer ?? null);
       const input = document.getElementById("spell-input");
@@ -264,7 +330,40 @@ export class LearnScene extends Phaser.Scene {
         window.setTimeout(() => input.focus(), 30);
       }
     }
-    button(this, 250, 680, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
-    hint(this, `已收集 ${unit.wordIds.filter((id) => save.wordCards[id]).length}/${unit.wordIds.length}`);
+  }
+
+  private meaningRow(x: number, y: number, english: string, pos: string | undefined, chinese: string, englishSize: number): void {
+    const word = this.add.text(x, y - 70, english, {
+      fontFamily: FONT_LATIN,
+      fontSize: `${englishSize}px`,
+      fontStyle: "900",
+      color: INK,
+    }).setOrigin(0.5);
+    if (word.width > 760) word.setScale(760 / word.width);
+    const meaning = this.add.text(0, 0, chinese, {
+      fontFamily: FONT,
+      fontSize: "46px",
+      fontStyle: "700",
+      color: INK,
+    }).setOrigin(0, 0.5);
+    if (!pos) {
+      meaning.setOrigin(0.5);
+      meaning.setPosition(x, y + 20);
+      return;
+    }
+    const tagText = this.add.text(0, 0, pos, {
+      fontFamily: FONT_LATIN,
+      fontSize: "24px",
+      fontStyle: "800",
+      color: INK,
+    }).setOrigin(0, 0.5);
+    const tagW = tagText.width + 24;
+    const tag = this.add.graphics();
+    tag.fillStyle(0x8ecae6, 1);
+    tag.fillRoundedRect(0, -20, tagW, 40, 14);
+    tagText.setPosition(12, 0);
+    meaning.setPosition(tagW + 12, 0);
+    const rowWidth = tagW + 12 + meaning.width;
+    this.add.container(x - rowWidth / 2, y + 20, [tag, tagText, meaning]);
   }
 }

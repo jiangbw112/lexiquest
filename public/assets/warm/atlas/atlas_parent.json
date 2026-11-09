@@ -1,0 +1,76 @@
+{
+ "frames": {
+  "icon_parent": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "icon_calendar": {
+   "frame": {
+    "x": 100,
+    "y": 2,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "icon_trophy": {
+   "frame": {
+    "x": 198,
+    "y": 2,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch2 export.py (code-drawn)",
+  "version": "0.3-batch2",
+  "image": "atlas_parent.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 512,
+   "h": 128
+  },
+  "scale": "2",
+  "status": "暂定 provisional"
+ }
+}

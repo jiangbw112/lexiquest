@@ -1,7 +1,8 @@
 import Phaser from "phaser";
 import { blip } from "./audio";
+import { FONT_BODY } from "./warm/theme";
 
-export const FONT = '"WenQuanYi Micro Hei", "Noto Sans SC", "PingFang SC", sans-serif';
+export const FONT = FONT_BODY;
 
 export function paper(scene: Phaser.Scene, fill = 0xfff8ee): Phaser.GameObjects.Rectangle {
   scene.add.rectangle(640, 400, 1280, 800, 0x143d2c);

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build:fonts": "node tools/extract-strings.mjs && python3 tools/subset_fonts.py",
+    "build": "node tools/extract-strings.mjs --check && python3 tools/verify_fonts.py && tsc --noEmit && vite build && node tools/boot-budget.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint ."

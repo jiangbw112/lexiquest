@@ -5,12 +5,18 @@ import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
 import type { SaveData } from "./types";
 
+export type StageUnlock =
+  | { after_stage: number }
+  | { stages_cleared: readonly number[]; all_words_learned: true };
+
 export interface ForestStage {
   id: number;
   name_zh: string;
+  goal_zh: string;
   type: "exploration" | "boss";
   new_words: string[];
   learn_before_fight: boolean;
+  unlock: StageUnlock | null;
 }
 
 export interface ForestChapter {
@@ -36,6 +42,13 @@ export interface ForestChapter {
 export type StageStatus = "locked" | "open" | "cleared" | "skipped";
 
 const EXPECTED_NAMES = ["林缘小径", "河岸花径", "云桥山道", "迷雾村庄", "林心守护"];
+const EXPECTED_GOALS = [
+  "进入森林，学会认路与常见动植物",
+  "沿河前进，描述景物与天气",
+  "过桥登山，动作与地形容词",
+  "探村护友，抽象与进阶词",
+  "夺回宝藏，通关本章",
+];
 const EXPECTED_COUNTS = [6, 6, 6, 6, 4];
 
 function readChapter(value: unknown): ForestChapter {
@@ -48,6 +61,7 @@ function readChapter(value: unknown): ForestChapter {
   file.stages.forEach((stage, index) => {
     if (stage.id !== index + 1) throw new Error(`stage id ${stage.id}`);
     if (stage.name_zh !== EXPECTED_NAMES[index]) throw new Error(`stage name ${stage.name_zh}`);
+    if (stage.goal_zh !== EXPECTED_GOALS[index]) throw new Error(`stage goal ${stage.goal_zh}`);
     if (!Array.isArray(stage.new_words) || stage.new_words.length !== EXPECTED_COUNTS[index]) {
       throw new Error(`stage ${stage.id} word count`);
     }
@@ -55,6 +69,17 @@ function readChapter(value: unknown): ForestChapter {
     if (boss && stage.type !== "boss") throw new Error("stage 5 must be the boss");
     if (!boss && stage.type !== undefined && stage.type !== "exploration") throw new Error(`stage ${stage.id} type`);
     if (boss && stage.learn_before_fight !== true) throw new Error("boss words are learned before the fight");
+    if (!boss && stage.unlock !== null) {
+      if (!("after_stage" in stage.unlock) || stage.unlock.after_stage !== stage.id - 1) {
+        throw new Error(`stage ${stage.id} unlock`);
+      }
+    }
+    if (boss) {
+      const unlock = stage.unlock;
+      if (!unlock || !("stages_cleared" in unlock) || unlock.all_words_learned !== true) throw new Error("boss unlock");
+      if (unlock.stages_cleared.join(",") !== "1,2,3,4") throw new Error("boss unlock stages");
+    }
+    if (!boss && index === 0 && stage.unlock !== null) throw new Error("stage 1 has no unlock");
   });
   if (file.stage_clear?.all_stage_words_learned !== true || file.stage_clear.min_battle_wins !== 1) {
     throw new Error("stage clear rule");
@@ -87,8 +112,10 @@ function readChapter(value: unknown): ForestChapter {
 interface ChapterStageFile {
   id: number;
   name_zh: string;
-  type?: "boss" | "exploration";
+  goal_zh?: string;
+  type?: "boss" | "exploration" | "normal";
   learn_before_fight?: boolean;
+  unlock?: { after_stage?: number; stages_cleared?: number[]; all_words_learned?: boolean } | null;
   word_refs: string[];
 }
 
@@ -99,14 +126,41 @@ interface ChapterFile {
   stages: ChapterStageFile[];
 }
 
+function stageUnlock(stage: ChapterStageFile, index: number): StageUnlock | null {
+  const unlock = stage.unlock;
+  if (unlock == null) {
+    if (index === 0) return null;
+    throw new Error(`stage ${stage.id} unlock`);
+  }
+  if (index === 4) {
+    const cleared = unlock.stages_cleared;
+    if (!Array.isArray(cleared) || cleared.join(",") !== "1,2,3,4" || unlock.all_words_learned !== true) {
+      throw new Error("boss unlock");
+    }
+    return { stages_cleared: [1, 2, 3, 4], all_words_learned: true };
+  }
+  if (unlock.after_stage !== index) throw new Error(`stage ${stage.id} unlock`);
+  return { after_stage: unlock.after_stage };
+}
+
 function stagesFromChapter(file: ChapterFile): ForestStage[] {
-  return file.stages.map((stage) => ({
-    id: stage.id,
-    name_zh: stage.name_zh,
-    type: stage.type === "boss" ? "boss" : "exploration",
-    new_words: stage.word_refs,
-    learn_before_fight: stage.learn_before_fight === true,
-  }));
+  return file.stages.map((stage, index) => {
+    if (typeof stage.goal_zh !== "string" || stage.goal_zh.trim() === "") throw new Error(`stage ${stage.id} goal_zh`);
+    const boss = index === 4;
+    if (boss && stage.type !== "boss") throw new Error("stage 5 must be the boss");
+    if (!boss && stage.type !== undefined && stage.type !== "exploration" && stage.type !== "normal") {
+      throw new Error(`stage ${stage.id} type`);
+    }
+    return {
+      id: stage.id,
+      name_zh: stage.name_zh,
+      goal_zh: stage.goal_zh,
+      type: boss ? "boss" : "exploration",
+      new_words: stage.word_refs,
+      learn_before_fight: stage.learn_before_fight === true,
+      unlock: stageUnlock(stage, index),
+    };
+  });
 }
 
 const chapter = chapterFile as ChapterFile;

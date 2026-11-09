@@ -6,6 +6,7 @@ import {
   chapterExtraWords,
   chapterWords,
   formatMeaning,
+  posGloss,
   mergeWordFiles,
   readWordFile,
   wordById,
@@ -250,6 +251,12 @@ describe("PEP grades 3–6 v1.2.2 library", () => {
     expect(quizForWord("rain", 1).prompt).toBe("「v./n. 下雨；雨」用英语怎么说？");
     expect(quizForWord("rain", 1).hint).toBe("v./n. 下雨；雨");
     expect(quizForWord("can", 1).prompt).toBe("「modal v. 能；会」用英语怎么说？");
+    expect(posGloss("n.")).toBe("名词");
+    expect(posGloss("adj.")).toBe("形容词");
+    expect(posGloss("modal v.")).toBe("情态动词");
+    expect(posGloss("v./n.")).toBeUndefined();
+    expect(posGloss(undefined)).toBeUndefined();
+    expect(posGloss(wordById("today")?.pos)).toBeUndefined();
   });
 
   it("resolves red from the word list when the chapter snapshot still says the old meaning", () => {
@@ -267,7 +274,7 @@ describe("PEP grades 3–6 v1.2.2 library", () => {
       "6baeec1b6237eb91ed381e8308bd2f28cc7db61c49dcce749f7c8e12b0e61702",
     );
     expect(createHash("sha256").update(readFileSync("src/domain/chapters/chapter_forest_v1.1.json")).digest("hex")).toBe(
-      "7f3ce2afec071ba9d488f82f393b3a852a1461be33dcaf28c18cd617d339b4ee",
+      "bbf3e72c59bf21673cd29ff474239ce1fe7b42bdf2ad62b8b588a1eb956b4e83",
     );
   });
 

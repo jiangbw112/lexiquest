@@ -60,6 +60,15 @@ describe("forest chapter", () => {
       "迷雾村庄",
       "林心守护",
     ]);
+    expect(FOREST_CHAPTER.stages.map((stage) => stage.goal_zh)).toEqual([
+      "进入森林，学会认路与常见动植物",
+      "沿河前进，描述景物与天气",
+      "过桥登山，动作与地形容词",
+      "探村护友，抽象与进阶词",
+      "夺回宝藏，通关本章",
+    ]);
+    expect(FOREST_CHAPTER.stages[1]?.unlock).toEqual({ after_stage: 1 });
+    expect(FOREST_CHAPTER.stages[4]?.unlock).toEqual({ stages_cleared: [1, 2, 3, 4], all_words_learned: true });
     expect(FOREST_CHAPTER.stages[4]?.type).toBe("boss");
     expect(FOREST_CHAPTER.stages[4]?.learn_before_fight).toBe(true);
     expect(FOREST_WORD_COUNT).toBe(28);

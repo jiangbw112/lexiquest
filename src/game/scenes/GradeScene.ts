@@ -1,10 +1,14 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, canConfirmGrades, toggleGradeChoice } from "../../domain/catalog";
+import { uiLabel } from "../../domain/ui-label";
 import { needsGradeChoice, setSelectedGrades } from "../../domain/progress";
 import type { GradeBand } from "../../domain/types";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, button, listenKeys, paper } from "../ui";
+import { FONT, listenKeys } from "../ui";
+import { warmButton, warmChip, warmPanel } from "../warm/kit";
+import { warmBackground } from "../warm/load";
+import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
 export type GradeLaunchMode = "new" | "migrate";
 
@@ -66,50 +70,45 @@ export class GradeScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    paper(this);
+    warmBackground(this, "bg_forest");
+    warmPanel(this, 640, 420, 980, 560);
     const migrating = this.mode === "migrate";
-    this.add.text(180, 72, migrating ? "这台存档还没选年级" : "先选年级", {
-      fontFamily: FONT,
+    this.add.text(180, 180, migrating ? uiLabel("这台存档还没选年级") : uiLabel("先选年级"), {
+      fontFamily: FONT_TITLE,
       fontSize: "40px",
-      color: "#17352a",
+      color: INK,
     });
-    this.add.text(180, 140, migrating
+    this.add.text(180, 248, migrating
       ? "以前的存档没有年级。先选三到六年级里的一个或几个，再进村子。学堂和对战在选完之前打不开。"
       : "新的冒险从选年级开始。三到六年级可以多选。选好以后再起名字。", {
       fontFamily: FONT,
       fontSize: "20px",
-      color: "#3d5c4e",
+      color: INK,
       wordWrap: { width: 900 },
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = this.grades.includes(grade.id);
-      button(this, 250 + index * 220, 280, `${on ? "✓ " : ""}${grade.label}`, () => this.toggle(grade.id), {
-        width: 190,
-        height: 64,
-        fill: on ? 0x1f7a4d : 0x5c6b62,
-      });
+      warmChip(this, 280 + index * 210, 360, grade.label, on, () => this.toggle(grade.id), { width: 190 });
     });
-    this.add.text(180, 360, "键盘 3、4、5、6 切换年级。Enter 确认。", {
+    this.add.text(180, 420, "键盘 3、4、5、6 切换年级。Enter 确认。", {
       fontFamily: FONT,
       fontSize: "18px",
-      color: "#8a5a12",
+      color: MUTED,
     });
     const ready = canConfirmGrades(this.grades);
     const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label).join("、");
-    this.add.text(180, 410, ready ? `已选 ${chosen}。` : GRADE_REQUIRED_NOTICE, {
+    this.add.text(180, 470, ready ? `已选 ${chosen}。` : GRADE_REQUIRED_NOTICE, {
       fontFamily: FONT,
       fontSize: "20px",
-      color: "#17352a",
+      color: ready ? INK : ERR_TEXT,
       wordWrap: { width: 900 },
     });
-    button(this, 360, 520, migrating ? "选好了，继续" : "选好了，去起名字", () => this.confirm(), {
+    warmButton(this, 360, 560, uiLabel(migrating ? "选好了，继续" : "选好了，去起名字"), () => this.confirm(), {
       width: 280,
-      height: 56,
-      fill: ready ? 0x1f7a4d : 0xd7e0da,
       disabled: !ready,
     });
     if (!migrating) {
-      button(this, 700, 520, "返回", () => this.scene.start("title"), { width: 160, height: 56, fill: 0x5c6b62 });
+      warmButton(this, 700, 560, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
     }
   }
 }
