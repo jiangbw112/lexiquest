@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { OUTFITS } from "../../domain/outfits";
 import { equipOutfit } from "../../domain/progress";
-import { LayeredActor } from "../actors";
-import { PLACEHOLDER_NOTE } from "../p0";
+import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, paper } from "../ui";
@@ -10,6 +10,10 @@ import { FONT, button, paper } from "../ui";
 export class WardrobeScene extends Phaser.Scene {
   constructor() {
     super("wardrobe");
+  }
+
+  preload(): void {
+    queueWarriorAtlases(this);
   }
 
   create(): void {
@@ -29,21 +33,32 @@ export class WardrobeScene extends Phaser.Scene {
     this.children.removeAll(true);
     paper(this);
     this.add.text(160, 48, "衣柜", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(160, 100, `${PLACEHOLDER_NOTE}。这一章只有战士这一套外形，换衣服只换斗篷和绶带。`, {
+    this.add.text(160, 100, `${WARRIOR_ART_NOTE}。衣服层和身体、武器是分开的，但这一包只有外观 A 的一套战士装。`, {
       fontFamily: FONT,
       fontSize: "18px",
       color: "#3d5c4e",
-      wordWrap: { width: 640 },
+      wordWrap: { width: 620 },
     });
-    const hero = new LayeredActor(this, 980, 560, "side");
-    hero.applyOutfit(save.equippedOutfitId);
+    this.add.text(160, 156, "斗篷和绶带会记在存档里，画面还不会换。地图上的小人仍是占位图。", {
+      fontFamily: FONT,
+      fontSize: "18px",
+      color: "#3d5c4e",
+      wordWrap: { width: 620 },
+    });
+    const hero = new WarriorSprite(this, 980, 620, 0.66);
+    hero.play("idle");
     OUTFITS.forEach((outfit, index) => {
       const owned = save.ownedOutfitIds.includes(outfit.id);
-      const y = 200 + index * 120;
+      const y = 230 + index * 110;
       this.add.text(180, y, outfit.name, { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
-      this.add.text(180, y + 36, owned ? outfit.description : "还没得到", { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e" });
+      this.add.text(180, y + 36, owned ? outfit.description : "还没得到", {
+        fontFamily: FONT,
+        fontSize: "18px",
+        color: "#3d5c4e",
+        wordWrap: { width: 340 },
+      });
       if (!owned) return;
-      button(this, 560, y + 24, save.equippedOutfitId === outfit.id ? "穿着" : "换上", () => {
+      button(this, 760, y + 24, save.equippedOutfitId === outfit.id ? "穿着" : "换上", () => {
         mutate((current) => equipOutfit(current, outfit.id));
         this.draw();
       }, { width: 140, fill: save.equippedOutfitId === outfit.id ? 0x1f7a4d : 0x5c6b62 });

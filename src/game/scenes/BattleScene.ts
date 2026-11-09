@@ -9,7 +9,8 @@ import {
 } from "../../domain/battle";
 import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { isDue } from "../../domain/review";
-import { LayeredActor } from "../actors";
+import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
+import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, listenKeys, paper } from "../ui";
@@ -18,9 +19,14 @@ export class BattleScene extends Phaser.Scene {
   private state!: BattleState;
   private reported = false;
   private picking = false;
+  private poses: WarriorAnim[] = ["idle"];
 
   constructor() {
     super("battle");
+  }
+
+  preload(): void {
+    queueWarriorAtlases(this);
   }
 
   create(): void {
@@ -52,6 +58,7 @@ export class BattleScene extends Phaser.Scene {
       dueWordIds,
     });
     this.picking = false;
+    this.poses = ["idle"];
     this.draw();
   }
 
@@ -82,15 +89,29 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
+    const before = this.state.playerHp;
     this.state = answerQuestion(this.state, choiceId);
+    this.poses = battlePoses({
+      action: "answer",
+      playerHpBefore: before,
+      playerHpAfter: this.state.playerHp,
+      phase: this.state.phase,
+    });
     this.finishIfNeeded();
     this.draw();
   }
 
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
+    const before = this.state.playerHp;
     const result = takeAction(this.state, action);
     if (!result.ok) return;
     this.state = result.state;
+    this.poses = battlePoses({
+      action: action.type,
+      playerHpBefore: before,
+      playerHpAfter: this.state.playerHp,
+      phase: this.state.phase,
+    });
     this.finishIfNeeded();
     this.draw();
   }
@@ -120,15 +141,14 @@ export class BattleScene extends Phaser.Scene {
     this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
     this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
     const encounter = encounterById(this.state.encounterId);
-    const hero = new LayeredActor(this, 300, 500, "side");
-    hero.applyOutfit(save.equippedOutfitId);
-    hero.root.setScale(0.85);
+    const hero = new WarriorSprite(this, 300, 520, 0.72);
+    hero.playSequence(this.poses);
     const monster = this.add.image(980, 520, "actors", `monster/${encounter.id}`).setOrigin(0.5, 1).setFlipX(true);
     monster.setScale(0.9);
     this.add.text(160, 100, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
     this.add.text(820, 100, `${encounter.name}  ${this.state.enemyHp}/${this.state.enemyMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
     this.add.text(160, 136, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d" });
-    this.add.text(160, 500, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 960 } });
+    this.add.text(160, 176, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 960 } });
     if (this.state.phase === "question" && this.state.question) {
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
       this.add.text(180, 620, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });

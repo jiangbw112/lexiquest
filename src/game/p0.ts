@@ -13,6 +13,7 @@ export const P0_APPEARANCE: Appearance = {
   freckles: true,
 };
 
-export const P0_NOTE = "这一章只能当战士，外形是一套占位图。探险家和其他样子以后再加。";
+export const P0_NOTE = "这一章只能当战士。外形是暂定 v0.1，探险家和其他样子以后再加。";
 export const PLACEHOLDER_NOTE = "占位图 PLACEHOLDER";
+export const WARRIOR_ART_NOTE = "战士外形 · 暂定 v0.1";
 export const DESKTOP_NOTE = "桌面浏览器 · 鼠标和键盘";

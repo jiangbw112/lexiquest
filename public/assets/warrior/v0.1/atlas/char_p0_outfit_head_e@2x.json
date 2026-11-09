@@ -1,0 +1,520 @@
+{
+ "frames": {
+  "char_warrior_outfitHead_e_attack_00": {
+   "frame": {
+    "x": 674,
+    "y": 2,
+    "w": 165,
+    "h": 124
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 172,
+    "y": 97,
+    "w": 165,
+    "h": 124
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_attack_01": {
+   "frame": {
+    "x": 1006,
+    "y": 2,
+    "w": 162,
+    "h": 123
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 174,
+    "y": 92,
+    "w": 162,
+    "h": 123
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_attack_02": {
+   "frame": {
+    "x": 166,
+    "y": 2,
+    "w": 162,
+    "h": 130
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 162,
+    "y": 81,
+    "w": 162,
+    "h": 130
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 162,
+    "h": 141
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 159,
+    "y": 80,
+    "w": 162,
+    "h": 141
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_attack_04": {
+   "frame": {
+    "x": 648,
+    "y": 145,
+    "w": 160,
+    "h": 119
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 82,
+    "w": 160,
+    "h": 119
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_hit_00": {
+   "frame": {
+    "x": 330,
+    "y": 2,
+    "w": 173,
+    "h": 126
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 166,
+    "y": 121,
+    "w": 173,
+    "h": 126
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_hit_01": {
+   "frame": {
+    "x": 505,
+    "y": 2,
+    "w": 167,
+    "h": 125
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 171,
+    "y": 104,
+    "w": 167,
+    "h": 125
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_idle_00": {
+   "frame": {
+    "x": 1659,
+    "y": 2,
+    "w": 159,
+    "h": 121
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 175,
+    "y": 88,
+    "w": 159,
+    "h": 121
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_idle_01": {
+   "frame": {
+    "x": 1820,
+    "y": 2,
+    "w": 159,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 175,
+    "y": 89,
+    "w": 159,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_idle_02": {
+   "frame": {
+    "x": 2,
+    "y": 145,
+    "w": 159,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 175,
+    "y": 89,
+    "w": 159,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_idle_03": {
+   "frame": {
+    "x": 163,
+    "y": 145,
+    "w": 159,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 175,
+    "y": 88,
+    "w": 159,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_victory_00": {
+   "frame": {
+    "x": 1170,
+    "y": 2,
+    "w": 160,
+    "h": 123
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 172,
+    "y": 95,
+    "w": 160,
+    "h": 123
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_victory_01": {
+   "frame": {
+    "x": 1332,
+    "y": 2,
+    "w": 162,
+    "h": 123
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 169,
+    "y": 89,
+    "w": 162,
+    "h": 123
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_victory_02": {
+   "frame": {
+    "x": 841,
+    "y": 2,
+    "w": 163,
+    "h": 124
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 87,
+    "w": 163,
+    "h": 124
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_victory_03": {
+   "frame": {
+    "x": 1496,
+    "y": 2,
+    "w": 161,
+    "h": 123
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 171,
+    "y": 90,
+    "w": 161,
+    "h": 123
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_00": {
+   "frame": {
+    "x": 324,
+    "y": 145,
+    "w": 160,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 85,
+    "w": 160,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_01": {
+   "frame": {
+    "x": 810,
+    "y": 145,
+    "w": 160,
+    "h": 119
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 82,
+    "w": 160,
+    "h": 119
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_02": {
+   "frame": {
+    "x": 972,
+    "y": 145,
+    "w": 160,
+    "h": 119
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 82,
+    "w": 160,
+    "h": 119
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_03": {
+   "frame": {
+    "x": 486,
+    "y": 145,
+    "w": 160,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 85,
+    "w": 160,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_04": {
+   "frame": {
+    "x": 1134,
+    "y": 145,
+    "w": 160,
+    "h": 119
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 82,
+    "w": 160,
+    "h": 119
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_outfitHead_e_walk_05": {
+   "frame": {
+    "x": 1296,
+    "y": 145,
+    "w": 160,
+    "h": 119
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 82,
+    "w": 160,
+    "h": 119
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest tools/pack_atlas.py (original, MIT-style project-owned)",
+  "version": "0.1-provisional",
+  "image": "char_p0_outfit_head_e@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 268
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

@@ -2,11 +2,11 @@ import Phaser from "phaser";
 import { createSave } from "../../domain/progress";
 import { sanitizeName } from "../../domain/appearance";
 import { classById } from "../../domain/classes";
-import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE, PLACEHOLDER_NOTE } from "../p0";
+import { WarriorSprite } from "../art/warrior-sprite";
+import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE, WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter } from "../probe";
 import { commit } from "../session";
 import { FONT, button, paper } from "../ui";
-import { LayeredActor } from "../actors";
 
 export class CreateScene extends Phaser.Scene {
   constructor() {
@@ -19,9 +19,9 @@ export class CreateScene extends Phaser.Scene {
     this.add.text(180, 70, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
     this.add.text(180, 130, P0_NOTE, { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e", wordWrap: { width: 560 } });
     this.add.text(180, 210, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: "#17352a", wordWrap: { width: 520 } });
-    this.add.text(180, 690, `${PLACEHOLDER_NOTE}。用键盘输入名字，Enter 出发。`, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
-    const hero = new LayeredActor(this, 900, 560, "side");
-    hero.applyOutfit("traveler");
+    this.add.text(180, 690, `${WARRIOR_ART_NOTE}。用键盘输入名字，Enter 出发。`, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
+    const hero = new WarriorSprite(this, 980, 600, 0.58);
+    hero.play("idle");
     button(this, 300, 620, "返回", () => this.leave("title"), { width: 160, fill: 0x5c6b62 });
     const form = document.getElementById("name-form");
     const input = document.getElementById("hero-name");

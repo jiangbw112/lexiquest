@@ -11,7 +11,6 @@ import {
 } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
-import { PLACEHOLDER_NOTE } from "../p0";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, hint, listenKeys, paper } from "../ui";
@@ -174,7 +173,7 @@ export class LearnScene extends Phaser.Scene {
     const unit = units[this.unitIndex];
     if (!unit) return;
     this.add.text(180, 48, `学堂 · ${unit.title}`, { fontFamily: FONT, fontSize: "34px", color: "#17352a" });
-    this.add.text(180, 92, `${PLACEHOLDER_NOTE} · SAMPLE DATA · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级`, {
+    this.add.text(180, 92, "SAMPLE DATA · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级", {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#8a5a12",

@@ -1,0 +1,1046 @@
+{
+ "version": "0.1-provisional",
+ "status": "暂定（风格/配色待 Bowen 看 MVP 后定）",
+ "spec": "英语学习2D RPG 美术规范 v0.2",
+ "pack": "char_p0_warrior_heroA_battle_e",
+ "view": "battle side view",
+ "dir": "e (facing right); enemy side may mirror via flipX",
+ "logicW": 256,
+ "logicH": 256,
+ "sourceW": 512,
+ "sourceH": 512,
+ "scaleFactor": 2,
+ "pivot": {
+  "name": "foot",
+  "x": 256.0,
+  "y": 448.0,
+  "normalized": [
+   0.5,
+   0.875
+  ]
+ },
+ "anchorsUnit": "px in 512x512 @2x frame space; foot fixed, others per frame",
+ "layerOrder_backToFront": [
+  "shadow",
+  "hand_main",
+  "body_back",
+  "outfit_back",
+  "body",
+  "outfit_body",
+  "hair",
+  "outfit_head",
+  "body_front",
+  "outfit_front",
+  "hand_off"
+ ],
+ "animations": [
+  {
+   "key": "idle",
+   "frameCount": 4,
+   "fps": 6,
+   "repeat": -1,
+   "frameNames": [
+    "{layerPrefix}_idle_00",
+    "{layerPrefix}_idle_01",
+    "{layerPrefix}_idle_02",
+    "{layerPrefix}_idle_03"
+   ]
+  },
+  {
+   "key": "walk",
+   "frameCount": 6,
+   "fps": 10,
+   "repeat": -1,
+   "frameNames": [
+    "{layerPrefix}_walk_00",
+    "{layerPrefix}_walk_01",
+    "{layerPrefix}_walk_02",
+    "{layerPrefix}_walk_03",
+    "{layerPrefix}_walk_04",
+    "{layerPrefix}_walk_05"
+   ]
+  },
+  {
+   "key": "attack",
+   "frameCount": 5,
+   "fps": 12,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_attack_00",
+    "{layerPrefix}_attack_01",
+    "{layerPrefix}_attack_02",
+    "{layerPrefix}_attack_03",
+    "{layerPrefix}_attack_04"
+   ]
+  },
+  {
+   "key": "hit",
+   "frameCount": 2,
+   "fps": 8,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_hit_00",
+    "{layerPrefix}_hit_01"
+   ]
+  },
+  {
+   "key": "victory",
+   "frameCount": 4,
+   "fps": 8,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_victory_00",
+    "{layerPrefix}_victory_01",
+    "{layerPrefix}_victory_02",
+    "{layerPrefix}_victory_03"
+   ]
+  }
+ ],
+ "anchors": {
+  "foot": [
+   256.0,
+   448.0
+  ]
+ },
+ "anchorsPerFrame": {
+  "idle_00": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    341.0
+   ],
+   "chest": [
+    252.0,
+    291.0
+   ],
+   "head": [
+    258.0,
+    205.0
+   ],
+   "hand_R": [
+    328.6,
+    295.3
+   ],
+   "hand_L": [
+    301.6,
+    297.4
+   ],
+   "back": [
+    222.0,
+    286.0
+   ]
+  },
+  "idle_01": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    343.0
+   ],
+   "chest": [
+    252.0,
+    293.0
+   ],
+   "head": [
+    258.0,
+    207.0
+   ],
+   "hand_R": [
+    327.7,
+    299.7
+   ],
+   "hand_L": [
+    302.9,
+    298.8
+   ],
+   "back": [
+    222.0,
+    288.0
+   ]
+  },
+  "idle_02": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    344.0
+   ],
+   "chest": [
+    252.0,
+    294.0
+   ],
+   "head": [
+    258.0,
+    208.0
+   ],
+   "hand_R": [
+    327.2,
+    301.9
+   ],
+   "hand_L": [
+    303.5,
+    299.5
+   ],
+   "back": [
+    222.0,
+    289.0
+   ]
+  },
+  "idle_03": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    342.0
+   ],
+   "chest": [
+    252.0,
+    292.0
+   ],
+   "head": [
+    258.0,
+    206.0
+   ],
+   "hand_R": [
+    328.2,
+    297.5
+   ],
+   "hand_L": [
+    302.2,
+    298.1
+   ],
+   "back": [
+    222.0,
+    287.0
+   ]
+  },
+  "walk_00": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    343.0
+   ],
+   "chest": [
+    250.5,
+    293.1
+   ],
+   "head": [
+    250.5,
+    207.3
+   ],
+   "hand_R": [
+    327.4,
+    296.5
+   ],
+   "hand_L": [
+    293.5,
+    301.6
+   ],
+   "back": [
+    220.2,
+    288.1
+   ]
+  },
+  "walk_01": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    339.5
+   ],
+   "chest": [
+    250.5,
+    289.7
+   ],
+   "head": [
+    250.5,
+    203.9
+   ],
+   "hand_R": [
+    325.5,
+    295.9
+   ],
+   "hand_L": [
+    296.2,
+    297.2
+   ],
+   "back": [
+    220.2,
+    284.7
+   ]
+  },
+  "walk_02": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    339.5
+   ],
+   "chest": [
+    250.5,
+    289.7
+   ],
+   "head": [
+    250.5,
+    203.9
+   ],
+   "hand_R": [
+    321.0,
+    301.3
+   ],
+   "hand_L": [
+    301.2,
+    294.9
+   ],
+   "back": [
+    220.2,
+    284.7
+   ]
+  },
+  "walk_03": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    343.0
+   ],
+   "chest": [
+    250.5,
+    293.1
+   ],
+   "head": [
+    250.5,
+    207.3
+   ],
+   "hand_R": [
+    318.5,
+    307.1
+   ],
+   "hand_L": [
+    303.6,
+    296.9
+   ],
+   "back": [
+    220.2,
+    288.1
+   ]
+  },
+  "walk_04": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    339.5
+   ],
+   "chest": [
+    250.5,
+    289.7
+   ],
+   "head": [
+    250.5,
+    203.9
+   ],
+   "hand_R": [
+    321.0,
+    301.3
+   ],
+   "hand_L": [
+    301.2,
+    294.9
+   ],
+   "back": [
+    220.2,
+    284.7
+   ]
+  },
+  "walk_05": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    254.0,
+    339.5
+   ],
+   "chest": [
+    250.5,
+    289.7
+   ],
+   "head": [
+    250.5,
+    203.9
+   ],
+   "hand_R": [
+    325.5,
+    295.9
+   ],
+   "hand_L": [
+    296.2,
+    297.2
+   ],
+   "back": [
+    220.2,
+    284.7
+   ]
+  },
+  "attack_00": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    246.0,
+    341.0
+   ],
+   "chest": [
+    251.2,
+    291.3
+   ],
+   "head": [
+    266.2,
+    205.7
+   ],
+   "hand_R": [
+    232.6,
+    196.1
+   ],
+   "hand_L": [
+    297.5,
+    306.7
+   ],
+   "back": [
+    221.7,
+    286.3
+   ]
+  },
+  "attack_01": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    249.0,
+    341.0
+   ],
+   "chest": [
+    251.6,
+    291.1
+   ],
+   "head": [
+    262.1,
+    205.2
+   ],
+   "hand_R": [
+    235.7,
+    195.3
+   ],
+   "hand_L": [
+    296.9,
+    306.4
+   ],
+   "back": [
+    221.9,
+    286.1
+   ]
+  },
+  "attack_02": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    260.0,
+    343.0
+   ],
+   "chest": [
+    251.3,
+    293.8
+   ],
+   "head": [
+    242.4,
+    209.1
+   ],
+   "hand_R": [
+    331.1,
+    261.8
+   ],
+   "hand_L": [
+    298.6,
+    307.0
+   ],
+   "back": [
+    220.4,
+    288.8
+   ]
+  },
+  "attack_03": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    264.0,
+    343.0
+   ],
+   "chest": [
+    251.9,
+    294.5
+   ],
+   "head": [
+    237.1,
+    211.0
+   ],
+   "hand_R": [
+    321.8,
+    308.6
+   ],
+   "hand_L": [
+    300.3,
+    306.8
+   ],
+   "back": [
+    220.7,
+    289.6
+   ]
+  },
+  "attack_04": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    255.0,
+    341.0
+   ],
+   "chest": [
+    250.6,
+    291.2
+   ],
+   "head": [
+    249.1,
+    205.5
+   ],
+   "hand_R": [
+    329.0,
+    282.9
+   ],
+   "hand_L": [
+    296.4,
+    305.5
+   ],
+   "back": [
+    220.2,
+    286.2
+   ]
+  },
+  "hit_00": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    240.0,
+    344.0
+   ],
+   "chest": [
+    252.1,
+    295.5
+   ],
+   "head": [
+    278.9,
+    212.0
+   ],
+   "hand_R": [
+    318.8,
+    325.8
+   ],
+   "hand_L": [
+    308.6,
+    293.9
+   ],
+   "back": [
+    223.3,
+    290.6
+   ]
+  },
+  "hit_01": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    246.0,
+    344.0
+   ],
+   "chest": [
+    252.1,
+    294.4
+   ],
+   "head": [
+    268.6,
+    209.0
+   ],
+   "hand_R": [
+    316.4,
+    324.3
+   ],
+   "hand_L": [
+    306.2,
+    292.4
+   ],
+   "back": [
+    222.7,
+    289.4
+   ]
+  },
+  "victory_00": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    346.0
+   ],
+   "chest": [
+    252.0,
+    296.0
+   ],
+   "head": [
+    258.0,
+    210.0
+   ],
+   "hand_R": [
+    315.6,
+    267.3
+   ],
+   "hand_L": [
+    291.3,
+    333.6
+   ],
+   "back": [
+    222.0,
+    291.0
+   ]
+  },
+  "victory_01": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    338.0
+   ],
+   "chest": [
+    252.0,
+    288.0
+   ],
+   "head": [
+    258.0,
+    202.0
+   ],
+   "hand_R": [
+    314.1,
+    255.5
+   ],
+   "hand_L": [
+    291.3,
+    325.6
+   ],
+   "back": [
+    222.0,
+    283.0
+   ]
+  },
+  "victory_02": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    335.0
+   ],
+   "chest": [
+    252.0,
+    285.0
+   ],
+   "head": [
+    258.0,
+    199.0
+   ],
+   "hand_R": [
+    313.1,
+    250.2
+   ],
+   "hand_L": [
+    291.3,
+    322.6
+   ],
+   "back": [
+    222.0,
+    280.0
+   ]
+  },
+  "victory_03": {
+   "foot": [
+    256.0,
+    448.0
+   ],
+   "hip": [
+    252.0,
+    340.0
+   ],
+   "chest": [
+    252.0,
+    290.0
+   ],
+   "head": [
+    258.0,
+    204.0
+   ],
+   "hand_R": [
+    314.8,
+    258.8
+   ],
+   "hand_L": [
+    291.3,
+    327.6
+   ],
+   "back": [
+    222.0,
+    285.0
+   ]
+  }
+ },
+ "layers": [
+  {
+   "id": "char_heroA_shadow_e",
+   "domain": "char",
+   "subject": "heroA",
+   "slot": "shadow",
+   "fileToken": "shadow",
+   "class": null,
+   "appearanceId": "A",
+   "group": "system",
+   "z": 0,
+   "atlas": {
+    "json": "atlas/char_p0_shadow_e@2x.json",
+    "image": "atlas/char_p0_shadow_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/shadow/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "system"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_handMain_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "hand_main",
+   "fileToken": "handMain",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 10,
+   "atlas": {
+    "json": "atlas/char_p0_hand_main_e@2x.json",
+    "image": "atlas/char_p0_hand_main_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/hand_main/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_heroA_bodyBack_e",
+   "domain": "char",
+   "subject": "heroA",
+   "slot": "body_back",
+   "fileToken": "bodyBack",
+   "class": null,
+   "appearanceId": "A",
+   "group": "appearance",
+   "z": 20,
+   "atlas": {
+    "json": "atlas/char_p0_body_back_e@2x.json",
+    "image": "atlas/char_p0_body_back_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/body_back/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "appearance"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_outfitBack_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "outfit_back",
+   "fileToken": "outfitBack",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 25,
+   "atlas": {
+    "json": "atlas/char_p0_outfit_back_e@2x.json",
+    "image": "atlas/char_p0_outfit_back_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/outfit_back/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_heroA_body_e",
+   "domain": "char",
+   "subject": "heroA",
+   "slot": "body",
+   "fileToken": "body",
+   "class": null,
+   "appearanceId": "A",
+   "group": "appearance",
+   "z": 30,
+   "atlas": {
+    "json": "atlas/char_p0_body_e@2x.json",
+    "image": "atlas/char_p0_body_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/body/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "appearance"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_outfitBody_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "outfit_body",
+   "fileToken": "outfitBody",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 40,
+   "atlas": {
+    "json": "atlas/char_p0_outfit_body_e@2x.json",
+    "image": "atlas/char_p0_outfit_body_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/outfit_body/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_heroA_hair_e",
+   "domain": "char",
+   "subject": "heroA",
+   "slot": "hair",
+   "fileToken": "hair",
+   "class": null,
+   "appearanceId": "A",
+   "group": "appearance",
+   "z": 50,
+   "atlas": {
+    "json": "atlas/char_p0_hair_e@2x.json",
+    "image": "atlas/char_p0_hair_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/hair/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "appearance"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_outfitHead_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "outfit_head",
+   "fileToken": "outfitHead",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 60,
+   "atlas": {
+    "json": "atlas/char_p0_outfit_head_e@2x.json",
+    "image": "atlas/char_p0_outfit_head_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/outfit_head/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_heroA_bodyFront_e",
+   "domain": "char",
+   "subject": "heroA",
+   "slot": "body_front",
+   "fileToken": "bodyFront",
+   "class": null,
+   "appearanceId": "A",
+   "group": "appearance",
+   "z": 70,
+   "atlas": {
+    "json": "atlas/char_p0_body_front_e@2x.json",
+    "image": "atlas/char_p0_body_front_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/body_front/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "appearance"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_outfitFront_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "outfit_front",
+   "fileToken": "outfitFront",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 75,
+   "atlas": {
+    "json": "atlas/char_p0_outfit_front_e@2x.json",
+    "image": "atlas/char_p0_outfit_front_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/outfit_front/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  },
+  {
+   "id": "char_warrior_handOff_e",
+   "domain": "char",
+   "subject": "warrior",
+   "slot": "hand_off",
+   "fileToken": "handOff",
+   "class": "warrior",
+   "appearanceId": null,
+   "group": "class",
+   "z": 80,
+   "atlas": {
+    "json": "atlas/char_p0_hand_off_e@2x.json",
+    "image": "atlas/char_p0_hand_off_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/hand_off/",
+   "tags": [
+    "p0",
+    "battle",
+    "side",
+    "east",
+    "class"
+   ],
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_warrior.py",
+   "qaStatus": "integrable"
+  }
+ ],
+ "license": "项目自有（LexiQuest 原创）",
+ "source": "原创脚本",
+ "fonts": "无（精灵内无文字）",
+ "qaStatus": "integrable",
+ "qaNote": "脚本自检 7/7 通过（见 qa_report.json）+ 人工目检联系表/五个动画；未在 Phaser 运行时实测加载",
+ "conceptOnly": {
+  "file": "style_ref_v0.1.png",
+  "qaStatus": "concept",
+  "source": "AI 生成概念参考（GenerateImage），非精灵、不入游戏"
+ }
+}

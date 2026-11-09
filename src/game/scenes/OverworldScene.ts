@@ -94,7 +94,7 @@ export class OverworldScene extends Phaser.Scene {
     const hero = new LayeredActor(this, 640, 760, "top");
     hero.applyOutfit(save.equippedOutfitId);
     hero.root.setScale(0.85);
-    this.add.text(140, 760, `${PLACEHOLDER_NOTE} · ${DESKTOP_NOTE}`, { fontFamily: FONT, fontSize: "16px", color: "#e8f5ee" });
+    this.add.text(140, 760, `地图小人是${PLACEHOLDER_NOTE} · ${DESKTOP_NOTE}`, { fontFamily: FONT, fontSize: "16px", color: "#e8f5ee" });
     if (this.toast || save.rewardQueue[0]) {
       const notice = save.rewardQueue[0];
       const text = notice ? `${notice.title}。${notice.detail}` : this.toast;
