@@ -180,10 +180,10 @@ export function visibilityForCosmetics(
 }
 
 /**
- * The warrior v0.1 pack does not draw these as separate layers.
- * The hide rules stay in config. The renderer does not hide a different layer instead.
+ * The cape targets `back`, which this pack does not draw.
+ * The wreath hides the whole `outfit_head` layer. That layer is the helmet, plume included.
  */
 export const CHAPTER_ART_LIMITS = [
   "披肩要藏职业 back（背包、箭袋）。战士 v0.1 没有 back 图，这一层没有画出来，所以没有可藏的背包。",
-  "花环要藏头盔羽饰，不藏整顶头盔。羽饰烘在 outfit_head 里，没有单独的 helmet_plume，所以不能只藏羽饰。",
+  "花环戴上时，整顶头盔藏起来。头盔是 outfit_head 这一层，羽饰也在里面，不另拆一层。",
 ] as const;

@@ -117,8 +117,8 @@ export class WarriorSprite {
   }
 
   /**
-   * Hides a slot or part only when this pack actually draws it.
-   * The cape's `back` slot and the wreath's `helmet_plume` are not separate layers here.
+   * Hides a slot only when this pack draws it.
+   * The wreath hides the whole outfit_head layer. The cape's back slot is not drawn here.
    */
   private applyHideRules(): void {
     const visibility = visibilityForCosmetics(FOREST_REWARDS, this.equipped, {
@@ -142,9 +142,14 @@ export class WarriorSprite {
 
   /** Later outfits replace only these sprites. Body and class gear stay put. */
   setGroupVisible(group: WarriorGroup, visible: boolean): void {
+    const visibility = visibilityForCosmetics(FOREST_REWARDS, this.equipped, {
+      slots: WARRIOR_LAYERS.map((layer) => layer.slot),
+      parts: [],
+    });
     for (const layer of WARRIOR_LAYERS) {
       if (layer.group !== group) continue;
-      this.bySlot.get(layer.slot)?.setVisible(visible);
+      const show = visible && !visibility.hiddenSlots.includes(layer.slot);
+      this.bySlot.get(layer.slot)?.setVisible(show);
     }
   }
 

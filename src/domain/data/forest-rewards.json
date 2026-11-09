@@ -64,7 +64,7 @@
   },
   "hide_rules": [
     { "when_equipped": "forest_leaf_cape", "hide_slots": ["back"] },
-    { "when_equipped": "forest_wreath", "hide_parts": ["helmet_plume"] }
+    { "when_equipped": "forest_wreath", "hide_slots": ["outfit_head"] }
   ],
   "art_priority": "after_canopy_boss_remaining"
 }

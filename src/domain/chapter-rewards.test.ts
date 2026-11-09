@@ -275,27 +275,34 @@ describe("forest chapter rewards", () => {
     expect(facing).not.toMatch(/最强|排行|稀有/);
   });
 
-  it("hides back and the plume only when those parts exist", () => {
-    const equipped = ["forest_leaf_cape", "forest_wreath"];
-    const real = visibilityForCosmetics(FOREST_REWARDS, equipped, {
-      slots: WARRIOR_LAYERS.map((layer) => layer.slot),
-      parts: [],
-    });
-    expect(WARRIOR_LAYERS.map((layer) => layer.slot)).not.toContain("back");
-    expect(real.hiddenSlots).toEqual([]);
-    expect(real.hiddenParts).toEqual([]);
-    expect(real.unmet).toEqual(["back", "helmet_plume"]);
-    expect(real.hiddenSlots).not.toContain("outfit_head");
-    const supported = visibilityForCosmetics(FOREST_REWARDS, equipped, {
-      slots: ["back", "outfit_head"],
+  it("hides the whole helmet with the wreath, and the back slot with the cape", () => {
+    expect(FOREST_REWARDS.hide_rules).toEqual([
+      { when_equipped: "forest_leaf_cape", hide_slots: ["back"] },
+      { when_equipped: "forest_wreath", hide_slots: ["outfit_head"] },
+    ]);
+    const slots = WARRIOR_LAYERS.map((layer) => layer.slot);
+    expect(slots).toContain("outfit_head");
+    expect(slots).not.toContain("back");
+    const both = visibilityForCosmetics(FOREST_REWARDS, ["forest_leaf_cape", "forest_wreath"], {
+      slots,
       parts: ["helmet_plume"],
     });
-    expect(supported.hiddenSlots).toEqual(["back"]);
-    expect(supported.hiddenParts).toEqual(["helmet_plume"]);
-    expect(supported.unmet).toEqual([]);
-    expect(supported.hiddenSlots).not.toContain("outfit_head");
+    expect(both.hiddenSlots).toEqual(["outfit_head"]);
+    expect(both.hiddenParts).toEqual([]);
+    expect(both.unmet).toEqual(["back"]);
+    const wreath = visibilityForCosmetics(FOREST_REWARDS, ["forest_wreath"], {
+      slots: ["outfit_head", "hair", "body", "back"],
+      parts: [],
+    });
+    expect(wreath.hiddenSlots).toEqual(["outfit_head"]);
+    expect(wreath.hiddenSlots).not.toContain("hair");
+    expect(wreath.hiddenSlots).not.toContain("body");
+    const cape = visibilityForCosmetics(FOREST_REWARDS, ["forest_leaf_cape"], { slots, parts: [] });
+    expect(cape.hiddenSlots).toEqual([]);
+    expect(cape.unmet).toEqual(["back"]);
     expect(CHAPTER_ART_LIMITS.join("\n")).toMatch(/back/);
-    expect(CHAPTER_ART_LIMITS.join("\n")).toMatch(/helmet_plume|羽饰/);
+    expect(CHAPTER_ART_LIMITS.join("\n")).toMatch(/整顶头盔/);
+    expect(CHAPTER_ART_LIMITS.join("\n")).not.toMatch(/不藏整顶头盔/);
   });
 
   it("places the pin on cosmetic_chest and keeps the other slots", () => {
