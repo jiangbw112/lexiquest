@@ -288,8 +288,11 @@ export function selectionBattleNotice(sampleCount: number, minimum = PROVISIONAL
   return `所选年级里只有 ${sampleCount} 个词，还不够对战（至少 ${minimum} 个）。请再选一个年级。已经收下的词卡和复习都还在。`;
 }
 
+/** Writes a non-empty grade list. An empty list is not a save: the previous grades stay. */
 export function setSelectedGrades(save: SaveData, grades: readonly string[]): SaveData {
-  return { ...save, selectedGrades: normalizeGrades(grades), gradesConfirmed: true };
+  const selectedGrades = normalizeGrades(grades);
+  if (selectedGrades.length === 0) return save;
+  return { ...save, selectedGrades, gradesConfirmed: true };
 }
 
 /** True whenever no grade is selected. Learning and battle stay closed. */
@@ -297,16 +300,15 @@ export function needsGradeChoice(save: Pick<SaveData, "selectedGrades">): boolea
   return save.selectedGrades.length === 0;
 }
 
-export type GradeGate = "ready" | "migrate" | "ask-parent";
+export type GradeGate = "ready" | "migrate";
 
 /**
  * ready: at least one grade.
- * migrate: an older save that never stored a grade. That page may write the first choice.
- * ask-parent: grades were chosen and later cleared. The child cannot write a new choice there.
+ * migrate: the save is already empty. The opening grade picker may write the first choice.
+ * The parent page cannot create this state; it refuses to store an empty list.
  */
-export function gradeGate(save: Pick<SaveData, "selectedGrades" | "gradesConfirmed">): GradeGate {
-  if (save.selectedGrades.length > 0) return "ready";
-  return save.gradesConfirmed ? "ask-parent" : "migrate";
+export function gradeGate(save: Pick<SaveData, "selectedGrades">): GradeGate {
+  return save.selectedGrades.length > 0 ? "ready" : "migrate";
 }
 
 /** What the village should tell the child to do next. */

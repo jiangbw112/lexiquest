@@ -144,8 +144,8 @@ export interface SaveData {
   /** Grades the child is studying. Empty until they pick at least one. Missing older saves stay empty. */
   selectedGrades: GradeBand[];
   /**
-   * True after a grade choice has been written, including a parent clearing every grade.
-   * Older saves omit it. An empty list with this flag is not the first-time migrate page.
+   * True after a non-empty grade choice has been written.
+   * Older saves omit it. An empty list is not written by the parent page.
    */
   gradesConfirmed: boolean;
   clockOffsetMs: number;

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, normalizeGrades, toggleGradeChoice } from "../../domain/catalog";
+import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, canConfirmGrades, normalizeGrades, toggleGradeChoice } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
 import { ensureDailyGoal, parentView, setGoalPreset } from "../../domain/parent";
 import {
@@ -34,6 +34,7 @@ const PRESETS: { id: GoalPreset; label: string }[] = [
 export class GuideScene extends Phaser.Scene {
   private confirming = false;
   private notice = "";
+  private gradeDraft: GradeBand[] = [];
   private tab: GuideTab = "progress";
   private showAllStruggle = false;
   private strugglePage = 0;
@@ -53,6 +54,7 @@ export class GuideScene extends Phaser.Scene {
     probeEnter("guide");
     this.pinSession = createParentPinSession({ gate: pbkdf2PinGate, vault: browserParentPinVault() });
     this.pinBusy = false;
+    this.gradeDraft = normalizeGrades(getSave()?.selectedGrades);
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (event.code === "Escape") this.scene.start("overworld");
@@ -152,12 +154,11 @@ export class GuideScene extends Phaser.Scene {
 
   private toggleGrade(grade: GradeBand): void {
     const save = getSave();
-    if (!save) return;
-    const current = normalizeGrades(save.selectedGrades);
-    const turningOff = current.includes(grade);
+    if (!save || !this.pinSession.unlocked) return;
+    const turningOff = this.gradeDraft.includes(grade);
     const learned = turningOff ? learnedCountInGrade(save, grade) : 0;
-    const next = toggleGradeChoice(current, grade);
-    if (next.length === 0) {
+    this.gradeDraft = toggleGradeChoice(this.gradeDraft, grade);
+    if (this.gradeDraft.length === 0) {
       this.notice = GRADE_REQUIRED_NOTICE;
     } else if (turningOff && learned > 0) {
       const label = GRADE_BANDS.find((item) => item.id === grade)?.label ?? grade;
@@ -165,8 +166,29 @@ export class GuideScene extends Phaser.Scene {
     } else {
       this.notice = "";
     }
+    probeNote(`grades:draft:${this.gradeDraft.join(",") || "none"}`);
+    this.draw();
+  }
+
+  private saveGrades(): void {
+    if (!canConfirmGrades(this.gradeDraft)) {
+      this.notice = GRADE_REQUIRED_NOTICE;
+      probeNote("grades:save:blocked");
+      this.draw();
+      return;
+    }
+    const next = [...this.gradeDraft];
+    const before = normalizeGrades(getSave()?.selectedGrades);
     mutate((currentSave) => applyIfParentUnlocked(this.pinSession.unlocked, currentSave, (save) => setSelectedGrades(save, next)));
-    probeNote(`grades:${normalizeGrades(next).join(",")}`);
+    const removed = before.find((grade) => !next.includes(grade));
+    const learned = removed && getSave() ? learnedCountInGrade(getSave()!, removed) : 0;
+    if (removed && learned > 0) {
+      const label = GRADE_BANDS.find((item) => item.id === removed)?.label ?? removed;
+      this.notice = gradePauseNotice(label, learned);
+    } else {
+      this.notice = "";
+    }
+    probeNote(`grades:saved:${normalizeGrades(getSave()?.selectedGrades).join(",")}`);
     this.draw();
   }
 
@@ -301,21 +323,23 @@ export class GuideScene extends Phaser.Scene {
       "每天的学习目标按这台电脑当地时间凌晨 4 点换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级共用一个家长密码，只为避免孩子不小心修改。清掉浏览器数据后要重新设置。这不是安全登录。忘记密码时答一道算术题即可重设，学习记录不会被清掉。",
       "森林这一章有 28 个词。其中 20 个来自 PEP 三到六年级词表，另外 8 个只在这一章里，不进年级词池。发音用浏览器朗读，这是这一版定下的做法。",
     ];
-    const save = getSave();
-    const selected = normalizeGrades(save?.selectedGrades);
-    const notice = this.notice || (selected.length === 0
-      ? GRADE_REQUIRED_NOTICE
-      : "学习年级可以多选。取消某个年级后，已学词卡还在册子里，战斗和到期复习会暂停，重新勾选就恢复。");
+    const selected = this.gradeDraft;
+    const canSave = canConfirmGrades(selected);
+    const notice = this.notice || (canSave
+      ? "学习年级可以多选。取消某个年级后，已学词卡还在册子里，战斗和到期复习会暂停，重新勾选就恢复。"
+      : GRADE_REQUIRED_NOTICE);
     this.add.text(140, 150, notice, {
       fontFamily: FONT,
       fontSize: "16px",
-      color: selected.length === 0 || this.notice ? ERR_TEXT : MUTED,
+      color: !canSave || this.notice === GRADE_REQUIRED_NOTICE ? ERR_TEXT : MUTED,
       wordWrap: { width: 1000 },
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = selected.includes(grade.id);
       warmChip(this, 230 + index * 200, 230, grade.label, on, () => this.toggleGrade(grade.id), { width: 180 });
     });
+    probeNote(`grades:save:${canSave ? "open" : "blocked"}`);
+    warmButton(this, 1100, 230, "保存年级", () => this.saveGrades(), { width: 160, disabled: !canSave });
     this.add.text(140, 280, lines.join("\n"), {
       fontFamily: FONT,
       fontSize: "14px",

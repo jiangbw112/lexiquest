@@ -1,6 +1,6 @@
 import { wordById } from "./catalog";
 import { uiLabel } from "./ui-label";
-import { bossUnlockLine, stageWins, type ForestStage, type StageStatus } from "./stages";
+import { bossUnlockLine, FOREST_CHAPTER, stageWins, stageWordIds, type ForestStage, type StageStatus } from "./stages";
 import type { SaveData } from "./types";
 
 export interface MapWordFace {
@@ -55,19 +55,6 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     learned,
     total,
   };
-  if (status === "skipped") {
-    return {
-      ...base,
-      goal: null,
-      statusLabel: "已跳过",
-      showLock: false,
-      wins: null,
-      words: [],
-      unlockLine: null,
-      note: "所选年级没有这一关的新词",
-      buttons: [],
-    };
-  }
   const boss = stage.type === "boss";
   if (status === "locked" && !boss) {
     const after = stage.unlock && "after_stage" in stage.unlock ? stage.unlock.after_stage : null;
@@ -126,15 +113,17 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     };
   }
   const cleared = status === "cleared";
+  const winsNeeded = FOREST_CHAPTER.stage_clear.min_battle_wins;
+  const emptyLearn = stageWordIds(save, stage).length === 0;
   return {
     ...base,
-    goal: null,
+    goal: emptyLearn ? `赢 ${winsNeeded} 场小战斗` : null,
     statusLabel: cleared ? "已通过" : "进行中",
     showLock: false,
     wins: stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
-    note: null,
+    note: emptyLearn ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。` : null,
     buttons: [
       { id: "learn", label: uiLabel("去学堂"), enabled: true, tone: "secondary" },
       { id: "fight", label: uiLabel(cleared ? "再战" : "小战斗"), enabled: true, tone: cleared ? "coral" : "primary" },

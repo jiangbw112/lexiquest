@@ -20,14 +20,15 @@ export function contrastRatio(foreground: string, background: string): number {
 }
 
 /**
- * Text colors are the theme constants. Fills for coral, teal, and the disabled
- * button are the painted colors measured on the warm art, which are not theme tokens.
+ * Declared text fill against the declared b2.2 background.
+ * Stroke is not part of the ratio. Header titles use ink with no stroke.
  */
 export const WARM_TEXT_PAIRS = [
   { name: "ink on cream", fg: "#3B2A20", bg: "#FFF4DC" },
   { name: "muted on cream", fg: "#46363A", bg: "#FFF4DC" },
   { name: "error on cream", fg: "#834735", bg: "#FFF4DC" },
   { name: "disabled label on disabled fill", fg: "#3F2E25", bg: "#CFC4B2" },
-  { name: "cream on coral button", fg: "#FFF4DC", bg: "#E76F51" },
-  { name: "cream on selected chip", fg: "#FFF4DC", bg: "#30938B" },
+  { name: "cream on terra button", fg: "#FFF4DC", bg: "#A9432B" },
+  { name: "cream on deep teal button", fg: "#FFF4DC", bg: "#1F6F64" },
+  { name: "cream on selected chip", fg: "#FFF4DC", bg: "#266B65" },
 ] as const;

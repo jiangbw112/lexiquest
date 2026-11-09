@@ -222,7 +222,10 @@ describe("saved progress", () => {
     grades = toggleGradeChoice(grades, "G3");
     grades = toggleGradeChoice(grades, "G5");
     expect(grades).toEqual([]);
-    expect(setSelectedGrades(newSave(), grades).selectedGrades).toEqual([]);
+    expect(canConfirmGrades(grades)).toBe(false);
+    const kept = newSave();
+    expect(setSelectedGrades(kept, grades)).toBe(kept);
+    expect(kept.selectedGrades).toEqual(["G3"]);
   });
 
   it("disables continue and shows 至少选一个年级 while the selection is empty", () => {
@@ -235,6 +238,8 @@ describe("saved progress", () => {
     expect(picker).not.toContain('["G3"]');
     const parent = readFileSync(new URL("./../game/scenes/GuideScene.ts", import.meta.url), "utf8");
     expect(parent).toContain("GRADE_REQUIRED_NOTICE");
+    expect(parent).toContain("disabled: !canSave");
+    expect(parent).toContain("grades:save:blocked");
     expect(parent).not.toContain('["G3"]');
     expect(parent).not.toContain("留下三年级");
   });
@@ -251,13 +256,13 @@ describe("saved progress", () => {
     expect(gradeGate(migrated!)).toBe("migrate");
     expect(needsGradeChoice(migrated!)).toBe(true);
     expect(learnWord(migrated!, "tree", START)).toBe(migrated);
-    const cleared = setSelectedGrades(current, []);
-    expect(cleared.gradesConfirmed).toBe(true);
-    expect(needsGradeChoice(cleared)).toBe(true);
-    expect(gradeGate(cleared)).toBe("ask-parent");
-    const emptyList = deserialize(serialize(cleared));
-    expect(emptyList?.selectedGrades).toEqual([]);
-    expect(gradeGate(emptyList!)).toBe("ask-parent");
+    const kept = setSelectedGrades(current, []);
+    expect(kept).toBe(current);
+    expect(kept.selectedGrades).toEqual(["G3"]);
+    expect(gradeGate(kept)).toBe("ready");
+    const alreadyEmpty = deserialize(JSON.stringify({ ...JSON.parse(serialize(current)), selectedGrades: [], gradesConfirmed: true }));
+    expect(alreadyEmpty?.selectedGrades).toEqual([]);
+    expect(gradeGate(alreadyEmpty!)).toBe("migrate");
     const picked = setSelectedGrades(migrated!, ["G5", "G3"]);
     expect(picked.selectedGrades).toEqual(["G3", "G5"]);
     expect(picked.gradesConfirmed).toBe(true);
@@ -288,12 +293,18 @@ describe("saved progress", () => {
     expect(selectionBattleNotice(2)).toContain("再选一个年级");
     expect(selectionBattleNotice(wordsForGrades(["G6"]).length)).toBeNull();
 
-    save = setSelectedGrades(save, []);
-    expect(save.selectedGrades).toEqual([]);
-    expect(needsGradeChoice(save)).toBe(true);
-    expect(learnWord(save, "explore", START)).toBe(save);
-    expect(learnWord(save, "tree", START)).toBe(save);
-    save = setSelectedGrades(save, ["G3"]);
+    const empty = createSave({
+      name: "小林",
+      classId: "warrior",
+      appearance: DEFAULT_APPEARANCE,
+      now: START.getTime(),
+    });
+    expect(setSelectedGrades(save, [])).toBe(save);
+    expect(save.selectedGrades).toEqual(["G3", "G6"]);
+    expect(needsGradeChoice(empty)).toBe(true);
+    expect(learnWord(empty, "explore", START)).toBe(empty);
+    expect(learnWord(empty, "tree", START)).toBe(empty);
+    save = setSelectedGrades(empty, ["G3"]);
     expect(needsGradeChoice(save)).toBe(false);
     save = learnWord(save, "tree", START);
     expect(save.wordCards.tree?.masteryBadge).toBe(false);

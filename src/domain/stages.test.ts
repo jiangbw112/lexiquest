@@ -19,6 +19,7 @@ import {
   masteryLabel,
   explorationCleared,
   initialMapStageId,
+  learnedRequiredCount,
   requiredWordIds,
   stageCleared,
   stageStatuses,
@@ -114,7 +115,7 @@ describe("forest chapter", () => {
     expect(early.chapterCleared).toBe(false);
   });
 
-  it("counts selected-grade chapter words plus every extra, and skips a stage with neither", () => {
+  it("counts selected-grade chapter words plus every extra, and clears an empty stage after one win", () => {
     const extras = chapterExtraWords().map((word) => word.id);
     expect(extras).toHaveLength(8);
 
@@ -145,15 +146,26 @@ describe("forest chapter", () => {
     expect(bossUnlockLine(newSave())).toBe("通过前 4 关并学完 28 个词");
 
     const grade5 = newSave(["G5"]);
-    expect(stageWordIds(grade5, FOREST_CHAPTER.stages[0]!)).toEqual([]);
-    expect(stageStatuses(grade5)).toEqual(["skipped", "open", "locked", "locked", "locked"]);
+    const first = FOREST_CHAPTER.stages[0]!;
+    expect(stageWordIds(grade5, first)).toEqual([]);
+    expect(stageCleared(grade5, first)).toBe(false);
+    expect(stageStatuses(grade5)).toEqual(["open", "locked", "locked", "locked", "locked"]);
+    expect(learnedRequiredCount(grade5)).toBe(0);
     expect(requiredWordIds(grade5)).toHaveLength(14);
     for (const id of extras) expect(requiredWordIds(grade5)).toContain(id);
+    const onlySecond = { ...grade5, stageWins: { "2": 1 } };
+    expect(stageStatuses(onlySecond)[0]).toBe("open");
+    expect(stageStatuses(onlySecond)[2]).toBe("locked");
+    expect(explorationCleared(onlySecond)).toBe(false);
+    const wonFirst = { ...grade5, stageWins: { "1": 1 } as Record<string, number> };
+    expect(stageCleared(wonFirst, first)).toBe(true);
+    expect(stageStatuses(wonFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
     const second = FOREST_CHAPTER.stages[1]!;
-    let opened = grade5;
+    let opened = wonFirst;
     for (const id of stageWordIds(grade5, second)) opened = learnWord(opened, id, START);
-    opened = { ...opened, stageWins: { "2": 1 } };
+    opened = { ...opened, stageWins: { ...opened.stageWins, "2": 1 } };
     expect(stageStatuses(opened)[2]).toBe("open");
+    expect(learnedRequiredCount(opened)).toBe(stageWordIds(grade5, second).length);
   });
 
   it("drops a cancelled grade from the boss count and can open the boss", () => {

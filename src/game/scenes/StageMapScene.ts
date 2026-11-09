@@ -5,10 +5,10 @@ import { studyNow } from "../../domain/progress";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
   chapterDueCount,
-  chapterLearnedCount,
   FOREST_CHAPTER,
-  FOREST_WORD_COUNT,
+  learnedRequiredCount,
   masteryLabel,
+  requiredWordIds,
   stageById,
   initialMapStageId,
   stageStatuses,
@@ -104,7 +104,13 @@ export class StageMapScene extends Phaser.Scene {
     }
 
     warmPanel(this, 520, 58, 760, 72);
-    this.add.text(180, 36, `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
+    const required = requiredWordIds(save);
+    this.add.text(180, 36, `已学 ${learnedRequiredCount(save)}/${required.length}`, {
+      fontFamily: FONT,
+      fontSize: "20px",
+      fontStyle: "700",
+      color: INK,
+    });
     this.add.text(430, 36, `掌握 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(660, 36, `到期 ${chapterDueCount(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(180, 64, `距林心守护还差 ${wordsUntilBoss(save)} 个词`, {

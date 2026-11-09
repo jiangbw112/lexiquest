@@ -108,14 +108,17 @@ describe("forest map panel", () => {
     expect(panel.words.find((face) => face.id === "run")).toMatchObject({ english: null, interactive: false });
   });
 
-  it("does not invent words for a skipped stage", () => {
+  it("asks for one small battle when the selected grades have no words on the stage", () => {
     const save = saveWith(["G5"]);
     const stage = FOREST_CHAPTER.stages[0]!;
-    expect(stageStatuses(save)[0]).toBe("skipped");
-    const panel = mapPanel(save, stage, "skipped");
-    expect(panel.words).toEqual([]);
-    expect(panel.note).toBe("所选年级没有这一关的新词");
-    expect(panel.buttons).toEqual([]);
+    expect(stageStatuses(save)[0]).toBe("open");
+    const panel = mapPanel(save, stage, "open");
+    expect(panel.words.every((face) => face.english === null && face.interactive === false)).toBe(true);
+    expect(panel.words).toHaveLength(stage.new_words.length);
+    expect(panel.goal).toBe("赢 1 场小战斗");
+    expect(panel.note).toBe("这一关没有要学的新词。赢 1 场小战斗就算通过。");
+    expect(panel.statusLabel).toBe("进行中");
+    expect(panel.buttons.find((button) => button.id === "fight")).toMatchObject({ label: "小战斗", enabled: true });
     expect(panel.total).toBe(stage.new_words.length);
   });
 });

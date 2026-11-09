@@ -243,6 +243,11 @@ export function chapterLearnedCount(save: SaveData): number {
   return chapterWordIds().filter((id) => save.wordCards[id]).length;
 }
 
+/** Collected cards among requiredWordIds. The map header uses this over that same length. */
+export function learnedRequiredCount(save: SaveData): number {
+  return requiredWordIds(save).filter((id) => save.wordCards[id]).length;
+}
+
 export function litMasteryCount(save: SaveData, now: Date): number {
   return chapterWordIds().filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length;
 }
@@ -259,15 +264,16 @@ export function stageWins(save: SaveData, stageId: number): number {
 export function stageCleared(save: SaveData, stage: ForestStage): boolean {
   if (stage.type === "boss") return save.chapterCleared;
   const ids = stageWordIds(save, stage);
-  if (ids.length === 0) return false;
+  const wins = stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
+  if (ids.length === 0) return wins;
   const learned = !FOREST_CHAPTER.stage_clear.all_stage_words_learned || ids.every((id) => save.wordCards[id]);
-  return learned && stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
+  return learned && wins;
 }
 
 export function explorationCleared(save: SaveData): boolean {
   return FOREST_CHAPTER.stages
     .filter((stage) => stage.type !== "boss")
-    .every((stage) => stageWordIds(save, stage).length === 0 || stageCleared(save, stage));
+    .every((stage) => stageCleared(save, stage));
 }
 
 /**
@@ -292,10 +298,6 @@ export function stageStatuses(save: SaveData): StageStatus[] {
       if (save.chapterCleared) statuses.push("cleared");
       else if (gateOpen && bossReady(save)) statuses.push("open");
       else statuses.push("locked");
-      continue;
-    }
-    if (stageWordIds(save, stage).length === 0) {
-      statuses.push("skipped");
       continue;
     }
     if (!gateOpen) {

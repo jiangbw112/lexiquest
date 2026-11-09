@@ -61,7 +61,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     const status = stageStatuses(save)[stage.id - 1];
-    if (status === "locked" || status === "skipped" || (stage.type === "boss" && !bossReady(save) && !save.chapterCleared)) {
+    if (status === "locked" || (stage.type === "boss" && !bossReady(save) && !save.chapterCleared)) {
       this.scene.start("stages");
       return;
     }
