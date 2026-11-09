@@ -70,19 +70,21 @@ Provisional chapter numbers, also in `src/domain/provisional.ts`:
 | --- | --- |
 | Exploration enemy health / attack | 44 / 6, about 3–5 casts of 盾击, 战吼, or 旋风斩 |
 | Question gap | No repeat inside the last 3 questions when another word can be asked |
-| Completion reward | Read from `src/domain/data/forest-rewards.json`. First clear grants `forest_leaf_cape` and the default title candidate. Mastery uses `ceil(chapter length × 0.5)` and `ceil(chapter length × 1)`. Names are not final (`final_name_selected_by_pm` is false) |
+| Completion reward | Read from `src/domain/chapters/forest-rewards.json`. First clear grants `forest_leaf_cape` and the default title candidate. Mastery uses `ceil(chapter length × 0.5)` and `ceil(chapter length × 1)`. Names are not final (`final_name_selected_by_pm` is false) |
 
 林心守护者 is two phases of 65 health. 盾击 clears in 12 casts and 战吼 in 9. 旋风斩 is heavier and clears in 7. Spelling stays at or under 30% of boss questions. These can move after playtesting.
 
-Forest chapter cosmetics and titles are `src/domain/data/forest-rewards.json`. The word loader skips that file because it has no `words` array. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The drawn pieces in `public/assets/chapter/forest/v0.1-placeholder/` are single-color silhouettes, not finished art. The cape is `cosmetic_back`, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head`. This warrior pack has no `back` atlas, so the cape hide rule has no backpack to hide. The wreath hides the whole `outfit_head` layer, which is the helmet with the plume baked in. The plume is not split into its own frame.
+Forest chapter cosmetics and titles are `src/domain/chapters/forest-rewards.json`. That file stays outside the word-list directory. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The drawn pieces in `public/assets/chapter/forest/v0.1-placeholder/` are single-color silhouettes, not finished art. The cape is `cosmetic_back`, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head`. This warrior pack has no `back` atlas, so the cape hide rule has no backpack to hide. The wreath hides the whole `outfit_head` layer, which is the helmet with the plume baked in. The plume is not split into its own frame.
 
 Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB, so `public/assets` is about 1.98 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
 
 ## Sample data
 
-`src/domain/data/forest-adventure.json` is the approved 28-word Forest Adventure list. The words are self-chosen common words, marked SAMPLE DATA, not textbook text. `grade_est` is an estimate. Spelling is `basic` (allowed from the start, including grade 3), `advanced` (only after the mastery badge), or `none`. Every word supports meaning and listening questions. Distractors come from the same theme and grade first. The grade map still has G3–G6, two semesters, and six unit slots. Only the first unit of each grade is filled.
+`src/domain/data/pep_words_g3-6_v1.1_loader.json` is the only word list. It is the PEP grades 3–6 library, v1.1, 863 words, `sample` false. The loader reads `word`, `meaning_zh`, `grade_est`, and `spelling`. It ignores `card_type`, `senses`, `notes`, `change_note`, and top-level lists such as `dedup_dropped`. A file in that directory without a `words` array is refused. One file can hold every grade, or each grade can have its own file. A repeated word id is refused. `unitId` is still hard-coded as `${grade}-S1-U1`. Semester and unit are on the formal table and are not used yet.
 
-The forest loader reads every JSON file in `src/domain/data/` that has a `words` array. `forest-stages.json` is the chapter, not a word list, so the loader skips it. A word file uses `theme`, `sample`, and a `words` array of `{ word, meaning_zh, grade_est, spelling }`. Extra fields, including `senses`, `notes`, and top-level lists such as `dedup_dropped`, are ignored. One file can hold every grade, or each grade can have its own file. Adding a word file there does not require a code change. A repeated word id is refused. The PEP grades 3–6 list is loaded separately from `src/domain/pep/` and is not part of that directory, because 20 ids also appear in the forest sample. The playable chapter stays on the sample list. `docs/pep/forest_chapter_mapping_v1.json` is kept for later and is not read by the game. `unitId` is still hard-coded, and semester and unit are not used.
+The forest chapter is `src/domain/chapters/chapter_forest_v1.json`, outside the word-list directory. Its five stages and the 6/6/6/6/4 split come from that file. Twenty words are resolved by id from the library, so spelling, meaning, and grade follow the formal table. Eight words (`bridge`, `brave`, `path`, `treasure`, `journey`, `discover`, `adventure`, `protect`) belong only to this chapter. They can be learned here and they never enter a grade pool. Boss clear rules that the chapter file does not define stay in `forest-stage-rules.json`. The school teaches this 28-word chapter. Grade pools used for “enough words to battle” and the daily-goal learn fallback are the library. Saved card ids match the previous forest ids, so existing saves keep those cards. A card’s displayed grade, meaning, and spelling now follow v1.1. `docs/pep/forest_chapter_mapping_v1.json` is an older mapping and is not read.
+
+Spelling comparison is trim, lower case, and collapsed whitespace, then an exact string. A hyphen, an apostrophe, or a space is part of the answer. `camp` and `camping` are two ids. Words with `spelling` `none`, including the conversation cards `hello`, `hi`, and `goodbye`, are never spelling questions.
 
 ## Save data
 
@@ -92,7 +94,7 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 
 - Server-authoritative save. This browser cache is not the child’s real progress.
 - Networked friend 1v1. Same-device practice uses the tested comparison. A real match must be server-authoritative for the room, judging, timing, the lexicographic result, and rewards, with replay, forgery, and duplicate-reward protection. The client must not submit the final result.
-- Switching the forest chapter onto PEP ids. The two lists stay separate until that reference is decided. `unitId` is still hard-coded, and semester and unit are not used.
+- `unitId` is still hard-coded as `${grade}-S1-U1`. The v1.1 table has semester and unit, and this build does not use them. The school still teaches the 28-word forest chapter rather than walking every library word in that one unit.
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
 - Whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay a count of this chapter’s words. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
@@ -109,9 +111,9 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - `src/domain` — cards, FSRS review, battle, skill slots, duel scoring, rewards, save shape
 - `src/domain/proposals.ts` — confirmed v1 numbers for the parent page and the daily goal
 - `src/domain/parent-pin.ts` — local parent PIN gate against accidental changes. The adult-check form is a tech default pending product and design confirmation
-- `src/domain/data/forest-adventure.json` — the approved sample word list, still the playable chapter
-- `src/domain/pep/pep_words_g3-6_v1_loader.json` — the PEP grades 3–6 list, loaded separately
-- `docs/pep/forest_chapter_mapping_v1.json` — unused forest-to-PEP mapping
+- `src/domain/data/pep_words_g3-6_v1.1_loader.json` — the PEP grades 3–6 library, the only word list
+- `src/domain/chapters/chapter_forest_v1.json` — the forest chapter, resolved by reference
+- `docs/pep/forest_chapter_mapping_v1.json` — an older mapping, not read by the game
 - `src/game` — Phaser 3 client, placeholder atlas, provisional warrior v0.1, provisional 林冠 v0.1, and scenes
 - `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and `slots.json`
 - `public/assets/boss/canopy/v0.1` — the four 林冠 atlases and `manifest.json`

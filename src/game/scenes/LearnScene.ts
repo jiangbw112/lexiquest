@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GRADE_BANDS, sampleUnits, wordById } from "../../domain/catalog";
+import { forestLearnUnits, GRADE_BANDS, wordById } from "../../domain/catalog";
 import { learnWord, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
@@ -55,7 +55,7 @@ export class LearnScene extends Phaser.Scene {
 
   private units() {
     const grades = new Set(getSave()?.selectedGrades ?? ["G3"]);
-    return sampleUnits().filter((unit) => grades.has(unit.grade));
+    return forestLearnUnits().filter((unit) => grades.has(unit.grade));
   }
 
   private badgeLit(wordId: string): boolean {
@@ -192,7 +192,7 @@ export class LearnScene extends Phaser.Scene {
     if (this.unitIndex >= units.length) this.unitIndex = 0;
     const unit = units[this.unitIndex];
     if (!unit) {
-      this.add.text(180, 250, "所选年级里没有可以学的示例词。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
+      this.add.text(180, 250, "所选年级里没有这一章的词。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
       this.add.text(180, 310, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
         fontFamily: FONT,
         fontSize: "20px",
@@ -203,7 +203,7 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     this.add.text(180, 48, `学堂 · ${unit.title}`, { fontFamily: FONT, fontSize: "34px", color: "#17352a" });
-    this.add.text(180, 92, "SAMPLE DATA · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级", {
+    this.add.text(180, 92, "森林冒险 · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级", {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#8a5a12",

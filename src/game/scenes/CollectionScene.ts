@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import { sampleWords } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
-import { SAMPLE_DATA_LABEL } from "../../domain/catalog";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, button, paper } from "../ui";
@@ -25,7 +24,7 @@ export class CollectionScene extends Phaser.Scene {
     const now = studyNow(save);
     const owned = sampleWords().filter((word) => save.wordCards[word.id]);
     this.add.text(160, 40, "词卡册", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(340, 52, `${SAMPLE_DATA_LABEL} · 已收集 ${owned.length}/${sampleWords().length} · 词卡不会因为徽章变灰而消失`, {
+    this.add.text(340, 52, `森林冒险 · 已收集 ${owned.length}/${sampleWords().length} · 词卡不会因为徽章变灰而消失`, {
       fontFamily: FONT,
       fontSize: "18px",
       color: "#8a5a12",

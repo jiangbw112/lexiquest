@@ -270,8 +270,8 @@ describe("word-monster battle", () => {
     const mix = askBoss(basics, basics, 12);
     expect(mix.spelling).toBeGreaterThan(0);
     expect(mix.spelling / mix.asked).toBeLessThanOrEqual(0.3);
-    expect(askBoss(["mountain"], [], 12).spelling).toBe(0);
-    expect(askBoss(["dangerous"], ["dangerous"], 12).spelling).toBe(0);
+    expect(askBoss(["big"], [], 12).spelling).toBe(0);
+    expect(askBoss(["treasure"], ["treasure"], 12).spelling).toBe(0);
     const onlyTree = askBoss(["tree"], [], 8, sampleWords().map((word) => word.id));
     expect(onlyTree.words.every((id) => id === "tree")).toBe(true);
   });

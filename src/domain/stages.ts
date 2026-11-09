@@ -1,5 +1,6 @@
-import { sampleWords, wordById } from "./catalog";
-import chapterFile from "./data/forest-stages.json";
+import { wordById } from "./catalog";
+import chapterFile from "./chapters/chapter_forest_v1.json";
+import rulesFile from "./chapters/forest-stage-rules.json";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
 import type { SaveData } from "./types";
@@ -73,10 +74,6 @@ function readChapter(value: unknown): ForestChapter {
   for (const id of ids) {
     if (!wordById(id)) throw new Error(`stage word ${id} is not in the catalog`);
   }
-  const sample = new Set(sampleWords().map((word) => word.id));
-  if (ids.length !== sample.size || ids.some((id) => !sample.has(id))) {
-    throw new Error("stage words must be the forest sample");
-  }
   return {
     ...file,
     stages: file.stages.map((stage, index) => ({
@@ -87,7 +84,41 @@ function readChapter(value: unknown): ForestChapter {
   };
 }
 
-export const FOREST_CHAPTER: ForestChapter = readChapter(chapterFile);
+interface ChapterStageFile {
+  id: number;
+  name_zh: string;
+  type?: "boss" | "exploration";
+  learn_before_fight?: boolean;
+  word_refs: string[];
+}
+
+interface ChapterFile {
+  chapter_id: string;
+  clear_rule: "defeat_boss";
+  mastery_blocks_clear: false;
+  stages: ChapterStageFile[];
+}
+
+function stagesFromChapter(file: ChapterFile): ForestStage[] {
+  return file.stages.map((stage) => ({
+    id: stage.id,
+    name_zh: stage.name_zh,
+    type: stage.type === "boss" ? "boss" : "exploration",
+    new_words: stage.word_refs,
+    learn_before_fight: stage.learn_before_fight === true,
+  }));
+}
+
+const chapter = chapterFile as ChapterFile;
+const rules = rulesFile as unknown as Omit<ForestChapter, "stages">;
+
+export const FOREST_CHAPTER: ForestChapter = readChapter({
+  ...rules,
+  chapter_id: chapter.chapter_id,
+  clear_rule: chapter.clear_rule,
+  mastery_blocks_clear: chapter.mastery_blocks_clear,
+  stages: stagesFromChapter(chapter),
+});
 export const FOREST_WORD_COUNT = FOREST_CHAPTER.stages.reduce((sum, stage) => sum + stage.new_words.length, 0);
 export const BOSS_STAGE_ID = 5;
 

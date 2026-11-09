@@ -208,8 +208,8 @@ describe("saved progress", () => {
       grades: ["G6", "G3", "nope"],
     });
     expect(save.selectedGrades).toEqual(["G3", "G6"]);
-    expect(wordsForGrades(["G3"])).toHaveLength(8);
-    expect(wordsForGrades([])).toHaveLength(8);
+    expect(wordsForGrades(["G3"])).toHaveLength(228);
+    expect(wordsForGrades([])).toHaveLength(228);
     expect(selectionBattleNotice(2)).toContain("再选一个年级");
     expect(selectionBattleNotice(wordsForGrades(["G6"]).length)).toBeNull();
 
@@ -234,8 +234,8 @@ describe("saved progress", () => {
     expect(reviewed.memory.tree).not.toBe(pausedMemory);
     expect(reviewed.wordCards.tree?.wordId).toBe("tree");
     save = setSelectedGrades(reviewed, ["G6"]);
-    save = learnWord(save, "explore", START);
-    expect(save.wordCards.explore).toBeTruthy();
+    save = learnWord(save, "village", START);
+    expect(save.wordCards.village).toBeTruthy();
     expect(save.wordCards.tree).toBeTruthy();
     expect(selectedCollected(save)).toBe(false);
   });

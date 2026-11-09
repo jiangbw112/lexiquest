@@ -1,40 +1,51 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { mergeWordFiles, SAMPLE_THEME, SAMPLE_WORDS, sampleUnits, wordById, type WordFile } from "./catalog";
+import {
+  chapterExtraWords,
+  chapterWords,
+  forestLearnUnits,
+  mergeWordFiles,
+  sampleUnits,
+  sampleWords,
+  wordById,
+  type WordFile,
+} from "./catalog";
 import { spellingInstruction } from "../game/spelling-form";
 import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingMarkHint, spellingQuestion } from "./questions";
 import { placeholderSpeaker, speakWord } from "./speech";
 
-const raw = JSON.parse(readFileSync("src/domain/data/forest-adventure.json", "utf8")) as {
-  theme: string;
-  words: { word: string; meaning_zh: string; grade_est: number; spelling: string }[];
-};
+const PREVIOUS_CARD_IDS = [
+  "tree", "bird", "fish", "sun", "map", "run", "big", "red", "river", "forest", "mountain", "flower", "rain",
+  "cloud", "jump", "bridge", "village", "climb", "weather", "brave", "dangerous", "path", "explore",
+  "treasure", "journey", "discover", "adventure", "protect",
+];
 
-describe("Forest Adventure sample words", () => {
-  it("loads the approved 28-word list and no audio files", () => {
-    expect(raw.theme).toBe("Forest Adventure");
-    expect(raw.words).toHaveLength(28);
-    expect(SAMPLE_WORDS).toHaveLength(28);
-    expect(SAMPLE_WORDS.every((word) => word.sample && word.theme === SAMPLE_THEME)).toBe(true);
-    expect(JSON.stringify(raw)).not.toMatch(/https?:|audio|\.mp3|\.ogg/i);
-    const grades = raw.words.map((word) => word.grade_est);
-    expect(grades.filter((grade) => grade === 3)).toHaveLength(8);
-    expect(grades.filter((grade) => grade === 4)).toHaveLength(8);
-    expect(grades.filter((grade) => grade === 5)).toHaveLength(6);
-    expect(grades.filter((grade) => grade === 6)).toHaveLength(6);
-    expect(sampleUnits().map((unit) => unit.grade)).toEqual(["G3", "G4", "G5", "G6"]);
+describe("Forest chapter words", () => {
+  it("keeps the same 28 card ids, with meanings taken from the resolved definitions", () => {
+    expect(chapterWords()).toHaveLength(28);
+    expect(sampleWords().map((word) => word.id)).toEqual(chapterWords().map((word) => word.id));
+    expect(new Set(chapterWords().map((word) => word.id))).toEqual(new Set(PREVIOUS_CARD_IDS));
+    expect(wordById("tree")).toMatchObject({ chinese: "树", spelling: "basic", theme: "PEP Grades 3-6", sample: false });
+    expect(wordById("red")?.chinese).toBe("红色");
+    expect(wordById("mountain")).toMatchObject({ chinese: "高山", spelling: "basic", grade: "G5" });
+    expect(wordById("bridge")).toMatchObject({ chinese: "桥", theme: "Forest Adventure", sample: false, grade: "G4" });
+    expect(chapterExtraWords().map((word) => word.id).sort()).toEqual(
+      ["adventure", "brave", "bridge", "discover", "journey", "path", "protect", "treasure"],
+    );
+    expect(forestLearnUnits().map((unit) => unit.grade)).toEqual(["G3", "G4", "G5", "G6"]);
+    expect(sampleUnits()).toEqual([]);
   });
 
   it("loads one file or one file per grade from the same schema", () => {
-    const grade3 = raw.words.filter((word) => word.grade_est === 3);
-    const rest = raw.words.filter((word) => word.grade_est !== 3);
+    const grade3 = [{ word: "tree", meaning_zh: "树", grade_est: 3, spelling: "basic" }];
+    const rest = [{ word: "river", meaning_zh: "河", grade_est: 5, spelling: "basic" }];
     const files: Record<string, WordFile> = {
-      "grade-3.json": { theme: raw.theme, sample: true, words: grade3 },
-      "grades-4-6.json": { theme: raw.theme, sample: true, words: rest },
+      "grade-3.json": { theme: "PEP Grades 3-6", sample: false, words: grade3 },
+      "grades-4-6.json": { theme: "PEP Grades 3-6", sample: false, words: rest },
     };
     const merged = mergeWordFiles(files);
-    expect(merged.map((word) => word.id).sort()).toEqual(raw.words.map((word) => word.word).sort());
-    expect(merged.every((word) => word.sample)).toBe(true);
+    expect(merged.map((word) => word.id).sort()).toEqual(["river", "tree"]);
+    expect(merged.every((word) => word.sample === false)).toBe(true);
     expect(() => mergeWordFiles({ ...files, "again.json": { words: [grade3[0]!] } })).toThrow(/tree/);
   });
 
@@ -42,26 +53,29 @@ describe("Forest Adventure sample words", () => {
     const tree = wordById("tree");
     expect(tree?.chinese).toBe("树");
     const picked = pickDistractors(tree!, 9, 4);
-    expect(picked.slice(0, 7).every((word) => word.gradeEst === 3 && word.theme === SAMPLE_THEME)).toBe(true);
+    expect(picked.slice(0, 7).every((word) => word.gradeEst === 3 && word.theme === tree?.theme)).toBe(true);
     expect(picked[7]?.gradeEst).not.toBe(3);
-    expect(picked.every((word) => word.theme === SAMPLE_THEME)).toBe(true);
+    expect(picked.every((word) => chapterWords().some((item) => item.id === word.id))).toBe(true);
   });
 
-  it("allows meaning and listening for every word, and spelling by the approved rule", () => {
-    for (const word of SAMPLE_WORDS) {
+  it("allows meaning and listening for every chapter word, and spelling by the approved rule", () => {
+    for (const word of chapterWords()) {
       const listening = listeningQuestion(word.id, 3);
       expect(listening.kind).toBe("listening");
       expect(listening.speakText).toBe(word.english);
       expect(listening.choices).toHaveLength(3);
     }
     expect(spellingAllowed(wordById("tree")!, false)).toBe(true);
-    expect(spellingAllowed(wordById("mountain")!, false)).toBe(false);
-    expect(spellingAllowed(wordById("mountain")!, true)).toBe(true);
-    expect(spellingAllowed(wordById("dangerous")!, true)).toBe(false);
-    expect(spellingQuestion("dangerous", true)).toBeNull();
+    expect(spellingAllowed(wordById("big")!, false)).toBe(false);
+    expect(spellingAllowed(wordById("big")!, true)).toBe(true);
+    expect(spellingAllowed(wordById("treasure")!, true)).toBe(false);
+    expect(spellingQuestion("treasure", true)).toBeNull();
+    expect(spellingAllowed(wordById("dangerous")!, false)).toBe(false);
+    expect(spellingAllowed(wordById("dangerous")!, true)).toBe(true);
     expect(checkSpelling("Tree", "  tree ")).toBe(true);
     expect(checkSpelling("tree", "three")).toBe(false);
     expect(checkSpelling("red panda", "red   panda")).toBe(true);
+    expect(checkSpelling("red panda", "redpanda")).toBe(false);
     expect(checkSpelling("red panda", "red-panda")).toBe(false);
     for (const word of ["T-shirt", "hard-working", "ping-pong", "ice-skate", "o'clock"]) {
       expect(checkSpelling(word, `  ${word.toUpperCase()}  `)).toBe(true);
@@ -71,6 +85,9 @@ describe("Forest Adventure sample words", () => {
     expect(checkSpelling("T-shirt", "t shirt")).toBe(false);
     expect(checkSpelling("ice-skate", "ice skate")).toBe(false);
     expect(checkSpelling("o'clock", "o clock")).toBe(false);
+    expect(checkSpelling("o'clock", "oclock")).toBe(false);
+    expect(checkSpelling("camp", "camping")).toBe(false);
+    expect(checkSpelling("camping", "camp")).toBe(false);
     expect(spellingMarkHint("tree")).toBeNull();
     expect(spellingMarkHint("red panda")).toBeNull();
     expect(spellingInstruction("T-shirt")).toContain("连字符和撇号要原样输入。");
@@ -79,5 +96,7 @@ describe("Forest Adventure sample words", () => {
     const log: string[] = [];
     speakWord("tree", placeholderSpeaker(log));
     expect(log).toEqual(["cancel", "tree"]);
+    expect(readFileSync("src/domain/catalog.ts", "utf8")).not.toContain("words_resolved");
+    expect(readFileSync("src/domain/stages.ts", "utf8")).not.toContain("words_resolved");
   });
 });

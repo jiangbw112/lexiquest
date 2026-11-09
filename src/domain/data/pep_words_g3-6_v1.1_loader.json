@@ -265,7 +265,7 @@
       "word": "cool",
       "meaning_zh": "酷的；凉爽的",
       "grade_est": 3,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "cousin",
@@ -490,10 +490,17 @@
       "spelling": "advanced"
     },
     {
+      "word": "get",
+      "meaning_zh": "得到；获取",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
+    },
+    {
       "word": "gift",
       "meaning_zh": "礼物",
       "grade_est": 3,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "giraffe",
@@ -524,6 +531,13 @@
       "meaning_zh": "好的",
       "grade_est": 3,
       "spelling": "advanced"
+    },
+    {
+      "word": "goodbye",
+      "meaning_zh": "再见",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
     },
     {
       "word": "grandfather",
@@ -604,6 +618,13 @@
       "spelling": "basic"
     },
     {
+      "word": "hello",
+      "meaning_zh": "你好",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
+    },
+    {
       "word": "help",
       "meaning_zh": "帮助",
       "grade_est": 3,
@@ -614,6 +635,13 @@
       "meaning_zh": "她的；她",
       "grade_est": 3,
       "spelling": "advanced"
+    },
+    {
+      "word": "hi",
+      "meaning_zh": "嗨",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
     },
     {
       "word": "home",
@@ -829,7 +857,7 @@
       "word": "old",
       "meaning_zh": "…岁的；老的",
       "grade_est": 3,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "on",
@@ -1217,6 +1245,13 @@
       "spelling": "basic"
     },
     {
+      "word": "toy",
+      "meaning_zh": "玩具",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
+    },
+    {
       "word": "tree",
       "meaning_zh": "树",
       "grade_est": 3,
@@ -1311,6 +1346,13 @@
       "meaning_zh": "女人",
       "grade_est": 3,
       "spelling": "basic"
+    },
+    {
+      "word": "wood",
+      "meaning_zh": "木头",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注"
     },
     {
       "word": "year",
@@ -2632,7 +2674,7 @@
       "word": "ago",
       "meaning_zh": "以前",
       "grade_est": 5,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "agree",
@@ -2716,7 +2758,7 @@
       "word": "before",
       "meaning_zh": "在…之前",
       "grade_est": 5,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "behind",
@@ -3256,7 +3298,7 @@
       "word": "hurt",
       "meaning_zh": "伤害；疼痛",
       "grade_est": 5,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "ice",
@@ -3388,7 +3430,7 @@
       "word": "last",
       "meaning_zh": "最后的",
       "grade_est": 5,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "laugh",
@@ -3868,7 +3910,7 @@
       "word": "star",
       "meaning_zh": "明星",
       "grade_est": 5,
-      "spelling": "advanced"
+      "spelling": "basic"
     },
     {
       "word": "start",
@@ -4262,6 +4304,13 @@
       "meaning_zh": "打电话",
       "grade_est": 6,
       "spelling": "advanced"
+    },
+    {
+      "word": "camp",
+      "meaning_zh": "野营",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下四会；待纸质核对"
     },
     {
       "word": "camping",
@@ -5169,7 +5218,7 @@
       "word": "yesterday",
       "meaning_zh": "昨天",
       "grade_est": 6,
-      "spelling": "advanced",
+      "spelling": "basic",
       "notes": "同年级多处出现: 上U2（新版六上）, 下U2（旧版六下）"
     },
     {

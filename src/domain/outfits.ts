@@ -32,8 +32,8 @@ export const OUTFITS: OutfitDef[] = [
   {
     id: "star-sash",
     name: "星光绶带",
-    description: "收集全部示例词卡后得到的绶带。",
-    how: "收集全部示例词卡后获得",
+    description: "收集这一章的词卡后得到的绶带。",
+    how: "收集这一章的词卡后获得",
     cape: null,
     hat: "star",
     sash: "#f0b429",

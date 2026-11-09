@@ -2,7 +2,7 @@
  * Forest chapter cosmetics and titles. Amounts, ids, and names come from
  * the reward config. Thresholds use ceil(total * ratio), not a fixed word count.
  */
-import rewardFile from "./data/forest-rewards.json";
+import rewardFile from "./chapters/forest-rewards.json";
 import type { RewardNotice, SaveData } from "./types";
 
 export interface TitleEntry {

@@ -7,6 +7,7 @@ import {
   bossReady,
   chapterLearnedCount,
   chapterWordIds,
+  FOREST_WORD_COUNT,
   clearedStageCount,
   litMasteryCount,
   explorationStageByEncounter,
@@ -160,7 +161,7 @@ export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = 
       ownedOutfitIds: [...next.ownedOutfitIds, "star-sash"],
       rewardQueue: pushReward(
         next.rewardQueue,
-        reward("得到星光绶带", "示例词卡收集齐了。这是服装奖励。词卡还在，熟练徽章要靠以后的复习。"),
+        reward("得到星光绶带", "森林章节的词卡收集齐了。这是服装奖励。词卡还在，熟练徽章要靠以后的复习。"),
       ),
     };
   }
@@ -280,7 +281,7 @@ export function selectedCollected(save: SaveData): boolean {
 /** Null when the selected grades have enough sample words to start a battle. */
 export function selectionBattleNotice(sampleCount: number, minimum = PROVISIONAL.grades.minimumSampleWords): string | null {
   if (sampleCount >= minimum) return null;
-  return `所选年级里只有 ${sampleCount} 个示例词，还不够对战（至少 ${minimum} 个）。请再选一个年级。已经收下的词卡和复习都还在。`;
+  return `所选年级里只有 ${sampleCount} 个词，还不够对战（至少 ${minimum} 个）。请再选一个年级。已经收下的词卡和复习都还在。`;
 }
 
 export function setSelectedGrades(save: SaveData, grades: readonly string[]): SaveData {
@@ -292,7 +293,7 @@ export function questLine(save: SaveData): string {
   const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
   if (tooSmall) return tooSmall;
   const now = studyNow(save);
-  const progress = `已学 ${chapterLearnedCount(save)}/28，已清关 ${clearedStageCount(save)}/5，掌握 ${masteryLabel(save, now)}。`;
+  const progress = `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}，已清关 ${clearedStageCount(save)}/5，掌握 ${masteryLabel(save, now)}。`;
   if (save.chapterCleared) {
     return `森林冒险通关了。${progress}复习会让灰掉的徽章再亮。`;
   }

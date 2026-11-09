@@ -114,12 +114,12 @@ describe("forest chapter", () => {
     expect(masteryLabel(ready, START)).toBe("0/28");
 
     const grade5 = newSave(["G5"]);
-    expect(stageStatuses(grade5)).toEqual(["skipped", "skipped", "open", "locked", "locked"]);
-    const third = FOREST_CHAPTER.stages[2]!;
+    expect(stageStatuses(grade5)).toEqual(["skipped", "open", "locked", "locked", "locked"]);
+    const second = FOREST_CHAPTER.stages[1]!;
     let opened = grade5;
-    for (const id of stageWordIds(grade5, third)) opened = learnWord(opened, id, START);
-    opened = { ...opened, stageWins: { "3": 1 } };
-    expect(stageStatuses(opened)[3]).toBe("open");
+    for (const id of stageWordIds(grade5, second)) opened = learnWord(opened, id, START);
+    opened = { ...opened, stageWins: { "2": 1 } };
+    expect(stageStatuses(opened)[2]).toBe("open");
   });
 
   it("tunes exploration fights to 3–5 warrior damage casts and the boss near 8–12", () => {

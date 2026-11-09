@@ -1,4 +1,5 @@
 import type { GradeBand, Semester } from "./types";
+import forestChapterFile from "./chapters/chapter_forest_v1.json";
 
 export type SpellingLevel = "basic" | "advanced" | "none";
 export type GradeEstimate = 3 | 4 | 5 | 6;
@@ -113,15 +114,58 @@ function isWordFile(file: unknown): file is WordFile {
   return typeof file === "object" && file !== null && Array.isArray((file as WordFile).words);
 }
 
-// Only this directory. The PEP list is src/domain/pep and is not merged in here.
+interface ForestChapterFile {
+  word_refs_formal: string[];
+  chapter_extra_words: WordFileEntry[];
+  stages: { id: number; word_refs: string[] }[];
+}
+
+const forestChapter = forestChapterFile as ForestChapterFile;
+
+/**
+ * Word lists live only in this directory. A JSON file without a words array is
+ * refused, which is why the forest chapter config stays in chapters/.
+ */
 const loadedFiles = (import.meta as unknown as WordGlob).glob("./data/**/*.json", { eager: true, import: "default" });
 const wordFiles: Record<string, WordFile> = {};
 for (const [path, file] of Object.entries(loadedFiles)) {
-  if (isWordFile(file)) wordFiles[path] = file;
+  if (!isWordFile(file)) throw new Error(`${path} needs a words array`);
+  wordFiles[path] = file;
 }
 
 export const CATALOG_WORDS: WordDef[] = mergeWordFiles(wordFiles);
 export const SAMPLE_WORDS: WordDef[] = CATALOG_WORDS.filter((word) => word.sample);
+
+/** Chapter-only words. They resolve for this chapter and stay out of the grade pools. */
+const CHAPTER_EXTRAS: WordDef[] = readWordFile(
+  { theme: SAMPLE_THEME, sample: false, words: forestChapter.chapter_extra_words },
+  "chapter_forest_v1.json",
+);
+
+const LIBRARY_IDS = new Set(CATALOG_WORDS.map((word) => word.id));
+const EXTRA_BY_ID = new Map<string, WordDef>();
+for (const extra of CHAPTER_EXTRAS) {
+  if (LIBRARY_IDS.has(extra.id)) throw new Error(`chapter extra ${extra.id} is already in the word library`);
+  if (EXTRA_BY_ID.has(extra.id)) throw new Error(`chapter extra ${extra.id} is repeated`);
+  EXTRA_BY_ID.set(extra.id, extra);
+}
+
+const FORMAL_REFS = forestChapter.word_refs_formal;
+for (const id of FORMAL_REFS) {
+  if (!LIBRARY_IDS.has(id)) throw new Error(`forest ref ${id} is not in the word library`);
+  if (EXTRA_BY_ID.has(id)) throw new Error(`forest ref ${id} collides with a chapter extra`);
+}
+const stageRefs = forestChapter.stages.flatMap((stage) => stage.word_refs);
+if (new Set(stageRefs).size !== stageRefs.length) throw new Error("a forest word is in two stages");
+for (const id of stageRefs) {
+  const inLibrary = LIBRARY_IDS.has(id);
+  const extra = EXTRA_BY_ID.has(id);
+  if (inLibrary === extra) throw new Error(`stage word ${id} does not resolve to exactly one definition`);
+}
+
+export function chapterExtraWords(): WordDef[] {
+  return CHAPTER_EXTRAS;
+}
 
 export function listUnits(): UnitDef[] {
   const grades: GradeBand[] = ["G3", "G4", "G5", "G6"];
@@ -131,16 +175,17 @@ export function listUnits(): UnitDef[] {
     for (const semester of semesters) {
       for (let index = 1; index <= 6; index += 1) {
         const id = `${grade}-S${semester}-U${index}`;
-        const wordIds = CATALOG_WORDS.filter((word) => word.unitId === id).map((word) => word.id);
-        const sample = wordIds.length > 0;
+        // unitId is still hard-coded as grade-S1-U1, so a filled slot is that one unit.
+        const words = CATALOG_WORDS.filter((word) => word.unitId === id);
+        const sample = words.some((word) => word.sample);
         units.push({
           id,
           grade,
           semester,
           index,
-          title: sample ? "森林冒险" : "待编写",
+          title: words.length > 0 ? words[0]!.theme : "待编写",
           status: sample ? "sample" : "planned",
-          wordIds,
+          wordIds: words.map((word) => word.id),
         });
       }
     }
@@ -156,8 +201,44 @@ export function unitById(id: string): UnitDef | undefined {
   return listUnits().find((unit) => unit.id === id);
 }
 
+/**
+ * The forest chapter's 20 library refs plus its 8 extras, in stage order.
+ * This is the playable lesson. It is not the grade pool.
+ */
+export function chapterWords(): WordDef[] {
+  return stageRefs.map((id) => {
+    const word = LIBRARY_IDS.has(id) ? CATALOG_WORDS.find((item) => item.id === id) : EXTRA_BY_ID.get(id);
+    if (!word) throw new Error(`stage word ${id} is not in the catalog`);
+    return word;
+  });
+}
+
+/** Same list as chapterWords. Older call sites still use this name for the forest lesson. */
 export function sampleWords(): WordDef[] {
-  return SAMPLE_WORDS;
+  return chapterWords();
+}
+
+/** One school unit per grade that this chapter actually teaches. */
+export function forestLearnUnits(): UnitDef[] {
+  const groups = new Map<GradeBand, string[]>();
+  for (const word of chapterWords()) {
+    const ids = groups.get(word.grade) ?? [];
+    ids.push(word.id);
+    groups.set(word.grade, ids);
+  }
+  return GRADE_BANDS.flatMap((grade, index) => {
+    const wordIds = groups.get(grade.id) ?? [];
+    if (wordIds.length === 0) return [];
+    return [{
+      id: `forest-${grade.id}`,
+      grade: grade.id,
+      semester: 1 as Semester,
+      index: index + 1,
+      title: "森林冒险",
+      status: "sample" as const,
+      wordIds,
+    }];
+  });
 }
 
 export function catalogWords(): WordDef[] {
@@ -173,14 +254,14 @@ export function normalizeGrades(input: readonly string[] | undefined): GradeBand
   return grades.length > 0 ? grades : ["G3"];
 }
 
-/** Sample words whose estimated grade is one of the selected grades. */
+/** Library words in the selected grades. Chapter-only extras are not included. */
 export function wordsForGrades(grades: readonly string[] | undefined): WordDef[] {
   const selected = new Set(normalizeGrades(grades));
   return CATALOG_WORDS.filter((word) => selected.has(word.grade));
 }
 
 export function wordById(id: string): WordDef | undefined {
-  return CATALOG_WORDS.find((word) => word.id === id);
+  return CATALOG_WORDS.find((word) => word.id === id) ?? EXTRA_BY_ID.get(id);
 }
 
 export function wordsInUnit(unitId: string): WordDef[] {
