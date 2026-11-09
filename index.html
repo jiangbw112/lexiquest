@@ -24,10 +24,16 @@
         gap: 8px;
       }
       #name-form.open, #spell-form.open, #pin-form.open { display: grid; }
-      #hero-name, #spell-input, #pin-input, #pin-confirm { font: inherit; font-size: 18px; padding: 8px 10px; width: 240px; }
+      #pin-form { width: 340px; }
+      #pin-form label { display: grid; gap: 4px; }
+      #hero-name, #spell-input, #pin-input, #pin-confirm, #pin-answer { font: inherit; font-size: 18px; padding: 8px 10px; width: 240px; }
       #name-error, #spell-error, #pin-error { color: #a33b24; margin: 0; min-height: 1.2em; }
       #pin-title { margin: 0; color: #17352a; }
-      #pin-confirm-label.hidden { display: none; }
+      #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #3d5c4e; font-size: 14px; }
+      #pin-form button[type="submit"] { background: #1f7a4d; color: #fffaf3; border: 0; border-radius: 12px; padding: 8px 12px; }
+      #pin-form button[type="submit"]:disabled { background: #b7c4bc; }
+      #pin-form button[type="button"] { background: transparent; border: 0; color: #8a5a12; cursor: pointer; padding: 0; text-align: left; }
+      #pin-confirm-label.hidden, #pin-forgot.hidden, #pin-entry.hidden { display: none; }
       #lexi-probe { position: absolute; width: 1px; height: 1px; overflow: hidden; }
       button { font: inherit; }
     </style>
@@ -46,10 +52,19 @@
     </form>
     <form id="pin-form">
       <p id="pin-title">家长密码</p>
-      <label>密码<input id="pin-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" /></label>
-      <label id="pin-confirm-label">再输入一次<input id="pin-confirm" type="password" inputmode="numeric" maxlength="8" autocomplete="off" /></label>
+      <p id="pin-note">用来避免孩子不小心改掉年级和每日目标。清掉这台浏览器的数据后要重新设置。这不是安全登录。</p>
+      <p id="pin-cooldown"></p>
+      <div id="pin-entry">
+        <label>密码<input id="pin-input" type="password" inputmode="numeric" maxlength="6" autocomplete="off" /></label>
+        <label id="pin-confirm-label">再输入一次<input id="pin-confirm" type="password" inputmode="numeric" maxlength="6" autocomplete="off" /></label>
+      </div>
+      <div id="pin-forgot" class="hidden">
+        <p id="pin-challenge"></p>
+        <label>答案<input id="pin-answer" inputmode="numeric" autocomplete="off" /></label>
+      </div>
       <p id="pin-error"></p>
-      <button type="submit">确认</button>
+      <button id="pin-submit" type="submit">确认</button>
+      <button id="pin-forgot-button" type="button">忘记密码</button>
     </form>
     <pre id="lexi-probe"></pre>
     <script type="module" src="/src/main.ts"></script>

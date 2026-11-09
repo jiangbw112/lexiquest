@@ -10,7 +10,6 @@ import type {
   GoalMode,
   GoalPreset,
   MemoryTrack,
-  ParentPinRecord,
   SaveData,
 } from "./types";
 
@@ -109,13 +108,6 @@ function normalizeGoal(value: DailyGoal | null | undefined): DailyGoal | null {
   };
 }
 
-function normalizePin(value: unknown): ParentPinRecord | null {
-  if (!value || typeof value !== "object") return null;
-  const record = value as ParentPinRecord;
-  if (record.algorithm !== "sha-256" || typeof record.salt !== "string" || typeof record.hash !== "string") return null;
-  return record;
-}
-
 export function withParentDefaults(save: SaveData): SaveData {
   const stats: Record<string, DailyStat> = {};
   for (const [key, value] of Object.entries(save.dailyStats ?? {})) stats[key] = normalizeStat(value);
@@ -123,7 +115,7 @@ export function withParentDefaults(save: SaveData): SaveData {
   for (const [key, value] of Object.entries(save.goalCalendar ?? {})) {
     if (value === "completed" || value === "missed") calendar[key] = value;
   }
-  return {
+  const next: SaveData & { parentPin?: unknown } = {
     ...save,
     spellingMemory: save.spellingMemory ?? {},
     dailyStats: stats,
@@ -136,8 +128,9 @@ export function withParentDefaults(save: SaveData): SaveData {
     cosmeticTokens: typeof save.cosmeticTokens === "number" ? save.cosmeticTokens : 0,
     lastTimezone: typeof save.lastTimezone === "string" ? save.lastTimezone : null,
     clockAnomaly: save.clockAnomaly === true,
-    parentPin: normalizePin(save.parentPin),
   };
+  delete next.parentPin;
+  return next;
 }
 
 function statFor(save: SaveData, dayKey: string): DailyStat {

@@ -1,7 +1,15 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
 import { ensureDailyGoal, parentView, setGoalPreset } from "../../domain/parent";
-import { pinIsAcceptable, sha256PinGate } from "../../domain/parent-pin";
+import {
+  applyIfParentUnlocked,
+  browserParentPinVault,
+  cooldownLabel,
+  createParentPinSession,
+  pbkdf2PinGate,
+  pinFormTitle,
+  type ParentPinSession,
+} from "../../domain/parent-pin";
 import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
@@ -23,7 +31,9 @@ export class GuideScene extends Phaser.Scene {
   private notice = "";
   private tab: GuideTab = "progress";
   private showAllStruggle = false;
-  private unlocked = false;
+  private pinSession!: ParentPinSession;
+  private pinBusy = false;
+  private pinNotice = "";
 
   constructor() {
     super("guide");
@@ -31,74 +41,103 @@ export class GuideScene extends Phaser.Scene {
 
   create(): void {
     probeEnter("guide");
+    this.pinSession = createParentPinSession({ gate: pbkdf2PinGate, vault: browserParentPinVault() });
+    this.pinBusy = false;
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (event.code === "Escape") this.scene.start("overworld");
-      if (event.code === "KeyY" && this.unlocked && this.confirming && this.tab === "notes") this.clearSave();
+      if (event.code === "KeyY" && this.pinSession.unlocked && this.confirming && this.tab === "notes") this.clearSave();
     });
-    this.openPin();
+    this.bindPinForm();
+    this.renderPinForm();
+    const clock = window.setInterval(() => this.renderPinClock(), 1000);
+    this.events.once("shutdown", () => window.clearInterval(clock));
     this.draw();
   }
 
-  private openPin(): void {
+  private bindPinForm(): void {
     const form = document.getElementById("pin-form");
-    const input = document.getElementById("pin-input");
-    const confirm = document.getElementById("pin-confirm");
-    const confirmLabel = document.getElementById("pin-confirm-label");
-    const error = document.getElementById("pin-error");
-    const title = document.getElementById("pin-title");
-    const setting = !getSave()?.parentPin;
-    if (title) title.textContent = setting ? "先设一个家长密码" : "输入家长密码";
-    confirmLabel?.classList.toggle("hidden", !setting);
-    form?.classList.add("open");
-    if (input instanceof HTMLInputElement) {
-      input.value = "";
-      window.setTimeout(() => input.focus(), 30);
-    }
-    if (confirm instanceof HTMLInputElement) confirm.value = "";
-    if (error) error.textContent = "";
+    const forgot = document.getElementById("pin-forgot-button");
     const submit = (event: Event) => {
       event.preventDefault();
       void this.submitPin();
     };
+    const startForgot = () => {
+      this.pinSession.beginForgot();
+      const error = document.getElementById("pin-error");
+      if (error) error.textContent = "";
+      for (const id of ["pin-input", "pin-confirm", "pin-answer"]) {
+        const field = document.getElementById(id);
+        if (field instanceof HTMLInputElement) field.value = "";
+      }
+      this.renderPinForm();
+    };
     form?.addEventListener("submit", submit);
+    forgot?.addEventListener("click", startForgot);
     this.events.once("shutdown", () => {
       form?.removeEventListener("submit", submit);
+      forgot?.removeEventListener("click", startForgot);
       form?.classList.remove("open");
     });
   }
 
+  private renderPinForm(): void {
+    const form = document.getElementById("pin-form");
+    const title = document.getElementById("pin-title");
+    const error = document.getElementById("pin-error");
+    const confirmLabel = document.getElementById("pin-confirm-label");
+    const entry = document.getElementById("pin-entry");
+    const forgot = document.getElementById("pin-forgot");
+    const challenge = document.getElementById("pin-challenge");
+    if (this.pinSession.unlocked) {
+      form?.classList.remove("open");
+      return;
+    }
+    form?.classList.add("open");
+    if (title) title.textContent = pinFormTitle(this.pinSession.phase);
+    confirmLabel?.classList.toggle("hidden", this.pinSession.phase !== "setup");
+    entry?.classList.toggle("hidden", this.pinSession.phase === "forgot");
+    forgot?.classList.toggle("hidden", this.pinSession.phase !== "forgot");
+    if (challenge) challenge.textContent = this.pinSession.challenge ? `请计算 ${this.pinSession.challenge.prompt}` : "";
+    if (error && !error.textContent) error.textContent = this.pinSession.notice ?? "";
+    this.renderPinClock();
+  }
+
+  private renderPinClock(): void {
+    const cooldown = document.getElementById("pin-cooldown");
+    const submit = document.getElementById("pin-submit");
+    const remaining = this.pinSession.cooldownRemaining(Date.now());
+    const waiting = remaining > 0 && this.pinSession.phase !== "forgot";
+    if (cooldown) cooldown.textContent = waiting ? cooldownLabel(remaining) : "";
+    const error = document.getElementById("pin-error");
+    if (!waiting && error?.textContent.startsWith("请等")) error.textContent = "";
+    if (submit instanceof HTMLButtonElement) submit.disabled = waiting || this.pinBusy;
+  }
+
   private async submitPin(): Promise<void> {
+    if (this.pinBusy || this.pinSession.unlocked) return;
     const input = document.getElementById("pin-input");
     const confirm = document.getElementById("pin-confirm");
+    const answer = document.getElementById("pin-answer");
     const error = document.getElementById("pin-error");
     const pin = input instanceof HTMLInputElement ? input.value.trim() : "";
     const again = confirm instanceof HTMLInputElement ? confirm.value.trim() : "";
-    const save = getSave();
-    if (!save) return;
-    if (!pinIsAcceptable(pin)) {
-      if (error) error.textContent = "请用 4 到 8 位数字。";
-      return;
-    }
-    if (!save.parentPin) {
-      if (pin !== again) {
-        if (error) error.textContent = "两次输入不一致。";
-        return;
-      }
-      const record = await sha256PinGate.protect(pin);
-      mutate((current) => ({ ...current, parentPin: record }));
-    } else {
-      const ok = await sha256PinGate.matches(pin, save.parentPin);
-      if (!ok) {
-        if (error) error.textContent = "密码不对。";
-        return;
-      }
-    }
-    this.unlocked = true;
-    document.getElementById("pin-form")?.classList.remove("open");
+    const typed = answer instanceof HTMLInputElement ? answer.value.trim() : "";
+    this.pinBusy = true;
+    this.renderPinClock();
+    const result = this.pinSession.phase === "forgot"
+      ? this.pinSession.submitForgot(typed, Date.now())
+      : await this.pinSession.submitPin(pin, again, Date.now());
+    this.pinBusy = false;
+    if (error) error.textContent = result.ok ? (this.pinSession.notice ?? "") : result.message;
     if (input instanceof HTMLInputElement) input.value = "";
     if (confirm instanceof HTMLInputElement) confirm.value = "";
-    this.draw();
+    if (answer instanceof HTMLInputElement) answer.value = "";
+    if (result.ok && this.pinSession.unlocked) {
+      if (this.pinSession.notice) this.pinNotice = this.pinSession.notice;
+      this.draw();
+    }
+    this.renderPinForm();
   }
 
   private toggleGrade(grade: GradeBand): void {
@@ -117,7 +156,7 @@ export class GuideScene extends Phaser.Scene {
     } else {
       this.notice = "";
     }
-    mutate((currentSave) => setSelectedGrades(currentSave, next));
+    mutate((currentSave) => applyIfParentUnlocked(this.pinSession.unlocked, currentSave, (save) => setSelectedGrades(save, next)));
     probeNote(`grades:${normalizeGrades(next).join(",")}`);
     this.draw();
   }
@@ -131,12 +170,12 @@ export class GuideScene extends Phaser.Scene {
     this.children.removeAll(true);
     paper(this);
     this.add.text(160, 40, "给家长", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
-    if (!this.unlocked) {
-      this.add.text(160, 120, "改年级和改每日目标都要家长密码。密码只留在这台电脑上。", {
+    if (!this.pinSession.unlocked) {
+      this.add.text(160, 120, "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉浏览器数据后要重新设置。这不是安全登录。", {
         fontFamily: FONT,
         fontSize: "20px",
         color: "#17352a",
-        wordWrap: { width: 900 },
+        wordWrap: { width: 960, useAdvancedWrap: true },
       });
       button(this, 280, 220, "返回 Esc", () => this.scene.start("overworld"), { width: 180, height: 48, fill: 0x5c6b62 });
       return;
@@ -183,7 +222,7 @@ export class GuideScene extends Phaser.Scene {
       color: "#1f7a4d",
       wordWrap: { width: 960 },
     });
-    const note = view.clockNote ?? view.emptyLine ?? view.todayLine ?? (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
+    const note = this.pinNotice || view.clockNote || view.emptyLine || view.todayLine || (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
     this.add.text(160, 246, note, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e", wordWrap: { width: 960 } });
     this.add.text(160, 278, view.weekLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
     this.add.text(160, 308, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
@@ -206,7 +245,7 @@ export class GuideScene extends Phaser.Scene {
     PRESETS.forEach((preset, index) => {
       const on = save.parentGoalPreset === preset.id;
       button(this, 230 + index * 150, 452, preset.label, () => {
-        mutate((current) => setGoalPreset(current, preset.id));
+        mutate((current) => applyIfParentUnlocked(this.pinSession.unlocked, current, (save) => setGoalPreset(save, preset.id)));
         this.draw();
       }, { width: 130, height: 42, fill: on ? 0x1f7a4d : 0x5c6b62 });
     });
@@ -243,7 +282,7 @@ export class GuideScene extends Phaser.Scene {
       `基础招式强度比例 ${skills.baseSkillPowerScale}，能量 ${skills.baseSkillEnergyCost}。PvE 答错只给基础效果 × ${skills.wrongAnswerMultiplier}。这是这一版定下的数字。`,
       "好友 1v1：答对题数多的赢；题数相同，答对用时更少的赢。答错没有速度收益。同机练习不更新 FSRS。真正的联网对战要由服务器判房间、对错、时间和奖励。",
       "森林冒险分五关。每关学完新词并赢一场小战斗才算通过。第五关是林心守护者，打败才通关。亮着的熟练徽章单独显示，不够 28 也不挡住通关。",
-      "每天的学习目标按这台电脑当地时间凌晨 4 点换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级用同一个家长密码。",
+      "每天的学习目标按这台电脑当地时间凌晨 4 点换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级共用一个家长密码，只为避免孩子不小心修改。清掉浏览器数据后要重新设置。这不是安全登录。忘记密码时答一道算术题即可重设，学习记录不会被清掉。",
       "现在的词是 Forest Adventure 的 28 个 SAMPLE DATA，年级是估计，不是教材原文。发音用浏览器朗读，这是这一版定下的做法。",
     ];
     const save = getSave();
@@ -262,7 +301,7 @@ export class GuideScene extends Phaser.Scene {
         fill: on ? 0x1f7a4d : 0x5c6b62,
       });
     });
-    this.add.text(160, 230, lines.join("\n"), { fontFamily: FONT, fontSize: "15px", color: "#17352a", wordWrap: { width: 960 }, lineSpacing: 5 });
+    this.add.text(160, 230, lines.join("\n"), { fontFamily: FONT, fontSize: "15px", color: "#17352a", wordWrap: { width: 960, useAdvancedWrap: true }, lineSpacing: 5 });
     button(this, 360, 700, this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存", () => {
       if (!this.confirming) {
         this.confirming = true;

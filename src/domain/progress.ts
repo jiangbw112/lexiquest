@@ -98,7 +98,6 @@ export function createSave(input: {
     cosmeticTokens: 0,
     lastTimezone: null,
     clockAnomaly: false,
-    parentPin: null,
     skillLevels: { [starter]: 1 },
     unlockedSkillIds: [starter],
     equippedSkillIds: [starter],

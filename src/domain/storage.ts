@@ -57,7 +57,9 @@ export function deserialize(raw: string): SaveData | null {
 }
 
 export function serialize(save: SaveData): string {
-  return JSON.stringify(save);
+  const copy = { ...save } as SaveData & { parentPin?: unknown };
+  delete copy.parentPin;
+  return JSON.stringify(copy);
 }
 
 export function loadSave(): SaveData | null {

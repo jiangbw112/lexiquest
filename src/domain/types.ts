@@ -98,12 +98,6 @@ export interface DailyGoal {
   rewardClaimed: boolean;
 }
 
-export interface ParentPinRecord {
-  algorithm: "sha-256";
-  salt: string;
-  hash: string;
-}
-
 export interface SaveData {
   version: 1;
   createdAt: number;
@@ -125,8 +119,6 @@ export interface SaveData {
   lastTimezone: string | null;
   /** True when the clock or zone moved to a study day earlier than the saved goal. Tokens stay. */
   clockAnomaly: boolean;
-  /** Salted hash of the parent PIN. The PIN itself is not stored. */
-  parentPin: ParentPinRecord | null;
   skillLevels: Record<string, number>;
   unlockedSkillIds: string[];
   equippedSkillIds: string[];

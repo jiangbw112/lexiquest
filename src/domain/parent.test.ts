@@ -448,6 +448,6 @@ describe("DES-05 parent progress and daily goal", () => {
     expect(legacy.dailyGoal).not.toHaveProperty("skipped");
     expect(legacy.dailyStats["2026-03-01"]?.badgeFirstOnWordIds).toEqual(["tree"]);
     expect(legacy.goalCalendar["2026-03-01"]).toBeUndefined();
-    expect(legacy.parentPin).toBeNull();
+    expect(legacy).not.toHaveProperty("parentPin");
   });
 });
