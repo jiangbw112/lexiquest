@@ -56,6 +56,12 @@ export class ReviewScene extends Phaser.Scene {
     this.draw();
   }
 
+  private badgeLit(wordId: string): boolean {
+    const save = getSave();
+    if (!save) return false;
+    return badgeTone(save.wordCards[wordId], save.memory[wordId], studyNow(save)) === "bright";
+  }
+
   private firstDue(): string | undefined {
     const save = getSave();
     if (!save) return undefined;
@@ -78,7 +84,7 @@ export class ReviewScene extends Phaser.Scene {
     const save = getSave();
     const input = document.getElementById("spell-input");
     if (!save || !this.spellId || !(input instanceof HTMLInputElement)) return;
-    const prompt = spellingQuestion(this.spellId, Boolean(save.wordCards[this.spellId]?.masteryBadge));
+    const prompt = spellingQuestion(this.spellId, this.badgeLit(this.spellId));
     this.spellNote = prompt && checkSpelling(prompt.answer, input.value) ? "拼对了。这不改变复习时间。" : "还不对。复习时间没有变。";
     input.value = "";
     this.draw();
@@ -151,7 +157,8 @@ export class ReviewScene extends Phaser.Scene {
           });
         });
       }
-      if (spellingAllowed(word, card.masteryBadge)) {
+      const lit = tone === "bright";
+      if (spellingAllowed(word, lit)) {
         button(this, 430, y + 36, "拼写", () => {
           this.spellId = memory.wordId;
           this.draw();

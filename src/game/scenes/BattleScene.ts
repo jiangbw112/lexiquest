@@ -1,33 +1,38 @@
 import Phaser from "phaser";
 import {
   answerQuestion,
-  canStartBattle,
-  CHAPTER_BOSS_ID,
-  encounterById,
-  openEncounters,
   startBattle,
   takeAction,
+  CHAPTER_BOSS_ID,
   type BattleState,
 } from "../../domain/battle";
-import { wordsForGrades } from "../../domain/catalog";
-import { selectedSampleWords } from "../../domain/progress";
 import { applyBattleOutcome, studyNow } from "../../domain/progress";
-import { isDue } from "../../domain/review";
+import { checkSpelling } from "../../domain/questions";
+import { badgeTone, isDue } from "../../domain/review";
+import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, button, listenKeys, paper } from "../ui";
+import { FONT, button, listenKeys } from "../ui";
+
+interface BattleLaunch {
+  stageId?: number;
+}
 
 export class BattleScene extends Phaser.Scene {
   private state!: BattleState;
   private reported = false;
-  private picking = false;
   private poses: WarriorAnim[] = ["idle"];
   private clearedChapter = false;
+  private launch: BattleLaunch = {};
 
   constructor() {
     super("battle");
+  }
+
+  init(data: BattleLaunch = {}): void {
+    this.launch = data ?? {};
   }
 
   preload(): void {
@@ -36,34 +41,62 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     const save = getSave();
-    if (!save || !canStartBattle(Object.keys(save.wordCards).length)) {
-      this.scene.start("overworld");
+    const stage = stageById(this.launch.stageId ?? 0);
+    if (!save || !stage) {
+      this.scene.start("stages");
+      return;
+    }
+    const status = stageStatuses(save)[stage.id - 1];
+    if (status === "locked" || status === "skipped" || (stage.type === "boss" && !bossReady(save) && !save.chapterCleared)) {
+      this.scene.start("stages");
       return;
     }
     probeEnter("battle");
     this.reported = false;
-    this.picking = save.battlesWon >= 1;
-    if (!this.picking) this.begin("inkling");
-    else this.drawPick();
+    this.clearedChapter = false;
+    const form = document.getElementById("spell-form");
+    const submit = (event: Event) => {
+      event.preventDefault();
+      this.submitSpelling();
+    };
+    form?.addEventListener("submit", submit);
+    this.events.once("shutdown", () => {
+      form?.removeEventListener("submit", submit);
+      form?.classList.remove("open");
+    });
+    this.begin(stage.id);
     listenKeys(this, (event) => this.onKey(event));
   }
 
-  private begin(encounterId: string): void {
+  private begin(stageId: number): void {
     const save = getSave();
-    if (!save) return;
+    const stage = stageById(stageId);
+    if (!save || !stage) return;
     const now = studyNow(save);
     const dueWordIds = Object.values(save.memory).filter((memory) => isDue(memory, now)).map((memory) => memory.wordId);
+    const litWordIds = Object.keys(save.wordCards).filter(
+      (id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright",
+    );
+    const combat = stageCombat(stage);
     this.state = startBattle({
-      encounterId,
+      encounterId: combat.encounterId,
       classId: save.player.classId,
       learnedIds: Object.keys(save.wordCards),
       equippedSkillIds: save.equippedSkillIds,
       skillLevels: save.skillLevels,
       seed: Date.now() % 100000,
       dueWordIds,
-      allowedWordIds: wordsForGrades(save.selectedGrades).map((word) => word.id),
+      allowedWordIds: battleWordIds(save),
+      enemy: {
+        name: combat.enemyName,
+        maxHp: combat.enemyHp,
+        attack: combat.enemyAttack,
+        sprite: combat.sprite,
+      },
+      phases: combat.phases,
+      spellingCap: combat.spellingCap,
+      litWordIds,
     });
-    this.picking = false;
     this.poses = ["idle"];
     this.draw();
   }
@@ -73,14 +106,8 @@ export class BattleScene extends Phaser.Scene {
       this.leave();
       return;
     }
-    if (this.picking) {
-      const index = Number(event.code.replace("Digit", "")) - 1;
-      const choice = this.fightChoices()[index];
-      if (choice) this.begin(choice.id);
-      return;
-    }
-    if (!this.state) return;
-    if (this.state.phase === "question" && this.state.question) {
+    if (!this.state || document.getElementById("spell-form")?.classList.contains("open")) return;
+    if (this.state.phase === "question" && this.state.question && this.state.question.kind !== "spelling") {
       const index = Number(event.code.replace("Digit", "")) - 1;
       const choice = this.state.question.choices[index];
       if (choice) this.choose(choice.id);
@@ -106,6 +133,15 @@ export class BattleScene extends Phaser.Scene {
     });
     this.finishIfNeeded();
     this.draw();
+  }
+
+  private submitSpelling(): void {
+    if (!this.state?.question || this.state.question.kind !== "spelling") return;
+    const input = document.getElementById("spell-input");
+    const typed = input instanceof HTMLInputElement ? input.value : "";
+    const correct = checkSpelling(this.state.question.answer, typed);
+    if (input instanceof HTMLInputElement) input.value = "";
+    this.choose(correct ? this.state.question.answer : "miss");
   }
 
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
@@ -138,59 +174,50 @@ export class BattleScene extends Phaser.Scene {
     this.clearedChapter = !before && getSave()?.chapterCleared === true;
   }
 
-  private fightChoices() {
-    const save = getSave();
-    return openEncounters(
-      Object.keys(save?.wordCards ?? {}),
-      save ? selectedSampleWords(save).map((word) => word.id) : [],
-    );
-  }
-
   private leave(): void {
-    this.scene.start(this.clearedChapter ? "ending" : "overworld");
-  }
-
-  private drawPick(): void {
-    this.children.removeAll(true);
-    paper(this);
-    this.add.text(180, 80, "选择词灵", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
-    this.add.text(180, 150, "墨团和页灵可以再打。词卡集齐后，林冠是这一章的暂定结局。", {
-      fontFamily: FONT,
-      fontSize: "20px",
-      color: "#3d5c4e",
-    });
-    const choices = this.fightChoices();
-    choices.forEach((encounter, index) => {
-      const boss = encounter.id === CHAPTER_BOSS_ID;
-      button(this, 320 + index * 320, 320, `${index + 1} ${encounter.name}`, () => this.begin(encounter.id), {
-        width: 260,
-        fill: boss ? 0x1f7a4d : index === 0 ? 0x1f7a4d : 0x8c6239,
-      });
-    });
-    button(this, 280, 640, "返回 Esc", () => this.leave(), { width: 180, fill: 0x5c6b62 });
-    probeNote("battle:pick");
+    this.scene.start(this.clearedChapter ? "ending" : "stages");
   }
 
   private draw(): void {
-    if (this.picking || !this.state) return;
+    if (!this.state) return;
     const save = getSave();
     if (!save) return;
     this.children.removeAll(true);
+    if (this.state.question?.kind !== "spelling") document.getElementById("spell-form")?.classList.remove("open");
     this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
     this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
-    const encounter = encounterById(this.state.encounterId);
     const hero = new WarriorSprite(this, 300, 520, 0.72);
     hero.playSequence(this.poses);
-    const monster = this.add.image(980, 520, "actors", `monster/${encounter.sprite ?? encounter.id}`).setOrigin(0.5, 1).setFlipX(true);
-    monster.setScale(encounter.id === CHAPTER_BOSS_ID ? 1.15 : 0.9);
-    if (encounter.sprite === "page" && encounter.id !== "page") {
+    const monster = this.add.image(980, 520, "actors", `monster/${this.state.enemySprite}`).setOrigin(0.5, 1).setFlipX(true);
+    monster.setScale(this.state.encounterId === CHAPTER_BOSS_ID ? 1.15 : 0.9);
+    if (this.state.enemySprite === "page" && this.state.encounterId !== "page") {
       this.add.text(980, 250, "外形暂用页灵", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
     }
-    this.add.text(160, 100, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
-    this.add.text(820, 100, `${encounter.name}  ${this.state.enemyHp}/${this.state.enemyMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
-    this.add.text(160, 136, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d" });
-    this.add.text(160, 176, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 960 } });
+    if (this.state.enemySprite === "inkling" && this.state.encounterId !== "inkling") {
+      this.add.text(980, 250, "外形暂用墨团", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
+    }
+    this.add.text(160, 70, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
+    const phaseCount = this.state.phases?.length ?? 1;
+    const phaseLabel = phaseCount > 1 ? `  阶段 ${this.state.phaseIndex + 1}/${phaseCount}` : "";
+    this.add.text(760, 70, `${this.state.enemyName}  ${this.state.enemyHp}/${this.state.enemyMaxHp}${phaseLabel}`, {
+      fontFamily: FONT,
+      fontSize: "22px",
+      color: "#17352a",
+    });
+    this.add.text(160, 108, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d" });
+    this.add.text(160, 146, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 960 } });
+    probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
     if (this.state.phase === "question" && this.state.question) {
+      if (this.state.question.kind === "spelling") {
+        probeQuestion(this.state.question.wordId, []);
+        this.add.rectangle(640, 690, 1100, 160, 0xfff8ee).setStrokeStyle(3, 0x17352a);
+        this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
+        this.add.text(180, 700, "在画面上的输入框里用键盘拼写，然后 Enter。", { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e" });
+        document.getElementById("spell-form")?.classList.add("open");
+        const input = document.getElementById("spell-input");
+        if (input instanceof HTMLInputElement) window.setTimeout(() => input.focus(), 30);
+        return;
+      }
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
       this.add.rectangle(640, 690, 1100, 160, 0xfff8ee).setStrokeStyle(3, 0x17352a);
       this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
@@ -215,9 +242,8 @@ export class BattleScene extends Phaser.Scene {
       });
     }
     if (this.state.phase === "won" || this.state.phase === "lost") {
-      const label = this.clearedChapter ? "看结局" : "回村子 Esc";
+      const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       button(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
-    probeNote(`battle:${this.state.phase}`);
   }
 }

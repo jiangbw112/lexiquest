@@ -1,5 +1,6 @@
 import { classById } from "./classes";
-import { quizForWord, type QuizQuestion } from "./questions";
+import { wordById } from "./catalog";
+import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import {
   drawSkillQuestionWord,
   emptySkillDeck,
@@ -14,6 +15,7 @@ import {
   type SkillSlot,
 } from "./skills";
 import { PROVISIONAL } from "./provisional";
+import { FOREST_CHAPTER } from "./stages";
 import type { ClassId } from "./types";
 
 export const MIN_LEARNED_FOR_BATTLE = 4;
@@ -30,6 +32,18 @@ export interface EncounterDef {
   winsRequired: number;
   /** Atlas frame id under monster/. Defaults to the encounter id. */
   sprite?: string;
+}
+
+export interface BattleEnemy {
+  name: string;
+  maxHp: number;
+  attack: number;
+  sprite: string;
+}
+
+export interface BossPhase {
+  hp: number;
+  note: string;
 }
 
 export const ENCOUNTERS: EncounterDef[] = [
@@ -56,10 +70,10 @@ export const ENCOUNTERS: EncounterDef[] = [
   {
     id: PROVISIONAL.chapterEnding.bossId,
     name: PROVISIONAL.chapterEnding.bossName,
-    title: "词灵 · 林冠",
+    title: "词灵 · 林心守护者",
     maxHp: PROVISIONAL.chapterEnding.bossHp,
     attack: PROVISIONAL.chapterEnding.bossAttack,
-    blurb: "示例章节的结局。所选年级的词卡集齐之后才会出现。",
+    blurb: "森林冒险的最后一关。前面的区域清关，并且所选年级的本章词都学过，才会开门。",
     accent: "#1f7a4d",
     winsRequired: 1,
     sprite: PROVISIONAL.chapterEnding.bossSprite,
@@ -68,13 +82,14 @@ export const ENCOUNTERS: EncounterDef[] = [
 
 export const CHAPTER_BOSS_ID = PROVISIONAL.chapterEnding.bossId;
 
-/** Fights the player may choose. The chapter boss stays locked until every sample card is collected. */
+/** Fights the old practice list may show. The chapter boss stays behind the sample-card gate here. */
 export function openEncounters(learnedIds: readonly string[], sampleIds: readonly string[]): EncounterDef[] {
   const ready = sampleIds.length > 0 && sampleIds.every((id) => learnedIds.includes(id));
   return ENCOUNTERS.filter((encounter) => encounter.id !== CHAPTER_BOSS_ID || ready);
 }
 
 export type BattlePhase = "question" | "choose" | "won" | "lost";
+export type BattleQuestion = QuizQuestion | SpellingQuestion;
 
 export interface BattleAction {
   type: "attack" | "block" | "heal" | "skill";
@@ -90,12 +105,15 @@ export interface BattleState {
   playerMaxHp: number;
   enemyHp: number;
   enemyMaxHp: number;
+  enemyName: string;
+  enemyAttack: number;
+  enemySprite: string;
   energy: number;
   maxEnergy: number;
   guard: number;
   enemyHits: number;
   phase: BattlePhase;
-  question: QuizQuestion | null;
+  question: BattleQuestion | null;
   /** Set while a skill card is waiting for its word question. */
   pendingSlot: number | null;
   slots: SkillSlot[];
@@ -107,11 +125,20 @@ export interface BattleState {
   lastNote: string;
   log: string[];
   learnedIds: string[];
-  /** When set, non-due skill questions stay inside this id list. Due words are not filtered. */
+  /** Selected-grade chapter words. Omitted means the fallback pool is every learned word. */
   allowedWordIds: string[] | null;
   classId: ClassId;
   equippedSkillIds: string[];
   skillLevels: Record<string, number>;
+  /** Word ids whose mastery badge is lit. Advanced spelling reads this, not a grey badge. */
+  litWordIds: string[];
+  recentQuestionIds: string[];
+  questionsAsked: number;
+  spellingAsked: number;
+  /** Null keeps the fight on meaning and listening questions. */
+  spellingCap: number | null;
+  phases: BossPhase[] | null;
+  phaseIndex: number;
 }
 
 export function canStartBattle(learnedCount: number): boolean {
@@ -136,19 +163,37 @@ export function startBattle(input: {
   /** Selected-grade word ids. Omitted means the fallback pool is every learned word. */
   allowedWordIds?: readonly string[];
   rules?: Partial<SkillCardRules>;
+  enemy?: BattleEnemy;
+  phases?: readonly BossPhase[] | null;
+  spellingCap?: number | null;
+  litWordIds?: readonly string[];
 }): BattleState {
-  const encounter = encounterById(input.encounterId);
+  const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
+  const enemy = input.enemy ?? (known
+    ? { name: known.name, maxHp: known.maxHp, attack: known.attack, sprite: known.sprite ?? known.id }
+    : null);
+  if (!enemy) throw new Error(`Unknown encounter ${input.encounterId}`);
+  const boss = input.encounterId === CHAPTER_BOSS_ID;
+  const phases = input.phases === undefined
+    ? boss
+      ? PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp: phase.hp, note: phase.note }))
+      : null
+    : input.phases;
+  const opening = phases?.[0];
   const hero = classById(input.classId);
   const rules: SkillCardRules = { ...SKILL_CARD_RULES, ...input.rules };
   const slots = fillSkillSlots(input.classId, input.equippedSkillIds, input.skillLevels, rules);
   const learnedIds = [...input.learnedIds];
   return {
-    encounterId: encounter.id,
+    encounterId: input.encounterId,
     seed: input.seed,
     playerHp: hero.maxHp,
     playerMaxHp: hero.maxHp,
-    enemyHp: encounter.maxHp,
-    enemyMaxHp: encounter.maxHp,
+    enemyHp: opening?.hp ?? enemy.maxHp,
+    enemyMaxHp: opening?.hp ?? enemy.maxHp,
+    enemyName: enemy.name,
+    enemyAttack: enemy.attack,
+    enemySprite: enemy.sprite,
     energy: 0,
     maxEnergy: MAX_ENERGY,
     guard: 0,
@@ -163,12 +208,19 @@ export function startBattle(input: {
     rules,
     turn: 0,
     lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会抽一道已学的词。",
-    log: [`${encounter.name}出现了。`],
+    log: [`${enemy.name}出现了。`],
     learnedIds,
     allowedWordIds: input.allowedWordIds ? [...input.allowedWordIds] : null,
     classId: input.classId,
     equippedSkillIds: slots.filter((slot) => slot.origin === "equipped").map((slot) => slot.skillId),
     skillLevels: { ...input.skillLevels },
+    litWordIds: [...(input.litWordIds ?? [])],
+    recentQuestionIds: [],
+    questionsAsked: 0,
+    spellingAsked: 0,
+    spellingCap: input.spellingCap === undefined ? (boss ? FOREST_CHAPTER.boss_v1.spelling_ratio_cap : null) : input.spellingCap,
+    phases: phases ? phases.map((phase) => ({ ...phase })) : null,
+    phaseIndex: 0,
   };
 }
 
@@ -202,16 +254,15 @@ function applySlotEffect(
 }
 
 function enemyDamage(state: BattleState): number {
-  const base = encounterById(state.encounterId).attack + Math.floor(state.enemyHits / 2);
+  const base = state.enemyAttack + Math.floor(state.enemyHits / 2);
   return Math.max(0, base - state.guard);
 }
 
 function afterEnemyHit(state: BattleState, note: string): BattleState {
   const dealt = enemyDamage(state);
   const playerHp = state.playerHp - dealt;
-  const name = encounterById(state.encounterId).name;
   const hitText = dealt > 0 ? `受到 ${dealt} 点伤害。` : "这次没有受到伤害。";
-  const log = pushLog(state.log, `${name}：${hitText}`);
+  const log = pushLog(state.log, `${state.enemyName}：${hitText}`);
   if (playerHp <= 0) {
     return {
       ...state,
@@ -219,18 +270,19 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
       guard: 0,
       enemyHits: state.enemyHits + 1,
       phase: "lost",
+      pendingSlot: null,
+      question: null,
       log,
       lastNote: `${note}${hitText}你先退下来。词卡都还在。`,
     };
   }
-  const turn = state.turn + 1;
   return {
     ...state,
     playerHp,
     guard: 0,
     enemyHits: state.enemyHits + 1,
     phase: "choose",
-    turn,
+    turn: state.turn + 1,
     pendingSlot: null,
     question: null,
     log,
@@ -238,38 +290,128 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
   };
 }
 
+function finishPlayerTurn(state: BattleState, note: string): BattleState {
+  if (state.enemyHp > 0) return afterEnemyHit(state, note);
+  const next = state.phases?.[state.phaseIndex + 1];
+  if (next) {
+    return {
+      ...state,
+      phaseIndex: state.phaseIndex + 1,
+      enemyHp: next.hp,
+      enemyMaxHp: next.hp,
+      phase: "choose",
+      pendingSlot: null,
+      question: null,
+      guard: 0,
+      log: pushLog(state.log, next.note),
+      lastNote: `${note}${next.note}`,
+    };
+  }
+  return {
+    ...state,
+    enemyHp: 0,
+    phase: "won",
+    pendingSlot: null,
+    question: null,
+    log: pushLog(state.log, "词灵散开了。"),
+    lastNote: `${note}你赢了。`,
+  };
+}
+
 export function answerQuestion(state: BattleState, choiceId: string): BattleState {
   if (state.phase !== "question" || !state.question || state.pendingSlot === null) return state;
   const slot = state.slots[state.pendingSlot];
   if (!slot) return state;
-  const correct = choiceId === state.question.answerId;
+  const correct = state.question.kind === "spelling"
+    ? checkSpelling(state.question.answer, choiceId)
+    : choiceId === state.question.answerId;
   const amount = castEffect(slot, correct, state.rules.wrongAnswerMultiplier);
   const hero = classById(state.classId);
-  const enemyHp = state.enemyHp;
-  const playerHp = state.playerHp;
-  const guard = state.guard;
   const energy = Math.min(state.maxEnergy, state.energy + (correct ? hero.energyGain : 0));
-  const applied = applySlotEffect(slot, amount, { enemyHp, playerHp, playerMaxHp: state.playerMaxHp, guard });
+  const applied = applySlotEffect(slot, amount, {
+    enemyHp: state.enemyHp,
+    playerHp: state.playerHp,
+    playerMaxHp: state.playerMaxHp,
+    guard: state.guard,
+  });
   const quality = correct ? "答对了，全力发动。" : "答错了，只有减弱的基础效果。";
   const note = `${quality}${applied.note}`;
-  if (applied.enemyHp <= 0) {
-    return {
-      ...state,
-      enemyHp: 0,
-      playerHp: applied.playerHp,
-      energy,
-      guard: applied.guard,
-      pendingSlot: null,
-      question: null,
-      phase: "won",
-      log: pushLog(state.log, "词灵散开了。"),
-      lastNote: `${note}你赢了。`,
-    };
-  }
-  return afterEnemyHit(
+  return finishPlayerTurn(
     { ...state, enemyHp: applied.enemyHp, playerHp: applied.playerHp, energy, guard: applied.guard, lastNote: note },
     note,
   );
+}
+
+function drawBattleWord(
+  pool: readonly string[],
+  deck: SkillQuestionDeck,
+  recent: readonly string[],
+  seed: number,
+): { wordId: string; deck: SkillQuestionDeck; recent: string[] } {
+  const window = PROVISIONAL.chapterBattle.recentQuestionWindow;
+  const avoid = new Set(window > 0 ? recent.slice(-window) : []);
+  let working = deck;
+  let picked = "";
+  const skipped: string[] = [];
+  for (let attempt = 0; attempt < pool.length; attempt += 1) {
+    const drawn = drawSkillQuestionWord(pool, working, seed + attempt);
+    working = drawn.deck;
+    if (!avoid.has(drawn.wordId) || attempt === pool.length - 1) {
+      picked = drawn.wordId;
+      break;
+    }
+    skipped.push(drawn.wordId);
+  }
+  if (!picked) throw new Error("No learned words to ask");
+  return {
+    wordId: picked,
+    deck: { queue: [...working.queue, ...skipped] },
+    recent: [...recent, picked].slice(-12),
+  };
+}
+
+function askQuestion(state: BattleState, slot: SkillSlot): { ok: boolean; reason?: string; state: BattleState } {
+  const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
+    allowedIds: state.allowedWordIds ?? undefined,
+  });
+  if (pool.length === 0) {
+    return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。", state };
+  }
+  let drawn: { wordId: string; deck: SkillQuestionDeck; recent: string[] };
+  try {
+    drawn = drawBattleWord(pool, state.deck, state.recentQuestionIds, state.seed + state.casts * 17 + 1);
+  } catch {
+    return { ok: false, reason: "还没有学过的词", state };
+  }
+  const word = wordById(drawn.wordId);
+  const lit = state.litWordIds.includes(drawn.wordId);
+  const nextShare = (state.spellingAsked + 1) / (state.questionsAsked + 1);
+  const spell = Boolean(
+    word &&
+      state.spellingCap !== null &&
+      spellingAllowed(word, lit) &&
+      nextShare <= state.spellingCap + 1e-9,
+  );
+  const question = spell
+    ? spellingQuestion(drawn.wordId, lit)
+    : quizForWord(drawn.wordId, state.seed + state.casts * 13, state.questionsAsked % 2 === 0 ? "zh-to-en" : "en-to-zh");
+  if (!question) return { ok: false, reason: "这道题现在出不了", state };
+  return {
+    ok: true,
+    state: {
+      ...state,
+      energy: state.energy - slot.energyCost,
+      phase: "question",
+      pendingSlot: slot.index,
+      question,
+      deck: drawn.deck,
+      recentQuestionIds: drawn.recent,
+      casts: state.casts + 1,
+      questionsAsked: state.questionsAsked + 1,
+      spellingAsked: state.spellingAsked + (question.kind === "spelling" ? 1 : 0),
+      lastNote: `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
+    },
+  };
 }
 
 export function takeAction(
@@ -301,55 +443,10 @@ export function takeAction(
         : state.slots.find((item) => item.origin === "equipped" && item.skillId === action.skillId);
     if (!slot) return { ok: false, reason: "这张技能卡没有装备", state };
     if (energy < slot.energyCost) return { ok: false, reason: "能量不够", state };
-    const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
-      allowedIds: state.allowedWordIds ?? undefined,
-    });
-    if (pool.length === 0) {
-      return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。", state };
-    }
-    let drawn: { wordId: string; deck: SkillQuestionDeck };
-    try {
-      drawn = drawSkillQuestionWord(pool, state.deck, state.seed + state.casts * 17 + 1);
-    } catch {
-      return { ok: false, reason: "还没有学过的词", state };
-    }
-    const question = quizForWord(
-      drawn.wordId,
-      state.seed + state.casts * 13,
-      state.casts % 2 === 0 ? "zh-to-en" : "en-to-zh",
-    );
-    return {
-      ok: true,
-      state: {
-        ...state,
-        energy: energy - slot.energyCost,
-        phase: "question",
-        pendingSlot: slot.index,
-        question,
-        deck: drawn.deck,
-        casts: state.casts + 1,
-        lastNote: `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
-      },
-    };
+    return askQuestion(state, slot);
   }
-  if (enemyHp <= 0) {
-    return {
-      ok: true,
-      state: {
-        ...state,
-        enemyHp: 0,
-        playerHp,
-        energy,
-        guard,
-        phase: "won",
-        log: pushLog(state.log, "词灵散开了。"),
-        lastNote: `${note}你赢了。`,
-      },
-    };
-  }
-
   return {
     ok: true,
-    state: afterEnemyHit({ ...state, enemyHp, playerHp, energy, guard, lastNote: note }, note),
+    state: finishPlayerTurn({ ...state, enemyHp, playerHp, energy, guard, lastNote: note }, note),
   };
 }

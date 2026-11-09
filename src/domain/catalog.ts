@@ -109,7 +109,15 @@ interface WordGlob {
   glob(pattern: string, options: { eager: true; import: "default" }): Record<string, WordFile>;
 }
 
-const wordFiles = (import.meta as unknown as WordGlob).glob("./data/**/*.json", { eager: true, import: "default" });
+function isWordFile(file: unknown): file is WordFile {
+  return typeof file === "object" && file !== null && Array.isArray((file as WordFile).words);
+}
+
+const loadedFiles = (import.meta as unknown as WordGlob).glob("./data/**/*.json", { eager: true, import: "default" });
+const wordFiles: Record<string, WordFile> = {};
+for (const [path, file] of Object.entries(loadedFiles)) {
+  if (isWordFile(file)) wordFiles[path] = file;
+}
 
 export const CATALOG_WORDS: WordDef[] = mergeWordFiles(wordFiles);
 export const SAMPLE_WORDS: WordDef[] = CATALOG_WORDS.filter((word) => word.sample);

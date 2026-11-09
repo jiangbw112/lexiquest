@@ -63,16 +63,20 @@ export function listeningQuestion(wordId: string, seed: number): QuizQuestion {
   return quizForWord(wordId, seed, "listen-to-zh");
 }
 
-/** Basic spelling is available immediately, including grade 3. Advanced waits for a mastery badge. None is never asked. */
-export function spellingAllowed(word: WordDef, mastered: boolean): boolean {
+/**
+ * Basic spelling is available immediately, including grade 3.
+ * Advanced spelling needs the badge to be lit: earned, not due, and not lapsed.
+ * A grey badge is not enough. None is never asked.
+ */
+export function spellingAllowed(word: WordDef, badgeLit: boolean): boolean {
   if (word.spelling === "none") return false;
   if (word.spelling === "basic") return true;
-  return mastered;
+  return badgeLit;
 }
 
-export function spellingQuestion(wordId: string, mastered: boolean): SpellingQuestion | null {
+export function spellingQuestion(wordId: string, badgeLit: boolean): SpellingQuestion | null {
   const word = wordById(wordId);
-  if (!word || !spellingAllowed(word, mastered)) return null;
+  if (!word || !spellingAllowed(word, badgeLit)) return null;
   return {
     kind: "spelling",
     wordId: word.id,

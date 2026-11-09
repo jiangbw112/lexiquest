@@ -11,9 +11,40 @@ import {
   type BattleState,
 } from "./battle";
 import { sampleWords } from "./catalog";
+import { PROVISIONAL } from "./provisional";
 import { SKILL_CARD_RULES, skillsForClass } from "./skills";
 
 const LEARNED = ["tree", "bird", "fish", "sun", "map", "run"];
+
+function askBoss(learned: string[], lit: string[], count: number, allowed = learned) {
+  let state = startBattle({
+    encounterId: CHAPTER_BOSS_ID,
+    classId: "warrior",
+    learnedIds: learned,
+    equippedSkillIds: [],
+    skillLevels: {},
+    seed: 4,
+    allowedWordIds: allowed,
+    litWordIds: lit,
+    enemy: { name: "林心守护者", maxHp: 9000, attack: 0, sprite: "page" },
+    phases: [
+      { hp: 9000, note: "第一阶段" },
+      { hp: 9000, note: "第二阶段" },
+    ],
+    spellingCap: 0.3,
+  });
+  const words: string[] = [];
+  let spelling = 0;
+  for (let turn = 0; turn < count; turn += 1) {
+    const cast = takeAction(state, { type: "skill", slotIndex: 0 });
+    if (!cast.ok || !cast.state.question) throw new Error(cast.reason ?? "no question");
+    words.push(cast.state.question.wordId);
+    if (cast.state.question.kind === "spelling") spelling += 1;
+    const answer = cast.state.question.kind === "spelling" ? "nope" : cast.state.question.answerId;
+    state = answerQuestion(cast.state, answer);
+  }
+  return { spelling, asked: count, words };
+}
 
 function begin(
   classId: BattleState["classId"],
@@ -40,9 +71,13 @@ function play(state: BattleState, policy: "attack" | "smart" | "wrong" | "heal")
     if (state.phase === "question" && state.question) {
       const question = state.question;
       const choice =
-        policy === "wrong"
-          ? (question.choices.find((item) => item.id !== question.answerId)?.id ?? "nope")
-          : question.answerId;
+        question.kind === "spelling"
+          ? policy === "wrong"
+            ? "nope"
+            : question.answer
+          : policy === "wrong"
+            ? (question.choices.find((item) => item.id !== question.answerId)?.id ?? "nope")
+            : question.answerId;
       state = answerQuestion(state, choice);
       continue;
     }
@@ -103,7 +138,9 @@ describe("word-monster battle", () => {
     });
     const cast = takeAction(state, { type: "skill", slotIndex: 1 });
     expect(cast.state.question?.wordId).toBe("map");
-    const again = takeAction(answerQuestion(cast.state, cast.state.question!.answerId), { type: "skill", slotIndex: 2 });
+    const asked = cast.state.question;
+    if (!asked || asked.kind === "spelling") throw new Error("expected a choice question");
+    const again = takeAction(answerQuestion(cast.state, asked.answerId), { type: "skill", slotIndex: 2 });
     expect(again.state.question?.wordId).toBe("map");
   });
 
@@ -136,7 +173,9 @@ describe("word-monster battle", () => {
     );
     const right = takeAction(leveled, { type: "skill", skillId: "warrior-shout" });
     const wrong = takeAction(leveled, { type: "skill", skillId: "warrior-shout" });
-    const rightDone = answerQuestion(right.state, right.state.question!.answerId);
+    const rightQuestion = right.state.question;
+    if (!rightQuestion || rightQuestion.kind === "spelling") throw new Error("expected a choice question");
+    const rightDone = answerQuestion(right.state, rightQuestion.answerId);
     const wrongDone = answerQuestion(wrong.state, "nope");
     expect(rightDone.enemyHp).toBe(leveled.enemyHp - 30);
     expect(wrongDone.enemyHp).toBe(leveled.enemyHp - 5);
@@ -198,7 +237,67 @@ describe("word-monster battle", () => {
       equippedSkillIds: ["warrior-bash"],
       skillLevels: { "warrior-bash": 1 },
       seed: 1,
-    }).enemyMaxHp).toBe(48);
+    }).enemyMaxHp).toBe(65);
+  });
+
+  it("changes boss phase without ending the fight, and caps spelling at 30 percent", () => {
+    const basics = ["tree", "bird", "fish", "sun", "map", "run"];
+    let phase = startBattle({
+      encounterId: CHAPTER_BOSS_ID,
+      classId: "warrior",
+      learnedIds: ["tree"],
+      equippedSkillIds: [],
+      skillLevels: {},
+      seed: 2,
+      enemy: { name: "林心守护者", maxHp: 5, attack: 0, sprite: "page" },
+      phases: [
+        { hp: 5, note: "第一阶段" },
+        { hp: 5, note: "林心守护者进入第二阶段。" },
+      ],
+    });
+    const cast = takeAction(phase, { type: "skill", slotIndex: 0 });
+    expect(cast.ok).toBe(true);
+    const answer = cast.state.question?.kind === "spelling" ? cast.state.question.answer : cast.state.question?.answerId;
+    phase = answerQuestion(cast.state, answer ?? "");
+    expect(phase.phase).toBe("choose");
+    expect(phase.phaseIndex).toBe(1);
+    expect(phase.enemyHp).toBe(5);
+    expect(phase.lastNote).toContain("第二阶段");
+    const again = takeAction(phase, { type: "skill", slotIndex: 0 });
+    phase = answerQuestion(again.state, again.state.question?.kind === "spelling" ? again.state.question.answer : again.state.question!.answerId);
+    expect(phase.phase).toBe("won");
+
+    const mix = askBoss(basics, basics, 12);
+    expect(mix.spelling).toBeGreaterThan(0);
+    expect(mix.spelling / mix.asked).toBeLessThanOrEqual(0.3);
+    expect(askBoss(["mountain"], [], 12).spelling).toBe(0);
+    expect(askBoss(["dangerous"], ["dangerous"], 12).spelling).toBe(0);
+    const onlyTree = askBoss(["tree"], [], 8, sampleWords().map((word) => word.id));
+    expect(onlyTree.words.every((id) => id === "tree")).toBe(true);
+  });
+
+  it("keeps a word out of the last three questions when another word is available", () => {
+    const pool = ["tree", "bird", "fish", "sun"];
+    let state = startBattle({
+      encounterId: "inkling",
+      classId: "warrior",
+      learnedIds: pool,
+      equippedSkillIds: [],
+      skillLevels: {},
+      seed: 9,
+      allowedWordIds: pool,
+    });
+    const asked: string[] = [];
+    for (let turn = 0; turn < 6 && state.phase !== "won" && state.phase !== "lost"; turn += 1) {
+      const cast = takeAction(state, { type: "skill", slotIndex: 0 });
+      expect(cast.ok).toBe(true);
+      const wordId = cast.state.question?.wordId ?? "";
+      expect(asked.slice(-PROVISIONAL.chapterBattle.recentQuestionWindow)).not.toContain(wordId);
+      asked.push(wordId);
+      const answer = cast.state.question?.kind === "spelling" ? cast.state.question.answer : cast.state.question!.answerId;
+      state = answerQuestion(cast.state, answer);
+    }
+    expect(asked.length).toBeGreaterThanOrEqual(4);
   });
 
   it("makes a block reduce the next hit", () => {

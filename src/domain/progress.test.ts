@@ -149,37 +149,49 @@ describe("saved progress", () => {
     const loaded = deserialize(serialize(save));
     expect(loaded).toEqual(save);
     expect(deserialize("{")).toBeNull();
-    const legacy = JSON.parse(serialize(save)) as { chapterCleared?: boolean; selectedGrades?: string[] };
+    const legacy = JSON.parse(serialize(save)) as {
+      chapterCleared?: boolean;
+      selectedGrades?: string[];
+      stageWins?: unknown;
+      titles?: unknown;
+    };
     delete legacy.chapterCleared;
     delete legacy.selectedGrades;
+    delete legacy.stageWins;
+    delete legacy.titles;
     const restored = deserialize(JSON.stringify(legacy));
     expect(restored?.chapterCleared).toBe(false);
     expect(restored?.selectedGrades).toEqual(["G3"]);
+    expect(restored?.stageWins).toEqual({});
+    expect(restored?.titles).toEqual([]);
   });
 
-  it("states the sample quest and clears the chapter only after the boss", () => {
-    let save = newSave();
-    expect(questLine(save)).toContain("还差 4");
+  it("states the forest quest and clears the chapter only after the boss", () => {
+    let save = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
+    expect(questLine(save)).toContain("林缘小径");
+    expect(questLine(save)).toContain("掌握 0/28");
     for (const word of sampleWords().slice(0, 4)) save = learnWord(save, word.id, START);
-    expect(questLine(save)).toContain("墨团");
-    save = applyBattleOutcome(save, "win", START.getTime(), "inkling");
-    expect(save.chapterCleared).toBe(false);
-    expect(questLine(save)).toContain("给家长");
     const earlyBoss = applyBattleOutcome(save, "win", START.getTime() + 1, "canopy");
     expect(earlyBoss.chapterCleared).toBe(false);
+    expect(earlyBoss.memory).toBe(save.memory);
+    expect(earlyBoss.wordCards).toBe(save.wordCards);
 
     for (const word of sampleWords()) save = learnWord(save, word.id, START);
-    expect(questLine(save)).toContain("林冠");
+    expect(questLine(save)).toContain("林缘小径");
+    save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     const memory = save.memory;
     const cards = save.wordCards;
     const cleared = applyBattleOutcome(save, "win", START.getTime() + 2, "canopy");
     expect(cleared.chapterCleared).toBe(true);
     expect(cleared.memory).toBe(memory);
     expect(cleared.wordCards).toBe(cards);
-    expect(cleared.rewardQueue.filter((notice) => notice.title === "暂定结局")).toHaveLength(1);
-    expect(questLine(cleared)).toContain("暂定完成");
+    expect(cleared.titles).toContain("林心探索者");
+    expect(cleared.rewardQueue.filter((notice) => notice.title === "章节完成")).toHaveLength(1);
+    expect(questLine(cleared)).toContain("掌握 0/28");
+    expect(questLine(cleared)).toContain("通关");
     const again = applyBattleOutcome(cleared, "win", START.getTime() + 3, "canopy");
-    expect(again.rewardQueue.filter((notice) => notice.title === "暂定结局")).toHaveLength(1);
+    expect(again.rewardQueue.filter((notice) => notice.title === "章节完成")).toHaveLength(1);
+    expect(again.titles).toEqual(cleared.titles);
   });
 
   it("filters new learning to the selected grades and keeps a card that was already collected", () => {

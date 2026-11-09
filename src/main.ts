@@ -11,6 +11,7 @@ import { LearnScene } from "./game/scenes/LearnScene";
 import { OverworldScene } from "./game/scenes/OverworldScene";
 import { ReviewScene } from "./game/scenes/ReviewScene";
 import { SkillsScene } from "./game/scenes/SkillsScene";
+import { StageMapScene } from "./game/scenes/StageMapScene";
 import { TitleScene } from "./game/scenes/TitleScene";
 import { WardrobeScene } from "./game/scenes/WardrobeScene";
 
@@ -38,6 +39,7 @@ const game = new Phaser.Game({
     CreateScene,
     OverworldScene,
     LearnScene,
+    StageMapScene,
     BattleScene,
     CollectionScene,
     ReviewScene,

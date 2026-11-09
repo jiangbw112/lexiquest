@@ -15,6 +15,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function readStageWins(value: unknown): Record<string, number> {
+  if (!isRecord(value)) return {};
+  const wins: Record<string, number> = {};
+  for (const [key, count] of Object.entries(value)) {
+    if (typeof count === "number" && Number.isFinite(count) && count >= 0) wins[key] = count;
+  }
+  return wins;
+}
+
 export function deserialize(raw: string): SaveData | null {
   try {
     const value: unknown = JSON.parse(raw);
@@ -34,6 +43,8 @@ export function deserialize(raw: string): SaveData | null {
     if (typeof value.battlesWon !== "number" || typeof value.battlesLost !== "number") return null;
     const save = value as unknown as SaveData;
     save.chapterCleared = value.chapterCleared === true;
+    save.stageWins = readStageWins(value.stageWins);
+    save.titles = Array.isArray(value.titles) ? value.titles.filter((item): item is string => typeof item === "string") : [];
     const grades = Array.isArray(value.selectedGrades)
       ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")
       : undefined;

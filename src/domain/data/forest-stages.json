@@ -1,0 +1,31 @@
+{
+  "chapter_id": "forest_adventure",
+  "clear_rule": "defeat_boss",
+  "mastery_blocks_clear": false,
+  "stages": [
+    { "id": 1, "name_zh": "林缘小径", "new_words": ["tree", "bird", "fish", "sun", "map", "run"] },
+    { "id": 2, "name_zh": "河岸花径", "new_words": ["big", "red", "river", "forest", "flower", "rain"] },
+    { "id": 3, "name_zh": "云桥山道", "new_words": ["cloud", "jump", "mountain", "bridge", "path", "climb"] },
+    { "id": 4, "name_zh": "迷雾村庄", "new_words": ["village", "weather", "brave", "dangerous", "explore", "protect"] },
+    {
+      "id": 5,
+      "name_zh": "林心守护",
+      "type": "boss",
+      "new_words": ["treasure", "journey", "discover", "adventure"],
+      "learn_before_fight": true
+    }
+  ],
+  "stage_clear": { "all_stage_words_learned": true, "min_battle_wins": 1 },
+  "boss_unlock": { "stages_1_to_4_cleared": true, "all_28_learned": true },
+  "boss_v1": {
+    "phases": 2,
+    "successful_skill_casts_to_clear": [8, 12],
+    "spelling_ratio_cap": 0.3,
+    "tunable_after_playtest": true
+  },
+  "question_pool": {
+    "prefer_due": true,
+    "fallback": "learned_in_chapter",
+    "never": "unlearned_or_outside_chapter"
+  }
+}

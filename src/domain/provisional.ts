@@ -3,7 +3,9 @@
  * Mastery, the 3-card skill cap, base-skill numbers, a wrong PvE answer, the
  * grade pause, and browser speech are decided. Friend 1v1 comparison is a
  * confirmed rule and is not configured here. Combat HP is separate MVP tuning.
- * The 林冠 figure is still a placeholder: change `bossSprite` when its drawing arrives.
+ * The 林心守护者 figure is still a placeholder: change `bossSprite` when its drawing arrives.
+ * `chapterBattle` holds numbers that are not decided yet. Boss phase health is v1 tuning
+ * so a clear lands near the confirmed 8–12 successful damage casts.
  */
 export const PROVISIONAL = {
   label: "v1",
@@ -30,12 +32,31 @@ export const PROVISIONAL = {
    * 林冠 drawing is added; set it to that frame id and nothing else needs to change.
    */
   chapterEnding: {
-    label: "PROVISIONAL",
+    label: "v1",
     bossId: "canopy",
-    bossName: "林冠",
-    bossHp: 48,
-    bossAttack: 7,
+    bossName: "林心守护者",
+    bossHp: 65,
+    bossAttack: 5,
     bossSprite: "page",
+    /** Two phases. 65 + 65 is about 12 盾击, 9 战吼, and 7 旋风斩 at level 1. */
+    phases: [
+      { hp: 65, note: "林心守护者挡住了去路。" },
+      { hp: 65, note: "林心守护者进入第二阶段。" },
+    ],
+  },
+  /**
+   * Not decided. Change these after playtesting.
+   * Exploration health is tuned for the warrior's real damage skills (about 3–5 hits).
+   * The free base skill is weaker, so using only that filler takes longer.
+   * An empty cosmetic id means the chapter clear grants no outfit yet.
+   */
+  chapterBattle: {
+    label: "PROVISIONAL",
+    explorationEnemyHp: 44,
+    explorationEnemyAttack: 6,
+    recentQuestionWindow: 3,
+    completionTitle: "林心探索者",
+    completionCosmeticId: "",
   },
   skillCards: {
     label: "v1",

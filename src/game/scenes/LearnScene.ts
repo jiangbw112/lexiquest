@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, sampleUnits, wordById } from "../../domain/catalog";
 import { learnWord, studyNow } from "../../domain/progress";
+import { badgeTone } from "../../domain/review";
 import {
   checkSpelling,
   listeningQuestion,
@@ -54,6 +55,12 @@ export class LearnScene extends Phaser.Scene {
   private units() {
     const grades = new Set(getSave()?.selectedGrades ?? ["G3"]);
     return sampleUnits().filter((unit) => grades.has(unit.grade));
+  }
+
+  private badgeLit(wordId: string): boolean {
+    const save = getSave();
+    if (!save) return false;
+    return badgeTone(save.wordCards[wordId], save.memory[wordId], studyNow(save)) === "bright";
   }
 
   private currentId(): string | undefined {
@@ -123,7 +130,7 @@ export class LearnScene extends Phaser.Scene {
     const id = this.currentId();
     const save = getSave();
     const word = id ? wordById(id) : undefined;
-    if (!id || !word || !save || !spellingAllowed(word, Boolean(save.wordCards[id]?.masteryBadge))) return;
+    if (!id || !word || !save || !spellingAllowed(word, this.badgeLit(id))) return;
     this.phase = "spell";
     this.question = null;
     this.draw();
@@ -135,7 +142,7 @@ export class LearnScene extends Phaser.Scene {
     const input = document.getElementById("spell-input");
     const error = document.getElementById("spell-error");
     if (!id || !save || !(input instanceof HTMLInputElement)) return;
-    const prompt = spellingQuestion(id, Boolean(save.wordCards[id]?.masteryBadge));
+    const prompt = spellingQuestion(id, this.badgeLit(id));
     if (!prompt || !checkSpelling(prompt.answer, input.value)) {
       if (error) error.textContent = "再试一次。词卡还没收下。";
       this.missed = true;
@@ -224,7 +231,7 @@ export class LearnScene extends Phaser.Scene {
       this.add.text(180, 330, `${word.chinese} · 估计 ${word.grade} · 拼写 ${word.spelling}`, { fontFamily: FONT, fontSize: "24px", color: "#3d5c4e" });
       button(this, 300, 460, "听一听 L", () => this.startListening(), { width: 200, fill: 0x3d6ea8 });
       button(this, 540, 460, "选意思 Enter", () => this.startMeaning(), { width: 220 });
-      if (spellingAllowed(word, false)) button(this, 800, 460, "键盘拼写 P", () => this.startSpelling(), { width: 220, fill: 0x8a5a12 });
+      if (spellingAllowed(word, this.badgeLit(word.id))) button(this, 800, 460, "键盘拼写 P", () => this.startSpelling(), { width: 220, fill: 0x8a5a12 });
     } else if (this.question) {
       this.add.text(180, 220, this.question.prompt, { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
       probeQuestion(this.question.answerId, this.question.choices.map((choice) => choice.id));
@@ -235,7 +242,7 @@ export class LearnScene extends Phaser.Scene {
         if (this.question?.speakText) speakWord(this.question.speakText, browserSpeaker());
       }, { width: 200, fill: 0x3d6ea8 });
     } else if (this.phase === "spell") {
-      const prompt = spellingQuestion(word.id, false);
+      const prompt = spellingQuestion(word.id, this.badgeLit(word.id));
       this.add.text(180, 240, prompt?.prompt ?? "", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
       this.add.text(180, 310, "在画面上的输入框里用键盘拼写，然后 Enter。", { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
       document.getElementById("spell-form")?.classList.add("open");

@@ -1,11 +1,12 @@
 import Phaser from "phaser";
-import { sampleWords } from "../../domain/catalog";
+import { studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
+import { chapterLearnedCount, FOREST_WORD_COUNT, masteryLabel } from "../../domain/stages";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, button, paper } from "../ui";
 
-/** Provisional end of the 28-word sample. Not a final story. */
+/** Chapter completion. The clear is the boss win. The badge line is mastery, out of 28. */
 export class EndingScene extends Phaser.Scene {
   constructor() {
     super("ending");
@@ -19,34 +20,44 @@ export class EndingScene extends Phaser.Scene {
     }
     probeEnter("ending");
     paper(this);
-    const total = sampleWords().length;
-    const learned = Object.keys(save.wordCards).length;
     const ending = PROVISIONAL.chapterEnding;
-    this.add.text(180, 80, "森林冒险 · 暂定完成", { fontFamily: FONT, fontSize: "42px", color: "#17352a" });
-    this.add.text(180, 150, `${ending.label}。这一屏是示例章节的结尾，不是最终故事。`, {
-      fontFamily: FONT,
-      fontSize: "20px",
-      color: "#8a5a12",
-    });
-    this.add.text(180, 220, `${save.player.name} 收集了 ${learned}/${total} 张森林冒险词卡，并打败了${ending.bossName}。`, {
+    const reward = PROVISIONAL.chapterBattle;
+    const lit = masteryLabel(save, studyNow(save));
+    const title = reward.completionTitle;
+    this.add.text(180, 80, "森林冒险 · 通关", { fontFamily: FONT, fontSize: "42px", color: "#17352a" });
+    this.add.text(180, 150, `${save.player.name} 打败了${ending.bossName}。这一章走完了。`, {
       fontFamily: FONT,
       fontSize: "24px",
       color: "#17352a",
-      wordWrap: { width: 860 },
     });
-    this.add.text(180, 300, "词卡都还在册子里。熟练徽章要靠以后的复习，赢下战斗不会把它们点亮，也不会删掉。", {
+    this.add.text(180, 220, `掌握 ${lit}`, { fontFamily: FONT, fontSize: "48px", color: "#1f7a4d" });
+    this.add.text(180, 290, `熟练徽章亮着 ${lit}。分母是这一章的 ${FOREST_WORD_COUNT} 个词。灰掉的徽章不算。`, {
       fontFamily: FONT,
       fontSize: "22px",
       color: "#3d5c4e",
       wordWrap: { width: 860 },
     });
-    this.add.text(180, 400, "林冠的外形暂用页灵，正式的图换上后会替换这一张。探险家和其他职业的图还没有。", {
+    this.add.text(180, 370, `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}。赢下战斗不会把徽章点亮，也不会删掉词卡。`, {
       fontFamily: FONT,
-      fontSize: "20px",
+      fontSize: "22px",
       color: "#3d5c4e",
       wordWrap: { width: 860 },
     });
-    button(this, 320, 560, "回村子", () => this.scene.start("overworld"), { width: 220 });
+    const cosmetic = reward.completionCosmeticId
+      ? `外观：${reward.completionCosmeticId}。`
+      : "外观奖励还没定。";
+    this.add.text(180, 450, `称号：${title}。${cosmetic}`, {
+      fontFamily: FONT,
+      fontSize: "22px",
+      color: "#8a5a12",
+      wordWrap: { width: 860 },
+    });
+    this.add.text(180, 510, "林心守护者的外形暂用页灵，正式的图换上后会替换这一张。", {
+      fontFamily: FONT,
+      fontSize: "18px",
+      color: "#3d5c4e",
+    });
+    button(this, 320, 620, "回村子", () => this.scene.start("overworld"), { width: 220 });
     this.input.keyboard?.on("keydown-ESC", () => this.scene.start("overworld"));
     this.input.keyboard?.on("keydown-ENTER", () => this.scene.start("overworld"));
   }

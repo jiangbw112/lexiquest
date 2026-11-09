@@ -1,9 +1,20 @@
 import { sanitizeName } from "./appearance";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
+import { PROVISIONAL } from "./provisional";
+import {
+  bossReady,
+  chapterLearnedCount,
+  clearedStageCount,
+  explorationStageByEncounter,
+  masteryLabel,
+  stageById,
+  stageCleared,
+  stageWordIds,
+  wordsUntilBoss,
+} from "./stages";
 import { classById } from "./classes";
 import { normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
-import { PROVISIONAL } from "./provisional";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
 import { applyReview, introduceMemory, masteryDecision } from "./review";
@@ -84,6 +95,8 @@ export function createSave(input: {
     battlesWon: 0,
     battlesLost: 0,
     chapterCleared: false,
+    stageWins: {},
+    titles: [],
     selectedGrades: normalizeGrades(input.grades),
     clockOffsetMs: 0,
     rewardQueue: [],
@@ -237,26 +250,31 @@ export function setSelectedGrades(save: SaveData, grades: readonly string[]): Sa
   return { ...save, selectedGrades: normalizeGrades(grades) };
 }
 
-/** What the village should tell the child to do next. The ending line is provisional. */
+/** What the village should tell the child to do next. */
 export function questLine(save: SaveData): string {
-  const pool = selectedSampleWords(save);
-  const total = pool.length;
-  const learned = pool.filter((word) => save.wordCards[word.id]).length;
-  const tooSmall = selectionBattleNotice(total);
+  const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
   if (tooSmall) return tooSmall;
-  if (save.chapterCleared && learned >= total) {
-    return `森林冒险暂定完成。所选年级的 ${total} 张词卡都在册子里。熟练徽章还是要靠复习。`;
+  const now = studyNow(save);
+  const progress = `已学 ${chapterLearnedCount(save)}/28，已清关 ${clearedStageCount(save)}/5，掌握 ${masteryLabel(save, now)}。`;
+  if (save.chapterCleared) {
+    return `森林冒险通关了。${progress}复习会让灰掉的徽章再亮。`;
   }
-  if (learned < 4) {
-    return `目标：学完所选年级的 ${total} 个词，再打败林冠。先去学堂，还差 ${4 - learned} 张才能对战。`;
+  const next = nextForestStage(save);
+  if (!next) return `去对战，挑战林心守护者。${progress}`;
+  if (next.type === "boss") {
+    return bossReady(save)
+      ? `可以挑战林心守护者了。${progress}`
+      : `林心守护还锁着。还差 ${wordsUntilBoss(save)} 个所选年级的词。${progress}`;
   }
-  if (save.battlesWon < 1) {
-    return `已有 ${learned}/${total} 张所选年级的词卡。先去对战墨团。打出技能卡时要答一道学过的词。`;
-  }
-  if (learned < total) {
-    return `已有 ${learned}/${total} 张所选年级的词卡。集齐后才能挑战林冠。别的年级在给家长里选。`;
-  }
-  return "所选年级的词卡齐了。去对战，选林冠。这是暂定结局，赢了这一章就算走完。";
+  const ids = stageWordIds(save, next);
+  const got = ids.filter((id) => save.wordCards[id]).length;
+  return `下一关是${next.name_zh}。新词 ${got}/${ids.length}，小战斗 ${save.stageWins[String(next.id)] ?? 0} 胜。${progress}`;
+}
+
+function nextForestStage(save: SaveData) {
+  const stages = [1, 2, 3, 4, 5].map((id) => stageById(id)).filter((stage) => stage !== undefined);
+  const open = stages.find((stage) => stage.type !== "boss" && stageWordIds(save, stage).length > 0 && !stageCleared(save, stage));
+  return open ?? stageById(5);
 }
 
 /**
@@ -297,11 +315,21 @@ export function applyBattleOutcome(
     .join("");
   let rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
   let chapterCleared = save.chapterCleared;
-  if (encounterId === CHAPTER_BOSS_ID && selectedCollected(save) && !chapterCleared) {
+  let titles = save.titles;
+  const stage = explorationStageByEncounter(encounterId);
+  const stageWins = stage
+    ? { ...save.stageWins, [String(stage.id)]: (save.stageWins[String(stage.id)] ?? 0) + 1 }
+    : save.stageWins;
+  if (encounterId === CHAPTER_BOSS_ID && bossReady(save) && !chapterCleared) {
     chapterCleared = true;
+    const title = PROVISIONAL.chapterBattle.completionTitle;
+    if (!titles.includes(title)) titles = [...titles, title];
+    const cosmetic = PROVISIONAL.chapterBattle.completionCosmeticId;
+    if (cosmetic && !owned.includes(cosmetic)) owned = [...owned, cosmetic];
+    const cosmeticNote = cosmetic ? `外观：${cosmetic}。` : "";
     rewardQueue = pushReward(
       rewardQueue,
-      reward("暂定结局", "森林冒险的示例词卡和林冠都过了。这不是最终故事。词卡还在，复习记忆也没变。", String(now)),
+      reward("章节完成", `打败了林心守护者。这一章走完了。称号：${title}。${cosmeticNote}词卡还在，复习记忆也没变。`, String(now)),
     );
   }
   const next: SaveData = {
@@ -312,6 +340,8 @@ export function applyBattleOutcome(
     ownedOutfitIds: owned,
     equippedOutfitId,
     chapterCleared,
+    stageWins,
+    titles,
     memory: save.memory,
     wordCards: save.wordCards,
     rewardQueue,

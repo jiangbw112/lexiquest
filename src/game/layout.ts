@@ -20,7 +20,7 @@ export interface Place {
 
 export const PLACES: Place[] = [
   { id: "learn", scene: "learn", label: "学堂", key: "1", code: "Digit1", x: 390, y: 300, color: 0xc9843a },
-  { id: "battle", scene: "battle", label: "对战", key: "2", code: "Digit2", x: 900, y: 320, color: 0x8c4a3a },
+  { id: "battle", scene: "stages", label: "对战", key: "2", code: "Digit2", x: 900, y: 320, color: 0x8c4a3a },
   { id: "collection", scene: "collection", label: "词卡册", key: "3", code: "Digit3", x: 430, y: 470, color: 0x3d6ea8 },
   { id: "review", scene: "review", label: "复习桌", key: "4", code: "Digit4", x: 820, y: 490, color: 0x6d5bd0 },
   { id: "skills", scene: "skills", label: "技能", key: "5", code: "Digit5", x: 320, y: 620, color: 0x1f7a4d },

@@ -1,7 +1,5 @@
 import Phaser from "phaser";
 import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice } from "../../domain/progress";
-import { canStartBattle } from "../../domain/battle";
-import { MIN_LEARNED_FOR_BATTLE } from "../../domain/battle";
 import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -47,17 +45,10 @@ export class OverworldScene extends Phaser.Scene {
   private go(scene: string): void {
     const save = getSave();
     if (!save || this.traveling) return;
-    if (scene === "battle") {
+    if (scene === "stages") {
       const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
       if (tooSmall) {
         this.toast = tooSmall;
-        probeNote("battle:locked");
-        this.draw();
-        return;
-      }
-      const learned = Object.keys(save.wordCards).length;
-      if (!canStartBattle(learned)) {
-        this.toast = `再认识 ${MIN_LEARNED_FOR_BATTLE - learned} 个词，就能去对战。`;
         probeNote("battle:locked");
         this.draw();
         return;

@@ -74,8 +74,12 @@ export interface SaveData {
   xp: number;
   battlesWon: number;
   battlesLost: number;
-  /** Provisional sample-chapter flag. False until the canopy battle is won with the selected grades collected. */
+  /** True after the forest boss is defeated. Mastery badges are not required. */
   chapterCleared: boolean;
+  /** Wins of each exploration stage, keyed by the stage id. A stage clears at 1. */
+  stageWins: Record<string, number>;
+  /** Titles granted by the chapter. The completion title is provisional. */
+  titles: string[];
   /** Grades the child is studying. At least one. Missing or empty saves become grade 3. */
   selectedGrades: GradeBand[];
   clockOffsetMs: number;
