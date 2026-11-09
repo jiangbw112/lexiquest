@@ -1,0 +1,33 @@
+{
+  "placeholder": true,
+  "side": {
+    "width": 256,
+    "height": 320,
+    "originX": 0.5,
+    "originY": 1,
+    "frames": [
+      "side/cape",
+      "side/body",
+      "side/tunic",
+      "side/hair",
+      "side/sash",
+      "side/emblem",
+      "side/hat-leaf",
+      "side/hat-star"
+    ]
+  },
+  "top": {
+    "width": 128,
+    "height": 160,
+    "originX": 0.5,
+    "originY": 1,
+    "frames": ["top/shadow", "top/body", "top/hair", "top/cape", "top/sash"]
+  },
+  "monster": {
+    "width": 256,
+    "height": 256,
+    "originX": 0.5,
+    "originY": 1,
+    "frames": ["monster/inkling", "monster/page"]
+  }
+}
