@@ -26,6 +26,8 @@ export interface MapPanel {
   showLock: boolean;
   learned: number;
   total: number;
+  /** Null when the stage has no learnable words, so the panel does not show 0/0 or 0/n. */
+  progressLabel: string | null;
   wins: number | null;
   words: MapWordFace[];
   unlockLine: string | null;
@@ -48,14 +50,21 @@ function faces(stage: ForestStage, save: SaveData, mode: "hide" | "learned" | "a
 export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus): MapPanel {
   const total = stage.new_words.length;
   const learned = stage.new_words.filter((id) => save.wordCards[id]).length;
+  const boss = stage.type === "boss";
+  const learnable = stageWordIds(save, stage).length;
+  const progressLabel = !boss && learnable === 0
+    ? null
+    : status === "open" && !boss
+      ? `已学 ${learned}/${total}`
+      : `${learned}/${total}`;
   const base = {
     stageId: stage.id,
     title: stage.name_zh,
     status,
     learned,
     total,
+    progressLabel,
   };
-  const boss = stage.type === "boss";
   if (status === "locked" && !boss) {
     const after = stage.unlock && "after_stage" in stage.unlock ? stage.unlock.after_stage : null;
     return {

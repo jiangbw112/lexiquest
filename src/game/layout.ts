@@ -32,15 +32,24 @@ export const PLACES: Place[] = [
 /** Shared screen numbers so the parent list and the study card can be tested without Phaser. */
 
 export const STRUGGLE_LIST = {
-  firstY: 548,
+  /** Below the page buttons centered at y=520 (they end at 548). */
+  firstY: 556,
   pitch: 26,
   fontSize: 15,
-  /** Rows that stay above the buttons at y=730 (top edge 702) and inside 800px. */
   pageSize: 6,
   collapsed: 4,
-  buttonTop: 702,
+  /** Bottom actions. Height 56, so the top edge is center − 28. */
+  buttonCenter: 756,
+  buttonHeight: 56,
+  /** Clearance between the last row box and that top edge. */
+  gap: 16,
   screenBottom: 800,
 } as const;
+
+/** Top edge of 去复习 / 修改年级 / 返回. */
+export function struggleButtonTop(): number {
+  return STRUGGLE_LIST.buttonCenter - STRUGGLE_LIST.buttonHeight / 2;
+}
 
 export interface StruggleWindow {
   total: number;
@@ -59,7 +68,7 @@ export function struggleWindow(total: number, expanded: boolean, page: number): 
   const start = expanded ? safePage * STRUGGLE_LIST.pageSize : 0;
   const room = expanded ? STRUGGLE_LIST.pageSize : STRUGGLE_LIST.collapsed;
   const count = Math.max(0, Math.min(room, total - start));
-  const bottom = count === 0 ? STRUGGLE_LIST.firstY : STRUGGLE_LIST.firstY + (count - 1) * STRUGGLE_LIST.pitch + STRUGGLE_LIST.fontSize;
+  const bottom = count === 0 ? STRUGGLE_LIST.firstY : STRUGGLE_LIST.firstY + count * STRUGGLE_LIST.pitch;
   return { total, expanded, page: safePage, pages, start, count, bottom };
 }
 

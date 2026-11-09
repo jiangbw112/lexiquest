@@ -262,7 +262,7 @@ describe("saved progress", () => {
     expect(gradeGate(kept)).toBe("ready");
     const alreadyEmpty = deserialize(JSON.stringify({ ...JSON.parse(serialize(current)), selectedGrades: [], gradesConfirmed: true }));
     expect(alreadyEmpty?.selectedGrades).toEqual([]);
-    expect(gradeGate(alreadyEmpty!)).toBe("migrate");
+    expect(gradeGate(alreadyEmpty!)).toBe("ask-parent");
     const picked = setSelectedGrades(migrated!, ["G5", "G3"]);
     expect(picked.selectedGrades).toEqual(["G3", "G5"]);
     expect(picked.gradesConfirmed).toBe(true);

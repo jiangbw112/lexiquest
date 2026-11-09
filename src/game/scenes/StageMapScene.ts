@@ -174,14 +174,16 @@ export class StageMapScene extends Phaser.Scene {
       });
       cursor += 48;
     }
-    this.add.text(panelX - 126, cursor, panel.status === "open" && stage.type !== "boss" ? `已学 ${panel.learned}/${panel.total}` : `${panel.learned}/${panel.total}`, {
-      fontFamily: FONT,
-      fontSize: "16px",
-      fontStyle: "700",
-      color: INK,
-    });
-    warmBar(this, panelX, cursor + 28, 240, panel.total === 0 ? 0 : panel.learned / panel.total, panel.status === "cleared" ? "gold" : "leaf");
-    cursor += 52;
+    if (panel.progressLabel) {
+      this.add.text(panelX - 126, cursor, panel.progressLabel, {
+        fontFamily: FONT,
+        fontSize: "16px",
+        fontStyle: "700",
+        color: INK,
+      });
+      warmBar(this, panelX, cursor + 28, 240, panel.total === 0 ? 0 : panel.learned / panel.total, panel.status === "cleared" ? "gold" : "leaf");
+      cursor += 52;
+    }
     if (panel.wins !== null) {
       this.add.text(panelX - 126, cursor, `小战斗 ${panel.wins} 胜`, { fontFamily: FONT, fontSize: "16px", color: INK });
       cursor += 28;

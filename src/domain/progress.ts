@@ -7,6 +7,7 @@ import {
   bossReady,
   chapterLearnedCount,
   chapterWordIds,
+  FOREST_CHAPTER,
   FOREST_WORD_COUNT,
   clearedStageCount,
   litMasteryCount,
@@ -300,15 +301,17 @@ export function needsGradeChoice(save: Pick<SaveData, "selectedGrades">): boolea
   return save.selectedGrades.length === 0;
 }
 
-export type GradeGate = "ready" | "migrate";
+export type GradeGate = "ready" | "migrate" | "ask-parent";
 
 /**
  * ready: at least one grade.
- * migrate: the save is already empty. The opening grade picker may write the first choice.
- * The parent page cannot create this state; it refuses to store an empty list.
+ * migrate: an older save that never stored a grade. That page may write the first choice.
+ * ask-parent: the save is already empty and grades were confirmed. The child cannot write a
+ * new choice there. The parent page cannot create this state; it refuses to store an empty list.
  */
-export function gradeGate(save: Pick<SaveData, "selectedGrades">): GradeGate {
-  return save.selectedGrades.length > 0 ? "ready" : "migrate";
+export function gradeGate(save: Pick<SaveData, "selectedGrades" | "gradesConfirmed">): GradeGate {
+  if (save.selectedGrades.length > 0) return "ready";
+  return save.gradesConfirmed ? "ask-parent" : "migrate";
 }
 
 /** What the village should tell the child to do next. */
@@ -328,13 +331,18 @@ export function questLine(save: SaveData): string {
       : `林心守护还锁着。还差 ${wordsUntilBoss(save)} 个词。${progress}`;
   }
   const ids = stageWordIds(save, next);
+  const wins = save.stageWins[String(next.id)] ?? 0;
+  if (ids.length === 0) {
+    const need = FOREST_CHAPTER.stage_clear.min_battle_wins;
+    return `下一关是${next.name_zh}。没有要学的新词，赢 ${need} 场小战斗就算通过。小战斗 ${wins} 胜。${progress}`;
+  }
   const got = ids.filter((id) => save.wordCards[id]).length;
-  return `下一关是${next.name_zh}。新词 ${got}/${ids.length}，小战斗 ${save.stageWins[String(next.id)] ?? 0} 胜。${progress}`;
+  return `下一关是${next.name_zh}。新词 ${got}/${ids.length}，小战斗 ${wins} 胜。${progress}`;
 }
 
 function nextForestStage(save: SaveData) {
   const stages = [1, 2, 3, 4, 5].map((id) => stageById(id)).filter((stage) => stage !== undefined);
-  const open = stages.find((stage) => stage.type !== "boss" && stageWordIds(save, stage).length > 0 && !stageCleared(save, stage));
+  const open = stages.find((stage) => stage.type !== "boss" && !stageCleared(save, stage));
   return open ?? stageById(5);
 }
 

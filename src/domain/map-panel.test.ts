@@ -120,5 +120,7 @@ describe("forest map panel", () => {
     expect(panel.statusLabel).toBe("进行中");
     expect(panel.buttons.find((button) => button.id === "fight")).toMatchObject({ label: "小战斗", enabled: true });
     expect(panel.total).toBe(stage.new_words.length);
+    expect(panel.progressLabel).toBeNull();
+    expect(`${panel.goal ?? ""} ${panel.note ?? ""}`).not.toMatch(/\d+\/\d+/);
   });
 });

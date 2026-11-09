@@ -6,8 +6,9 @@ interface SceneHost {
 }
 
 /**
- * Empty grades close learn and battle and open the grade picker.
- * That picker is for a save that is already empty. The parent page does not write an empty list.
+ * Empty grades close learn and battle.
+ * An unconfirmed empty save opens the grade picker. A confirmed empty save asks the parent
+ * instead, and that page does not write grades. The parent page does not create either state.
  */
 export function redirectUngraded(host: SceneHost, save: SaveData): boolean {
   const gate = gradeGate(save);

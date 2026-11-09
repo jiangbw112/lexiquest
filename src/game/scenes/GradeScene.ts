@@ -10,7 +10,7 @@ import { warmButton, warmChip, warmPanel } from "../warm/kit";
 import { warmBackground } from "../warm/load";
 import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
-export type GradeLaunchMode = "new" | "migrate";
+export type GradeLaunchMode = "new" | "migrate" | "ask-parent";
 
 /** First step for a new save, and the gate for a save that is already missing a grade. */
 export class GradeScene extends Phaser.Scene {
@@ -22,12 +22,12 @@ export class GradeScene extends Phaser.Scene {
   }
 
   init(data: { mode?: GradeLaunchMode } = {}): void {
-    this.mode = data.mode === "migrate" ? "migrate" : "new";
+    this.mode = data.mode === "migrate" || data.mode === "ask-parent" ? data.mode : "new";
     this.grades = [];
   }
 
   create(): void {
-    const gated = this.mode === "migrate";
+    const gated = this.mode === "migrate" || this.mode === "ask-parent";
     if (gated && !getSave()) {
       this.scene.start("title");
       return;
@@ -40,6 +40,11 @@ export class GradeScene extends Phaser.Scene {
     probeNote(`grade:mode:${this.mode}`);
     probeNote(`grades:${this.grades.join(",") || "none"}`);
     listenKeys(this, (event) => {
+      if (this.mode === "ask-parent") {
+        if (event.code === "Escape") this.scene.start("title");
+        if (event.code === "Enter") this.scene.start("guide");
+        return;
+      }
       const index = ["Digit3", "Digit4", "Digit5", "Digit6"].indexOf(event.code);
       if (index >= 0) this.toggle(GRADE_BANDS[index]!.id);
       if (event.code === "Enter") this.confirm();
@@ -73,6 +78,18 @@ export class GradeScene extends Phaser.Scene {
     this.children.removeAll(true);
     warmBackground(this, "bg_forest");
     warmPanel(this, 640, 420, 980, 560);
+    if (this.mode === "ask-parent") {
+      this.add.text(180, 220, "请家长选年级", { fontFamily: FONT, fontSize: "40px", color: INK });
+      this.add.text(180, 300, "年级已经在家长页清空了。请家长打开家长页，输入密码后再选。这一页不能改年级。", {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: INK,
+        wordWrap: { width: 900 },
+      });
+      warmButton(this, 360, 480, "去给家长", () => this.scene.start("guide"), { width: 220 });
+      warmButton(this, 640, 480, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
+      return;
+    }
     const migrating = this.mode === "migrate";
     this.add.text(180, 180, migrating ? uiLabel("这台存档还没选年级") : uiLabel("先选年级"), {
       fontFamily: FONT_TITLE,

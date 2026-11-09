@@ -157,6 +157,9 @@ describe("forest chapter", () => {
     expect(stageStatuses(onlySecond)[0]).toBe("open");
     expect(stageStatuses(onlySecond)[2]).toBe("locked");
     expect(explorationCleared(onlySecond)).toBe(false);
+    expect(questLine(grade5)).toContain("林缘小径");
+    expect(questLine(grade5)).toContain("赢 1 场小战斗");
+    expect(questLine(grade5)).not.toContain("0/0");
     const wonFirst = { ...grade5, stageWins: { "1": 1 } as Record<string, number> };
     expect(stageCleared(wonFirst, first)).toBe(true);
     expect(stageStatuses(wonFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
@@ -166,6 +169,33 @@ describe("forest chapter", () => {
     opened = { ...opened, stageWins: { ...opened.stageWins, "2": 1 } };
     expect(stageStatuses(opened)[2]).toBe("open");
     expect(learnedRequiredCount(opened)).toBe(stageWordIds(grade5, second).length);
+
+    const grade6 = newSave(["G6"]);
+    const empty = FOREST_CHAPTER.stages
+      .filter((stage) => stage.type !== "boss" && stageWordIds(grade6, stage).length === 0)
+      .map((stage) => stage.name_zh);
+    expect(empty).toEqual(["林缘小径", "河岸花径"]);
+    expect(stageStatuses(grade6)).toEqual(["open", "locked", "locked", "locked", "locked"]);
+    expect(questLine(grade6)).not.toContain("0/0");
+    const wonSixthFirst = { ...grade6, stageWins: { "1": 1 } };
+    expect(stageStatuses(wonSixthFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
+    expect(questLine(wonSixthFirst)).toContain("河岸花径");
+    expect(questLine(wonSixthFirst)).not.toContain("0/0");
+    const wonBoth = { ...grade6, stageWins: { "1": 1, "2": 1 } };
+    expect(stageStatuses(wonBoth)[2]).toBe("open");
+    const onlyLater = { ...grade6, stageWins: { "2": 1 } };
+    expect(stageStatuses(onlyLater)[0]).toBe("open");
+    expect(stageStatuses(onlyLater)[2]).toBe("locked");
+
+    const pairs: string[] = [];
+    for (const grade of ["G3", "G4", "G5", "G6"]) {
+      const save = newSave([grade]);
+      for (const stage of FOREST_CHAPTER.stages) {
+        if (stage.type === "boss") continue;
+        if (stageWordIds(save, stage).length === 0) pairs.push(`${grade} ${stage.id} ${stage.name_zh}`);
+      }
+    }
+    expect(pairs).toEqual(["G5 1 林缘小径", "G6 1 林缘小径", "G6 2 河岸花径"]);
   });
 
   it("drops a cancelled grade from the boss count and can open the boss", () => {

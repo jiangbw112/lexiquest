@@ -312,6 +312,8 @@ export function warmTab(
       fontFamily: FONT_TITLE,
       fontSize: "22px",
       color: INK,
+      stroke: INK,
+      strokeThickness: selected ? 3 : 0,
     })
     .setOrigin(0.5);
   const root = scene.add.container(x, y, [...states.map((state) => slices[state]), text]);

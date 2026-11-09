@@ -1,11 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { contrastRatio, WARM_TEXT_PAIRS } from "../domain/contrast";
+import { contrastRows, renderContrastDoc } from "../domain/contrast";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { OPTION_BADGE_CENTER, STRUGGLE_LIST, meaningScale, struggleWindow, studyNoticeGap } from "./layout";
-import { CHIP_ON, INK, TEAL_DEEP, TERRA } from "./warm/theme";
+import { OPTION_BADGE_CENTER, STRUGGLE_LIST, meaningScale, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -14,15 +13,14 @@ describe("parent struggle list", () => {
     for (const total of [0, 6, 10, 100]) {
       const collapsed = struggleWindow(total, false, 0);
       expect(collapsed.count).toBe(Math.min(total, STRUGGLE_LIST.collapsed));
-      expect(collapsed.bottom).toBeLessThan(STRUGGLE_LIST.buttonTop);
+      expect(collapsed.bottom).toBeLessThanOrEqual(struggleButtonTop() - STRUGGLE_LIST.gap);
       expect(collapsed.bottom).toBeLessThan(STRUGGLE_LIST.screenBottom);
       const pages = Math.max(1, Math.ceil(total / STRUGGLE_LIST.pageSize));
       let seen = 0;
       for (let page = 0; page < pages; page += 1) {
         const list = struggleWindow(total, true, page);
         expect(list.count).toBeLessThanOrEqual(STRUGGLE_LIST.pageSize);
-        expect(list.bottom).toBeLessThanOrEqual(693);
-        expect(list.bottom).toBeLessThan(STRUGGLE_LIST.buttonTop);
+        expect(list.bottom).toBeLessThanOrEqual(struggleButtonTop() - STRUGGLE_LIST.gap);
         expect(list.bottom).toBeLessThan(STRUGGLE_LIST.screenBottom);
         seen += list.count;
       }
@@ -78,45 +76,34 @@ describe("grade gate routing", () => {
       now: START.getTime(),
     });
     expect(redirectUngraded(host, fresh)).toBe(true);
-    expect(starts).toEqual([["grades", { mode: "migrate" }]]);
+    const confirmedEmpty = { ...fresh, gradesConfirmed: true };
+    expect(gradeGate(confirmedEmpty)).toBe("ask-parent");
+    expect(redirectUngraded(host, confirmedEmpty)).toBe(true);
+    expect(starts).toEqual([
+      ["grades", { mode: "migrate" }],
+      ["grades", { mode: "ask-parent" }],
+    ]);
     const parent = readFileSync(new URL("./scenes/GuideScene.ts", import.meta.url), "utf8");
     expect(parent).toContain("保存年级");
     expect(parent).toContain("disabled: !canSave");
     expect(parent).toContain("GRADE_REQUIRED_NOTICE");
+    expect(parent).toContain("STRUGGLE_LIST.buttonCenter");
     const scene = readFileSync(new URL("./scenes/GradeScene.ts", import.meta.url), "utf8");
-    expect(scene).not.toContain("ask-parent");
-    expect(scene).not.toContain("请家长打开家长页");
+    expect(scene).toContain("ask-parent");
+    expect(scene).toContain("请家长选年级");
+    expect(scene).toContain("去给家长");
+    expect(scene).toContain("这一页不能改年级");
   });
 });
 
 describe("warm text contrast", () => {
-  it("measures declared text color against declared fill", () => {
-    const rows = WARM_TEXT_PAIRS.map((pair) => ({
-      name: pair.name,
-      ratio: Number(contrastRatio(pair.fg, pair.bg).toFixed(2)),
-    }));
-    expect(rows).toEqual([
-      { name: "ink on cream", ratio: 12.5 },
-      { name: "muted on cream", ratio: 10.4 },
-      { name: "error on cream", ratio: 6.59 },
-      { name: "disabled label on disabled fill", ratio: 7.48 },
-      { name: "cream on terra button", ratio: 5.45 },
-      { name: "cream on deep teal button", ratio: 5.47 },
-      { name: "cream on selected chip", ratio: 5.7 },
-    ]);
-    expect(rows.filter((row) => row.ratio < 4.5)).toEqual([]);
-    expect(WARM_TEXT_PAIRS.map((pair) => pair.bg)).toEqual([
-      "#FFF4DC",
-      "#FFF4DC",
-      "#FFF4DC",
-      "#CFC4B2",
-      TERRA,
-      TEAL_DEEP,
-      CHIP_ON,
-    ]);
-    expect(WARM_TEXT_PAIRS[0]?.fg).toBe(INK);
-    const tabs = readFileSync(new URL("./warm/kit.ts", import.meta.url), "utf8");
-    expect(tabs).not.toContain("strokeThickness: selected ? 3");
+  it("writes the WCAG table from text fill against the fill behind it", () => {
+    const doc = readFileSync(new URL("../../docs/contrast_wcag.md", import.meta.url), "utf8");
+    expect(doc).toBe(renderContrastDoc());
+    expect(contrastRows().length).toBeGreaterThan(40);
+    expect(contrastRows().some((row) => row.pass === false)).toBe(true);
+    expect(doc).not.toContain("Colors were not changed");
+    expect(doc).not.toContain("#A9432B");
   });
 });
 

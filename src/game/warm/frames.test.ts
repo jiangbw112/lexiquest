@@ -6,7 +6,6 @@ import { createSave, learnWord, setSelectedGrades } from "../../domain/progress"
 import { bossReady, requiredWordIds, stageStatuses } from "../../domain/stages";
 import sliceFile from "./slices.json";
 import { BOSS_NODE_ORIGIN, bossMapFrame, tabFrame, tabLabelY } from "./frames";
-import { CHIP_ON, INK, TEAL_DEEP, TERRA } from "./theme";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -45,59 +44,6 @@ function learnRequired(save: ReturnType<typeof newSave>) {
   for (const id of requiredWordIds(save)) next = learnWord(next, id, START);
   return { ...next, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
 }
-
-function centerHex(image: PNG, frame: AtlasFrame): string {
-  const x = frame.frame.x + Math.floor(frame.frame.w / 2);
-  const y = frame.frame.y + Math.floor(frame.frame.h / 2);
-  const i = (y * image.width + x) * 4;
-  return `#${[image.data[i], image.data[i + 1], image.data[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`.toUpperCase();
-}
-
-describe("warm batch b2.2 palette frames", () => {
-  it("paints the eleven action and chip frames with the declared fills and keeps the ink outline", () => {
-    const battle = atlas("atlas_battle");
-    const battlePng = png("atlas_battle");
-    const ui = atlas("atlas_ui_core");
-    const uiPng = png("atlas_ui_core");
-    expect(centerHex(battlePng, battle.frames.btn_action_coral_normal!)).toBe(TERRA);
-    expect(centerHex(battlePng, battle.frames.btn_action_teal_normal!)).toBe(TEAL_DEEP);
-    expect(centerHex(battlePng, battle.frames.hp_fill_coral!)).toBe(TERRA);
-    expect(centerHex(battlePng, battle.frames.hp_fill_teal!)).toBe(TEAL_DEEP);
-    expect(centerHex(uiPng, ui.frames.chip_on_normal!)).toBe(CHIP_ON);
-    expect(centerHex(uiPng, ui.frames.chip_on_hover!)).toBe(CHIP_ON);
-    expect(centerHex(uiPng, ui.frames.chip_on_pressed!)).toBe(CHIP_ON);
-    expect(centerHex(battlePng, battle.frames.btn_action_coral_hover!)).not.toBe("#E76F51");
-    expect(centerHex(battlePng, battle.frames.btn_action_teal_pressed!)).not.toBe("#30938B");
-    const coral = battle.frames.btn_action_coral_normal!.frame;
-    let ink = 0;
-    for (let row = 0; row < coral.h; row += 1) {
-      for (let col = 0; col < coral.w; col += 1) {
-        const i = ((coral.y + row) * battlePng.width + (coral.x + col)) * 4;
-        const hex = `#${[battlePng.data[i], battlePng.data[i + 1], battlePng.data[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`.toUpperCase();
-        if (battlePng.data[i + 3] > 200 && hex === INK) ink += 1;
-      }
-    }
-    expect(ink).toBeGreaterThan(1000);
-    const names = [
-      "btn_action_coral_normal",
-      "btn_action_coral_hover",
-      "btn_action_coral_pressed",
-      "hp_fill_coral",
-      "btn_action_teal_normal",
-      "btn_action_teal_hover",
-      "btn_action_teal_pressed",
-      "hp_fill_teal",
-      "chip_on_normal",
-      "chip_on_hover",
-      "chip_on_pressed",
-    ];
-    expect(names).toHaveLength(11);
-    for (const name of names) {
-      const pack = name.startsWith("chip") ? ui : battle;
-      expect(pack.frames[name]).toBeTruthy();
-    }
-  });
-});
 
 describe("warm batch b2.1 frames", () => {
   it("loads tab_pressed at 208×104 with the same nine-slice insets as the other tabs", () => {

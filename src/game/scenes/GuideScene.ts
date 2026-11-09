@@ -16,7 +16,7 @@ import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
 import { DESKTOP_NOTE } from "../p0";
-import { struggleWindow } from "../layout";
+import { STRUGGLE_LIST, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { FONT } from "../ui";
 import { warmButton, warmChip, warmPanel, warmTab } from "../warm/kit";
@@ -278,9 +278,9 @@ export class GuideScene extends Phaser.Scene {
     this.strugglePage = list.page;
     probeNote(`struggle:${list.total}:${list.page}:${list.count}:${list.bottom}`);
     view.struggle.slice(list.start, list.start + list.count).forEach((word, index) => {
-      this.add.text(160, 548 + index * 26, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
+      this.add.text(160, STRUGGLE_LIST.firstY + index * STRUGGLE_LIST.pitch, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
         fontFamily: FONT,
-        fontSize: "15px",
+        fontSize: `${STRUGGLE_LIST.fontSize}px`,
         color: MUTED,
       });
     });
@@ -301,9 +301,9 @@ export class GuideScene extends Phaser.Scene {
         this.draw();
       }, { width: 150, tone: "secondary" });
     }
-    warmButton(this, 240, 730, uiLabel("去复习"), () => this.scene.start("review"), { width: 160 });
-    warmButton(this, 440, 730, uiLabel("修改年级"), () => this.show("notes"), { width: 170, tone: "secondary" });
-    warmButton(this, 660, 730, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
+    warmButton(this, 240, STRUGGLE_LIST.buttonCenter, uiLabel("去复习"), () => this.scene.start("review"), { width: 160 });
+    warmButton(this, 440, STRUGGLE_LIST.buttonCenter, uiLabel("修改年级"), () => this.show("notes"), { width: 170, tone: "secondary" });
+    warmButton(this, 660, STRUGGLE_LIST.buttonCenter, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
   }
 
 
