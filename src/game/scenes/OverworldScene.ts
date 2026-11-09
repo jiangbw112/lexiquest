@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice } from "../../domain/progress";
+import { ensureDailyGoal, goalStatusLine, openingReminder, recordPracticeRound } from "../../domain/parent";
+import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
 import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -24,6 +25,7 @@ export class OverworldScene extends Phaser.Scene {
     probeEnter("overworld");
     this.toast = "";
     this.traveling = false;
+    mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.draw();
     listenKeys(this, (event) => this.onKey(event));
     this.measureFps();
@@ -85,6 +87,23 @@ export class OverworldScene extends Phaser.Scene {
       color: "#17352a",
       wordWrap: { width: SAFE.width - 60 },
     });
+    const goal = save.dailyGoal;
+    const goalText = `${goalStatusLine(goal)}  ·  累计完成 ${save.goalDaysTotal} 天`;
+    probeNote(`goal:${goal?.progress ?? 0}/${goal?.target ?? 0}:${goal?.completed ? "done" : goal?.skipped ? "skipped" : "open"}`);
+    this.add.rectangle(520, 168, 780, 78, 0xfff8ee, 0.96).setStrokeStyle(3, 0x1f7a4d);
+    this.add.text(160, 142, goalText, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d", wordWrap: { width: 700 } });
+    this.add.text(160, 174, openingReminder(save, studyNow(save)), {
+      fontFamily: FONT,
+      fontSize: "16px",
+      color: "#17352a",
+      wordWrap: { width: 700 },
+    });
+    if (goal?.mode === "practice" && !goal.completed && !goal.skipped) {
+      button(this, 980, 168, "练习一次", () => {
+        mutate((current) => recordPracticeRound(current, studyNow(current)));
+        this.draw();
+      }, { width: 150, height: 44, fill: 0x3d6ea8 });
+    }
     for (const place of PLACES) {
       const house = this.add.polygon(
         place.x,

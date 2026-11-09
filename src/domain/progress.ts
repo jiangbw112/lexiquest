@@ -17,7 +17,8 @@ import { classById } from "./classes";
 import { normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
-import { applyReview, introduceMemory, masteryDecision } from "./review";
+import { noteDueReview, noteLearned } from "./parent";
+import { applyReview, badgeTone, introduceMemory, isDue, masteryDecision } from "./review";
 import {
   equipSkillIds,
   MAX_EQUIPPED_SKILLS,
@@ -86,6 +87,15 @@ export function createSave(input: {
     player: { name, classId: input.classId, appearance: input.appearance },
     wordCards: {},
     memory: {},
+    spellingMemory: {},
+    dailyStats: {},
+    dueAnswers: [],
+    parentGoalPreset: "standard",
+    dailyGoal: null,
+    goalDaysTotal: 0,
+    lastGoalCompletedDayKey: null,
+    goalCalendar: {},
+    cosmeticTokens: 0,
     skillLevels: { [starter]: 1 },
     unlockedSkillIds: [starter],
     equippedSkillIds: [starter],
@@ -143,7 +153,7 @@ export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
       ),
     };
   }
-  return refreshUnlocks(next);
+  return refreshUnlocks(noteLearned(next, wordId, now));
 }
 
 export function gradeIsOpen(save: SaveData, wordId: string): boolean {
@@ -165,6 +175,8 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
   const card = save.wordCards[wordId];
   if (!existing || !card) return save;
   if (!gradeIsOpen(save, wordId)) return save;
+  const wasDue = isDue(existing, now);
+  const beforeTone = badgeTone(card, existing, now);
   const updated = applyReview(existing, rating, now);
   const decision = masteryDecision(updated);
   let wordCards: Record<string, WordCardRecord> = save.wordCards;
@@ -180,12 +192,15 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
       ),
     );
   }
-  return {
-    ...save,
-    memory: { ...save.memory, [wordId]: updated },
-    wordCards,
-    rewardQueue,
-  };
+  return noteDueReview(
+    {
+      ...save,
+      memory: { ...save.memory, [wordId]: updated },
+      wordCards,
+      rewardQueue,
+    },
+    { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning" },
+  );
 }
 
 /**

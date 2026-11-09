@@ -7,6 +7,7 @@
 import { isAppearance } from "./appearance";
 import { normalizeGrades } from "./catalog";
 import { CLASS_IDS } from "./classes";
+import { withParentDefaults } from "./parent";
 import type { ClassId, SaveData } from "./types";
 
 export const SAVE_KEY = "lexiquest.save.v1";
@@ -49,7 +50,7 @@ export function deserialize(raw: string): SaveData | null {
       ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")
       : undefined;
     save.selectedGrades = normalizeGrades(grades);
-    return save;
+    return withParentDefaults(save);
   } catch {
     return null;
   }

@@ -60,12 +60,56 @@ export interface PlayerProfile {
   appearance: Appearance;
 }
 
+export type GoalPreset = "light" | "standard" | "more";
+export type GoalMode = "review" | "learn" | "practice";
+export type MemoryTrack = "meaning" | "spelling";
+export type DueRating = "again" | "hard" | "good" | "easy";
+
+/** One due first-answer. Meaning and spelling stay separate until the parent view merges them. */
+export interface DueAnswerLog {
+  at: number;
+  wordId: string;
+  track: MemoryTrack;
+  rating: DueRating;
+}
+
+export interface DailyStat {
+  learnedWordIds: string[];
+  reviewedDueWordIds: string[];
+  badgeOnGainedWordIds: string[];
+  badgeRestoredWordIds: string[];
+}
+
+/** Snapshotted for one study day. The target does not rise later that day. */
+export interface DailyGoal {
+  dayKey: string;
+  snapshotDue: number;
+  mode: GoalMode;
+  target: number;
+  progress: number;
+  practiceCount: number;
+  completed: boolean;
+  rewardClaimed: boolean;
+  skipped: boolean;
+}
+
 export interface SaveData {
   version: 1;
   createdAt: number;
   player: PlayerProfile;
   wordCards: Record<string, WordCardRecord>;
+  /** Meaning-track memory. Spelling, when present, lives in `spellingMemory`. */
   memory: Record<string, MemoryRecord>;
+  spellingMemory: Record<string, MemoryRecord>;
+  dailyStats: Record<string, DailyStat>;
+  dueAnswers: DueAnswerLog[];
+  parentGoalPreset: GoalPreset;
+  dailyGoal: DailyGoal | null;
+  goalDaysTotal: number;
+  lastGoalCompletedDayKey: string | null;
+  goalCalendar: Record<string, "completed" | "skipped">;
+  /** Appearance token. Completing a day's goal adds one. It does not change battle stats. */
+  cosmeticTokens: number;
   skillLevels: Record<string, number>;
   unlockedSkillIds: string[];
   equippedSkillIds: string[];
