@@ -163,9 +163,16 @@ function stagesFromChapter(file: ChapterFile): ForestStage[] {
   });
 }
 
+function chapterName(file: { name_zh?: string }): string {
+  const name = file.name_zh?.trim() ?? "";
+  if (name === "") throw new Error("chapter name");
+  return name;
+}
+
 const chapter = chapterFile as ChapterFile;
 const rules = rulesFile as unknown as Omit<ForestChapter, "stages">;
 
+export const FOREST_TITLE = chapterName(chapter as { name_zh?: string });
 export const FOREST_CHAPTER: ForestChapter = readChapter({
   ...rules,
   chapter_id: chapter.chapter_id,

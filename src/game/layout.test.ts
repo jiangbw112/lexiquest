@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { contrastRows, renderContrastDoc } from "../domain/contrast";
+import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
@@ -103,7 +104,22 @@ describe("warm text contrast", () => {
     expect(contrastRows().length).toBeGreaterThan(40);
     expect(contrastRows().some((row) => row.pass === false)).toBe(true);
     expect(doc).not.toContain("Colors were not changed");
-    expect(doc).not.toContain("#A9432B");
+    expect(doc).not.toContain("没有改颜色");
+    const terra = contrastRows().find((row) => row.control === "赤陶按钮" && row.state === "常态");
+    const teal = contrastRows().find((row) => row.control === "深青按钮" && row.state === "常态");
+    const chip = contrastRows().find((row) => row.control === "选中芯片" && row.state === "常态");
+    const plank = contrastRows().find((row) => row.control === "顶栏标题牌");
+    expect(terra?.bg).toBe(TERRA);
+    expect(teal?.bg).toBe(TEAL_DEEP);
+    expect(chip?.bg).toBe(CHIP_ON);
+    expect(plank?.fg).toBe("#3B2A20");
+    expect(plank?.bg).toBe(TITLE_PLANK);
+    expect(plank?.stroke).toBe("无");
+    expect(terra?.pass).toBe(true);
+    expect(teal?.pass).toBe(true);
+    expect(chip?.pass).toBe(true);
+    expect(plank?.pass).toBe(true);
+    expect(contrastRows().filter((row) => row.control === "赤陶按钮" || row.control === "深青按钮" || row.control === "选中芯片").every((row) => row.pass)).toBe(true);
   });
 });
 

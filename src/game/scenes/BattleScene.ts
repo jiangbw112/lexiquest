@@ -22,6 +22,8 @@ import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, listenKeys } from "../ui";
+import { warmButton } from "../warm/kit";
+import { queueWarm } from "../warm/load";
 
 interface BattleLaunch {
   stageId?: number;
@@ -49,6 +51,7 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
+    queueWarm(this, ["atlas_ui_core", "atlas_battle"], []);
     if (this.bossFight) queueBossAtlases(this);
   }
 
@@ -282,9 +285,9 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     if (this.state.phase === "choose") {
-      button(this, 220, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 140 });
-      button(this, 380, 680, "2 格挡", () => this.act({ type: "block" }), { width: 140, fill: 0x3d6ea8 });
-      button(this, 540, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 140, fill: 0x6d5bd0 });
+      warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral" });
+      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky" });
+      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal" });
       this.state.slots.forEach((slot) => {
         button(
           this,

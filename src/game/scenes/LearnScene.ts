@@ -20,7 +20,7 @@ import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmButton, warmChip, warmOption, warmPanel, type WarmOption } from "../warm/kit";
+import { warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
 
@@ -231,10 +231,10 @@ export class LearnScene extends Phaser.Scene {
       });
       return;
     }
-    this.add.text(280, 28, uiLabel(`学堂 · ${unit.title}`), { fontFamily: FONT_TITLE, fontSize: "32px", color: INK });
+    warmTitlePlank(this, 500, 48, 440, uiLabel(`学堂 · ${unit.title}`));
     units.forEach((item, index) => {
       const gradeLabel = GRADE_BANDS.find((grade) => grade.id === item.grade)?.label ?? item.grade;
-      warmChip(this, 280 + index * 180, 100, gradeLabel, index === this.unitIndex, () => {
+      warmChip(this, 280 + index * 180, 116, gradeLabel, index === this.unitIndex, () => {
         this.unitIndex = index;
         this.showStudy();
       }, { width: 160 });

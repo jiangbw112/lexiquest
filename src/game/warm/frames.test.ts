@@ -6,6 +6,7 @@ import { createSave, learnWord, setSelectedGrades } from "../../domain/progress"
 import { bossReady, requiredWordIds, stageStatuses } from "../../domain/stages";
 import sliceFile from "./slices.json";
 import { BOSS_NODE_ORIGIN, bossMapFrame, tabFrame, tabLabelY } from "./frames";
+import { CHIP_ON, TEAL_DEEP, TEAL_DEEP_HOVER, TERRA, TERRA_HOVER, TERRA_PRESSED } from "./theme";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -44,6 +45,61 @@ function learnRequired(save: ReturnType<typeof newSave>) {
   for (const id of requiredWordIds(save)) next = learnWord(next, id, START);
   return { ...next, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
 }
+
+function faceMedian(name: string, frameName: string): string {
+  const file = atlas(name);
+  const image = png(name);
+  const box = file.frames[frameName]?.frame;
+  if (!box) throw new Error(frameName);
+  const x0 = box.x + Math.floor(box.w * 0.4);
+  const x1 = box.x + Math.floor(box.w * 0.75);
+  const y0 = box.y + Math.floor(box.h * 0.25);
+  const y1 = box.y + Math.floor(box.h * 0.5);
+  const channels: number[][] = [[], [], []];
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = x0; x < x1; x += 1) {
+      const index = (y * image.width + x) * 4;
+      if (image.data[index + 3]! < 200) continue;
+      channels[0]!.push(image.data[index]!);
+      channels[1]!.push(image.data[index + 1]!);
+      channels[2]!.push(image.data[index + 2]!);
+    }
+  }
+  const mid = channels.map((values) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    return sorted[Math.floor(sorted.length / 2)] ?? 0;
+  });
+  return `#${mid.map((value) => value.toString(16).padStart(2, "0")).join("")}`.toUpperCase();
+}
+
+describe("warm batch b2.2 faces", () => {
+  it("keeps frame names and rectangles while the text-carrying faces use the new palette", () => {
+    const battle = atlas("atlas_battle");
+    const core = atlas("atlas_ui_core");
+    expect(battle.meta.size).toEqual({ w: 1024, h: 1024 });
+    expect(core.meta.size).toEqual({ w: 1024, h: 2048 });
+    expect(battle.frames.btn_action_coral_normal?.frame).toEqual({ x: 2, y: 356, w: 176, h: 112 });
+    expect(battle.frames.btn_action_coral_hover?.frame).toEqual({ x: 180, y: 356, w: 176, h: 112 });
+    expect(battle.frames.btn_action_coral_pressed?.frame).toEqual({ x: 358, y: 356, w: 176, h: 112 });
+    expect(battle.frames.btn_action_teal_normal?.frame).toEqual({ x: 714, y: 356, w: 176, h: 112 });
+    expect(battle.frames.btn_action_teal_hover?.frame).toEqual({ x: 2, y: 470, w: 176, h: 112 });
+    expect(battle.frames.btn_action_teal_pressed?.frame).toEqual({ x: 180, y: 470, w: 176, h: 112 });
+    expect(core.frames.chip_on_normal?.frame).toEqual({ x: 608, y: 944, w: 200, h: 112 });
+    expect(core.frames.chip_on_hover?.frame).toEqual({ x: 810, y: 944, w: 200, h: 112 });
+    expect(core.frames.chip_on_pressed?.frame).toEqual({ x: 2, y: 1058, w: 200, h: 112 });
+    expect(core.frames.chip_on_disabled?.frame).toEqual({ x: 204, y: 1058, w: 200, h: 112 });
+    expect(core.frames.dialog?.frame).toEqual({ x: 2, y: 2, w: 240, h: 240 });
+    expect(faceMedian("atlas_battle", "btn_action_coral_normal")).toBe(TERRA);
+    expect(faceMedian("atlas_battle", "btn_action_coral_hover")).toBe(TERRA_HOVER);
+    expect(faceMedian("atlas_battle", "btn_action_coral_pressed")).toBe(TERRA_PRESSED);
+    expect(faceMedian("atlas_battle", "btn_action_teal_normal")).toBe(TEAL_DEEP);
+    expect(faceMedian("atlas_battle", "btn_action_teal_hover")).toBe(TEAL_DEEP_HOVER);
+    expect(faceMedian("atlas_battle", "btn_action_teal_pressed")).toBe(CHIP_ON);
+    expect(faceMedian("atlas_ui_core", "chip_on_normal")).toBe(CHIP_ON);
+    expect(faceMedian("atlas_ui_core", "chip_on_pressed")).toBe(CHIP_ON);
+    expect(faceMedian("atlas_ui_core", "btn_primary_normal")).toBe("#E9C46A");
+  });
+});
 
 describe("warm batch b2.1 frames", () => {
   it("loads tab_pressed at 208×104 with the same nine-slice insets as the other tabs", () => {

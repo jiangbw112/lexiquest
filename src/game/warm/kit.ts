@@ -265,6 +265,7 @@ export function warmOption(
       locked = true;
       root.disableInteractive();
       show(state);
+      if (state === "correct" || state === "wrong") number.setVisible(false);
       if (state === "wrong" && !motionOff()) {
         scene.tweens.add({ targets: root, x: x + 6, duration: 50, yoyo: true, repeat: 3, ease: "Sine.easeInOut" });
       }
@@ -273,6 +274,21 @@ export function warmOption(
       }
     },
   };
+}
+
+/** Wood title plank. The label is ink and has no stroke. */
+export function warmTitlePlank(scene: Phaser.Scene, x: number, y: number, width: number, title: string): Phaser.GameObjects.Text {
+  warmPanel(scene, x, y, width, 58, "panel_wood");
+  const text = scene.add
+    .text(x, y, title, {
+      fontFamily: FONT_TITLE,
+      fontSize: "28px",
+      color: INK,
+    })
+    .setOrigin(0.5);
+  const limit = width - 48;
+  if (text.width > limit) text.setScale(limit / text.width);
+  return text;
 }
 
 export function warmPanel(scene: Phaser.Scene, x: number, y: number, width: number, height: number, frame = "panel_parchment"): Phaser.GameObjects.NineSlice {

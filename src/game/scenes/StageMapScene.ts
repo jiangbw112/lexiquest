@@ -6,6 +6,7 @@ import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
   chapterDueCount,
   FOREST_CHAPTER,
+  FOREST_TITLE,
   learnedRequiredCount,
   masteryLabel,
   requiredWordIds,
@@ -19,7 +20,7 @@ import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmBar, warmButton, warmPanel } from "../warm/kit";
+import { warmBar, warmButton, warmPanel, warmTitlePlank } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
 import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
@@ -103,17 +104,18 @@ export class StageMapScene extends Phaser.Scene {
       });
     }
 
-    warmPanel(this, 520, 58, 760, 72);
+    warmTitlePlank(this, 300, 48, 340, FOREST_TITLE);
+    warmPanel(this, 930, 48, 540, 66);
     const required = requiredWordIds(save);
-    this.add.text(180, 36, `已学 ${learnedRequiredCount(save)}/${required.length}`, {
+    this.add.text(680, 26, `已学 ${learnedRequiredCount(save)}/${required.length}`, {
       fontFamily: FONT,
       fontSize: "20px",
       fontStyle: "700",
       color: INK,
     });
-    this.add.text(430, 36, `掌握 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
-    this.add.text(660, 36, `到期 ${chapterDueCount(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
-    this.add.text(180, 64, `距林心守护还差 ${wordsUntilBoss(save)} 个词`, {
+    this.add.text(860, 26, `掌握 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
+    this.add.text(1040, 26, `到期 ${chapterDueCount(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
+    this.add.text(680, 52, `距林心守护还差 ${wordsUntilBoss(save)} 个词`, {
       fontFamily: FONT,
       fontSize: "14px",
       color: MUTED,
