@@ -1,0 +1,160 @@
+{
+ "frames": {
+  "boss_canopy_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 524,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 132,
+    "y": 33,
+    "w": 524,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_defeat_01": {
+   "frame": {
+    "x": 528,
+    "y": 2,
+    "w": 486,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 148,
+    "y": 66,
+    "w": 486,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_defeat_02": {
+   "frame": {
+    "x": 1016,
+    "y": 2,
+    "w": 515,
+    "h": 591
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 142,
+    "y": 105,
+    "w": 515,
+    "h": 591
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_defeat_03": {
+   "frame": {
+    "x": 1533,
+    "y": 2,
+    "w": 511,
+    "h": 547
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 138,
+    "y": 149,
+    "w": 511,
+    "h": 547
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_defeat_04": {
+   "frame": {
+    "x": 503,
+    "y": 667,
+    "w": 499,
+    "h": 527
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 134,
+    "y": 169,
+    "w": 499,
+    "h": 527
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_defeat_05": {
+   "frame": {
+    "x": 2,
+    "y": 667,
+    "w": 499,
+    "h": 534
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 134,
+    "y": 162,
+    "w": 499,
+    "h": 534
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest boss_linguan tools/pack_atlas.py (original, project-owned)",
+  "version": "0.1-provisional",
+  "image": "boss_canopy_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 1204
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

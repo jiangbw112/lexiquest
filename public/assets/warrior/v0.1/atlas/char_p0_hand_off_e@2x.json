@@ -1,0 +1,520 @@
+{
+ "frames": {
+  "char_warrior_handOff_e_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 254,
+    "y": 249,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_attack_01": {
+   "frame": {
+    "x": 103,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 253,
+    "y": 249,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_attack_02": {
+   "frame": {
+    "x": 1921,
+    "y": 2,
+    "w": 99,
+    "h": 114
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 255,
+    "y": 250,
+    "w": 99,
+    "h": 114
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_attack_03": {
+   "frame": {
+    "x": 204,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 257,
+    "y": 249,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_attack_04": {
+   "frame": {
+    "x": 305,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 253,
+    "y": 248,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_hit_00": {
+   "frame": {
+    "x": 2,
+    "y": 119,
+    "w": 99,
+    "h": 114
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 265,
+    "y": 237,
+    "w": 99,
+    "h": 114
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_hit_01": {
+   "frame": {
+    "x": 406,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 263,
+    "y": 235,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_idle_00": {
+   "frame": {
+    "x": 507,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 258,
+    "y": 240,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_idle_01": {
+   "frame": {
+    "x": 608,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 259,
+    "y": 241,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_idle_02": {
+   "frame": {
+    "x": 709,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 260,
+    "y": 242,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_idle_03": {
+   "frame": {
+    "x": 810,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 259,
+    "y": 241,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_victory_00": {
+   "frame": {
+    "x": 911,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 248,
+    "y": 276,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_victory_01": {
+   "frame": {
+    "x": 1012,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 248,
+    "y": 268,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_victory_02": {
+   "frame": {
+    "x": 1113,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 248,
+    "y": 265,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_victory_03": {
+   "frame": {
+    "x": 1214,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 248,
+    "y": 270,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_00": {
+   "frame": {
+    "x": 1315,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 250,
+    "y": 244,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_01": {
+   "frame": {
+    "x": 1416,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 253,
+    "y": 240,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_02": {
+   "frame": {
+    "x": 1517,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 258,
+    "y": 237,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_03": {
+   "frame": {
+    "x": 1618,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 260,
+    "y": 239,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_04": {
+   "frame": {
+    "x": 1719,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 258,
+    "y": 237,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_warrior_handOff_e_walk_05": {
+   "frame": {
+    "x": 1820,
+    "y": 2,
+    "w": 99,
+    "h": 115
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 253,
+    "y": 240,
+    "w": 99,
+    "h": 115
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest tools/pack_atlas.py (original, MIT-style project-owned)",
+  "version": "0.1-provisional",
+  "image": "char_p0_hand_off_e@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 236
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

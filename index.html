@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#143d2c" />
+    <title>词境冒险 LexiQuest</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <style>
+      html, body, #game { margin: 0; height: 100%; background: #143d2c; }
+      body { overflow: hidden; font-family: "WenQuanYi Micro Hei", "Noto Sans SC", "PingFang SC", sans-serif; }
+      #game { width: 100%; height: 100%; }
+      #webgl-needed {
+        box-sizing: border-box;
+        min-height: 100%;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 48px;
+        color: #fff4dc;
+        font-size: 28px;
+        line-height: 1.6;
+        text-align: center;
+      }
+      #name-form, #spell-form, #pin-form {
+        display: none;
+        position: fixed;
+        z-index: 3;
+        left: 50%;
+        top: 46%;
+        transform: translate(-50%, -50%);
+        background: #fff8ee;
+        padding: 16px 18px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        gap: 8px;
+      }
+      #name-form.open, #spell-form.open, #pin-form.open { display: grid; }
+      #pin-form { width: 340px; }
+      #pin-form label { display: grid; gap: 4px; }
+      #hero-name, #spell-input, #pin-input, #pin-confirm, #pin-answer { font: inherit; font-size: 18px; padding: 8px 10px; width: 240px; }
+      #name-error, #spell-error, #pin-error { color: #a33b24; margin: 0; min-height: 1.2em; }
+      #spell-hint { margin: 0; color: #8a5a12; min-height: 1.2em; max-width: 280px; }
+      #pin-title { margin: 0; color: #17352a; }
+      #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #3d5c4e; font-size: 14px; }
+      #pin-form button[type="submit"] { background: #1f7a4d; color: #fffaf3; border: 0; border-radius: 12px; padding: 8px 12px; }
+      #pin-form button[type="submit"]:disabled {
+        background: #cfc4b2;
+        color: #3f2e25;
+        box-shadow: none;
+        cursor: default;
+      }
+      #pin-form button[type="button"] { background: transparent; border: 0; color: #8a5a12; cursor: pointer; padding: 0; text-align: left; }
+      #pin-confirm-label.hidden, #pin-forgot.hidden, #pin-entry.hidden { display: none; }
+      #lexi-probe { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+      button { font: inherit; }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <form id="name-form">
+      <label>名字<input id="hero-name" maxlength="12" autocomplete="off" /></label>
+      <p id="name-error"></p>
+      <button type="submit">出发</button>
+    </form>
+    <form id="spell-form">
+      <label>拼写<input id="spell-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></label>
+      <p id="spell-hint"></p>
+      <p id="spell-error"></p>
+      <button type="submit">确认</button>
+    </form>
+    <form id="pin-form">
+      <p id="pin-title">家长密码</p>
+      <p id="pin-note">用来避免孩子不小心改掉年级和每日目标。清掉这台浏览器的数据后要重新设置。这不是安全登录。</p>
+      <p id="pin-cooldown"></p>
+      <div id="pin-entry">
+        <label>密码<input id="pin-input" type="password" inputmode="numeric" maxlength="6" autocomplete="off" /></label>
+        <label id="pin-confirm-label">再输入一次<input id="pin-confirm" type="password" inputmode="numeric" maxlength="6" autocomplete="off" /></label>
+      </div>
+      <div id="pin-forgot" class="hidden">
+        <p id="pin-challenge"></p>
+        <label>答案<input id="pin-answer" inputmode="numeric" autocomplete="off" /></label>
+      </div>
+      <p id="pin-error"></p>
+      <button id="pin-submit" type="submit">确认</button>
+      <button id="pin-forgot-button" type="button">忘记密码</button>
+    </form>
+    <pre id="lexi-probe"></pre>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

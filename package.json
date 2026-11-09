@@ -1,0 +1,30 @@
+{
+  "name": "lexiquest",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:fonts": "node tools/extract-strings.mjs && python3 tools/subset_fonts.py",
+    "build": "node tools/extract-strings.mjs --check && python3 tools/verify_fonts.py && tsc --noEmit && vite build && node tools/boot-budget.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "phaser": "3.90.0",
+    "ts-fsrs": "5.4.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.19.1",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "pngjs": "7.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
+  }
+}

@@ -1,0 +1,6095 @@
+{
+  "theme": "PEP Grades 3-6",
+  "sample": false,
+  "note": "Converted from pep_words_g3-6 draft. PEP is sole catalog (product rule 3). Cross-grade id collisions: keep earliest grade_est; later distinct meanings in notes (not merged into meaning_zh). spelling is basic, advanced, or none; any other value is refused. notes and senses are not loaded. theme='PEP Grades 3-6'; sample=false.",
+  "words": [
+    {
+      "word": "about",
+      "meaning_zh": "大约；关于",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv./prep."
+    },
+    {
+      "word": "after",
+      "meaning_zh": "在…之后",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "air",
+      "meaning_zh": "空气",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "all",
+      "meaning_zh": "所有；全部",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "also",
+      "meaning_zh": "也",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "animal",
+      "meaning_zh": "动物",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "apple",
+      "meaning_zh": "苹果",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "arm",
+      "meaning_zh": "胳膊",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "at",
+      "meaning_zh": "在（某处）",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "aunt",
+      "meaning_zh": "阿姨；姑姑",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "baby",
+      "meaning_zh": "婴儿",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "back",
+      "meaning_zh": "回；后面",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv./n."
+    },
+    {
+      "word": "bag",
+      "meaning_zh": "包",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "ball",
+      "meaning_zh": "球",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "banana",
+      "meaning_zh": "香蕉",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "bear",
+      "meaning_zh": "熊",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "big",
+      "meaning_zh": "大的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "bird",
+      "meaning_zh": "鸟",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "black",
+      "meaning_zh": "黑色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "blue",
+      "meaning_zh": "蓝色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "boat",
+      "meaning_zh": "小船",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "body",
+      "meaning_zh": "身体",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "book",
+      "meaning_zh": "书",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "box",
+      "meaning_zh": "盒子；箱子",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "boy",
+      "meaning_zh": "男孩",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "bread",
+      "meaning_zh": "面包",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "breakfast",
+      "meaning_zh": "早餐",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "brother",
+      "meaning_zh": "哥哥；弟弟",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "brown",
+      "meaning_zh": "棕色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "cake",
+      "meaning_zh": "蛋糕",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "can",
+      "meaning_zh": "能；会",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "modal v."
+    },
+    {
+      "word": "Canada",
+      "meaning_zh": "加拿大",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "candy",
+      "meaning_zh": "糖果",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cap",
+      "meaning_zh": "帽子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "car",
+      "meaning_zh": "小汽车",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "card",
+      "meaning_zh": "卡片",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "cat",
+      "meaning_zh": "猫",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "China",
+      "meaning_zh": "中国",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "class",
+      "meaning_zh": "班级；课",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "classmate",
+      "meaning_zh": "同班同学",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "colour",
+      "meaning_zh": "颜色",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "colourful",
+      "meaning_zh": "色彩丰富的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "computer",
+      "meaning_zh": "电脑",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cool",
+      "meaning_zh": "酷的；凉爽的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "cousin",
+      "meaning_zh": "堂（表）兄弟姐妹",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "cut",
+      "meaning_zh": "切",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "cute",
+      "meaning_zh": "可爱的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "dad",
+      "meaning_zh": "爸爸",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "dance",
+      "meaning_zh": "跳舞",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "dog",
+      "meaning_zh": "狗",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "doll",
+      "meaning_zh": "玩偶",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "draw",
+      "meaning_zh": "画",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "duck",
+      "meaning_zh": "鸭子",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "ear",
+      "meaning_zh": "耳朵",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "eat",
+      "meaning_zh": "吃",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "egg",
+      "meaning_zh": "鸡蛋",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "eight",
+      "meaning_zh": "八",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "eighteen",
+      "meaning_zh": "十八",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "elephant",
+      "meaning_zh": "大象",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "eleven",
+      "meaning_zh": "十一",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "English",
+      "meaning_zh": "英语；英国的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n./adj."
+    },
+    {
+      "word": "eraser",
+      "meaning_zh": "橡皮",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "eye",
+      "meaning_zh": "眼睛",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "face",
+      "meaning_zh": "脸",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "family",
+      "meaning_zh": "家；家庭",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "farm",
+      "meaning_zh": "农场",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "fast",
+      "meaning_zh": "快的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "fat",
+      "meaning_zh": "胖的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "father",
+      "meaning_zh": "父亲；爸爸",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "fifteen",
+      "meaning_zh": "十五",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "find",
+      "meaning_zh": "找到",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "fish",
+      "meaning_zh": "鱼",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "five",
+      "meaning_zh": "五",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "flower",
+      "meaning_zh": "花",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "four",
+      "meaning_zh": "四",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "fourteen",
+      "meaning_zh": "十四",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "fox",
+      "meaning_zh": "狐狸",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "friend",
+      "meaning_zh": "朋友",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "from",
+      "meaning_zh": "来自；从",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "fruit",
+      "meaning_zh": "水果",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "garden",
+      "meaning_zh": "花园",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "get",
+      "meaning_zh": "得到；获取",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "v."
+    },
+    {
+      "word": "gift",
+      "meaning_zh": "礼物",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "giraffe",
+      "meaning_zh": "长颈鹿",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "girl",
+      "meaning_zh": "女孩",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "give",
+      "meaning_zh": "给",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "go",
+      "meaning_zh": "去",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "good",
+      "meaning_zh": "好的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "goodbye",
+      "meaning_zh": "再见",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "interj."
+    },
+    {
+      "word": "grandfather",
+      "meaning_zh": "爷爷；外公",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "grandma",
+      "meaning_zh": "奶奶；外婆",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "grandmother",
+      "meaning_zh": "奶奶；外婆",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "grandpa",
+      "meaning_zh": "爷爷；外公",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "grape",
+      "meaning_zh": "葡萄",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "grass",
+      "meaning_zh": "草",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "green",
+      "meaning_zh": "绿色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "hand",
+      "meaning_zh": "手",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "has",
+      "meaning_zh": "有（用于他/她/它）",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "have",
+      "meaning_zh": "有",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "he",
+      "meaning_zh": "他",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "healthy",
+      "meaning_zh": "健康的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "hear",
+      "meaning_zh": "听见",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "hello",
+      "meaning_zh": "你好",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "interj."
+    },
+    {
+      "word": "help",
+      "meaning_zh": "帮助",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "her",
+      "meaning_zh": "她的；她",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "hi",
+      "meaning_zh": "嗨",
+      "grade_est": 3,
+      "spelling": "none",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "interj."
+    },
+    {
+      "word": "home",
+      "meaning_zh": "家",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "in",
+      "meaning_zh": "在…里",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "in class",
+      "meaning_zh": "在课堂上",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "juice",
+      "meaning_zh": "果汁",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "keep",
+      "meaning_zh": "保存；保持",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "learn",
+      "meaning_zh": "学习",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "leg",
+      "meaning_zh": "腿",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "like",
+      "meaning_zh": "喜欢",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "lion",
+      "meaning_zh": "狮子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "listen",
+      "meaning_zh": "听",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "long",
+      "meaning_zh": "长的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "love",
+      "meaning_zh": "爱；喜爱",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "make",
+      "meaning_zh": "做；制作",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "man",
+      "meaning_zh": "男人",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "map",
+      "meaning_zh": "地图",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "me",
+      "meaning_zh": "我",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "pron."
+    },
+    {
+      "word": "meat",
+      "meaning_zh": "肉",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "milk",
+      "meaning_zh": "牛奶",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Miss",
+      "meaning_zh": "女士；老师（称呼女老师）",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "monkey",
+      "meaning_zh": "猴子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "mother",
+      "meaning_zh": "母亲；妈妈",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "mouth",
+      "meaning_zh": "嘴",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Mr",
+      "meaning_zh": "先生",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "much",
+      "meaning_zh": "许多；非常",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj./adv."
+    },
+    {
+      "word": "mum",
+      "meaning_zh": "妈妈",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "name",
+      "meaning_zh": "名字",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "need",
+      "meaning_zh": "需要",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "neighbour",
+      "meaning_zh": "邻居",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "new",
+      "meaning_zh": "新的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "nice",
+      "meaning_zh": "好的；友好的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "nine",
+      "meaning_zh": "九",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "nineteen",
+      "meaning_zh": "十九",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "noodle",
+      "meaning_zh": "面条",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "nose",
+      "meaning_zh": "鼻子",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "o'clock",
+      "meaning_zh": "…点钟",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "old",
+      "meaning_zh": "…岁的；老的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "on",
+      "meaning_zh": "在…上",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "one",
+      "meaning_zh": "一",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "or",
+      "meaning_zh": "或者",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "conj."
+    },
+    {
+      "word": "orange",
+      "meaning_zh": "橙子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "notes": "同年级多处出现: 上U4, 上U5；多义合并",
+      "pos": "n."
+    },
+    {
+      "word": "panda",
+      "meaning_zh": "熊猫",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "paper",
+      "meaning_zh": "纸",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pay",
+      "meaning_zh": "付钱",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "pen",
+      "meaning_zh": "钢笔",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pencil",
+      "meaning_zh": "铅笔",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pet",
+      "meaning_zh": "宠物",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "picture",
+      "meaning_zh": "图画",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "piggy bank",
+      "meaning_zh": "储蓄罐",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "pink",
+      "meaning_zh": "粉色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "plant",
+      "meaning_zh": "种植；植物",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v./n."
+    },
+    {
+      "word": "plate",
+      "meaning_zh": "盘子",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "purple",
+      "meaning_zh": "紫色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "put",
+      "meaning_zh": "放",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "rabbit",
+      "meaning_zh": "兔子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "red",
+      "meaning_zh": "红色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "red panda",
+      "meaning_zh": "小熊猫",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "rice",
+      "meaning_zh": "米饭",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "right",
+      "meaning_zh": "对的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "ruler",
+      "meaning_zh": "尺子",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "say",
+      "meaning_zh": "说",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "school",
+      "meaning_zh": "学校",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sea",
+      "meaning_zh": "大海",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "see",
+      "meaning_zh": "看见",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "seven",
+      "meaning_zh": "七",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "seventeen",
+      "meaning_zh": "十七",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "share",
+      "meaning_zh": "分享",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "she",
+      "meaning_zh": "她",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "shelf",
+      "meaning_zh": "架子",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "short",
+      "meaning_zh": "短的；矮的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "sing",
+      "meaning_zh": "唱歌",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "sister",
+      "meaning_zh": "姐姐；妹妹",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "six",
+      "meaning_zh": "六",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "sixteen",
+      "meaning_zh": "十六",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "slow",
+      "meaning_zh": "慢的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "small",
+      "meaning_zh": "小的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "smell",
+      "meaning_zh": "闻",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "smile",
+      "meaning_zh": "微笑",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "so",
+      "meaning_zh": "这么；那么",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "some",
+      "meaning_zh": "一些",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "song",
+      "meaning_zh": "歌曲",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "soup",
+      "meaning_zh": "汤",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "still",
+      "meaning_zh": "仍然；还",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "student",
+      "meaning_zh": "学生",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sun",
+      "meaning_zh": "太阳",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tail",
+      "meaning_zh": "尾巴",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "talk",
+      "meaning_zh": "说话；交谈",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "tall",
+      "meaning_zh": "高的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "taste",
+      "meaning_zh": "尝",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "teacher",
+      "meaning_zh": "老师",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "ten",
+      "meaning_zh": "十",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "them",
+      "meaning_zh": "他们；她们；它们",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "these",
+      "meaning_zh": "这些",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "thin",
+      "meaning_zh": "瘦的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "thirteen",
+      "meaning_zh": "十三",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "three",
+      "meaning_zh": "三",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "tiger",
+      "meaning_zh": "老虎",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "time",
+      "meaning_zh": "时间",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "today",
+      "meaning_zh": "今天",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "tongue",
+      "meaning_zh": "舌头",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "touch",
+      "meaning_zh": "触摸",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "toy",
+      "meaning_zh": "玩具",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "n."
+    },
+    {
+      "word": "tree",
+      "meaning_zh": "树",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "twelve",
+      "meaning_zh": "十二",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "twenty",
+      "meaning_zh": "二十",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "two",
+      "meaning_zh": "二",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "num."
+    },
+    {
+      "word": "UK",
+      "meaning_zh": "英国",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "uncle",
+      "meaning_zh": "叔叔；舅舅",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "under",
+      "meaning_zh": "在…下面",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "us",
+      "meaning_zh": "我们",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "USA",
+      "meaning_zh": "美国",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "vegetable",
+      "meaning_zh": "蔬菜",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "very",
+      "meaning_zh": "很；非常",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "water",
+      "meaning_zh": "浇水；水",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "v./n."
+    },
+    {
+      "word": "where",
+      "meaning_zh": "在哪里",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "white",
+      "meaning_zh": "白色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "who",
+      "meaning_zh": "谁",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "woman",
+      "meaning_zh": "女人",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "wood",
+      "meaning_zh": "木头",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "notes": "速声英语三上收录、flyabc 未收；无黑白体标注",
+      "pos": "n."
+    },
+    {
+      "word": "year",
+      "meaning_zh": "年；岁",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "yellow",
+      "meaning_zh": "黄色的",
+      "grade_est": 3,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "yummy",
+      "meaning_zh": "好吃的",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "zoo",
+      "meaning_zh": "动物园",
+      "grade_est": 3,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "a box of",
+      "meaning_zh": "一盒",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "a lot of",
+      "meaning_zh": "许多",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "afternoon",
+      "meaning_zh": "下午",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "always",
+      "meaning_zh": "总是",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "any",
+      "meaning_zh": "任何的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "art",
+      "meaning_zh": "美术",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "autumn",
+      "meaning_zh": "秋天",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "bad",
+      "meaning_zh": "坏的；糟糕的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "basketball",
+      "meaning_zh": "篮球",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "bathroom",
+      "meaning_zh": "浴室；洗手间",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "beautiful",
+      "meaning_zh": "美丽的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "bedroom",
+      "meaning_zh": "卧室",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "bee",
+      "meaning_zh": "蜜蜂",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "best",
+      "meaning_zh": "最好的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "blackboard",
+      "meaning_zh": "黑板",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "bowl",
+      "meaning_zh": "碗",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "bus stop",
+      "meaning_zh": "公交车站",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "busy",
+      "meaning_zh": "忙碌的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "buy",
+      "meaning_zh": "买",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "carrot",
+      "meaning_zh": "胡萝卜",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "chair",
+      "meaning_zh": "椅子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "cheap",
+      "meaning_zh": "便宜的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "chicken",
+      "meaning_zh": "鸡；鸡肉",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "child",
+      "meaning_zh": "孩子",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Chinese",
+      "meaning_zh": "语文；中文",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "chopstick",
+      "meaning_zh": "筷子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "chore",
+      "meaning_zh": "家务活",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "classroom",
+      "meaning_zh": "教室",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "clean",
+      "meaning_zh": "打扫；干净的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v./adj."
+    },
+    {
+      "word": "cleaner",
+      "meaning_zh": "清洁工",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "clear the table",
+      "meaning_zh": "收拾餐桌",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "clock",
+      "meaning_zh": "时钟",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "closed",
+      "meaning_zh": "关门的；关着的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "clothes",
+      "meaning_zh": "衣服",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cloudy",
+      "meaning_zh": "多云的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "coat",
+      "meaning_zh": "外套",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "cold",
+      "meaning_zh": "冷的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "community",
+      "meaning_zh": "社区",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cook",
+      "meaning_zh": "做饭",
+      "grade_est": 4,
+      "spelling": "basic",
+      "notes": "同年级多处出现: 上U1, 上U4；多义合并",
+      "pos": "v."
+    },
+    {
+      "word": "cow",
+      "meaning_zh": "奶牛",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "dear",
+      "meaning_zh": "亲爱的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "delicious",
+      "meaning_zh": "美味的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "delivery worker",
+      "meaning_zh": "快递员",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "desk",
+      "meaning_zh": "书桌",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "dinner",
+      "meaning_zh": "晚饭；正餐",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "doctor",
+      "meaning_zh": "医生",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "door",
+      "meaning_zh": "门",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "dress",
+      "meaning_zh": "连衣裙",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "driver",
+      "meaning_zh": "司机",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "everyone",
+      "meaning_zh": "每个人",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "expensive",
+      "meaning_zh": "昂贵的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "factory worker",
+      "meaning_zh": "工厂工人",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "fall",
+      "meaning_zh": "落下",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "fan",
+      "meaning_zh": "风扇",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "farmer",
+      "meaning_zh": "农民",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "favourite",
+      "meaning_zh": "最喜欢的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "feed",
+      "meaning_zh": "喂；饲养",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "feel",
+      "meaning_zh": "觉得；感到",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "film",
+      "meaning_zh": "电影",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "firefighter",
+      "meaning_zh": "消防员",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "first",
+      "meaning_zh": "首先；第一",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv./num."
+    },
+    {
+      "word": "floor",
+      "meaning_zh": "地板",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "fly",
+      "meaning_zh": "放（风筝）；飞",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "follow",
+      "meaning_zh": "遵守；跟随",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "food",
+      "meaning_zh": "食物",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "football",
+      "meaning_zh": "足球",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "fork",
+      "meaning_zh": "餐叉",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "free",
+      "meaning_zh": "免费的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "fun",
+      "meaning_zh": "乐趣",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "game",
+      "meaning_zh": "游戏",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "get together",
+      "meaning_zh": "聚会",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "get up",
+      "meaning_zh": "起床",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "glove",
+      "meaning_zh": "手套",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "go home",
+      "meaning_zh": "回家",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "go to bed",
+      "meaning_zh": "上床睡觉",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "go to school",
+      "meaning_zh": "上学",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "green bean",
+      "meaning_zh": "四季豆",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hair",
+      "meaning_zh": "头发",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "hand out",
+      "meaning_zh": "分发",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "hard",
+      "meaning_zh": "努力地",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "hat",
+      "meaning_zh": "帽子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "helpful",
+      "meaning_zh": "有帮助的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "herself",
+      "meaning_zh": "她自己",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "his",
+      "meaning_zh": "他的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "homework",
+      "meaning_zh": "作业",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "horse",
+      "meaning_zh": "马",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "hospital",
+      "meaning_zh": "医院",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "hot",
+      "meaning_zh": "热的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "hurry up",
+      "meaning_zh": "快点",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "idea",
+      "meaning_zh": "主意",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "important",
+      "meaning_zh": "重要的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "jacket",
+      "meaning_zh": "夹克衫",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "job",
+      "meaning_zh": "工作",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "just",
+      "meaning_zh": "只是；正要",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "kid",
+      "meaning_zh": "小孩",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "kind",
+      "meaning_zh": "友好的；善良的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "kitchen",
+      "meaning_zh": "厨房",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "kite",
+      "meaning_zh": "风筝",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "knife",
+      "meaning_zh": "刀",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "large",
+      "meaning_zh": "大号的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "late",
+      "meaning_zh": "迟到的；晚的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "leaf",
+      "meaning_zh": "叶子",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "library",
+      "meaning_zh": "图书馆",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "light",
+      "meaning_zh": "灯",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "list",
+      "meaning_zh": "清单",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "living room",
+      "meaning_zh": "客厅",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "look after",
+      "meaning_zh": "照顾",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "loud",
+      "meaning_zh": "大声的；吵闹的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "lunch",
+      "meaning_zh": "午餐",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "make the bed",
+      "meaning_zh": "铺床",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "maths",
+      "meaning_zh": "数学",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "mine",
+      "meaning_zh": "我的（东西）",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "minute",
+      "meaning_zh": "分钟",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "mouse",
+      "meaning_zh": "老鼠",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Ms",
+      "meaning_zh": "女士",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "music",
+      "meaning_zh": "音乐",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "newspaper",
+      "meaning_zh": "报纸",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "now",
+      "meaning_zh": "现在",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "nurse",
+      "meaning_zh": "护士",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "office worker",
+      "meaning_zh": "上班族；办公室职员",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "over",
+      "meaning_zh": "在…那边；结束的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "notes": "同年级多处出现: 上U3, 下U3；多义合并",
+      "pos": null
+    },
+    {
+      "word": "pair",
+      "meaning_zh": "一条；一副",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "park",
+      "meaning_zh": "公园",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pass",
+      "meaning_zh": "递；给",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "PE",
+      "meaning_zh": "体育课",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "people",
+      "meaning_zh": "人们",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "photo",
+      "meaning_zh": "照片",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "pick",
+      "meaning_zh": "采；摘",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "pig",
+      "meaning_zh": "猪",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "place",
+      "meaning_zh": "地方",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "play",
+      "meaning_zh": "玩；打（球）",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "playground",
+      "meaning_zh": "操场",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "police officer",
+      "meaning_zh": "警察",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "potato",
+      "meaning_zh": "土豆",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "quiet",
+      "meaning_zh": "安静的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "rain",
+      "meaning_zh": "下雨；雨",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v./n."
+    },
+    {
+      "word": "rainy",
+      "meaning_zh": "下雨的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "read",
+      "meaning_zh": "读；阅读",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "ready",
+      "meaning_zh": "准备好的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "room",
+      "meaning_zh": "房间",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "rule",
+      "meaning_zh": "规则",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "run",
+      "meaning_zh": "跑",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "safe",
+      "meaning_zh": "安全的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "salad",
+      "meaning_zh": "沙拉",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "season",
+      "meaning_zh": "季节",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "set the table",
+      "meaning_zh": "摆放餐具",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "sheep",
+      "meaning_zh": "羊",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "shirt",
+      "meaning_zh": "衬衫",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "shoe",
+      "meaning_zh": "鞋",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "shop",
+      "meaning_zh": "商店",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "shorts",
+      "meaning_zh": "短裤",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "size",
+      "meaning_zh": "尺码",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "skirt",
+      "meaning_zh": "裙子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sleep",
+      "meaning_zh": "睡觉",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "snow",
+      "meaning_zh": "雪；下雪",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n./v."
+    },
+    {
+      "word": "snowman",
+      "meaning_zh": "雪人",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "snowy",
+      "meaning_zh": "下雪的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "sock",
+      "meaning_zh": "袜子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sorry",
+      "meaning_zh": "对不起",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "speak",
+      "meaning_zh": "说（语言）",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "spoon",
+      "meaning_zh": "勺子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sport",
+      "meaning_zh": "体育运动",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "spring",
+      "meaning_zh": "春天",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "story",
+      "meaning_zh": "故事",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "strong",
+      "meaning_zh": "强壮的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "study",
+      "meaning_zh": "书房",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "summer",
+      "meaning_zh": "夏天",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sunglasses",
+      "meaning_zh": "太阳镜",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sunny",
+      "meaning_zh": "晴朗的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "supermarket",
+      "meaning_zh": "超市",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sweater",
+      "meaning_zh": "毛衣",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sweep",
+      "meaning_zh": "扫",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "swim",
+      "meaning_zh": "游泳",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "Sydney",
+      "meaning_zh": "悉尼",
+      "grade_est": 4,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "T-shirt",
+      "meaning_zh": "T恤衫",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "take",
+      "meaning_zh": "买下",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "tell",
+      "meaning_zh": "告诉；讲述",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "their",
+      "meaning_zh": "他们的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "then",
+      "meaning_zh": "然后；那时",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "there",
+      "meaning_zh": "那里",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "think",
+      "meaning_zh": "想；思考",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "those",
+      "meaning_zh": "那些",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "tidy",
+      "meaning_zh": "整洁的；整理",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj./v."
+    },
+    {
+      "word": "tired",
+      "meaning_zh": "累的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "together",
+      "meaning_zh": "一起",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "toilet",
+      "meaning_zh": "厕所",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tomato",
+      "meaning_zh": "西红柿",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tomorrow",
+      "meaning_zh": "明天",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "trousers",
+      "meaning_zh": "裤子",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "try on",
+      "meaning_zh": "试穿",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "turn off",
+      "meaning_zh": "关掉",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "TV",
+      "meaning_zh": "电视",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "understand",
+      "meaning_zh": "懂；理解",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "walk",
+      "meaning_zh": "散步；走",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "wall",
+      "meaning_zh": "墙",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "want",
+      "meaning_zh": "想要",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "warm",
+      "meaning_zh": "温暖的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "wash",
+      "meaning_zh": "洗",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "waste",
+      "meaning_zh": "浪费",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "watch",
+      "meaning_zh": "看",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "wear",
+      "meaning_zh": "穿；戴",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "weather",
+      "meaning_zh": "天气",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "week",
+      "meaning_zh": "周；星期",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "wet",
+      "meaning_zh": "湿的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "when",
+      "meaning_zh": "当…的时候；什么时候",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "conj./adv."
+    },
+    {
+      "word": "which",
+      "meaning_zh": "哪一个",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "whose",
+      "meaning_zh": "谁的",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "why",
+      "meaning_zh": "为什么",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "window",
+      "meaning_zh": "窗户",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "windy",
+      "meaning_zh": "刮风的",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "winter",
+      "meaning_zh": "冬天",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "word",
+      "meaning_zh": "单词；话",
+      "grade_est": 4,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "work",
+      "meaning_zh": "做；工作",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "workbook",
+      "meaning_zh": "练习册",
+      "grade_est": 4,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "afraid",
+      "meaning_zh": "害怕的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "ago",
+      "meaning_zh": "以前",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adv."
+    },
+    {
+      "word": "agree",
+      "meaning_zh": "同意",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "along",
+      "meaning_zh": "沿着",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "angry",
+      "meaning_zh": "生气的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "answer",
+      "meaning_zh": "回答",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "app",
+      "meaning_zh": "应用程序（手机软件）",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "April",
+      "meaning_zh": "四月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "artist",
+      "meaning_zh": "艺术家；画家",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "ask",
+      "meaning_zh": "问",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "August",
+      "meaning_zh": "八月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Australia",
+      "meaning_zh": "澳大利亚",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "beach",
+      "meaning_zh": "海滩",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "because",
+      "meaning_zh": "因为",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "conj."
+    },
+    {
+      "word": "beef",
+      "meaning_zh": "牛肉",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "before",
+      "meaning_zh": "在…之前",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "behind",
+      "meaning_zh": "在…后面",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "Beijing opera",
+      "meaning_zh": "京剧",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "beside",
+      "meaning_zh": "在…旁边",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "between",
+      "meaning_zh": "在…之间",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "prep."
+    },
+    {
+      "word": "bike",
+      "meaning_zh": "自行车",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "blog",
+      "meaning_zh": "博客",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "borrow",
+      "meaning_zh": "借",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "both",
+      "meaning_zh": "两个都",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "bring",
+      "meaning_zh": "带来",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "Britain",
+      "meaning_zh": "英国（不列颠）",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "brush",
+      "meaning_zh": "刷",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "building",
+      "meaning_zh": "建筑物",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Cairo",
+      "meaning_zh": "开罗",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "camel",
+      "meaning_zh": "骆驼",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "carry",
+      "meaning_zh": "搬运；携带",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "catch",
+      "meaning_zh": "接住；捕捉",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "celebrate",
+      "meaning_zh": "庆祝",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "centre",
+      "meaning_zh": "中心",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "check",
+      "meaning_zh": "检查；查看",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "chess",
+      "meaning_zh": "国际象棋",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Christmas",
+      "meaning_zh": "圣诞节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "cinema",
+      "meaning_zh": "电影院",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "city",
+      "meaning_zh": "城市",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "clever",
+      "meaning_zh": "聪明的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "close",
+      "meaning_zh": "关闭",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "coconut",
+      "meaning_zh": "椰子",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "common",
+      "meaning_zh": "共同的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "Confucius",
+      "meaning_zh": "孔子",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "could",
+      "meaning_zh": "可以；可能",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "modal v."
+    },
+    {
+      "word": "country",
+      "meaning_zh": "国家",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "CPC Founding Day",
+      "meaning_zh": "建党节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "culture",
+      "meaning_zh": "文化",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "cup",
+      "meaning_zh": "杯子；一杯",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "dangerous",
+      "meaning_zh": "危险的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "December",
+      "meaning_zh": "十二月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "desert",
+      "meaning_zh": "沙漠",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "different",
+      "meaning_zh": "不同的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "direct",
+      "meaning_zh": "指路；指挥",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "Dragon Boat Festival",
+      "meaning_zh": "端午节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "dumpling",
+      "meaning_zh": "饺子",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "early",
+      "meaning_zh": "早的；提前的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "easy",
+      "meaning_zh": "容易的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "else",
+      "meaning_zh": "别的；其他的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "enough",
+      "meaning_zh": "足够的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "environment",
+      "meaning_zh": "环境",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "even",
+      "meaning_zh": "甚至",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "evening",
+      "meaning_zh": "晚上",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "everyday",
+      "meaning_zh": "每天的；日常的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "excited",
+      "meaning_zh": "兴奋的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "exercise",
+      "meaning_zh": "锻炼",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": null
+    },
+    {
+      "word": "explore",
+      "meaning_zh": "探索",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "famous",
+      "meaning_zh": "著名的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "far",
+      "meaning_zh": "远的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "February",
+      "meaning_zh": "二月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "feel like",
+      "meaning_zh": "感觉像",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "finally",
+      "meaning_zh": "最后；终于",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "fine",
+      "meaning_zh": "晴朗的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "finish",
+      "meaning_zh": "完成",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "fire",
+      "meaning_zh": "火；火灾",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "flash",
+      "meaning_zh": "闪光灯",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "flood",
+      "meaning_zh": "洪水",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "flu",
+      "meaning_zh": "流感",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "fog",
+      "meaning_zh": "雾",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "foot",
+      "meaning_zh": "脚",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "foreign",
+      "meaning_zh": "外国的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "forest",
+      "meaning_zh": "森林",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Friday",
+      "meaning_zh": "星期五",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "front",
+      "meaning_zh": "前面",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "go hiking",
+      "meaning_zh": "去远足；去徒步",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "grandparent",
+      "meaning_zh": "（外）祖父或（外）祖母",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "grassland",
+      "meaning_zh": "草原",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "guard",
+      "meaning_zh": "门卫；看守",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "habit",
+      "meaning_zh": "习惯",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hamburger",
+      "meaning_zh": "汉堡包",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "hard-working",
+      "meaning_zh": "勤奋的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "Hawaii",
+      "meaning_zh": "夏威夷",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "health",
+      "meaning_zh": "健康",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "heavy",
+      "meaning_zh": "（雨、雪）大的；重的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "high",
+      "meaning_zh": "高的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "hill",
+      "meaning_zh": "小山",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "him",
+      "meaning_zh": "他",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "history",
+      "meaning_zh": "历史",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "holiday",
+      "meaning_zh": "假期",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hometown",
+      "meaning_zh": "家乡",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hot pot",
+      "meaning_zh": "火锅",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "hotel",
+      "meaning_zh": "酒店；旅馆",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hour",
+      "meaning_zh": "小时",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "house",
+      "meaning_zh": "房子",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "hungry",
+      "meaning_zh": "饿的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "hurt",
+      "meaning_zh": "伤害；疼痛",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "ice",
+      "meaning_zh": "冰",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "ice cream",
+      "meaning_zh": "冰淇淋",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "if",
+      "meaning_zh": "如果",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "conj."
+    },
+    {
+      "word": "India",
+      "meaning_zh": "印度",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "information",
+      "meaning_zh": "信息",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "inside",
+      "meaning_zh": "在…里面",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "interesting",
+      "meaning_zh": "有趣的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "internet",
+      "meaning_zh": "互联网",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "island",
+      "meaning_zh": "岛",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Italy",
+      "meaning_zh": "意大利",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "its",
+      "meaning_zh": "它的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "January",
+      "meaning_zh": "一月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "join",
+      "meaning_zh": "参加；加入",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "July",
+      "meaning_zh": "七月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "jump",
+      "meaning_zh": "跳",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "June",
+      "meaning_zh": "六月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "kangaroo",
+      "meaning_zh": "袋鼠",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "know",
+      "meaning_zh": "知道",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "koala",
+      "meaning_zh": "考拉",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Labour Day",
+      "meaning_zh": "劳动节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "lake",
+      "meaning_zh": "湖",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "last",
+      "meaning_zh": "最后的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "laugh",
+      "meaning_zh": "笑",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "left",
+      "meaning_zh": "左边；向左",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n./adv."
+    },
+    {
+      "word": "less",
+      "meaning_zh": "更少的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "lesson",
+      "meaning_zh": "课",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "line",
+      "meaning_zh": "队伍；线",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "litter",
+      "meaning_zh": "垃圾",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "little",
+      "meaning_zh": "一点；少许",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "live",
+      "meaning_zh": "居住",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "local",
+      "meaning_zh": "当地的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "lost",
+      "meaning_zh": "迷路的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "lotus",
+      "meaning_zh": "莲花",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "lovely",
+      "meaning_zh": "可爱的；美丽的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "magazine",
+      "meaning_zh": "杂志",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "March",
+      "meaning_zh": "三月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "matter",
+      "meaning_zh": "事情；问题",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "May",
+      "meaning_zh": "五月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "maybe",
+      "meaning_zh": "也许",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "middle",
+      "meaning_zh": "中间",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Monday",
+      "meaning_zh": "星期一",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Mount Taishan",
+      "meaning_zh": "泰山",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "mountain",
+      "meaning_zh": "高山",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "move",
+      "meaning_zh": "搬家；移动",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "Mrs",
+      "meaning_zh": "太太",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "must",
+      "meaning_zh": "必须",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "modal v."
+    },
+    {
+      "word": "National Day",
+      "meaning_zh": "国庆节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "nature",
+      "meaning_zh": "大自然",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "next",
+      "meaning_zh": "紧挨着（常用 next to）",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "night",
+      "meaning_zh": "夜晚",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "northeast",
+      "meaning_zh": "东北",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "note",
+      "meaning_zh": "便条",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "November",
+      "meaning_zh": "十一月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "October",
+      "meaning_zh": "十月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "on foot",
+      "meaning_zh": "步行",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "open",
+      "meaning_zh": "打开；开放",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "painting",
+      "meaning_zh": "绘画；油画",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "palace",
+      "meaning_zh": "宫殿",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "parent",
+      "meaning_zh": "父亲或母亲",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "party",
+      "meaning_zh": "聚会",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "password",
+      "meaning_zh": "密码",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "phone",
+      "meaning_zh": "电话",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "piano",
+      "meaning_zh": "钢琴",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "ping-pong",
+      "meaning_zh": "乒乓球",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "PLA Day",
+      "meaning_zh": "建军节",
+      "grade_est": 5,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "plan",
+      "meaning_zh": "计划",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "plane",
+      "meaning_zh": "飞机",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "player",
+      "meaning_zh": "选手；运动员",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "project",
+      "meaning_zh": "（学习）项目；小课题",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "pull",
+      "meaning_zh": "拔出",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "pyramid",
+      "meaning_zh": "金字塔",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "raincoat",
+      "meaning_zh": "雨衣",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "recycle",
+      "meaning_zh": "回收利用",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "rest",
+      "meaning_zh": "休息",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": null
+    },
+    {
+      "word": "return",
+      "meaning_zh": "归还；返回",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "ride",
+      "meaning_zh": "骑",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "river",
+      "meaning_zh": "河",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "robot",
+      "meaning_zh": "机器人",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "root",
+      "meaning_zh": "根",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "rope",
+      "meaning_zh": "绳子",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "round",
+      "meaning_zh": "圆的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "sad",
+      "meaning_zh": "难过的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "Saturday",
+      "meaning_zh": "星期六",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "scare",
+      "meaning_zh": "吓唬；使害怕",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "science",
+      "meaning_zh": "科学",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "scientist",
+      "meaning_zh": "科学家",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "seafood",
+      "meaning_zh": "海鲜",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "seed",
+      "meaning_zh": "种子",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "September",
+      "meaning_zh": "九月",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "ship",
+      "meaning_zh": "轮船",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "should",
+      "meaning_zh": "应该",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "modal v."
+    },
+    {
+      "word": "shout",
+      "meaning_zh": "大声喊",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "show",
+      "meaning_zh": "节目",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sign",
+      "meaning_zh": "标志",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sir",
+      "meaning_zh": "先生",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sit",
+      "meaning_zh": "坐",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "skate",
+      "meaning_zh": "滑冰",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "smoke",
+      "meaning_zh": "吸烟",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "sometimes",
+      "meaning_zh": "有时",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "special",
+      "meaning_zh": "特别的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "stand",
+      "meaning_zh": "站",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "star",
+      "meaning_zh": "明星",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "start",
+      "meaning_zh": "开始",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "station",
+      "meaning_zh": "站；（警察）局",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "stay",
+      "meaning_zh": "待着；保持",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "stem",
+      "meaning_zh": "茎",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "stone",
+      "meaning_zh": "石头",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "street",
+      "meaning_zh": "街道",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "subject",
+      "meaning_zh": "科目",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "suggest",
+      "meaning_zh": "建议",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "Sunday",
+      "meaning_zh": "星期日",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sunshine",
+      "meaning_zh": "阳光",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "take care of",
+      "meaning_zh": "照顾",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "taxi",
+      "meaning_zh": "出租车",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tea",
+      "meaning_zh": "茶",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "teach",
+      "meaning_zh": "教",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "team",
+      "meaning_zh": "队",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Thursday",
+      "meaning_zh": "星期四",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tip",
+      "meaning_zh": "小提示；小建议",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "tooth",
+      "meaning_zh": "牙齿",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "tour",
+      "meaning_zh": "旅游",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "traffic",
+      "meaning_zh": "交通",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "train",
+      "meaning_zh": "火车",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "travel",
+      "meaning_zh": "旅行",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "trip",
+      "meaning_zh": "旅行",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Tuesday",
+      "meaning_zh": "星期二",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "turkey",
+      "meaning_zh": "火鸡",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "twice",
+      "meaning_zh": "两次",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "umbrella",
+      "meaning_zh": "雨伞",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "underground",
+      "meaning_zh": "地铁",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "usually",
+      "meaning_zh": "通常",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "visit",
+      "meaning_zh": "看望；参观",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "visitor",
+      "meaning_zh": "参观者；游客",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "volunteer",
+      "meaning_zh": "志愿者",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "wait",
+      "meaning_zh": "等待",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "waterfall",
+      "meaning_zh": "瀑布",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "way",
+      "meaning_zh": "方法；方式",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Wednesday",
+      "meaning_zh": "星期三",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "weekend",
+      "meaning_zh": "周末",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "west",
+      "meaning_zh": "西方",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "wild",
+      "meaning_zh": "野生的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "wind",
+      "meaning_zh": "风",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "wish",
+      "meaning_zh": "希望",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "wonderful",
+      "meaning_zh": "精彩的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "world",
+      "meaning_zh": "世界",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "worried",
+      "meaning_zh": "担心的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "worry",
+      "meaning_zh": "担心",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "write",
+      "meaning_zh": "写",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "wrong",
+      "meaning_zh": "错误的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "young",
+      "meaning_zh": "年轻的",
+      "grade_est": 5,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "yours",
+      "meaning_zh": "你的",
+      "grade_est": 5,
+      "spelling": "advanced",
+      "pos": "pron."
+    },
+    {
+      "word": "add",
+      "meaning_zh": "补充；增加",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "air conditioner",
+      "meaning_zh": "空调",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "airport",
+      "meaning_zh": "机场",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "alien",
+      "meaning_zh": "外星人",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "another",
+      "meaning_zh": "另一个",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": null
+    },
+    {
+      "word": "as",
+      "meaning_zh": "作为",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "astronaut",
+      "meaning_zh": "宇航员",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "badminton",
+      "meaning_zh": "羽毛球",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "bamboo",
+      "meaning_zh": "竹子",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "begin",
+      "meaning_zh": "开始（过去式 began）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "better",
+      "meaning_zh": "（身体）好些的；更好的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "bigger",
+      "meaning_zh": "更大的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "book fair",
+      "meaning_zh": "书市",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "bottle",
+      "meaning_zh": "瓶子",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "bought",
+      "meaning_zh": "买（buy 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "call",
+      "meaning_zh": "打电话",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "camp",
+      "meaning_zh": "野营",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下四会；待纸质核对",
+      "pos": null
+    },
+    {
+      "word": "camping",
+      "meaning_zh": "露营",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "change",
+      "meaning_zh": "改变",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "changed",
+      "meaning_zh": "改变（change 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "cheer",
+      "meaning_zh": "欢呼；加油",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "clay",
+      "meaning_zh": "黏土",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cleaned",
+      "meaning_zh": "打扫（clean 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "climb",
+      "meaning_zh": "爬；攀登",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "cloth",
+      "meaning_zh": "布",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cloud",
+      "meaning_zh": "云",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "cough",
+      "meaning_zh": "咳嗽",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": null
+    },
+    {
+      "word": "count down",
+      "meaning_zh": "倒计时",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "cry",
+      "meaning_zh": "哭",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "cycling",
+      "meaning_zh": "骑自行车运动",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "daytime",
+      "meaning_zh": "白天",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "diet",
+      "meaning_zh": "饮食",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "difference",
+      "meaning_zh": "不同；差别",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "dining hall",
+      "meaning_zh": "饭厅；食堂",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "dirty",
+      "meaning_zh": "脏的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "discuss",
+      "meaning_zh": "讨论",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "drank",
+      "meaning_zh": "喝（drink 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "drink",
+      "meaning_zh": "饮料",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "drive",
+      "meaning_zh": "开车；驾驶",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "dry",
+      "meaning_zh": "干的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "earth",
+      "meaning_zh": "地球",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Eiffel Tower",
+      "meaning_zh": "埃菲尔铁塔",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "electricity",
+      "meaning_zh": "电",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "email",
+      "meaning_zh": "电子邮件",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "energy",
+      "meaning_zh": "能源",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "enjoy",
+      "meaning_zh": "享受；喜爱",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "ever",
+      "meaning_zh": "曾经",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "exciting",
+      "meaning_zh": "令人兴奋的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "fell",
+      "meaning_zh": "摔倒；落下（fall 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "fever",
+      "meaning_zh": "发烧",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "fishing",
+      "meaning_zh": "钓鱼",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "fixed",
+      "meaning_zh": "修理（fix 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "for example",
+      "meaning_zh": "例如",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "gala",
+      "meaning_zh": "联欢会；庆典",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "gingerbread house",
+      "meaning_zh": "姜饼屋",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "glass",
+      "meaning_zh": "一杯；玻璃",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "goods",
+      "meaning_zh": "商品",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "gym",
+      "meaning_zh": "体育馆",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "haircut",
+      "meaning_zh": "理发",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "half",
+      "meaning_zh": "一半",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "head",
+      "meaning_zh": "头",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "heat",
+      "meaning_zh": "加热",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "heavier",
+      "meaning_zh": "更重的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "Hong Kong-Zhuhai-Macao Bridge",
+      "meaning_zh": "港珠澳大桥",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "ice-skate",
+      "meaning_zh": "滑冰",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "ill",
+      "meaning_zh": "生病的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "inspiring",
+      "meaning_zh": "令人鼓舞的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "into",
+      "meaning_zh": "进入",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "prep."
+    },
+    {
+      "word": "jar",
+      "meaning_zh": "罐子",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Jinggangshan Revolution Museum",
+      "meaning_zh": "井冈山革命博物馆",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "judge",
+      "meaning_zh": "裁判",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "kilogram",
+      "meaning_zh": "千克；公斤",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "kilometre",
+      "meaning_zh": "千米；公里",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "later",
+      "meaning_zh": "随后；后来",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "laughed",
+      "meaning_zh": "笑（laugh 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "longer",
+      "meaning_zh": "更长的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "lucky",
+      "meaning_zh": "幸运的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "manage",
+      "meaning_zh": "管理",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "marathon",
+      "meaning_zh": "马拉松",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "marble",
+      "meaning_zh": "弹珠",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "market",
+      "meaning_zh": "市场",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "Mars",
+      "meaning_zh": "火星",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "metre",
+      "meaning_zh": "米",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "microscope",
+      "meaning_zh": "显微镜",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "money",
+      "meaning_zh": "钱",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "month",
+      "meaning_zh": "月份",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "moon",
+      "meaning_zh": "月亮",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "New Zealand",
+      "meaning_zh": "新西兰",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "notice",
+      "meaning_zh": "通知",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "ocean",
+      "meaning_zh": "海洋",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "older",
+      "meaning_zh": "年龄更大的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "outer space",
+      "meaning_zh": "外太空",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "own",
+      "meaning_zh": "自己的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "Paris",
+      "meaning_zh": "巴黎",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "paste",
+      "meaning_zh": "粘贴",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "planet",
+      "meaning_zh": "行星",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pocket money",
+      "meaning_zh": "零花钱",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "power",
+      "meaning_zh": "能量",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "pumpkin",
+      "meaning_zh": "南瓜",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "question",
+      "meaning_zh": "问题",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "quick",
+      "meaning_zh": "快的；迅速的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "race",
+      "meaning_zh": "赛跑",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "reduce",
+      "meaning_zh": "减少",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "resource",
+      "meaning_zh": "资源",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "restaurant",
+      "meaning_zh": "餐馆",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "reuse",
+      "meaning_zh": "重复使用",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "rode",
+      "meaning_zh": "骑（ride 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "rover",
+      "meaning_zh": "（星球）探测车",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "run out",
+      "meaning_zh": "用完",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "phr."
+    },
+    {
+      "word": "runny nose",
+      "meaning_zh": "流鼻涕",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sale",
+      "meaning_zh": "减价；特卖",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "sand",
+      "meaning_zh": "沙子",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "n."
+    },
+    {
+      "word": "satellite",
+      "meaning_zh": "人造卫星",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "save up",
+      "meaning_zh": "攒钱",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "schoolbag",
+      "meaning_zh": "书包",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sell",
+      "meaning_zh": "卖",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "send",
+      "meaning_zh": "寄；发送",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "service",
+      "meaning_zh": "服务",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "shorter",
+      "meaning_zh": "更矮的；更短的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "shower",
+      "meaning_zh": "淋浴",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "side",
+      "meaning_zh": "一边；一面",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sky",
+      "meaning_zh": "天空",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "slept",
+      "meaning_zh": "睡觉（sleep 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "smaller",
+      "meaning_zh": "更小的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "soil",
+      "meaning_zh": "土壤",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "solar",
+      "meaning_zh": "太阳能的；太阳的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "adj."
+    },
+    {
+      "word": "soon",
+      "meaning_zh": "很快",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adv."
+    },
+    {
+      "word": "space",
+      "meaning_zh": "太空",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "space station",
+      "meaning_zh": "空间站",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "spaceship",
+      "meaning_zh": "宇宙飞船",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "stay up",
+      "meaning_zh": "熬夜",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "phr."
+    },
+    {
+      "word": "stayed",
+      "meaning_zh": "待；停留（stay 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "stronger",
+      "meaning_zh": "更强壮的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "sunrise",
+      "meaning_zh": "日出",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "sunset",
+      "meaning_zh": "日落",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "swam",
+      "meaning_zh": "游泳（swim 的过去式）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "taikonaut",
+      "meaning_zh": "中国航天员",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "taller",
+      "meaning_zh": "更高的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "telescope",
+      "meaning_zh": "望远镜",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "n."
+    },
+    {
+      "word": "Terracotta Warriors",
+      "meaning_zh": "兵马俑",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "than",
+      "meaning_zh": "比",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": null
+    },
+    {
+      "word": "the Red Army",
+      "meaning_zh": "红军",
+      "grade_est": 6,
+      "spelling": "none",
+      "pos": "n."
+    },
+    {
+      "word": "thinner",
+      "meaning_zh": "更瘦的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    },
+    {
+      "word": "thousand",
+      "meaning_zh": "一千",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "num."
+    },
+    {
+      "word": "ticket",
+      "meaning_zh": "票",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "took",
+      "meaning_zh": "拍（照片）；拿（take 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "toothpaste",
+      "meaning_zh": "牙膏",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "top",
+      "meaning_zh": "最高的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "type",
+      "meaning_zh": "种类；类型",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "unhappy",
+      "meaning_zh": "不开心的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "unplug",
+      "meaning_zh": "拔掉插头",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "useful",
+      "meaning_zh": "有用的",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "adj."
+    },
+    {
+      "word": "video",
+      "meaning_zh": "视频",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "view",
+      "meaning_zh": "景色",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "village",
+      "meaning_zh": "村庄",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "wake",
+      "meaning_zh": "醒来（过去式 woke）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "was",
+      "meaning_zh": "是（am/is 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "pos": "v."
+    },
+    {
+      "word": "washed",
+      "meaning_zh": "洗（wash 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "watched",
+      "meaning_zh": "看（watch 的过去式）",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "v."
+    },
+    {
+      "word": "win",
+      "meaning_zh": "赢（过去式 won）",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "v."
+    },
+    {
+      "word": "winner",
+      "meaning_zh": "获胜者",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "writer",
+      "meaning_zh": "作家",
+      "grade_est": 6,
+      "spelling": "advanced",
+      "pos": "n."
+    },
+    {
+      "word": "yesterday",
+      "meaning_zh": "昨天",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "同年级多处出现: 上U2（新版六上）, 下U2（旧版六下）",
+      "pos": null
+    },
+    {
+      "word": "younger",
+      "meaning_zh": "更年轻的",
+      "grade_est": 6,
+      "spelling": "basic",
+      "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
+      "pos": "adj."
+    }
+  ]
+}

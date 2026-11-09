@@ -1,0 +1,618 @@
+{
+ "chapter_id": "forest_adventure",
+ "name_zh": "森林冒险",
+ "version": "1.1",
+ "created_at": "2026-11-09",
+ "decided_by": "Haru 按 PM 权限定（决定1）",
+ "design_ref": "/workspace/english-rpg-design/DES-04_forest_single_player_v1.md",
+ "formal_wordlist": "/workspace/english-rpg-design/pep_words_g3-6_v1.2.2.json",
+ "note": "MVP 继续用 28 词样例与 6/6/6/6/4 分组。20 词按 loader id（word.trim().toLowerCase()）引用正式表，spelling/释义/年级以正式表为准；8 词为「章节额外词」，只在本章使用，不进年级词池。本文件只引用，不重复定义正式表词条（words_resolved 仅为便于查看的快照）。 v1.1（2026-11-09）：正式表改指 v1.2；8 个章节额外词补 pos；其余引用不变。 4.10（2026-11-09）：五关补上 goal_zh 与 unlock，word_refs 未改。",
+ "clear_rule": "defeat_boss",
+ "mastery_blocks_clear": false,
+ "stages": [
+  {
+   "id": 1,
+   "name_zh": "林缘小径",
+   "goal_zh": "进入森林，学会认路与常见动植物",
+   "type": "exploration",
+   "word_refs": [
+    "tree",
+    "bird",
+    "fish",
+    "sun",
+    "map",
+    "run"
+   ]
+  },
+  {
+   "id": 2,
+   "name_zh": "河岸花径",
+   "goal_zh": "沿河前进，描述景物与天气",
+   "type": "exploration",
+   "unlock": {"after_stage": 1},
+   "word_refs": [
+    "big",
+    "red",
+    "river",
+    "forest",
+    "flower",
+    "rain"
+   ]
+  },
+  {
+   "id": 3,
+   "name_zh": "云桥山道",
+   "goal_zh": "过桥登山，动作与地形容词",
+   "type": "exploration",
+   "unlock": {"after_stage": 2},
+   "word_refs": [
+    "cloud",
+    "jump",
+    "mountain",
+    "bridge",
+    "path",
+    "climb"
+   ]
+  },
+  {
+   "id": 4,
+   "name_zh": "迷雾村庄",
+   "goal_zh": "探村护友，抽象与进阶词",
+   "type": "exploration",
+   "unlock": {"after_stage": 3},
+   "word_refs": [
+    "village",
+    "weather",
+    "brave",
+    "dangerous",
+    "explore",
+    "protect"
+   ]
+  },
+  {
+   "id": 5,
+   "name_zh": "林心守护",
+   "goal_zh": "夺回宝藏，通关本章",
+   "type": "boss",
+   "learn_before_fight": true,
+   "unlock": {"stages_cleared": [1, 2, 3, 4], "all_words_learned": true},
+   "word_refs": [
+    "treasure",
+    "journey",
+    "discover",
+    "adventure"
+   ]
+  }
+ ],
+ "word_refs_formal": [
+  "tree",
+  "bird",
+  "fish",
+  "sun",
+  "map",
+  "run",
+  "big",
+  "red",
+  "river",
+  "forest",
+  "mountain",
+  "flower",
+  "rain",
+  "cloud",
+  "jump",
+  "village",
+  "climb",
+  "weather",
+  "dangerous",
+  "explore"
+ ],
+ "chapter_extra_words": [
+  {
+   "word": "bridge",
+   "meaning_zh": "桥",
+   "grade_est": 4,
+   "spelling": "advanced",
+   "notes": "dge 拼法",
+   "id": "bridge",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "n."
+  },
+  {
+   "word": "brave",
+   "meaning_zh": "勇敢的",
+   "grade_est": 5,
+   "spelling": "basic",
+   "notes": "",
+   "id": "brave",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "adj."
+  },
+  {
+   "word": "path",
+   "meaning_zh": "小路",
+   "grade_est": 5,
+   "spelling": "basic",
+   "notes": "",
+   "id": "path",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "n."
+  },
+  {
+   "word": "treasure",
+   "meaning_zh": "宝藏",
+   "grade_est": 6,
+   "spelling": "none",
+   "notes": "",
+   "id": "treasure",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "n."
+  },
+  {
+   "word": "journey",
+   "meaning_zh": "旅程",
+   "grade_est": 6,
+   "spelling": "none",
+   "notes": "",
+   "id": "journey",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "n."
+  },
+  {
+   "word": "discover",
+   "meaning_zh": "发现",
+   "grade_est": 6,
+   "spelling": "advanced",
+   "notes": "",
+   "id": "discover",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "v."
+  },
+  {
+   "word": "adventure",
+   "meaning_zh": "冒险",
+   "grade_est": 6,
+   "spelling": "none",
+   "notes": "",
+   "id": "adventure",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "n."
+  },
+  {
+   "word": "protect",
+   "meaning_zh": "保护",
+   "grade_est": 6,
+   "spelling": "advanced",
+   "notes": "",
+   "id": "protect",
+   "chapter_only": true,
+   "in_grade_pool": false,
+   "card_type": "word",
+   "source": "sample_words_forest.json（自选常见词，非教材；grade_est 为估计）",
+   "pos": "v."
+  }
+ ],
+ "words_resolved_snapshot": [
+  {
+   "word_ref": "tree",
+   "pep_entry_id": "pep-3a-u4-0073",
+   "word": "tree",
+   "meaning_zh": "树",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "bird",
+   "pep_entry_id": "pep-3a-u3-0036",
+   "word": "bird",
+   "meaning_zh": "鸟",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "fish",
+   "pep_entry_id": "pep-3a-u3-0042",
+   "word": "fish",
+   "meaning_zh": "鱼",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "sun",
+   "pep_entry_id": "pep-3a-u4-0071",
+   "word": "sun",
+   "meaning_zh": "太阳",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "map",
+   "pep_entry_id": "pep-3b-u5-0204",
+   "word": "map",
+   "meaning_zh": "地图",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "run",
+   "pep_entry_id": "pep-4b-u2-0366",
+   "word": "run",
+   "meaning_zh": "跑",
+   "grade_est": 4,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "big",
+   "pep_entry_id": "pep-3a-u2-0018",
+   "word": "big",
+   "meaning_zh": "大的",
+   "grade_est": 3,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "red",
+   "pep_entry_id": "pep-3a-u5-0087",
+   "word": "red",
+   "meaning_zh": "红色",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "river",
+   "pep_entry_id": "pep-5a-u6-0555",
+   "word": "river",
+   "meaning_zh": "河",
+   "grade_est": 5,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "forest",
+   "pep_entry_id": "pep-5a-u6-0547",
+   "word": "forest",
+   "meaning_zh": "森林",
+   "grade_est": 5,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "mountain",
+   "pep_entry_id": "pep-5a-u6-0552",
+   "word": "mountain",
+   "meaning_zh": "高山",
+   "grade_est": 5,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "flower",
+   "pep_entry_id": "pep-3a-u4-0061",
+   "word": "flower",
+   "meaning_zh": "花",
+   "grade_est": 3,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "rain",
+   "pep_entry_id": "pep-4a-u5-0298",
+   "word": "rain",
+   "meaning_zh": "下雨；雨",
+   "grade_est": 4,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "cloud",
+   "pep_entry_id": "pep-6a-u5-0793",
+   "word": "cloud",
+   "meaning_zh": "云",
+   "grade_est": 6,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "jump",
+   "pep_entry_id": "pep-5a-u1-0449",
+   "word": "jump",
+   "meaning_zh": "跳",
+   "grade_est": 5,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "village",
+   "pep_entry_id": "pep-6a-u1-0726",
+   "word": "village",
+   "meaning_zh": "村庄",
+   "grade_est": 6,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "climb",
+   "pep_entry_id": "pep-6a-u1-0705",
+   "word": "climb",
+   "meaning_zh": "爬；攀登",
+   "grade_est": 6,
+   "spelling": "basic"
+  },
+  {
+   "word_ref": "weather",
+   "pep_entry_id": "pep-4a-u5-0309",
+   "word": "weather",
+   "meaning_zh": "天气",
+   "grade_est": 4,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "dangerous",
+   "pep_entry_id": "pep-5a-u6-0541",
+   "word": "dangerous",
+   "meaning_zh": "危险的",
+   "grade_est": 5,
+   "spelling": "advanced"
+  },
+  {
+   "word_ref": "explore",
+   "pep_entry_id": "pep-5b-u6-0685",
+   "word": "explore",
+   "meaning_zh": "探索",
+   "grade_est": 5,
+   "spelling": "basic"
+  }
+ ],
+ "diff_vs_sample": [
+  {
+   "word": "run",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "跑",
+    "grade_est": 3
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "跑",
+    "grade_est": 4,
+    "pep_entry_id": "pep-4b-u2-0366"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "big",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "大的",
+    "grade_est": 3
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "大的",
+    "grade_est": 3,
+    "pep_entry_id": "pep-3a-u2-0018"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "red",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "红色的",
+    "grade_est": 3
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "红色",
+    "grade_est": 3,
+    "pep_entry_id": "pep-3a-u5-0087"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "river",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "河",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "河",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5a-u6-0555"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "forest",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "森林",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "森林",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5a-u6-0547"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "mountain",
+   "sample": {
+    "spelling": "advanced",
+    "meaning_zh": "山",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "高山",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5a-u6-0552"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "flower",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "花",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "花",
+    "grade_est": 3,
+    "pep_entry_id": "pep-3a-u4-0061"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "rain",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "雨",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "下雨；雨",
+    "grade_est": 4,
+    "pep_entry_id": "pep-4a-u5-0298"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "cloud",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "云",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "云",
+    "grade_est": 6,
+    "pep_entry_id": "pep-6a-u5-0793"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "jump",
+   "sample": {
+    "spelling": "basic",
+    "meaning_zh": "跳",
+    "grade_est": 4
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "跳",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5a-u1-0449"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "village",
+   "sample": {
+    "spelling": "advanced",
+    "meaning_zh": "村庄",
+    "grade_est": 5
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "村庄",
+    "grade_est": 6,
+    "pep_entry_id": "pep-6a-u1-0726"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "climb",
+   "sample": {
+    "spelling": "advanced",
+    "meaning_zh": "攀爬",
+    "grade_est": 5
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "爬；攀登",
+    "grade_est": 6,
+    "pep_entry_id": "pep-6a-u1-0705"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "weather",
+   "sample": {
+    "spelling": "advanced",
+    "meaning_zh": "天气",
+    "grade_est": 5
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "天气",
+    "grade_est": 4,
+    "pep_entry_id": "pep-4a-u5-0309"
+   },
+   "spelling_changed": false
+  },
+  {
+   "word": "dangerous",
+   "sample": {
+    "spelling": "none",
+    "meaning_zh": "危险的",
+    "grade_est": 5
+   },
+   "formal": {
+    "spelling": "advanced",
+    "meaning_zh": "危险的",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5a-u6-0541"
+   },
+   "spelling_changed": true
+  },
+  {
+   "word": "explore",
+   "sample": {
+    "spelling": "advanced",
+    "meaning_zh": "探索",
+    "grade_est": 6
+   },
+   "formal": {
+    "spelling": "basic",
+    "meaning_zh": "探索",
+    "grade_est": 5,
+    "pep_entry_id": "pep-5b-u6-0685"
+   },
+   "spelling_changed": true
+  }
+ ],
+ "backlog": [
+  {
+   "item": "三上 U3 Amazing animals + U4 Plants around us 正式森林章",
+   "status": "backlog"
+  },
+  {
+   "item": "五上 U6 Nature and us「深林」进阶章",
+   "status": "backlog"
+  },
+  {
+   "item": "升年级加考新义项/过去式（senses 中 new_sense/past_form）",
+   "status": "backlog"
+  }
+ ]
+}

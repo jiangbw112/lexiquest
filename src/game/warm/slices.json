@@ -1,0 +1,1163 @@
+{
+ "_status": "暂定 provisional",
+ "_scale": "all textures @2x; display with setScale(0.5) or set NineSlice width/height in texture px then setScale(0.5)",
+ "_insets_unit": "texture px (@2x)",
+ "_phaser": "this.add.nineslice(x, y, 'ui', key, w*2, h*2, l, r, t, b).setScale(0.5)  // Phaser >= 3.60",
+ "parts": {
+  "btn_primary_normal": {
+   "file": "components/buttons/btn_primary_normal.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    176,
+    92
+   ],
+   "note": "主操作：继续 / 开始 / 小战斗"
+  },
+  "btn_primary_hover": {
+   "file": "components/buttons/btn_primary_hover.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    176,
+    90
+   ],
+   "note": "主操作：继续 / 开始 / 小战斗"
+  },
+  "btn_primary_pressed": {
+   "file": "components/buttons/btn_primary_pressed.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    176,
+    104
+   ],
+   "note": "主操作：继续 / 开始 / 小战斗"
+  },
+  "btn_primary_disabled": {
+   "file": "components/buttons/btn_primary_disabled.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    176,
+    96
+   ],
+   "note": "主操作：继续 / 开始 / 小战斗"
+  },
+  "btn_secondary_normal": {
+   "file": "components/buttons/btn_secondary_normal.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    176,
+    92
+   ],
+   "note": "次操作：去学堂 / 听一听 / 修改年级"
+  },
+  "btn_secondary_hover": {
+   "file": "components/buttons/btn_secondary_hover.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    176,
+    90
+   ],
+   "note": "次操作：去学堂 / 听一听 / 修改年级"
+  },
+  "btn_secondary_pressed": {
+   "file": "components/buttons/btn_secondary_pressed.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    176,
+    104
+   ],
+   "note": "次操作：去学堂 / 听一听 / 修改年级"
+  },
+  "btn_secondary_disabled": {
+   "file": "components/buttons/btn_secondary_disabled.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    176,
+    96
+   ],
+   "note": "次操作：去学堂 / 听一听 / 修改年级"
+  },
+  "btn_action_coral_normal": {
+   "file": "components/buttons/btn_action_coral_normal.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    176,
+    92
+   ],
+   "note": "战斗：攻击（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_coral_hover": {
+   "file": "components/buttons/btn_action_coral_hover.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    176,
+    90
+   ],
+   "note": "战斗：攻击（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_coral_pressed": {
+   "file": "components/buttons/btn_action_coral_pressed.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    176,
+    104
+   ],
+   "note": "战斗：攻击（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_coral_disabled": {
+   "file": "components/buttons/btn_action_coral_disabled.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    176,
+    96
+   ],
+   "note": "战斗：攻击（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_teal_normal": {
+   "file": "components/buttons/btn_action_teal_normal.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    176,
+    92
+   ],
+   "note": "战斗：治疗（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_teal_hover": {
+   "file": "components/buttons/btn_action_teal_hover.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    176,
+    90
+   ],
+   "note": "战斗：治疗（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_teal_pressed": {
+   "file": "components/buttons/btn_action_teal_pressed.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    176,
+    104
+   ],
+   "note": "战斗：治疗（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_teal_disabled": {
+   "file": "components/buttons/btn_action_teal_disabled.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    176,
+    96
+   ],
+   "note": "战斗：治疗（标签须 ≥22px + 墨棕描边）"
+  },
+  "btn_action_sky_normal": {
+   "file": "components/buttons/btn_action_sky_normal.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    176,
+    92
+   ],
+   "note": "战斗：格挡"
+  },
+  "btn_action_sky_hover": {
+   "file": "components/buttons/btn_action_sky_hover.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    176,
+    90
+   ],
+   "note": "战斗：格挡"
+  },
+  "btn_action_sky_pressed": {
+   "file": "components/buttons/btn_action_sky_pressed.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    176,
+    104
+   ],
+   "note": "战斗：格挡"
+  },
+  "btn_action_sky_disabled": {
+   "file": "components/buttons/btn_action_sky_disabled.png",
+   "w": 176,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": {
+    "left": 32,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    176,
+    96
+   ],
+   "note": "战斗：格挡"
+  },
+  "btn_icon_normal": {
+   "file": "components/buttons/btn_icon_normal.png",
+   "w": 104,
+   "h": 112,
+   "group": "buttons",
+   "state": "normal",
+   "nineslice": null,
+   "label_box": [
+    0,
+    4,
+    104,
+    92
+   ],
+   "note": "图标按钮 52×56 逻辑 px 固定尺寸；图标 48 逻辑 px (icon@2x 96) 居中于 label_box"
+  },
+  "btn_icon_hover": {
+   "file": "components/buttons/btn_icon_hover.png",
+   "w": 104,
+   "h": 112,
+   "group": "buttons",
+   "state": "hover",
+   "nineslice": null,
+   "label_box": [
+    0,
+    2,
+    104,
+    90
+   ],
+   "note": "图标按钮 52×56 逻辑 px 固定尺寸；图标 48 逻辑 px (icon@2x 96) 居中于 label_box"
+  },
+  "btn_icon_pressed": {
+   "file": "components/buttons/btn_icon_pressed.png",
+   "w": 104,
+   "h": 112,
+   "group": "buttons",
+   "state": "pressed",
+   "nineslice": null,
+   "label_box": [
+    0,
+    16,
+    104,
+    104
+   ],
+   "note": "图标按钮 52×56 逻辑 px 固定尺寸；图标 48 逻辑 px (icon@2x 96) 居中于 label_box"
+  },
+  "btn_icon_disabled": {
+   "file": "components/buttons/btn_icon_disabled.png",
+   "w": 104,
+   "h": 112,
+   "group": "buttons",
+   "state": "disabled",
+   "nineslice": null,
+   "label_box": [
+    0,
+    8,
+    104,
+    96
+   ],
+   "note": "图标按钮 52×56 逻辑 px 固定尺寸；图标 48 逻辑 px (icon@2x 96) 居中于 label_box"
+  },
+  "option_normal": {
+   "file": "components/option_bar/option_normal.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "normal",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    256,
+    92
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "option_hover": {
+   "file": "components/option_bar/option_hover.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "hover",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    256,
+    90
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "option_pressed": {
+   "file": "components/option_bar/option_pressed.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "pressed",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    256,
+    104
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "option_disabled": {
+   "file": "components/option_bar/option_disabled.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "disabled",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    256,
+    96
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "option_correct": {
+   "file": "components/option_bar/option_correct.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "correct",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    256,
+    92
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "option_wrong": {
+   "file": "components/option_bar/option_wrong.png",
+   "w": 256,
+   "h": 112,
+   "group": "option_bar",
+   "state": "wrong",
+   "nineslice": {
+    "left": 88,
+    "right": 32,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    256,
+    92
+   ],
+   "note": "答案选项条；左侧 56px 圆槽放键位数字(Nunito 900 ink)；correct/wrong 槽内已烘焙对勾/叉形状（图形，不是字符）"
+  },
+  "input_normal": {
+   "file": "components/input/input_normal.png",
+   "w": 336,
+   "h": 120,
+   "group": "input",
+   "state": "normal",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "拼写输入框；外圈 10px 透明用于 focus 光晕，布局时按 -5 逻辑 px 外扩放置"
+  },
+  "input_hover": {
+   "file": "components/input/input_hover.png",
+   "w": 336,
+   "h": 120,
+   "group": "input",
+   "state": "hover",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "拼写输入框；外圈 10px 透明用于 focus 光晕，布局时按 -5 逻辑 px 外扩放置"
+  },
+  "input_focus": {
+   "file": "components/input/input_focus.png",
+   "w": 336,
+   "h": 120,
+   "group": "input",
+   "state": "focus",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "拼写输入框；外圈 10px 透明用于 focus 光晕，布局时按 -5 逻辑 px 外扩放置"
+  },
+  "input_error": {
+   "file": "components/input/input_error.png",
+   "w": 336,
+   "h": 120,
+   "group": "input",
+   "state": "error",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "拼写输入框；外圈 10px 透明用于 focus 光晕，布局时按 -5 逻辑 px 外扩放置"
+  },
+  "input_disabled": {
+   "file": "components/input/input_disabled.png",
+   "w": 336,
+   "h": 120,
+   "group": "input",
+   "state": "disabled",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "拼写输入框；外圈 10px 透明用于 focus 光晕，布局时按 -5 逻辑 px 外扩放置"
+  },
+  "chip_off_normal": {
+   "file": "components/chip/chip_off_normal.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "normal",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    4,
+    200,
+    92
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_off_hover": {
+   "file": "components/chip/chip_off_hover.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "hover",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    2,
+    200,
+    90
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_off_pressed": {
+   "file": "components/chip/chip_off_pressed.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "pressed",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    200,
+    104
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_off_disabled": {
+   "file": "components/chip/chip_off_disabled.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "disabled",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    200,
+    96
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_on_normal": {
+   "file": "components/chip/chip_on_normal.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "normal",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    200,
+    104
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_on_hover": {
+   "file": "components/chip/chip_on_hover.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "hover",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    200,
+    104
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_on_pressed": {
+   "file": "components/chip/chip_on_pressed.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "pressed",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    16,
+    200,
+    104
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "chip_on_disabled": {
+   "file": "components/chip/chip_on_disabled.png",
+   "w": 200,
+   "h": 112,
+   "group": "chip",
+   "state": "disabled",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 30,
+    "bottom": 40
+   },
+   "label_box": [
+    0,
+    8,
+    200,
+    96
+   ],
+   "note": "年级开关 chip；默认全部 off（不预选）"
+  },
+  "tab_normal": {
+   "file": "components/tab/tab_normal.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "normal",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "note": "页签；selected 底边敞开，与下方 panel 顶边重叠 4 逻辑 px"
+  },
+  "tab_hover": {
+   "file": "components/tab/tab_hover.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "hover",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "note": "页签；selected 底边敞开，与下方 panel 顶边重叠 4 逻辑 px"
+  },
+  "tab_selected": {
+   "file": "components/tab/tab_selected.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "selected",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "note": "页签；selected 底边敞开，与下方 panel 顶边重叠 4 逻辑 px"
+  },
+  "tab_disabled": {
+   "file": "components/tab/tab_disabled.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "disabled",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "note": "页签；selected 底边敞开，与下方 panel 顶边重叠 4 逻辑 px"
+  },
+  "panel_parchment": {
+   "file": "components/panel/panel_parchment.png",
+   "w": 160,
+   "h": 160,
+   "group": "panel",
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "note": "非交互，无状态"
+  },
+  "panel_wood": {
+   "file": "components/panel/panel_wood.png",
+   "w": 192,
+   "h": 192,
+   "group": "panel",
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 48,
+    "bottom": 48
+   },
+   "note": "非交互，无状态"
+  },
+  "dialog": {
+   "file": "components/panel/dialog.png",
+   "w": 240,
+   "h": 240,
+   "group": "panel",
+   "nineslice": {
+    "left": 56,
+    "right": 56,
+    "top": 104,
+    "bottom": 56
+   },
+   "note": "弹窗：顶部木纹标题栏 header 36 逻辑 px；右上角放 btn_icon + icon close"
+  },
+  "dialog_shadow": {
+   "file": "components/panel/dialog_shadow.png",
+   "w": 240,
+   "h": 240,
+   "group": "panel",
+   "nineslice": {
+    "left": 60,
+    "right": 60,
+    "top": 60,
+    "bottom": 60
+   },
+   "note": "弹窗投影，放在 dialog 下方 (+0,+6 逻辑 px)"
+  },
+  "progress_frame": {
+   "file": "components/bars/progress_frame.png",
+   "w": 120,
+   "h": 48,
+   "group": "bars",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "进度条轨道 3-slice，高 24 逻辑 px"
+  },
+  "progress_fill_gold": {
+   "file": "components/bars/progress_fill_gold.png",
+   "w": 80,
+   "h": 32,
+   "group": "bars",
+   "nineslice": {
+    "left": 16,
+    "right": 16,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "填充，内缩 4 逻辑 px；宽度 = 内宽 × 比例 (≥ 16 逻辑 px)"
+  },
+  "progress_fill_leaf": {
+   "file": "components/bars/progress_fill_leaf.png",
+   "w": 80,
+   "h": 32,
+   "group": "bars",
+   "nineslice": {
+    "left": 16,
+    "right": 16,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "填充，内缩 4 逻辑 px；宽度 = 内宽 × 比例 (≥ 16 逻辑 px)"
+  },
+  "progress_cap_leaf": {
+   "file": "components/bars/progress_cap_leaf.png",
+   "w": 56,
+   "h": 56,
+   "group": "bars",
+   "nineslice": null,
+   "note": "进度条末端标记，可选"
+  },
+  "hp_frame": {
+   "file": "components/bars/hp_frame.png",
+   "w": 120,
+   "h": 48,
+   "group": "bars",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "与 batch1 相同"
+  },
+  "hp_fill_teal": {
+   "file": "components/bars/hp_fill_teal.png",
+   "w": 80,
+   "h": 32,
+   "group": "bars",
+   "nineslice": {
+    "left": 16,
+    "right": 16,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "ghost = 掉血延迟条"
+  },
+  "hp_fill_coral": {
+   "file": "components/bars/hp_fill_coral.png",
+   "w": 80,
+   "h": 32,
+   "group": "bars",
+   "nineslice": {
+    "left": 16,
+    "right": 16,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "ghost = 掉血延迟条"
+  },
+  "hp_fill_ghost": {
+   "file": "components/bars/hp_fill_ghost.png",
+   "w": 80,
+   "h": 32,
+   "group": "bars",
+   "nineslice": {
+    "left": 16,
+    "right": 16,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "ghost = 掉血延迟条"
+  },
+  "badge_mastery_lit": {
+   "file": "components/badges/badge_mastery_lit.png",
+   "w": 96,
+   "h": 96,
+   "group": "badges",
+   "state": "lit",
+   "nineslice": null,
+   "note": "掌握：徽章亮"
+  },
+  "badge_mastery_dim": {
+   "file": "components/badges/badge_mastery_dim.png",
+   "w": 96,
+   "h": 96,
+   "group": "badges",
+   "state": "dim",
+   "nineslice": null,
+   "note": "到期待复习：徽章变灰（提醒，不是惩罚；单词卡还在）"
+  },
+  "badge_mastery_none": {
+   "file": "components/badges/badge_mastery_none.png",
+   "w": 96,
+   "h": 96,
+   "group": "badges",
+   "state": "none",
+   "nineslice": null,
+   "note": "还没获得：虚线空位"
+  },
+  "lv_pill_bronze": {
+   "file": "components/badges/lv_pill_bronze.png",
+   "w": 96,
+   "h": 48,
+   "group": "badges",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "技能等级标签 Lv1；文字 Nunito 900 ink ≥16px"
+  },
+  "lv_pill_silver": {
+   "file": "components/badges/lv_pill_silver.png",
+   "w": 96,
+   "h": 48,
+   "group": "badges",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "技能等级标签 Lv2；文字 Nunito 900 ink ≥16px"
+  },
+  "lv_pill_gold": {
+   "file": "components/badges/lv_pill_gold.png",
+   "w": 96,
+   "h": 48,
+   "group": "badges",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 0,
+    "bottom": 0
+   },
+   "note": "技能等级标签 Lv3；文字 Nunito 900 ink ≥16px"
+  },
+  "token_cosmetic": {
+   "file": "components/badges/token_cosmetic.png",
+   "w": 80,
+   "h": 80,
+   "group": "badges",
+   "nineslice": null,
+   "note": "装扮代币 cosmetic_token"
+  },
+  "dot_notify": {
+   "file": "components/badges/dot_notify.png",
+   "w": 36,
+   "h": 36,
+   "group": "badges",
+   "nineslice": null,
+   "note": "红点提示（新卡/新奖励），无文字"
+  },
+  "card_frame_bronze": {
+   "file": "components/badges/card_frame_bronze.png",
+   "w": 280,
+   "h": 352,
+   "group": "badges",
+   "nineslice": null,
+   "note": "技能卡框 = 技能 Lv1（与 batch1 相同，固定尺寸）；掌握徽章另放"
+  },
+  "card_frame_silver": {
+   "file": "components/badges/card_frame_silver.png",
+   "w": 280,
+   "h": 352,
+   "group": "badges",
+   "nineslice": null,
+   "note": "技能卡框 = 技能 Lv2（与 batch1 相同，固定尺寸）；掌握徽章另放"
+  },
+  "card_frame_gold": {
+   "file": "components/badges/card_frame_gold.png",
+   "w": 280,
+   "h": 352,
+   "group": "badges",
+   "nineslice": null,
+   "note": "技能卡框 = 技能 Lv3（与 batch1 相同，固定尺寸）；掌握徽章另放"
+  },
+  "tab_pressed": {
+   "file": "components/tab/tab_pressed.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "pressed",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "label_box": [
+    0,
+    20,
+    208,
+    104
+   ],
+   "note": "页签 pressed = 未选中页签被按住（松开后切换为 selected）；尺寸/insets 同其它页签；标签中心比 normal 低 2 逻辑 px。b2.1 新增"
+  },
+  "map_node_boss_ready": {
+   "file": "components/map/map_node_boss_ready.png",
+   "w": 300,
+   "h": 300,
+   "group": "map",
+   "state": "boss_ready",
+   "nineslice": null,
+   "note": "Boss 节点·已开启可挑战（无锁，金色光晕+金边+闪光）；尺寸与锚点同 map_node_boss：300×300，节点圆心 = (150, 142) 贴图 px，setOrigin(0.5, 142/300)。b2.1 新增"
+  }
+ },
+ "_changelog": [
+  "b2.1 2026-11-09: + tab_pressed, + map_node_boss_ready (existing frames unchanged)"
+ ]
+}

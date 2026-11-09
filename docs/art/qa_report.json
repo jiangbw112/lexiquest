@@ -1,0 +1,87 @@
+{
+ "checks": [
+  {
+   "check": "naming+counts+512x512 RGBA (all layers share frame grid)",
+   "pass": true,
+   "detail": "231 files; "
+  },
+  {
+   "check": "foot pivot stable (shadow centre x=256±1, lowest sole y=448±2 every frame)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "no content within 3px of frame edge",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "transparent edges clean (straight alpha, edge=outline colour, alpha-0 halo colour-bled)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "layer interplay (base garments hidden, no bare-leg gaps, eyes clear of helmet/hair, grip+shield on hands, sword ≥25% visible)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "atlases ≤2048², JSON valid, frame names match files, pixel-exact reconstruction",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "manifest fields complete",
+   "pass": true,
+   "detail": ""
+  }
+ ],
+ "pass": true,
+ "interplayIssues": [],
+ "atlasSizes": {
+  "shadow": [
+   2048,
+   72
+  ],
+  "hand_main": [
+   2048,
+   240
+  ],
+  "body_back": [
+   2048,
+   464
+  ],
+  "outfit_back": [
+   2048,
+   464
+  ],
+  "body": [
+   2048,
+   628
+  ],
+  "outfit_body": [
+   2048,
+   408
+  ],
+  "hair": [
+   2048,
+   284
+  ],
+  "outfit_head": [
+   2048,
+   268
+  ],
+  "body_front": [
+   1860,
+   96
+  ],
+  "outfit_front": [
+   1780,
+   96
+  ],
+  "hand_off": [
+   2048,
+   236
+  ]
+ }
+}

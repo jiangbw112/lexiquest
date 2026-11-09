@@ -1,0 +1,70 @@
+{
+  "chapter_id": "forest_adventure",
+  "word_count_source": "chapter_word_list.length",
+  "mastery_milestone_ratios": [0.5, 1.0],
+  "clear_reward": {
+    "cosmetic_ids": ["forest_leaf_cape"],
+    "title_id": "title_forest_trekker",
+    "grant_once": true
+  },
+  "mastery_milestones": [
+    {
+      "id": "forest_mastery_50",
+      "ratio": 0.5,
+      "badge_lit_min": null,
+      "badge_lit_min_formula": "ceil(total * ratio)",
+      "cosmetic_ids": ["acorn_pin"],
+      "title_id": "title_word_sprout",
+      "grant_once": true
+    },
+    {
+      "id": "forest_mastery_100",
+      "ratio": 1.0,
+      "badge_lit_min": null,
+      "badge_lit_min_formula": "ceil(total * ratio)",
+      "cosmetic_ids": ["forest_wreath"],
+      "title_id": "title_forest_word_star",
+      "grant_once": true
+    }
+  ],
+  "replay": {
+    "unique_cosmetics": false,
+    "extra_token_every_n_wins": null
+  },
+  "titles": {
+    "title_forest_trekker": {
+      "zh": "林间小旅人",
+      "en": "Forest Trekker",
+      "candidates_zh": ["林间小旅人", "绿荫探险家", "林心好朋友"],
+      "candidates_en": ["Forest Trekker", "Leaf Explorer", "Grove Friend"],
+      "default_candidate_index": 0,
+      "final_name_selected_by_pm": false
+    },
+    "title_word_sprout": {
+      "zh": "半林识词伴",
+      "en": "Word Sprout",
+      "candidates_zh": ["半林识词伴", "绿芽记词员"],
+      "candidates_en": ["Word Sprout", "Sprout Scribe"],
+      "default_candidate_index": 0,
+      "final_name_selected_by_pm": false
+    },
+    "title_forest_word_star": {
+      "zh": "森语小达人",
+      "en": "Forest Word Star",
+      "candidates_zh": ["森语小达人", "二十八叶伙伴"],
+      "candidates_en": ["Forest Word Star", "Leaf Club 28"],
+      "default_candidate_index": 0,
+      "final_name_selected_by_pm": false
+    }
+  },
+  "slot_map": {
+    "forest_leaf_cape": "cosmetic_back",
+    "acorn_pin": "cosmetic_chest",
+    "forest_wreath": "cosmetic_head"
+  },
+  "hide_rules": [
+    { "when_equipped": "forest_leaf_cape", "hide_slots": ["back"] },
+    { "when_equipped": "forest_wreath", "hide_slots": ["outfit_head"] }
+  ],
+  "art_priority": "after_canopy_boss_remaining"
+}

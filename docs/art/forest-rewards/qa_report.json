@@ -1,0 +1,149 @@
+{
+ "variant": "final",
+ "checks": [
+  {
+   "check": "naming + 3×21 frames 512×512 RGBA (P0 grid) + UI 64² icon / 96×56 chip",
+   "pass": true,
+   "detail": "63 frames; "
+  },
+  {
+   "check": "alpha sanity: no edge clipping, non-empty, mostly opaque, exactly 1 connected piece per frame (no floating bits)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "edge fringe: semi-transparent edge = outline colour, alpha-0 halo colour-bled (no black/white fringe)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "alignment: item centroid fixed in its anchor's local frame every frame (pin/wreath ≤1.5px; cape collar ≤4px incl. sway) and sits on body (pin ≥95% on tunic, wreath ≥55% on hair/head, cape ≥25% behind torso)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "wreath (with outfit_head hidden): never below brow, eyes clear, no face-skin coverage",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "cape: z=6 behind sword(10)/arms(20,70)/head(30) so it can't cover face, weapon or arms; collar attached at chest-top every frame; class back hidden",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "acorn pin visible ≥50% in ≥15/21 frames (rest may be hidden by arm/shield, accepted by DES-04b §6.2)",
+   "pass": true,
+   "detail": "19/21 frames ≥50% visible; min 0.13"
+  },
+  {
+   "check": "atlases ≤2048², JSON Hash valid, rects in bounds, frame names = files, pixel-exact reconstruction",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "manifest: every animation frameName exists in its atlas, paths exist, ids/slot/z/hideRules (back; whole outfit_head) correct",
+   "pass": true,
+   "detail": ""
+  }
+ ],
+ "pass": true,
+ "metrics": {
+  "forest_leaf_cape": {
+   "anchorLocalCentroidMaxDev_px": 0.82,
+   "minOverlapWithBody": 0.667,
+   "tolerance_px": 4.0,
+   "minOverlapRequired": 0.25
+  },
+  "acorn_pin": {
+   "anchorLocalCentroidMaxDev_px": 0.15,
+   "minOverlapWithBody": 0.969,
+   "tolerance_px": 1.5,
+   "minOverlapRequired": 0.95
+  },
+  "forest_wreath": {
+   "anchorLocalCentroidMaxDev_px": 0.28,
+   "minOverlapWithBody": 0.907,
+   "tolerance_px": 1.5,
+   "minOverlapRequired": 0.55,
+   "lowestPointFaceSide_localY": -38.5,
+   "browLine_localY": -7
+  },
+  "capeVisibleFraction": [
+   0.3,
+   0.31,
+   0.31,
+   0.31,
+   0.32,
+   0.32,
+   0.31,
+   0.3,
+   0.31,
+   0.32,
+   0.31,
+   0.3,
+   0.28,
+   0.27,
+   0.3,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31,
+   0.31
+  ],
+  "acornPinVisibleFraction": {
+   "idle_00": 0.88,
+   "idle_01": 0.89,
+   "idle_02": 0.89,
+   "idle_03": 0.89,
+   "walk_00": 0.63,
+   "walk_01": 0.66,
+   "walk_02": 0.71,
+   "walk_03": 0.73,
+   "walk_04": 0.71,
+   "walk_05": 0.66,
+   "attack_00": 1.0,
+   "attack_01": 0.96,
+   "attack_02": 0.32,
+   "attack_03": 0.13,
+   "attack_04": 0.59,
+   "hit_00": 1.0,
+   "hit_01": 1.0,
+   "victory_00": 0.84,
+   "victory_01": 0.84,
+   "victory_02": 0.84,
+   "victory_03": 0.84
+  }
+ },
+ "atlas": {
+  "forest_leaf_cape": {
+   "size": [
+    1996,
+    308
+   ],
+   "kb": 120.2
+  },
+  "acorn_pin": {
+   "size": [
+    812,
+    52
+   ],
+   "kb": 11.0
+  },
+  "forest_wreath": {
+   "size": [
+    2012,
+    144
+   ],
+   "kb": 62.9
+  },
+  "ui_title": {
+   "size": [
+    168,
+    68
+   ],
+   "kb": 4.4
+  }
+ }
+}
