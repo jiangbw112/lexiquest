@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
+import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, canConfirmGrades, toggleGradeChoice } from "../../domain/catalog";
 import { needsGradeChoice, setSelectedGrades } from "../../domain/progress";
 import type { GradeBand } from "../../domain/types";
 import { probeEnter, probeNote } from "../probe";
@@ -12,8 +12,6 @@ export type GradeLaunchMode = "new" | "migrate";
 export class GradeScene extends Phaser.Scene {
   private mode: GradeLaunchMode = "new";
   private grades: GradeBand[] = [];
-  private blocked = false;
-  private notice = "可以多选。至少选一个，才能去学堂和对战。这里不替你选三年级。";
 
   constructor() {
     super("grades");
@@ -22,8 +20,6 @@ export class GradeScene extends Phaser.Scene {
   init(data: { mode?: GradeLaunchMode } = {}): void {
     this.mode = data.mode === "migrate" ? "migrate" : "new";
     this.grades = [];
-    this.blocked = false;
-    this.notice = "可以多选。至少选一个，才能去学堂和对战。这里不替你选三年级。";
   }
 
   create(): void {
@@ -48,23 +44,14 @@ export class GradeScene extends Phaser.Scene {
   }
 
   private toggle(grade: GradeBand): void {
-    this.grades = this.grades.includes(grade)
-      ? this.grades.filter((item) => item !== grade)
-      : normalizeGrades([...this.grades, grade]);
-    this.blocked = false;
-    this.notice = this.grades.length === 0
-      ? "还没选年级。学堂和对战会等到你选完。"
-      : "";
+    this.grades = toggleGradeChoice(this.grades, grade);
     probeNote(`grades:${this.grades.join(",") || "none"}`);
     this.draw();
   }
 
   private confirm(): void {
-    if (this.grades.length === 0) {
-      this.blocked = true;
-      this.notice = "至少选一个年级，才能去学堂和对战。";
+    if (!canConfirmGrades(this.grades)) {
       probeNote("grade:blocked");
-      this.draw();
       return;
     }
     const picked = [...this.grades];
@@ -107,16 +94,19 @@ export class GradeScene extends Phaser.Scene {
       fontSize: "18px",
       color: "#8a5a12",
     });
-    this.add.text(180, 410, this.notice || `已选 ${this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label).join("、")}。`, {
+    const ready = canConfirmGrades(this.grades);
+    const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label).join("、");
+    this.add.text(180, 410, ready ? `已选 ${chosen}。` : GRADE_REQUIRED_NOTICE, {
       fontFamily: FONT,
       fontSize: "20px",
-      color: this.blocked ? "#a33b24" : "#17352a",
+      color: "#17352a",
       wordWrap: { width: 900 },
     });
     button(this, 360, 520, migrating ? "选好了，继续" : "选好了，去起名字", () => this.confirm(), {
       width: 280,
       height: 56,
-      fill: this.grades.length === 0 ? 0x5c6b62 : 0x1f7a4d,
+      fill: ready ? 0x1f7a4d : 0xd7e0da,
+      disabled: !ready,
     });
     if (!migrating) {
       button(this, 700, 520, "返回", () => this.scene.start("title"), { width: 160, height: 56, fill: 0x5c6b62 });

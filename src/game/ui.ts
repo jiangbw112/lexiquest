@@ -23,20 +23,23 @@ export function button(
   y: number,
   label: string,
   onClick: () => void,
-  options: { width?: number; height?: number; fill?: number } = {},
+  options: { width?: number; height?: number; fill?: number; disabled?: boolean } = {},
 ): Phaser.GameObjects.Container {
   const width = options.width ?? 220;
   const height = options.height ?? 54;
-  const bg = scene.add.rectangle(0, 0, width, height, options.fill ?? 0x1f7a4d, 1).setStrokeStyle(3, 0x17352a);
+  const disabled = options.disabled === true;
+  const fill = options.fill ?? (disabled ? 0xd7e0da : 0x1f7a4d);
+  const bg = scene.add.rectangle(0, 0, width, height, fill, 1).setStrokeStyle(3, disabled ? 0x9aa8a0 : 0x17352a);
   const labelText = scene.add
-    .text(0, 0, label, { fontFamily: FONT, fontSize: "22px", color: "#fffaf3" })
+    .text(0, 0, label, { fontFamily: FONT, fontSize: "22px", color: disabled ? "#3d5c4e" : "#fffaf3" })
     .setOrigin(0.5);
   const root = scene.add.container(x, y, [bg, labelText]);
   root.setSize(width, height);
+  if (disabled) return root;
   root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => bg.setFillStyle(0x2f9a63));
-  root.on("pointerout", () => bg.setFillStyle(options.fill ?? 0x1f7a4d));
+  root.on("pointerout", () => bg.setFillStyle(fill));
   root.on("pointerdown", () => {
     blip();
     onClick();

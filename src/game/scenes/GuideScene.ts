@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
+import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, normalizeGrades, toggleGradeChoice } from "../../domain/catalog";
 import { ensureDailyGoal, parentView, setGoalPreset } from "../../domain/parent";
 import {
   applyIfParentUnlocked,
@@ -146,10 +146,9 @@ export class GuideScene extends Phaser.Scene {
     const current = normalizeGrades(save.selectedGrades);
     const turningOff = current.includes(grade);
     const learned = turningOff ? learnedCountInGrade(save, grade) : 0;
-    let next = turningOff ? current.filter((item) => item !== grade) : [...current, grade];
+    const next = toggleGradeChoice(current, grade);
     if (next.length === 0) {
-      next = ["G3"];
-      this.notice = "至少选一个年级。现在留下三年级。";
+      this.notice = GRADE_REQUIRED_NOTICE;
     } else if (turningOff && learned > 0) {
       const label = GRADE_BANDS.find((item) => item.id === grade)?.label ?? grade;
       this.notice = gradePauseNotice(label, learned);
@@ -286,13 +285,16 @@ export class GuideScene extends Phaser.Scene {
       "森林这一章有 28 个词。其中 20 个来自 PEP 三到六年级词表，另外 8 个只在这一章里，不进年级词池。发音用浏览器朗读，这是这一版定下的做法。",
     ];
     const save = getSave();
-    this.add.text(160, 96, this.notice || "学习年级可以多选。取消某个年级后，已学词卡还在册子里，战斗和到期复习会暂停，重新勾选就恢复。", {
+    const selected = normalizeGrades(save?.selectedGrades);
+    const notice = this.notice || (selected.length === 0
+      ? GRADE_REQUIRED_NOTICE
+      : "学习年级可以多选。取消某个年级后，已学词卡还在册子里，战斗和到期复习会暂停，重新勾选就恢复。");
+    this.add.text(160, 96, notice, {
       fontFamily: FONT,
       fontSize: "16px",
-      color: this.notice ? "#a33b24" : "#8a5a12",
+      color: selected.length === 0 || this.notice ? "#a33b24" : "#8a5a12",
       wordWrap: { width: 960 },
     });
-    const selected = save?.selectedGrades ?? ["G3"];
     GRADE_BANDS.forEach((grade, index) => {
       const on = selected.includes(grade.id);
       button(this, 250 + index * 200, 175, `${on ? "✓ " : ""}${grade.label}`, () => this.toggleGrade(grade.id), {

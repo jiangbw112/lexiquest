@@ -306,6 +306,9 @@ export function catalogWords(): WordDef[] {
 
 const GRADE_ORDER: GradeBand[] = ["G3", "G4", "G5", "G6"];
 
+/** Shown on the grade picker, and on 给家长, while the selection is empty. */
+export const GRADE_REQUIRED_NOTICE = "至少选一个年级";
+
 /**
  * Keeps known grades, in order. An empty or missing choice stays empty.
  * The player has to pick at least one before learning or battle. Grade 3 is not filled in.
@@ -313,6 +316,21 @@ const GRADE_ORDER: GradeBand[] = ["G3", "G4", "G5", "G6"];
 export function normalizeGrades(input: readonly string[] | undefined): GradeBand[] {
   const picked = new Set(input ?? []);
   return GRADE_ORDER.filter((grade) => picked.has(grade));
+}
+
+/** Adds or removes one grade. Clearing the last grade stays empty. */
+export function toggleGradeChoice(current: readonly string[] | undefined, grade: string): GradeBand[] {
+  const selected = normalizeGrades(current);
+  if (!GRADE_ORDER.includes(grade as GradeBand)) return selected;
+  const next = selected.includes(grade as GradeBand)
+    ? selected.filter((item) => item !== grade)
+    : [...selected, grade];
+  return normalizeGrades(next);
+}
+
+/** Continue stays off until at least one grade is selected. */
+export function canConfirmGrades(grades: readonly string[] | undefined): boolean {
+  return normalizeGrades(grades).length > 0;
 }
 
 /** Library words in the selected grades. Chapter-only extras are not included. */

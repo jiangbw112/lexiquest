@@ -1,8 +1,9 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { Rating } from "ts-fsrs";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
-import { sampleWords, wordsForGrades } from "./catalog";
+import { GRADE_REQUIRED_NOTICE, canConfirmGrades, sampleWords, toggleGradeChoice, wordsForGrades } from "./catalog";
 import {
   applyBattleOutcome,
   createSave,
@@ -200,6 +201,41 @@ describe("saved progress", () => {
     expect(again.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(1);
     expect(again.clearRewardClaimed).toBe(true);
     expect(again.titles).toEqual(cleared.titles);
+  });
+
+  it("starts a new save with nothing selected", () => {
+    const save = createSave({
+      name: "小林",
+      classId: "warrior",
+      appearance: DEFAULT_APPEARANCE,
+      now: START.getTime(),
+    });
+    expect(save.selectedGrades).toEqual([]);
+    expect(canConfirmGrades(save.selectedGrades)).toBe(false);
+  });
+
+  it("leaves an empty selection when every grade is unchecked", () => {
+    let grades = toggleGradeChoice([], "G3");
+    grades = toggleGradeChoice(grades, "G5");
+    expect(grades).toEqual(["G3", "G5"]);
+    grades = toggleGradeChoice(grades, "G3");
+    grades = toggleGradeChoice(grades, "G5");
+    expect(grades).toEqual([]);
+    expect(setSelectedGrades(newSave(), grades).selectedGrades).toEqual([]);
+  });
+
+  it("disables continue and shows 至少选一个年级 while the selection is empty", () => {
+    expect(canConfirmGrades([])).toBe(false);
+    expect(canConfirmGrades(["G4"])).toBe(true);
+    expect(GRADE_REQUIRED_NOTICE).toBe("至少选一个年级");
+    const picker = readFileSync(new URL("./../game/scenes/GradeScene.ts", import.meta.url), "utf8");
+    expect(picker).toContain("GRADE_REQUIRED_NOTICE");
+    expect(picker).toContain("disabled: !ready");
+    expect(picker).not.toContain('["G3"]');
+    const parent = readFileSync(new URL("./../game/scenes/GuideScene.ts", import.meta.url), "utf8");
+    expect(parent).toContain("GRADE_REQUIRED_NOTICE");
+    expect(parent).not.toContain('["G3"]');
+    expect(parent).not.toContain("留下三年级");
   });
 
   it("leaves an older save with no grade unchosen, so learning stays closed until one is picked", () => {

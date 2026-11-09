@@ -20,7 +20,7 @@ export class TitleScene extends Phaser.Scene {
     this.add.text(640, 300, "LexiQuest", { fontFamily: FONT, fontSize: "28px", color: "#1f7a4d" }).setOrigin(0.5);
     this.add.text(640, 360, "认识单词，收集词卡，和词灵比试。", { fontFamily: FONT, fontSize: "22px", color: "#3d5c4e" }).setOrigin(0.5);
     this.add.text(640, 410, `${WARRIOR_ART_NOTE} · SAMPLE DATA`, { fontFamily: FONT, fontSize: "16px", color: "#8a5a12" }).setOrigin(0.5);
-    this.add.text(640, 660, DESKTOP_NOTE, { fontFamily: FONT, fontSize: "16px", color: "#d7efe3" }).setOrigin(0.5);
+    this.add.text(640, 660, DESKTOP_NOTE, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
     const hero = new WarriorSprite(this, 250, 640, 0.5);
     hero.play("idle");
     const save = getSave();

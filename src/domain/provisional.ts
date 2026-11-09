@@ -23,7 +23,6 @@ export const PROVISIONAL = {
    */
   grades: {
     label: "v1",
-    defaultGrade: "G3" as const,
     minimumSampleWords: 4,
   },
   /**

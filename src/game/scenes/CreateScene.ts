@@ -81,6 +81,6 @@ export class CreateScene extends Phaser.Scene {
     });
     const hero = new WarriorSprite(this, 980, 280, 0.5);
     hero.play("idle");
-    button(this, 180, 600, "重选年级", () => this.leave("grades"), { width: 180, fill: 0x5c6b62 });
+    button(this, 270, 600, "重选年级", () => this.leave("grades"), { width: 180, fill: 0x5c6b62 });
   }
 }
