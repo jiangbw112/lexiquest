@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { wordById } from "../../domain/catalog";
 import { PROVISIONAL } from "../../domain/provisional";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
-import { badgeTone, formatDue, isDue } from "../../domain/review";
+import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
@@ -48,9 +48,10 @@ export class ReviewScene extends Phaser.Scene {
         mutate((save) => resetClock(save));
         this.draw();
       }
+      const spelling = document.getElementById("spell-form")?.classList.contains("open");
       const rating = RATINGS.find((item) => item.code === event.code);
       const due = this.firstDue();
-      if (rating && due) this.rate(due, rating.rating);
+      if (rating && due && !spelling) this.rate(due, rating.rating);
     });
     this.draw();
   }
@@ -58,8 +59,7 @@ export class ReviewScene extends Phaser.Scene {
   private firstDue(): string | undefined {
     const save = getSave();
     if (!save) return undefined;
-    const now = studyNow(save);
-    return Object.values(save.memory).find((memory) => isDue(memory, now))?.wordId;
+    return reviewDesk(Object.values(save.memory), studyNow(save)).keyTargetId;
   }
 
   private shift(delta: number): void {
@@ -103,12 +103,30 @@ export class ReviewScene extends Phaser.Scene {
       mutate((current) => resetClock(current));
       this.draw();
     }, { width: 220, fill: 0x5c6b62 });
-    const memories = Object.values(save.memory).sort((a, b) => new Date(a.fsrs.due).getTime() - new Date(b.fsrs.due).getTime());
-    memories.slice(0, 4).forEach((memory, index) => {
+    const desk = reviewDesk(Object.values(save.memory), now);
+    if (desk.shown.length === 0) {
+      this.add.text(170, 220, "还没有词卡。先去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: "#3d5c4e" });
+    } else if (!desk.keyTargetId) {
+      this.add.text(170, 190, "现在没有到复习时间的词。按 T 拨快 10 分钟，按 Y 拨快一天。", {
+        fontFamily: FONT,
+        fontSize: "18px",
+        color: "#3d5c4e",
+      });
+    } else {
+      this.add.text(170, 190, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: "16px", color: "#8a5a12" });
+    }
+    if (desk.hiddenDue > 0) {
+      this.add.text(620, 190, `还有 ${desk.hiddenDue} 个词也到了复习时间。先复习画面上的。`, {
+        fontFamily: FONT,
+        fontSize: "16px",
+        color: "#8a5a12",
+      });
+    }
+    desk.shown.forEach((memory, index) => {
       const word = wordById(memory.wordId);
       const card = save.wordCards[memory.wordId];
       if (!word || !card) return;
-      const y = 210 + index * 110;
+      const y = 228 + index * 100;
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
       this.add.text(170, y, `${word.english}  ${word.chinese}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });

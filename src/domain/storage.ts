@@ -5,6 +5,7 @@
  * re-checked before any server grants the same reward.
  */
 import { isAppearance } from "./appearance";
+import { normalizeGrades } from "./catalog";
 import { CLASS_IDS } from "./classes";
 import type { ClassId, SaveData } from "./types";
 
@@ -31,7 +32,13 @@ export function deserialize(raw: string): SaveData | null {
     if (!Array.isArray(value.rewardQueue)) return null;
     if (typeof value.xp !== "number" || typeof value.clockOffsetMs !== "number") return null;
     if (typeof value.battlesWon !== "number" || typeof value.battlesLost !== "number") return null;
-    return value as unknown as SaveData;
+    const save = value as unknown as SaveData;
+    save.chapterCleared = value.chapterCleared === true;
+    const grades = Array.isArray(value.selectedGrades)
+      ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")
+      : undefined;
+    save.selectedGrades = normalizeGrades(grades);
+    return save;
   } catch {
     return null;
   }

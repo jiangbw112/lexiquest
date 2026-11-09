@@ -23,9 +23,13 @@ export class CollectionScene extends Phaser.Scene {
     probeEnter("collection");
     paper(this);
     const now = studyNow(save);
-    this.add.text(160, 40, "词卡册", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(340, 52, `${SAMPLE_DATA_LABEL} · 词卡不会因为徽章变灰而消失`, { fontFamily: FONT, fontSize: "18px", color: "#8a5a12" });
     const owned = sampleWords().filter((word) => save.wordCards[word.id]);
+    this.add.text(160, 40, "词卡册", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
+    this.add.text(340, 52, `${SAMPLE_DATA_LABEL} · 已收集 ${owned.length}/${sampleWords().length} · 词卡不会因为徽章变灰而消失`, {
+      fontFamily: FONT,
+      fontSize: "18px",
+      color: "#8a5a12",
+    });
     if (owned.length === 0) {
       this.add.text(160, 160, "册子还是空的。去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: "#3d5c4e" });
     }

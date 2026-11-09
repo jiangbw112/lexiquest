@@ -1,16 +1,18 @@
 import Phaser from "phaser";
-import { dismissReward } from "../../domain/progress";
+import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice } from "../../domain/progress";
 import { canStartBattle } from "../../domain/battle";
 import { MIN_LEARNED_FOR_BATTLE } from "../../domain/battle";
 import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, listenKeys } from "../ui";
+import { FONT, button, listenKeys } from "../ui";
 import { LayeredActor } from "../actors";
 import { PLACES, SAFE } from "../layout";
 
 export class OverworldScene extends Phaser.Scene {
   private toast = "";
+  private heroRoot?: Phaser.GameObjects.Container;
+  private traveling = false;
 
   constructor() {
     super("overworld");
@@ -23,6 +25,7 @@ export class OverworldScene extends Phaser.Scene {
     }
     probeEnter("overworld");
     this.toast = "";
+    this.traveling = false;
     this.draw();
     listenKeys(this, (event) => this.onKey(event));
     this.measureFps();
@@ -36,14 +39,22 @@ export class OverworldScene extends Phaser.Scene {
       this.draw();
       return;
     }
+    if (this.traveling) return;
     const place = PLACES.find((item) => item.code === event.code);
     if (place) this.go(place.scene);
   }
 
   private go(scene: string): void {
     const save = getSave();
-    if (!save) return;
+    if (!save || this.traveling) return;
     if (scene === "battle") {
+      const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
+      if (tooSmall) {
+        this.toast = tooSmall;
+        probeNote("battle:locked");
+        this.draw();
+        return;
+      }
       const learned = Object.keys(save.wordCards).length;
       if (!canStartBattle(learned)) {
         this.toast = `再认识 ${MIN_LEARNED_FOR_BATTLE - learned} 个词，就能去对战。`;
@@ -52,7 +63,22 @@ export class OverworldScene extends Phaser.Scene {
         return;
       }
     }
-    this.scene.start(scene);
+    const place = PLACES.find((item) => item.scene === scene);
+    const root = this.heroRoot;
+    if (!place || !root) {
+      this.scene.start(scene);
+      return;
+    }
+    this.traveling = true;
+    this.tweens.killTweensOf(root);
+    this.tweens.add({
+      targets: root,
+      x: place.x,
+      y: place.y + 48,
+      duration: 320,
+      ease: "Sine.easeInOut",
+      onComplete: () => this.scene.start(scene),
+    });
   }
 
   private draw(): void {
@@ -60,15 +86,9 @@ export class OverworldScene extends Phaser.Scene {
     if (!save) return;
     this.children.removeAll(true);
     this.add.image(0, 0, "village").setOrigin(0, 0);
-    this.add.rectangle(SAFE.x + SAFE.width / 2, 58, SAFE.width - 24, 76, 0xfff8ee, 0.94).setStrokeStyle(3, 0x17352a);
-    const learned = Object.keys(save.wordCards).length;
-    const quest =
-      learned < 4
-        ? `去学堂认识单词。还差 ${4 - learned} 张词卡才能对战。`
-        : save.battlesWon < 1
-          ? "可以去对战词灵了。打出技能卡时要答一道学过的词。"
-          : "林间斗篷已经在衣柜里。复习桌会按你的记忆安排。";
-    this.add.text(SAFE.x + 24, 36, `${save.player.name} · ${quest}`, {
+    this.add.rectangle(SAFE.x + SAFE.width / 2, 62, SAFE.width - 24, 96, 0xfff8ee, 0.94).setStrokeStyle(3, 0x17352a);
+    const quest = questLine(save);
+    this.add.text(SAFE.x + 24, 28, `${save.player.name} · ${quest}`, {
       fontFamily: FONT,
       fontSize: "20px",
       color: "#17352a",
@@ -94,18 +114,31 @@ export class OverworldScene extends Phaser.Scene {
     const hero = new LayeredActor(this, 640, 760, "top");
     hero.applyOutfit(save.equippedOutfitId);
     hero.root.setScale(0.85);
+    this.heroRoot = hero.root;
+    this.tweens.add({
+      targets: hero.root,
+      y: 748,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
     this.add.text(140, 760, `地图小人是${PLACEHOLDER_NOTE} · ${DESKTOP_NOTE}`, { fontFamily: FONT, fontSize: "16px", color: "#e8f5ee" });
+    if (save.chapterCleared) {
+      button(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 44 });
+    }
     if (this.toast || save.rewardQueue[0]) {
       const notice = save.rewardQueue[0];
       const text = notice ? `${notice.title}。${notice.detail}` : this.toast;
-      const banner = this.add.rectangle(640, 150, 760, 64, 0x17352a, 0.92);
+      const banner = this.add.rectangle(640, 188, 860, 128, 0x17352a, 0.92);
       banner.setInteractive({ useHandCursor: true });
       banner.on("pointerdown", () => {
         if (getSave()?.rewardQueue[0]) mutate((current) => dismissReward(current));
         this.toast = "";
         this.draw();
       });
-      this.add.text(640, 150, text, { fontFamily: FONT, fontSize: "18px", color: "#fffaf3", wordWrap: { width: 720 } }).setOrigin(0.5);
+      this.add.text(640, 168, text, { fontFamily: FONT, fontSize: "18px", color: "#fffaf3", wordWrap: { width: 800 } }).setOrigin(0.5);
+      this.add.text(640, 224, "点击或按 Enter 收下", { fontFamily: FONT, fontSize: "16px", color: "#d7ecdf" }).setOrigin(0.5);
     }
   }
 

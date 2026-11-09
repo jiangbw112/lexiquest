@@ -102,6 +102,21 @@ export function sampleWords(): WordDef[] {
   return SAMPLE_WORDS;
 }
 
+const GRADE_ORDER: GradeBand[] = ["G3", "G4", "G5", "G6"];
+
+/** At least one grade. An empty choice falls back to grade 3. */
+export function normalizeGrades(input: readonly string[] | undefined): GradeBand[] {
+  const picked = new Set(input ?? []);
+  const grades = GRADE_ORDER.filter((grade) => picked.has(grade));
+  return grades.length > 0 ? grades : ["G3"];
+}
+
+/** Sample words whose estimated grade is one of the selected grades. */
+export function wordsForGrades(grades: readonly string[] | undefined): WordDef[] {
+  const selected = new Set(normalizeGrades(grades));
+  return SAMPLE_WORDS.filter((word) => selected.has(word.grade));
+}
+
 export function wordById(id: string): WordDef | undefined {
   return SAMPLE_WORDS.find((word) => word.id === id);
 }

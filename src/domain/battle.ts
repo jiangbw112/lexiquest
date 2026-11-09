@@ -13,6 +13,7 @@ import {
   type SkillCardRules,
   type SkillSlot,
 } from "./skills";
+import { PROVISIONAL } from "./provisional";
 import type { ClassId } from "./types";
 
 export const MIN_LEARNED_FOR_BATTLE = 4;
@@ -27,6 +28,8 @@ export interface EncounterDef {
   blurb: string;
   accent: string;
   winsRequired: number;
+  /** Atlas frame id under monster/. Defaults to the encounter id. */
+  sprite?: string;
 }
 
 export const ENCOUNTERS: EncounterDef[] = [
@@ -50,7 +53,26 @@ export const ENCOUNTERS: EncounterDef[] = [
     accent: "#8c6239",
     winsRequired: 1,
   },
+  {
+    id: PROVISIONAL.chapterEnding.bossId,
+    name: PROVISIONAL.chapterEnding.bossName,
+    title: "词灵 · 林冠",
+    maxHp: PROVISIONAL.chapterEnding.bossHp,
+    attack: PROVISIONAL.chapterEnding.bossAttack,
+    blurb: "暂定结局。示例词卡集齐之后才会出现。外形先沿用页灵。",
+    accent: "#1f7a4d",
+    winsRequired: 1,
+    sprite: "page",
+  },
 ];
+
+export const CHAPTER_BOSS_ID = PROVISIONAL.chapterEnding.bossId;
+
+/** Fights the player may choose. The chapter boss stays locked until every sample card is collected. */
+export function openEncounters(learnedIds: readonly string[], sampleIds: readonly string[]): EncounterDef[] {
+  const ready = sampleIds.length > 0 && sampleIds.every((id) => learnedIds.includes(id));
+  return ENCOUNTERS.filter((encounter) => encounter.id !== CHAPTER_BOSS_ID || ready);
+}
 
 export type BattlePhase = "question" | "choose" | "won" | "lost";
 
@@ -85,6 +107,8 @@ export interface BattleState {
   lastNote: string;
   log: string[];
   learnedIds: string[];
+  /** When set, non-due skill questions stay inside this id list. Due words are not filtered. */
+  allowedWordIds: string[] | null;
   classId: ClassId;
   equippedSkillIds: string[];
   skillLevels: Record<string, number>;
@@ -109,6 +133,8 @@ export function startBattle(input: {
   seed: number;
   /** FSRS-due word ids at the start of the fight. Unlearned ids are ignored. */
   dueWordIds?: readonly string[];
+  /** Selected-grade word ids. Omitted means the fallback pool is every learned word. */
+  allowedWordIds?: readonly string[];
   rules?: Partial<SkillCardRules>;
 }): BattleState {
   const encounter = encounterById(input.encounterId);
@@ -139,6 +165,7 @@ export function startBattle(input: {
     lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会抽一道已学的词。",
     log: [`${encounter.name}出现了。`],
     learnedIds,
+    allowedWordIds: input.allowedWordIds ? [...input.allowedWordIds] : null,
     classId: input.classId,
     equippedSkillIds: slots.filter((slot) => slot.origin === "equipped").map((slot) => slot.skillId),
     skillLevels: { ...input.skillLevels },
@@ -274,8 +301,12 @@ export function takeAction(
         : state.slots.find((item) => item.origin === "equipped" && item.skillId === action.skillId);
     if (!slot) return { ok: false, reason: "这张技能卡没有装备", state };
     if (energy < slot.energyCost) return { ok: false, reason: "能量不够", state };
-    const pool = skillQuestionPool(state.dueWordIds, state.learnedIds);
-    if (pool.length === 0) return { ok: false, reason: "还没有学过的词", state };
+    const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
+      allowedIds: state.allowedWordIds ?? undefined,
+    });
+    if (pool.length === 0) {
+      return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再选年级。已经学过的词仍会在复习桌出现。", state };
+    }
     let drawn: { wordId: string; deck: SkillQuestionDeck };
     try {
       drawn = drawSkillQuestionWord(pool, state.deck, state.seed + state.casts * 17 + 1);

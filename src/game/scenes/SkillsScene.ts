@@ -38,10 +38,12 @@ export class SkillsScene extends Phaser.Scene {
       color: "#3d5c4e",
       wordWrap: { width: 960 },
     });
-    if (save.equippedSkillIds.length >= MAX_EQUIPPED_SKILLS) {
-      this.add.text(160, 160, "已经装备 3 张。要换一张，先卸下一张。", { fontFamily: FONT, fontSize: "18px", color: "#8a5a12" });
-    }
-    if (this.message) this.add.text(160, 190, this.message, { fontFamily: FONT, fontSize: "18px", color: "#a33b24" });
+    this.add.text(160, 160, `已装备 ${save.equippedSkillIds.length}/${MAX_EQUIPPED_SKILLS}。`, {
+      fontFamily: FONT,
+      fontSize: "18px",
+      color: "#8a5a12",
+    });
+    if (this.message) this.add.text(160, 192, this.message, { fontFamily: FONT, fontSize: "18px", color: "#a33b24" });
     skillsForClass(save.player.classId).forEach((skill, index) => {
       const y = 240 + index * 90;
       const unlocked = save.unlockedSkillIds.includes(skill.id);

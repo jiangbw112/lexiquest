@@ -74,6 +74,10 @@ export interface SaveData {
   xp: number;
   battlesWon: number;
   battlesLost: number;
+  /** Provisional sample-chapter flag. False until the canopy battle is won with the selected grades collected. */
+  chapterCleared: boolean;
+  /** Grades the child is studying. At least one. Missing or empty saves become grade 3. */
+  selectedGrades: GradeBand[];
   clockOffsetMs: number;
   rewardQueue: RewardNotice[];
 }

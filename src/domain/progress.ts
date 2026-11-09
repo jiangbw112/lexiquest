@@ -1,7 +1,9 @@
 import { sanitizeName } from "./appearance";
 import { grantWordCard, setMasteryBadge } from "./cards";
+import { CHAPTER_BOSS_ID } from "./battle";
 import { classById } from "./classes";
-import { sampleWords, wordById } from "./catalog";
+import { normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
+import { PROVISIONAL } from "./provisional";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
 import { applyReview, introduceMemory, masteryDecision } from "./review";
@@ -62,6 +64,7 @@ export function createSave(input: {
   classId: ClassId;
   appearance: Appearance;
   now: number;
+  grades?: readonly string[];
 }): SaveData {
   const name = sanitizeName(input.name);
   if (!name) throw new Error("Name must be 1–12 characters");
@@ -80,6 +83,8 @@ export function createSave(input: {
     xp: 0,
     battlesWon: 0,
     battlesLost: 0,
+    chapterCleared: false,
+    selectedGrades: normalizeGrades(input.grades),
     clockOffsetMs: 0,
     rewardQueue: [],
   };
@@ -101,6 +106,7 @@ export function resetClock(save: SaveData): SaveData {
 export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
   const word = wordById(wordId);
   if (!word?.sample) return save;
+  if (!normalizeGrades(save.selectedGrades).includes(word.grade)) return save;
   if (save.wordCards[wordId]) return save;
   const wordCards = grantWordCard(save.wordCards, wordId, now.getTime());
   const memory: Record<string, MemoryRecord> = {
@@ -197,11 +203,57 @@ export function dismissReward(save: SaveData): SaveData {
   return { ...save, rewardQueue: save.rewardQueue.slice(1) };
 }
 
+export function selectedSampleWords(save: SaveData) {
+  return wordsForGrades(save.selectedGrades);
+}
+
+export function selectedCollected(save: SaveData): boolean {
+  const words = selectedSampleWords(save);
+  return words.length > 0 && words.every((word) => save.wordCards[word.id]);
+}
+
+/** Null when the selected grades have enough sample words to start a battle. */
+export function selectionBattleNotice(sampleCount: number, minimum = PROVISIONAL.grades.minimumSampleWords): string | null {
+  if (sampleCount >= minimum) return null;
+  return `所选年级里只有 ${sampleCount} 个示例词，还不够对战（至少 ${minimum} 个）。请再选一个年级。已经收下的词卡和复习都还在。`;
+}
+
+export function setSelectedGrades(save: SaveData, grades: readonly string[]): SaveData {
+  return { ...save, selectedGrades: normalizeGrades(grades) };
+}
+
+/** What the village should tell the child to do next. The ending line is provisional. */
+export function questLine(save: SaveData): string {
+  const pool = selectedSampleWords(save);
+  const total = pool.length;
+  const learned = pool.filter((word) => save.wordCards[word.id]).length;
+  const tooSmall = selectionBattleNotice(total);
+  if (tooSmall) return tooSmall;
+  if (save.chapterCleared && learned >= total) {
+    return `森林冒险暂定完成。所选年级的 ${total} 张词卡都在册子里。熟练徽章还是要靠复习。`;
+  }
+  if (learned < 4) {
+    return `目标：学完所选年级的 ${total} 个词，再打败林冠。先去学堂，还差 ${4 - learned} 张才能对战。`;
+  }
+  if (save.battlesWon < 1) {
+    return `已有 ${learned}/${total} 张所选年级的词卡。先去对战墨团。打出技能卡时要答一道学过的词。`;
+  }
+  if (learned < total) {
+    return `已有 ${learned}/${total} 张所选年级的词卡。集齐后才能挑战林冠。别的年级在给家长里选。`;
+  }
+  return "所选年级的词卡齐了。去对战，选林冠。这是暂定结局，赢了这一章就算走完。";
+}
+
 /**
  * Records a win or loss. Word cards and memory are reused unchanged:
  * a battle never grants, removes, or reschedules a word.
  */
-export function applyBattleOutcome(save: SaveData, outcome: "win" | "loss", now: number): SaveData {
+export function applyBattleOutcome(
+  save: SaveData,
+  outcome: "win" | "loss",
+  now: number,
+  encounterId?: string,
+): SaveData {
   if (outcome === "loss") {
     return { ...save, battlesLost: save.battlesLost + 1, memory: save.memory, wordCards: save.wordCards };
   }
@@ -228,6 +280,15 @@ export function applyBattleOutcome(save: SaveData, outcome: "win" | "loss", now:
   const detail = ["这场战斗没有改动任何词卡，也没有改动复习记忆。", skillNote, outfitNote, `经验 +${xpGain}。`]
     .filter(Boolean)
     .join("");
+  let rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
+  let chapterCleared = save.chapterCleared;
+  if (encounterId === CHAPTER_BOSS_ID && selectedCollected(save) && !chapterCleared) {
+    chapterCleared = true;
+    rewardQueue = pushReward(
+      rewardQueue,
+      reward("暂定结局", "森林冒险的示例词卡和林冠都过了。这不是最终故事。词卡还在，复习记忆也没变。", String(now)),
+    );
+  }
   const next: SaveData = {
     ...save,
     battlesWon: save.battlesWon + 1,
@@ -235,9 +296,10 @@ export function applyBattleOutcome(save: SaveData, outcome: "win" | "loss", now:
     skillLevels,
     ownedOutfitIds: owned,
     equippedOutfitId,
+    chapterCleared,
     memory: save.memory,
     wordCards: save.wordCards,
-    rewardQueue: pushReward(save.rewardQueue, reward("对战胜利", detail, String(now))),
+    rewardQueue,
   };
   return refreshUnlocks(next);
 }

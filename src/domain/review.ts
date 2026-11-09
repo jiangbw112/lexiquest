@@ -119,6 +119,19 @@ export function masteryDecision(
   return { award: true, distinctDays, stability, reason: "eligible" };
 }
 
+export function reviewDesk(
+  memories: readonly MemoryRecord[],
+  now: Date,
+  limit = 4,
+): { shown: MemoryRecord[]; hiddenDue: number; keyTargetId?: string } {
+  const sorted = [...memories].sort((a, b) => new Date(a.fsrs.due).getTime() - new Date(b.fsrs.due).getTime());
+  const due = sorted.filter((memory) => isDue(memory, now));
+  const waiting = sorted.filter((memory) => !isDue(memory, now));
+  const shown = [...due, ...waiting].slice(0, limit);
+  const shownDue = shown.filter((memory) => isDue(memory, now)).length;
+  return { shown, hiddenDue: Math.max(0, due.length - shownDue), keyTargetId: due[0]?.wordId };
+}
+
 export function formatDue(dueMs: number, nowMs: number): string {
   const delta = dueMs - nowMs;
   if (delta <= 0) return "现在可以复习";

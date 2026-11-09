@@ -1,12 +1,16 @@
 import Phaser from "phaser";
+import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
+import { setSelectedGrades } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
-import { SAVE_CACHE_NOTICE, commit } from "../session";
+import type { GradeBand } from "../../domain/types";
+import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
 import { DESKTOP_NOTE } from "../p0";
-import { probeEnter } from "../probe";
+import { probeEnter, probeNote } from "../probe";
 import { FONT, button, paper } from "../ui";
 
 export class GuideScene extends Phaser.Scene {
   private confirming = false;
+  private notice = "";
 
   constructor() {
     super("guide");
@@ -18,6 +22,22 @@ export class GuideScene extends Phaser.Scene {
       if (event.code === "Escape") this.scene.start("overworld");
       if (event.code === "KeyY" && this.confirming) this.clearSave();
     });
+    this.draw();
+  }
+
+  private toggleGrade(grade: GradeBand): void {
+    const save = getSave();
+    if (!save) return;
+    const current = normalizeGrades(save.selectedGrades);
+    let next = current.includes(grade) ? current.filter((item) => item !== grade) : [...current, grade];
+    if (next.length === 0) {
+      next = ["G3"];
+      this.notice = "至少选一个年级。现在留下三年级。";
+    } else {
+      this.notice = "";
+    }
+    mutate((currentSave) => setSelectedGrades(currentSave, next));
+    probeNote(`grades:${normalizeGrades(next).join(",")}`);
     this.draw();
   }
 
@@ -42,8 +62,24 @@ export class GuideScene extends Phaser.Scene {
       "好友 1v1：答对题数多的赢；题数相同，答对用时更少的赢。答错没有速度收益。同机练习不更新 FSRS。真正的联网对战要由服务器判房间、对错、时间和奖励。",
       "现在的词是 Forest Adventure 的 28 个 SAMPLE DATA，年级是估计，不是教材原文。发音用浏览器朗读，没有外购录音。",
     ];
-    this.add.text(160, 40, "给家长", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(160, 100, lines.join("\n\n"), { fontFamily: FONT, fontSize: "16px", color: "#17352a", wordWrap: { width: 960 }, lineSpacing: 4 });
+    const save = getSave();
+    this.add.text(160, 36, "给家长", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
+    this.add.text(160, 88, "学习年级可以多选。暂定：关掉年级后，已经收下的词卡和到期复习都还在。新的学堂和战斗出题只用现在选中的年级。", {
+      fontFamily: FONT,
+      fontSize: "16px",
+      color: "#8a5a12",
+      wordWrap: { width: 960 },
+    });
+    const selected = save?.selectedGrades ?? ["G3"];
+    GRADE_BANDS.forEach((grade, index) => {
+      const on = selected.includes(grade.id);
+      button(this, 250 + index * 200, 175, `${on ? "✓ " : ""}${grade.label}`, () => this.toggleGrade(grade.id), {
+        width: 180,
+        fill: on ? 0x1f7a4d : 0x5c6b62,
+      });
+    });
+    if (this.notice) this.add.text(160, 214, this.notice, { fontFamily: FONT, fontSize: "16px", color: "#a33b24" });
+    this.add.text(160, 248, lines.join("\n"), { fontFamily: FONT, fontSize: "15px", color: "#17352a", wordWrap: { width: 960 }, lineSpacing: 6 });
     button(this, 360, 700, this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存", () => {
       if (!this.confirming) {
         this.confirming = true;

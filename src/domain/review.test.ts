@@ -6,6 +6,7 @@ import {
   calendarDay,
   introduceMemory,
   masteryDecision,
+  reviewDesk,
   type MasteryDecision,
 } from "./review";
 
@@ -69,5 +70,20 @@ describe("adaptive review", () => {
     expect(awarded?.award).toBe(true);
     expect(awarded?.distinctDays).toBeGreaterThanOrEqual(PROVISIONAL.mastery.minDistinctCalendarDays);
     expect(awarded?.stability).toBeGreaterThanOrEqual(PROVISIONAL.mastery.minStability);
+  });
+});
+
+describe("review desk", () => {
+  it("shows due words first and keeps number keys on the earliest one", () => {
+    const now = new Date("2026-03-02T02:00:00Z");
+    const waiting = introduceMemory("tree", now);
+    const soon = introduceMemory("bird", now);
+    const earlier = introduceMemory("fish", now);
+    soon.fsrs = { ...soon.fsrs, due: new Date(now.getTime() - 1_000).toISOString() };
+    earlier.fsrs = { ...earlier.fsrs, due: new Date(now.getTime() - 5_000).toISOString() };
+    const desk = reviewDesk([waiting, soon, earlier], now, 1);
+    expect(desk.shown.map((memory) => memory.wordId)).toEqual(["fish"]);
+    expect(desk.hiddenDue).toBe(1);
+    expect(desk.keyTargetId).toBe("fish");
   });
 });

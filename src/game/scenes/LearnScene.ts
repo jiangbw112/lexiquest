@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { sampleUnits, wordById } from "../../domain/catalog";
+import { GRADE_BANDS, sampleUnits, wordById } from "../../domain/catalog";
 import { learnWord, studyNow } from "../../domain/progress";
 import {
   checkSpelling,
@@ -51,8 +51,13 @@ export class LearnScene extends Phaser.Scene {
     probeNote("learn:ready");
   }
 
+  private units() {
+    const grades = new Set(getSave()?.selectedGrades ?? ["G3"]);
+    return sampleUnits().filter((unit) => grades.has(unit.grade));
+  }
+
   private currentId(): string | undefined {
-    const unit = sampleUnits()[this.unitIndex];
+    const unit = this.units()[this.unitIndex];
     const save = getSave();
     if (!unit || !save) return undefined;
     return unit.wordIds.find((id) => !save.wordCards[id]);
@@ -84,7 +89,8 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private shiftUnit(delta: number): void {
-    const count = sampleUnits().length;
+    const count = this.units().length;
+    if (count === 0) return;
     this.unitIndex = (this.unitIndex + delta + count) % count;
     this.showStudy();
   }
@@ -169,9 +175,20 @@ export class LearnScene extends Phaser.Scene {
     this.children.removeAll(true);
     if (this.phase !== "spell") document.getElementById("spell-form")?.classList.remove("open");
     paper(this);
-    const units = sampleUnits();
+    const units = this.units();
+    if (this.unitIndex >= units.length) this.unitIndex = 0;
     const unit = units[this.unitIndex];
-    if (!unit) return;
+    if (!unit) {
+      this.add.text(180, 250, "所选年级里没有可以学的示例词。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
+      this.add.text(180, 310, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: "#3d5c4e",
+        wordWrap: { width: 760 },
+      });
+      button(this, 250, 680, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
+      return;
+    }
     this.add.text(180, 48, `学堂 · ${unit.title}`, { fontFamily: FONT, fontSize: "34px", color: "#17352a" });
     this.add.text(180, 92, "SAMPLE DATA · 键盘 Enter 答题，L 听，P 拼写，[ ] 换年级", {
       fontFamily: FONT,
@@ -179,12 +196,14 @@ export class LearnScene extends Phaser.Scene {
       color: "#8a5a12",
     });
     units.forEach((item, index) => {
-      button(this, 250 + index * 170, 150, item.grade, () => {
+      const gradeLabel = GRADE_BANDS.find((grade) => grade.id === item.grade)?.label ?? item.grade;
+      button(this, 250 + index * 170, 150, gradeLabel, () => {
         this.unitIndex = index;
         this.showStudy();
       }, { width: 150, fill: index === this.unitIndex ? 0x1f7a4d : 0x5c6b62 });
     });
     const word = wordById(this.currentId() ?? "");
+    probeNote(`learn:word:${word?.id ?? "none"}`);
     if (this.phase === "got") {
       const got = wordById(this.justId ?? "");
       this.add.text(180, 240, "词卡入手", { fontFamily: FONT, fontSize: "28px", color: "#1f7a4d" });
@@ -192,7 +211,13 @@ export class LearnScene extends Phaser.Scene {
       this.add.text(180, 370, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
       button(this, 320, 470, "继续 Enter", () => this.showStudy());
     } else if (!word) {
-      this.add.text(180, 280, "这一年级的词卡都收集了。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
+      this.add.text(180, 250, "这一组词卡都收集了。", { fontFamily: FONT, fontSize: "28px", color: "#17352a" });
+      this.add.text(180, 310, "点上面选中的年级，或按 ]。要学别的年级，去给家长里再选。已经收下的词卡还在。", {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: "#3d5c4e",
+        wordWrap: { width: 760 },
+      });
     } else if (this.phase === "study") {
       if (this.missed) this.add.text(180, 200, "再看一次。答对才会收下词卡。", { fontFamily: FONT, fontSize: "18px", color: "#a33b24" });
       this.add.text(180, 250, word.english, { fontFamily: FONT, fontSize: "64px", color: "#17352a" });

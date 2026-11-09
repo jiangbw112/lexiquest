@@ -89,8 +89,17 @@ export function checkSpelling(expected: string, typed: string): boolean {
   return normalizeSpelling(typed) === normalizeSpelling(expected);
 }
 
-export function nextBattleQuestion(learnedIds: readonly string[], turn: number, seed: number): QuizQuestion {
-  const learned = learnedIds.map((id) => wordById(id)).filter((word): word is WordDef => Boolean(word));
+export function nextBattleQuestion(
+  learnedIds: readonly string[],
+  turn: number,
+  seed: number,
+  allowedIds?: readonly string[],
+): QuizQuestion {
+  const allowed = allowedIds ? new Set(allowedIds) : null;
+  const learned = learnedIds
+    .filter((id) => !allowed || allowed.has(id))
+    .map((id) => wordById(id))
+    .filter((word): word is WordDef => Boolean(word));
   if (learned.length === 0) throw new Error("Battle questions need at least one learned word");
   const word = learned[turn % learned.length] as WordDef;
   const direction = turn % 2 === 0 ? "zh-to-en" : "en-to-zh";

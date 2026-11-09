@@ -3,11 +3,14 @@ import { CLASSES } from "./classes";
 import {
   answerQuestion,
   canStartBattle,
+  CHAPTER_BOSS_ID,
   MIN_LEARNED_FOR_BATTLE,
+  openEncounters,
   startBattle,
   takeAction,
   type BattleState,
 } from "./battle";
+import { sampleWords } from "./catalog";
 import { SKILL_CARD_RULES, skillsForClass } from "./skills";
 
 const LEARNED = ["tree", "bird", "fish", "sun", "map", "run"];
@@ -163,6 +166,38 @@ describe("word-monster battle", () => {
     const rejected = takeAction(state, { type: "skill", skillId: extra.id });
     expect(rejected.ok).toBe(false);
     expect(rejected.state).toBe(state);
+  });
+
+  it("asks a due word outside the selected grades, and explains an empty fallback pool", () => {
+    const shared = {
+      encounterId: "inkling",
+      classId: "warrior" as const,
+      learnedIds: ["tree"],
+      equippedSkillIds: [] as string[],
+      skillLevels: {},
+      seed: 3,
+      allowedWordIds: ["explore"],
+    };
+    const empty = takeAction(startBattle(shared), { type: "skill", slotIndex: 0 });
+    expect(empty.ok).toBe(false);
+    expect(empty.reason).toContain("所选年级");
+    const due = takeAction(startBattle({ ...shared, dueWordIds: ["tree"] }), { type: "skill", slotIndex: 0 });
+    expect(due.ok).toBe(true);
+    expect(due.state.question?.answerId).toBe("tree");
+  });
+
+  it("keeps the chapter boss locked until every sample card is collected", () => {
+    const ids = sampleWords().map((word) => word.id);
+    expect(openEncounters(ids.slice(0, 4), ids).map((encounter) => encounter.id)).not.toContain(CHAPTER_BOSS_ID);
+    expect(openEncounters(ids, ids).some((encounter) => encounter.id === CHAPTER_BOSS_ID)).toBe(true);
+    expect(startBattle({
+      encounterId: CHAPTER_BOSS_ID,
+      classId: "warrior",
+      learnedIds: ids,
+      equippedSkillIds: ["warrior-bash"],
+      skillLevels: { "warrior-bash": 1 },
+      seed: 1,
+    }).enemyMaxHp).toBe(48);
   });
 
   it("makes a block reduce the next hit", () => {
