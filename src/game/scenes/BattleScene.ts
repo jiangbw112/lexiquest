@@ -15,6 +15,8 @@ import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from 
 import { BOSS_BATTLE_POS, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
+import { queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
@@ -45,6 +47,7 @@ export class BattleScene extends Phaser.Scene {
 
   preload(): void {
     queueWarriorAtlases(this);
+    queueChapterCosmetics(this);
     if (this.bossFight) queueBossAtlases(this);
   }
 
@@ -222,7 +225,8 @@ export class BattleScene extends Phaser.Scene {
     }
     this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
     this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
-    const hero = new WarriorSprite(this, 300, 520, 0.72);
+    const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds);
+    drawEquippedTitle(this, 300, 250, save.equippedTitleId);
     hero.playSequence(this.poses);
     if (this.state.encounterId === CHAPTER_BOSS_ID && this.state.enemySprite === "canopy") {
       if (!this.bossReported) {

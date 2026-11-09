@@ -131,8 +131,16 @@ export interface SaveData {
   chapterCleared: boolean;
   /** Wins of each exploration stage, keyed by the stage id. A stage clears at 1. */
   stageWins: Record<string, number>;
-  /** Titles granted by the chapter. The completion title is provisional. */
+  /** Display names already granted. The id list is `unlockedTitleIds`. */
   titles: string[];
+  /** Chapter cosmetics granted once. They stay after a badge goes grey. */
+  unlockedCosmeticIds: string[];
+  unlockedTitleIds: string[];
+  equippedCosmeticIds: string[];
+  /** At most one. Null means the title is taken off. */
+  equippedTitleId: string | null;
+  masteryMilestonesClaimed: string[];
+  clearRewardClaimed: boolean;
   /** Grades the child is studying. At least one. Missing or empty saves become grade 3. */
   selectedGrades: GradeBand[];
   clockOffsetMs: number;

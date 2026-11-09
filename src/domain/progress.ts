@@ -1,11 +1,14 @@
 import { sanitizeName } from "./appearance";
+import { applyChapterRewards } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
 import { PROVISIONAL } from "./provisional";
 import {
   bossReady,
   chapterLearnedCount,
+  chapterWordIds,
   clearedStageCount,
+  litMasteryCount,
   explorationStageByEncounter,
   masteryLabel,
   stageById,
@@ -109,6 +112,12 @@ export function createSave(input: {
     chapterCleared: false,
     stageWins: {},
     titles: [],
+    unlockedCosmeticIds: [],
+    unlockedTitleIds: [],
+    equippedCosmeticIds: [],
+    equippedTitleId: null,
+    masteryMilestonesClaimed: [],
+    clearRewardClaimed: false,
     selectedGrades: normalizeGrades(input.grades),
     clockOffsetMs: 0,
     rewardQueue: [],
@@ -198,15 +207,22 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
       ),
     );
   }
-  return noteDueReview(
-    {
-      ...ready,
-      memory: { ...ready.memory, [wordId]: updated },
-      wordCards,
-      rewardQueue,
-    },
-    { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning", timeZone },
+  return settleChapterRewards(
+    noteDueReview(
+      {
+        ...ready,
+        memory: { ...ready.memory, [wordId]: updated },
+        wordCards,
+        rewardQueue,
+      },
+      { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning", timeZone },
+    ),
+    now,
   );
+}
+
+function settleChapterRewards(save: SaveData, now: Date): SaveData {
+  return applyChapterRewards(save, litMasteryCount(save, now), chapterWordIds().length);
 }
 
 /**
@@ -334,24 +350,14 @@ export function applyBattleOutcome(
   const detail = ["这场战斗没有改动任何词卡，也没有改动复习记忆。", skillNote, outfitNote, `经验 +${xpGain}。`]
     .filter(Boolean)
     .join("");
-  let rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
+  const rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
   let chapterCleared = save.chapterCleared;
-  let titles = save.titles;
   const stage = explorationStageByEncounter(encounterId);
   const stageWins = stage
     ? { ...save.stageWins, [String(stage.id)]: (save.stageWins[String(stage.id)] ?? 0) + 1 }
     : save.stageWins;
   if (encounterId === CHAPTER_BOSS_ID && bossReady(save) && !chapterCleared) {
     chapterCleared = true;
-    const title = PROVISIONAL.chapterBattle.completionTitle;
-    if (!titles.includes(title)) titles = [...titles, title];
-    const cosmetic = PROVISIONAL.chapterBattle.completionCosmeticId;
-    if (cosmetic && !owned.includes(cosmetic)) owned = [...owned, cosmetic];
-    const cosmeticNote = cosmetic ? `外观：${cosmetic}。` : "";
-    rewardQueue = pushReward(
-      rewardQueue,
-      reward("章节完成", `打败了林心守护者。这一章走完了。称号：${title}。${cosmeticNote}词卡还在，复习记忆也没变。`, String(now)),
-    );
   }
   const next: SaveData = {
     ...save,
@@ -362,10 +368,9 @@ export function applyBattleOutcome(
     equippedOutfitId,
     chapterCleared,
     stageWins,
-    titles,
     memory: save.memory,
     wordCards: save.wordCards,
     rewardQueue,
   };
-  return refreshUnlocks(next);
+  return settleChapterRewards(refreshUnlocks(next), new Date(now));
 }

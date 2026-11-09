@@ -1,6 +1,8 @@
 import { Rating, type Grade } from "ts-fsrs";
 import { GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
+import { chapterWordIds, litMasteryCount } from "./stages";
 import { PROPOSALS } from "./proposals";
+import { withRewardDefaults } from "./chapter-rewards";
 import { badgeTone, isDue, type BadgeTone } from "./review";
 import type {
   DailyGoal,
@@ -130,7 +132,7 @@ export function withParentDefaults(save: SaveData): SaveData {
     clockAnomaly: save.clockAnomaly === true,
   };
   delete next.parentPin;
-  return next;
+  return withRewardDefaults(next);
 }
 
 function statFor(save: SaveData, dayKey: string): DailyStat {
@@ -569,7 +571,7 @@ export function parentView(
     weekLine: `近 7 天：新学 ${uniqueAcross(save, week, "learnedWordIds")} 个 · 复习过 ${uniqueAcross(save, week, "reviewedDueWordIds")} 个词`,
     firstMasteredLine: `首次掌握：${first} 个`,
     restoredMasteredLine: `重新掌握：${restored} 个`,
-    masteredLine: `目前亮着徽章的词：${masteredNow} 个`,
+    masteredLine: `${save.chapterCleared ? "已通关森林。" : ""}徽章亮起 ${litMasteryCount(save, now)} / ${chapterWordIds().length}。目前亮着徽章的词：${masteredNow} 个`,
     masteredNote: "徽章变灰只是提醒该复习了，单词卡还在。",
     gradesLine: `正在学：${gradesLabel}`,
     struggleLine,

@@ -47,15 +47,13 @@ export const PROVISIONAL = {
    * Not decided. Change these after playtesting.
    * Exploration health is tuned for the warrior's real damage skills (about 3–5 hits).
    * The free base skill is weaker, so using only that filler takes longer.
-   * An empty cosmetic id means the chapter clear grants no outfit yet.
+   * Chapter cosmetics and titles live in forest-rewards.json.
    */
   chapterBattle: {
     label: "PROVISIONAL",
     explorationEnemyHp: 44,
     explorationEnemyAttack: 6,
     recentQuestionWindow: 3,
-    completionTitle: "林心探索者",
-    completionCosmeticId: "",
   },
   skillCards: {
     label: "v1",

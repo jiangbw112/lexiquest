@@ -70,9 +70,11 @@ Provisional chapter numbers, also in `src/domain/provisional.ts`:
 | --- | --- |
 | Exploration enemy health / attack | 44 / 6, about 3–5 casts of 盾击, 战吼, or 旋风斩 |
 | Question gap | No repeat inside the last 3 questions when another word can be asked |
-| Completion reward | Title 林心探索者. Cosmetic id is empty |
+| Completion reward | Read from `src/domain/data/forest-rewards.json`. First clear grants `forest_leaf_cape` and the default title candidate. Mastery uses `ceil(chapter length × 0.5)` and `ceil(chapter length × 1)`. Names are not final (`final_name_selected_by_pm` is false) |
 
 林心守护者 is two phases of 65 health. 盾击 clears in 12 casts and 战吼 in 9. 旋风斩 is heavier and clears in 7. Spelling stays at or under 30% of boss questions. These can move after playtesting.
+
+Forest chapter cosmetics and titles are `src/domain/data/forest-rewards.json`. The word loader skips that file because it has no `words` array. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The drawn pieces in `public/assets/chapter/forest/v0.1-placeholder/` are single-color silhouettes, not finished art. The cape is `cosmetic_back`, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head`. This warrior pack has no `back` atlas and no separate helmet plume, so those hide rules have nothing of their own to hide. The plume stays inside `outfit_head`.
 
 Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB, so `public/assets` is about 1.98 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
 
@@ -93,7 +95,9 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - Switching the forest chapter onto PEP ids. The two lists stay separate until that reference is decided. `unitId` is still hard-coded, and semester and unit are not used.
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
-- The forest chapter’s completion cosmetic, and whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay out of 28 on the completion screen. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
+- Whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay a count of this chapter’s words. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
+- Finished drawings for the leaf cape, acorn pin, wreath, and leaf icon. The files in `public/assets/chapter/forest/v0.1-placeholder/` are labeled silhouettes. Title names stay the first candidate until the config sets `final_name_selected_by_pm`.
+- A separate `back` layer and a separate helmet plume. The cape hide rule and the wreath plume rule are in the reward config, and this pack cannot apply them to their own art.
 - A final 林冠 drawing. v0.1 is the integrable pack under `public/assets/boss/canopy/v0.1`, documented in `docs/art/boss-canopy/`.
 - Outfit variants. 林间斗篷 and 星光绶带 are stored, but v0.1 bakes a single outfit A. Equipping them does not change the painted layers.
 - More appearances. The save still stores ponytail and freckles. The painted appearance A is short brown hair with the face baked into the body layer.

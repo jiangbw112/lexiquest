@@ -1,5 +1,13 @@
 import Phaser from "phaser";
+import { visibilityForCosmetics, FOREST_REWARDS } from "../../domain/chapter-rewards";
 import { probeNote } from "../probe";
+import {
+  chapterCosmeticLayers,
+  cosmeticAnimKey,
+  cosmeticTextureKey,
+  ensureCosmeticAnims,
+  slotDepth,
+} from "./chapter-cosmetics";
 import {
   WARRIOR_ANIMS,
   WARRIOR_ASSET_ROOT,
@@ -51,28 +59,74 @@ export class WarriorSprite {
   readonly root: Phaser.GameObjects.Container;
   private readonly sprites: Phaser.GameObjects.Sprite[] = [];
   private readonly bySlot = new Map<string, Phaser.GameObjects.Sprite>();
+  private readonly cosmeticById = new Map<string, Phaser.GameObjects.Sprite>();
+  private anim: WarriorAnim = "idle";
+  private equipped: readonly string[] = [];
 
-  constructor(scene: Phaser.Scene, x: number, y: number, scale = WARRIOR_LOGICAL_SCALE) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    scale = WARRIOR_LOGICAL_SCALE,
+    equipped: readonly string[] = [],
+  ) {
     ensureWarriorAnims(scene);
+    ensureCosmeticAnims(scene);
     this.root = scene.add.container(x, y);
     this.root.setScale(scale);
+    this.equipped = equipped;
     for (const layer of WARRIOR_LAYERS) {
       const sprite = scene.add.sprite(0, 0, warriorTextureKey(layer.slot)).setOrigin(WARRIOR_ORIGIN.x, WARRIOR_ORIGIN.y);
+      sprite.setDepth(slotDepth(layer.slot));
       this.root.add(sprite);
       this.sprites.push(sprite);
       this.bySlot.set(layer.slot, sprite);
     }
+    for (const layer of chapterCosmeticLayers()) {
+      const key = cosmeticTextureKey(layer.id);
+      if (!scene.textures.exists(key)) continue;
+      const sprite = scene.add.sprite(0, 0, key).setOrigin(WARRIOR_ORIGIN.x, WARRIOR_ORIGIN.y);
+      sprite.setDepth(layer.z);
+      this.root.add(sprite);
+      this.cosmeticById.set(layer.id, sprite);
+    }
+    this.root.sort("depth");
+    this.applyHideRules();
     this.play("idle");
   }
 
+  setEquippedCosmetics(ids: readonly string[]): void {
+    this.equipped = ids;
+    this.applyHideRules();
+    this.play(this.anim);
+  }
+
   play(anim: WarriorAnim, onComplete?: () => void): void {
+    this.anim = anim;
     const lead = this.sprites[0];
     lead?.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     for (const layer of WARRIOR_LAYERS) {
       const sprite = this.bySlot.get(layer.slot);
       sprite?.play(warriorAnimKey(layer.slot, anim));
     }
+    for (const [id, sprite] of this.cosmeticById) {
+      if (!sprite.visible) continue;
+      sprite.play(cosmeticAnimKey(id, anim));
+    }
     if (onComplete && lead) lead.once(Phaser.Animations.Events.ANIMATION_COMPLETE, onComplete);
+  }
+
+  /**
+   * Hides a slot or part only when this pack actually draws it.
+   * The cape's `back` slot and the wreath's `helmet_plume` are not separate layers here.
+   */
+  private applyHideRules(): void {
+    const visibility = visibilityForCosmetics(FOREST_REWARDS, this.equipped, {
+      slots: WARRIOR_LAYERS.map((layer) => layer.slot),
+      parts: [],
+    });
+    for (const [slot, sprite] of this.bySlot) sprite.setVisible(!visibility.hiddenSlots.includes(slot));
+    for (const [id, sprite] of this.cosmeticById) sprite.setVisible(this.equipped.includes(id));
   }
 
   /** Plays each one-shot, then leaves a looping pose (idle or victory) on screen. */

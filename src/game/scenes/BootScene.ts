@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { queueWarriorAtlases, reportWarriorLoad } from "../art/warrior-sprite";
 import { probeNote } from "../probe";
 import { bootSave } from "../session";
@@ -12,6 +13,7 @@ export class BootScene extends Phaser.Scene {
     this.load.atlas("actors", "assets/atlases/actors.png", "assets/atlases/actors.json");
     this.load.image("village", "assets/map/village.png");
     queueWarriorAtlases(this);
+    queueChapterCosmetics(this);
   }
 
   create(): void {
