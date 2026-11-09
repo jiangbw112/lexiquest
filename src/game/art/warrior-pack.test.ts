@@ -64,7 +64,7 @@ describe("provisional warrior v0.1 atlases", () => {
     const slots = JSON.parse(readFileSync(`${ROOT}/slots.json`, "utf8")) as {
       slots: { id: string; p0Active: boolean }[];
     };
-    expect(slots.slots).toHaveLength(18);
+    expect(slots.slots).toHaveLength(19);
     expect(slots.slots.filter((slot) => slot.p0Active)).toHaveLength(11);
   });
 

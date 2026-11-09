@@ -3,7 +3,7 @@ import { CHAPTER_ART_LIMITS, displayTitle, FOREST_REWARDS } from "../../domain/c
 import { studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../domain/stages";
-import { PLACEHOLDER_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { FOREST_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter } from "../probe";
@@ -67,7 +67,7 @@ export class EndingScene extends Phaser.Scene {
       fontSize: "22px",
       color: "#1f7a4d",
     });
-    this.add.text(150, 440, PLACEHOLDER_ART_LABEL, {
+    this.add.text(150, 440, FOREST_ART_LABEL, {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#8a5a12",

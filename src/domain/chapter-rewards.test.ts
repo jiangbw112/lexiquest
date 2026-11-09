@@ -1,9 +1,8 @@
 import { readFileSync } from "node:fs";
-import { PNG } from "pngjs";
 import { Rating, State } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import { chapterCosmeticLayers, COSMETIC_Z, slotDepth } from "../game/art/chapter-cosmetics";
-import { WARRIOR_ANIMS, WARRIOR_LAYERS } from "../game/art/warrior-pack";
+import { WARRIOR_LAYERS } from "../game/art/warrior-pack";
 import { sampleWords } from "./catalog";
 import {
   applyChapterRewards,
@@ -24,7 +23,6 @@ import { deserialize, serialize } from "./storage";
 import type { SaveData } from "./types";
 
 const START = new Date("2026-03-01T02:00:00Z");
-const ASSET_ROOT = "public/assets/chapter/forest/v0.1-placeholder";
 
 function newSave(): SaveData {
   return createSave({
@@ -307,7 +305,7 @@ describe("forest chapter rewards", () => {
 
   it("places the pin on cosmetic_chest and keeps the other slots", () => {
     const layers = chapterCosmeticLayers();
-    expect(layers.find((layer) => layer.id === "acorn_pin")).toEqual({ id: "acorn_pin", slot: "cosmetic_chest", z: 47 });
+    expect(layers.find((layer) => layer.id === "acorn_pin")).toMatchObject({ id: "acorn_pin", slot: "cosmetic_chest", z: 47 });
     expect(COSMETIC_Z.cosmetic_chest).toBe(47);
     expect(slotDepth("cosmetic_back")).toBe(6);
     expect(slotDepth("cosmetic_head")).toBe(65);
@@ -319,45 +317,5 @@ describe("forest chapter rewards", () => {
     const taken = unequipCosmetic(granted, "forest_leaf_cape");
     expect(taken.equippedCosmeticIds).not.toContain("forest_leaf_cape");
     expect(taken.unlockedCosmeticIds).toContain("forest_leaf_cape");
-  });
-
-  it("builds single-color placeholder atlases at the warrior frame spec", () => {
-    const expected = WARRIOR_ANIMS.flatMap((anim) => anim.frames("forest_leaf_cape"));
-    expect(expected).toHaveLength(21);
-    for (const id of ["forest_leaf_cape", "acorn_pin", "forest_wreath"]) {
-      const atlas = JSON.parse(readFileSync(`${ASSET_ROOT}/${id}.json`, "utf8")) as {
-        frames: Record<string, { sourceSize: { w: number; h: number }; pivot: { x: number; y: number }; rotated: boolean }>;
-        meta: { size: { w: number; h: number }; image: string; placeholder?: boolean; note?: string };
-      };
-      expect(atlas.meta.placeholder).toBe(true);
-      expect(atlas.meta.note).toContain("占位");
-      expect(atlas.meta.image).toBe(`${id}.png`);
-      expect(atlas.meta.size.w).toBeLessThanOrEqual(2048);
-      expect(atlas.meta.size.h).toBeLessThanOrEqual(2048);
-      const names = WARRIOR_ANIMS.flatMap((anim) => anim.frames(id));
-      expect(Object.keys(atlas.frames)).toEqual(names);
-      const colors = new Set<string>();
-      const png = PNG.sync.read(readFileSync(`${ASSET_ROOT}/${id}.png`));
-      expect(png.width).toBe(atlas.meta.size.w);
-      expect(png.height).toBe(atlas.meta.size.h);
-      for (const frame of Object.values(atlas.frames)) {
-        expect(frame.sourceSize).toEqual({ w: 512, h: 512 });
-        expect(frame.pivot).toEqual({ x: 0.5, y: 0.875 });
-        expect(frame.rotated).toBe(false);
-      }
-      for (let index = 0; index < png.data.length; index += 4) {
-        const alpha = png.data[index + 3] ?? 0;
-        expect(alpha === 0 || alpha === 255).toBe(true);
-        if (alpha === 0) continue;
-        colors.add(`${png.data[index]},${png.data[index + 1]},${png.data[index + 2]}`);
-      }
-      expect(colors.size).toBe(1);
-    }
-    const leaf = PNG.sync.read(readFileSync(`${ASSET_ROOT}/title_leaf_icon.png`));
-    expect(leaf.width).toBe(64);
-    expect(leaf.height).toBe(64);
-    const note = readFileSync(`${ASSET_ROOT}/README.txt`, "utf8");
-    expect(note).toContain("占位");
-    expect(note).toContain("不是成品");
   });
 });

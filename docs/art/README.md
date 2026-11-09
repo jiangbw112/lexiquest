@@ -6,7 +6,7 @@
 ## 目录
 | 路径 | 内容 |
 |---|---|
-| `slots.md` / `slots.json` | 服装槽位表（暂定 v0.1）：外观/职业/章节分组、层序、锚点、遮挡、P0 启用 |
+| `slots.md` / `slots.json` | 服装槽位表（暂定 v0.2）：外观/职业/章节分组、层序、锚点、遮挡、P0 启用。v0.2 增加 `cosmetic_chest` |
 | `style_ref_v0.1.png` | 风格参考图，**仅 concept**：AI 生成，不是精灵，不进游戏 |
 | `frames/<layer>/*.png` | 11 层 × 21 帧 = 231 张 PNG-32，512×512 @2x，straight alpha，透明像素已做颜色外扩 |
 | `atlas/char_p0_<layer>_e@2x.png/.json` | 每层一张图集（Phaser 3 JSON Hash，trimmed，带 pivot），最大 2048×636 |

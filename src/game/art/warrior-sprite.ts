@@ -4,7 +4,6 @@ import { probeNote } from "../probe";
 import {
   chapterCosmeticLayers,
   cosmeticAnimKey,
-  cosmeticTextureKey,
   ensureCosmeticAnims,
   slotDepth,
 } from "./chapter-cosmetics";
@@ -83,9 +82,8 @@ export class WarriorSprite {
       this.bySlot.set(layer.slot, sprite);
     }
     for (const layer of chapterCosmeticLayers()) {
-      const key = cosmeticTextureKey(layer.id);
-      if (!scene.textures.exists(key)) continue;
-      const sprite = scene.add.sprite(0, 0, key).setOrigin(WARRIOR_ORIGIN.x, WARRIOR_ORIGIN.y);
+      if (!scene.textures.exists(layer.textureKey)) continue;
+      const sprite = scene.add.sprite(0, 0, layer.textureKey).setOrigin(WARRIOR_ORIGIN.x, WARRIOR_ORIGIN.y);
       sprite.setDepth(layer.z);
       this.root.add(sprite);
       this.cosmeticById.set(layer.id, sprite);
@@ -93,6 +91,14 @@ export class WarriorSprite {
     this.root.sort("depth");
     this.applyHideRules();
     this.play("idle");
+  }
+
+  isSlotDrawn(slot: string): boolean {
+    return this.bySlot.has(slot);
+  }
+
+  isSlotVisible(slot: string): boolean {
+    return this.bySlot.get(slot)?.visible === true;
   }
 
   setEquippedCosmetics(ids: readonly string[]): void {

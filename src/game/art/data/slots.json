@@ -1,6 +1,12 @@
 {
-  "version": "slots-0.1-provisional",
-  "status": "暂定 v0.1（provisional）",
+  "version": "slots-0.2-provisional",
+  "status": "暂定 v0.2（provisional）：v0.1 + cosmetic_chest(z47) + 屏蔽规则",
+  "changesFromV01": [
+    "新增 cosmetic_chest z=47 token cosChest anchor chest（章节组）",
+    "cosmetic_back 装备时隐藏 back",
+    "cosmetic_head 装备时整层隐藏 outfit_head（取代 v0.1『隐藏羽饰』建议）",
+    "新增 assetStatus 字段"
+  ],
   "view": "battle side view, facing east (e)",
   "frame": {
     "logical": [
@@ -28,7 +34,7 @@
   "groups": {
     "appearance": "外观：身体/肤色/发型/脸——与职业无关，可单独替换",
     "class": "职业装：头/身/手/腰/脚/背/主手持/副手持——与外观无关，可单独替换；缺件回退职业底装",
-    "chapter": "章节装饰：纯外观，预留位，不暗示战力",
+    "chapter": "章节装饰：纯外观，不暗示战力；cosmetic_back / cosmetic_chest / cosmetic_head",
     "system": "阴影/特效挂点"
   },
   "skinTone": {
@@ -46,6 +52,22 @@
     "主手持": "hand_main",
     "副手持": "hand_off"
   },
+  "hideRules": [
+    {
+      "when": "cosmetic_back",
+      "hide": [
+        "back"
+      ],
+      "note": "披肩与职业 back（背包/箭袋等）同装：显示披肩，隐藏 back"
+    },
+    {
+      "when": "cosmetic_head",
+      "hide": [
+        "outfit_head"
+      ],
+      "note": "花环与职业头饰同装：显示花环，整层隐藏 outfit_head（战士：整顶头盔连羽饰）"
+    }
+  ],
   "slots": [
     {
       "id": "shadow",
@@ -57,7 +79,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "地面椭圆阴影",
-      "notes": "半透明 #264653；跳跃类动作缩放"
+      "notes": "半透明 #264653；跳跃类动作缩放",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "back",
@@ -69,7 +92,8 @@
       "coversHair": false,
       "p0Active": false,
       "p0Content": "预留：披风/背包/箭袋",
-      "notes": "P1 探险家背包首用"
+      "notes": "P1 探险家背包首用",
+      "assetStatus": "reserved"
     },
     {
       "id": "cosmetic_back",
@@ -80,8 +104,9 @@
       "anchor": "back",
       "coversHair": false,
       "p0Active": false,
-      "p0Content": "预留：章节背饰",
-      "notes": "纯外观，不影响战力"
+      "p0Content": "森林奖励：林叶披肩 forest_leaf_cape（v0.1 暂定已出图）",
+      "notes": "纯外观；装备时隐藏职业 back（z5）整层",
+      "assetStatus": "forest-rewards-v0.1-provisional"
     },
     {
       "id": "hand_main",
@@ -93,7 +118,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "战士短剑（圆头训练剑）",
-      "notes": "持于远侧手→画在远侧手臂之后；与规范 hand_item 在最前不同，见 slots.md"
+      "notes": "持于远侧手→画在远侧手臂之后；与规范 hand_item 在最前不同，见 slots.md",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "body_back",
@@ -105,7 +131,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "外观A：远侧手臂+远侧腿（肤色）",
-      "notes": "外观层"
+      "notes": "外观层",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "outfit_back",
@@ -117,7 +144,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "远侧袖、护腕、裤腿、靴",
-      "notes": "职业层；含手(护腕)/脚(靴)槽的远侧部分"
+      "notes": "职业层；含手(护腕)/脚(靴)槽的远侧部分",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "body",
@@ -129,7 +157,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "外观A：躯干(浅色内衬+短裤)、近侧腿、颈、头、耳、脸",
-      "notes": "P0 脸部表情烘焙在 body；face 槽 P1 拆出"
+      "notes": "P0 脸部表情烘焙在 body；face 槽 P1 拆出",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "hair_back",
@@ -141,7 +170,8 @@
       "coversHair": false,
       "p0Active": false,
       "p0Content": "预留：长发后片",
-      "notes": "外观 A 为短发，不启用"
+      "notes": "外观 A 为短发，不启用",
+      "assetStatus": "reserved"
     },
     {
       "id": "outfit_body",
@@ -153,7 +183,21 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "珊瑚短上衣+金边、青绿腰带、近侧裤腿与靴",
-      "notes": "P0 身/腰/脚槽合并在本层；腰带拆层预留 waist"
+      "notes": "P0 身/腰/脚槽合并在本层；腰带拆层预留 waist",
+      "assetStatus": "p0-warrior-v0.1"
+    },
+    {
+      "id": "cosmetic_chest",
+      "group": "chapter",
+      "z": 47,
+      "fileToken": "cosChest",
+      "specLayer": "(chest attach)",
+      "anchor": "chest",
+      "coversHair": false,
+      "p0Active": false,
+      "p0Content": "森林奖励：橡实别针 acorn_pin（v0.1 暂定已出图）",
+      "notes": "v0.2 新增；在 outfit_body(40) 与 hair(50) 之间；部分帧被近侧手臂/盾遮挡可接受",
+      "assetStatus": "forest-rewards-v0.1-provisional"
     },
     {
       "id": "waist",
@@ -165,7 +209,8 @@
       "coversHair": false,
       "p0Active": false,
       "p0Content": "预留：独立腰带/腰包",
-      "notes": "P0 烘焙进 outfit_body"
+      "notes": "P0 烘焙进 outfit_body",
+      "assetStatus": "reserved"
     },
     {
       "id": "hair",
@@ -177,7 +222,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "外观A：短棕发（含刘海）",
-      "notes": "被 outfit_head 部分遮挡"
+      "notes": "被 outfit_head 部分遮挡",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "face",
@@ -189,7 +235,8 @@
       "coversHair": false,
       "p0Active": false,
       "p0Content": "预留：表情/眼镜等脸饰",
-      "notes": "P1 三表情拆层；帽子不得遮眼"
+      "notes": "P1 三表情拆层；帽子不得遮眼",
+      "assetStatus": "reserved"
     },
     {
       "id": "outfit_head",
@@ -201,7 +248,8 @@
       "coversHair": true,
       "p0Active": true,
       "p0Content": "金色半盔+珊瑚羽饰",
-      "notes": "遮挡头发顶部（不遮眼、不遮刘海下沿以下）"
+      "notes": "遮挡头发顶部（不遮眼、不遮刘海下沿以下）",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "cosmetic_head",
@@ -212,8 +260,9 @@
       "anchor": "head",
       "coversHair": true,
       "p0Active": false,
-      "p0Content": "预留：章节头饰",
-      "notes": "与 outfit_head 同时出现时由章节表决定是否隐藏"
+      "p0Content": "森林奖励：森语花环 forest_wreath（v0.1 暂定已出图）",
+      "notes": "装备时整层隐藏 outfit_head（战士头盔整件含羽饰）；不过眉、不遮眼（脚本检查）",
+      "assetStatus": "forest-rewards-v0.1-provisional"
     },
     {
       "id": "body_front",
@@ -225,7 +274,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "外观A：近侧手臂（肤色）",
-      "notes": "外观层"
+      "notes": "外观层",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "outfit_front",
@@ -237,7 +287,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "近侧袖+青绿护腕",
-      "notes": "职业层：手槽近侧部分"
+      "notes": "职业层：手槽近侧部分",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "hand_off",
@@ -249,7 +300,8 @@
       "coversHair": false,
       "p0Active": true,
       "p0Content": "战士圆盾（珊瑚+金边+青绿星）",
-      "notes": "持于近侧手，最前"
+      "notes": "持于近侧手，最前",
+      "assetStatus": "p0-warrior-v0.1"
     },
     {
       "id": "fx_attach",
@@ -261,7 +313,8 @@
       "coversHair": false,
       "p0Active": false,
       "p0Content": "预留：技能特效挂点",
-      "notes": "VFX 单独图集"
+      "notes": "VFX 单独图集",
+      "assetStatus": "reserved"
     }
   ]
 }

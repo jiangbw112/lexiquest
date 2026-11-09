@@ -1,17 +1,23 @@
 /**
- * Forest chapter cosmetics. Final art replaces the png/json files in
- * CHAPTER_ASSET_ROOT. Ids, frame names, and the foot pivot stay the same.
+ * Forest chapter cosmetics, v0.1. Frame placement is already inside the
+ * 512² canvas, so each sprite stays at (0, 0) with the foot origin.
+ * The pin's chest offset is baked into those frames.
  */
 import type Phaser from "phaser";
-import { FOREST_REWARDS } from "../../domain/chapter-rewards";
+import manifest from "./data/forest-rewards-manifest.json";
+import { probeNote } from "../probe";
 import { WARRIOR_ANIMS, type WarriorAnim } from "./warrior-pack";
 
-export const CHAPTER_ASSET_ROOT = "assets/chapter/forest/v0.1-placeholder";
+export const FOREST_ART = manifest;
+export const CHAPTER_ASSET_ROOT = "assets/chapter/forest/v0.1";
+export const FOREST_ART_LABEL =
+  "森林章外观 v0.1。花环戴上时藏起整顶头盔。披肩要藏的 back 层，这套战士没有画。";
 
-export const PLACEHOLDER_ART_LABEL =
-  "单色剪影占位，不是成品图。正式绘制排在林冠 Boss 剩余部分之后。换成同名图片即可，不必改代码。";
+export const TITLE_UI_KEY = manifest.ui.textureKey;
+export const TITLE_LEAF_FRAME = "ui_title_leafIcon";
+export const TITLE_CHIP_FRAME = "ui_title_chip";
 
-/** z from the warrior slot table, plus cosmetic_chest which that table does not list yet. */
+/** z from slot table v0.2. These win over any earlier cosmetic depths. */
 export const COSMETIC_Z = {
   cosmetic_back: 6,
   cosmetic_chest: 47,
@@ -37,13 +43,41 @@ export interface ChapterCosmeticLayer {
   id: string;
   slot: string;
   z: number;
+  textureKey: string;
+  layerPrefix: string;
+  atlasJson: string;
+  atlasImage: string;
+  anchor: string;
+  /** @2x pixels from the named anchor. Already drawn into the frame. */
+  anchorOffset: readonly [number, number] | null;
 }
 
-export function chapterCosmeticLayers(config = FOREST_REWARDS): ChapterCosmeticLayer[] {
-  return Object.entries(config.slot_map).map(([id, slot]) => {
-    const z = COSMETIC_Z[slot as keyof typeof COSMETIC_Z];
-    if (z === undefined) throw new Error(`No z for cosmetic slot ${slot}`);
-    return { id, slot, z };
+function readOffset(item: (typeof manifest.items)[number]): readonly [number, number] | null {
+  if (!("anchorOffset" in item) || !item.anchorOffset) return null;
+  const pair = item.anchorOffset["px@2x_local"];
+  const x = pair[0];
+  const y = pair[1];
+  if (x === undefined || y === undefined) return null;
+  return [x, y];
+}
+
+export function chapterCosmeticLayers(): ChapterCosmeticLayer[] {
+  return manifest.items.map((item) => {
+    if (item.textureKey !== item.itemId) throw new Error(`textureKey ${item.textureKey} is not ${item.itemId}`);
+    const z = COSMETIC_Z[item.slot as keyof typeof COSMETIC_Z];
+    if (z === undefined || z !== item.z) throw new Error(`cosmetic ${item.itemId} z ${item.z} does not match slot ${item.slot}`);
+    const offset = readOffset(item);
+    return {
+      id: item.itemId,
+      slot: item.slot,
+      z,
+      textureKey: item.textureKey,
+      layerPrefix: item.layerPrefix,
+      atlasJson: item.atlas.json,
+      atlasImage: item.atlas.image,
+      anchor: item.anchor,
+      anchorOffset: offset,
+    };
   });
 }
 
@@ -53,7 +87,7 @@ export function slotDepth(slot: string): number {
 }
 
 export function cosmeticTextureKey(id: string): string {
-  return `chapter:${id}`;
+  return chapterCosmeticLayers().find((layer) => layer.id === id)?.textureKey ?? id;
 }
 
 export function cosmeticAnimKey(id: string, anim: WarriorAnim): string {
@@ -62,28 +96,44 @@ export function cosmeticAnimKey(id: string, anim: WarriorAnim): string {
 
 export function queueChapterCosmetics(scene: Phaser.Scene): void {
   for (const layer of chapterCosmeticLayers()) {
-    const key = cosmeticTextureKey(layer.id);
-    if (scene.textures.exists(key)) continue;
-    scene.load.atlas(key, `${CHAPTER_ASSET_ROOT}/${layer.id}.png`, `${CHAPTER_ASSET_ROOT}/${layer.id}.json`);
+    if (scene.textures.exists(layer.textureKey)) continue;
+    scene.load.atlas(
+      layer.textureKey,
+      `${CHAPTER_ASSET_ROOT}/${layer.atlasImage}`,
+      `${CHAPTER_ASSET_ROOT}/${layer.atlasJson}`,
+    );
   }
-  if (!scene.textures.exists("title_leaf_icon")) {
-    scene.load.image("title_leaf_icon", `${CHAPTER_ASSET_ROOT}/title_leaf_icon.png`);
+  if (!scene.textures.exists(TITLE_UI_KEY)) {
+    scene.load.atlas(TITLE_UI_KEY, `${CHAPTER_ASSET_ROOT}/${manifest.ui.atlas.image}`, `${CHAPTER_ASSET_ROOT}/${manifest.ui.atlas.json}`);
   }
 }
 
 export function ensureCosmeticAnims(scene: Phaser.Scene): void {
   for (const layer of chapterCosmeticLayers()) {
-    const texture = cosmeticTextureKey(layer.id);
-    if (!scene.textures.exists(texture)) continue;
+    if (!scene.textures.exists(layer.textureKey)) continue;
     for (const anim of WARRIOR_ANIMS) {
       const key = cosmeticAnimKey(layer.id, anim.key);
       if (scene.anims.exists(key)) continue;
       scene.anims.create({
         key,
-        frames: anim.frames(layer.id).map((frame) => ({ key: texture, frame })),
+        frames: anim.frames(layer.layerPrefix).map((frame) => ({ key: layer.textureKey, frame })),
         frameRate: anim.fps,
         repeat: anim.repeat,
       });
     }
   }
+}
+
+/** Confirms every cosmetic atlas, its animations, and the title sheet loaded. */
+export function reportForestLoad(scene: Phaser.Scene): void {
+  ensureCosmeticAnims(scene);
+  const layers = chapterCosmeticLayers();
+  const missing = layers.filter((layer) => !scene.textures.exists(layer.textureKey)).map((layer) => layer.textureKey);
+  if (!scene.textures.exists(TITLE_UI_KEY)) missing.push(TITLE_UI_KEY);
+  const anims = WARRIOR_ANIMS.map((anim) => anim.key).filter((key) => scene.anims.exists(cosmeticAnimKey(layers[0]?.id ?? "", key)));
+  if (missing.length > 0 || anims.length !== WARRIOR_ANIMS.length) {
+    probeNote(`forest:missing:${missing.join(",") || "anims"}`);
+    return;
+  }
+  probeNote(`forest:loaded:${layers.length}:${anims.join(",")}:${TITLE_UI_KEY}`);
 }

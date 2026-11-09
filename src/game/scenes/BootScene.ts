@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { queueChapterCosmetics, reportForestLoad } from "../art/chapter-cosmetics";
 import { queueWarriorAtlases, reportWarriorLoad } from "../art/warrior-sprite";
 import { probeNote } from "../probe";
 import { bootSave } from "../session";
@@ -20,6 +20,7 @@ export class BootScene extends Phaser.Scene {
     this.input.keyboard?.disableGlobalCapture();
     bootSave();
     reportWarriorLoad(this);
+    reportForestLoad(this);
     const fonts = document.fonts;
     const ready = fonts ? fonts.load('16px "WenQuanYi Micro Hei"').catch(() => undefined) : Promise.resolve();
     const cap = new Promise<void>((resolve) => window.setTimeout(resolve, 1200));

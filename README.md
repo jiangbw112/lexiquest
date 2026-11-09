@@ -74,9 +74,9 @@ Provisional chapter numbers, also in `src/domain/provisional.ts`:
 
 林心守护者 is two phases of 65 health. 盾击 clears in 12 casts and 战吼 in 9. 旋风斩 is heavier and clears in 7. Spelling stays at or under 30% of boss questions. These can move after playtesting.
 
-Forest chapter cosmetics and titles are `src/domain/chapters/forest-rewards.json`. That file stays outside the word-list directory. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The drawn pieces in `public/assets/chapter/forest/v0.1-placeholder/` are single-color silhouettes, not finished art. The cape is `cosmetic_back`, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head`. This warrior pack has no `back` atlas, so the cape hide rule has no backpack to hide. The wreath hides the whole `outfit_head` layer, which is the helmet with the plume baked in. The plume is not split into its own frame.
+Forest chapter cosmetics and titles are `src/domain/chapters/forest-rewards.json`. That file stays outside the word-list directory. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The painted pieces are forest rewards v0.1 under `public/assets/chapter/forest/v0.1/`. The manifest status is 暂定. The cape is `cosmetic_back` at z 6, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head` at z 65. Slot table v0.2 adds `cosmetic_chest`. The pin's chest offset is already inside the trimmed frames. This warrior pack has no `back` atlas, so the cape hide rule has no backpack to hide. The wreath hides the whole `outfit_head` layer, which is the helmet with the plume baked in. The plume is not split into its own frame. In side view the cape reads as a strip of leaves behind the body. The pin is small, and on attack frames 02 and 03 most of it sits under the near arm.
 
-Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB, so `public/assets` is about 1.98 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
+Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB. Forest rewards v0.1 adds about 228 KB. `public/assets` is about 2.12 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
 
 ## Sample data
 
@@ -98,7 +98,7 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
 - Whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay a count of this chapter’s words. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
-- Finished drawings for the leaf cape, acorn pin, wreath, and leaf icon. The files in `public/assets/chapter/forest/v0.1-placeholder/` are labeled silhouettes. Title names stay the first candidate until the config sets `final_name_selected_by_pm`.
+- Title names stay the first candidate until the config sets `final_name_selected_by_pm`. The v0.1 forest drawings are in the game. The pack itself is still marked 暂定.
 - A separate `back` layer. The cape hide rule targets it, and this pack does not draw one. The wreath hides the whole `outfit_head` helmet instead of a split plume.
 - A final 林冠 drawing. v0.1 is the integrable pack under `public/assets/boss/canopy/v0.1`, documented in `docs/art/boss-canopy/`.
 - Outfit variants. 林间斗篷 and 星光绶带 are stored, but v0.1 bakes a single outfit A. Equipping them does not change the painted layers.
@@ -114,8 +114,9 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - `src/domain/data/pep_words_g3-6_v1.1_loader.json` — the PEP grades 3–6 library, the only word list
 - `src/domain/chapters/chapter_forest_v1.json` — the forest chapter, resolved by reference
 - `docs/pep/forest_chapter_mapping_v1.json` — an older mapping, not read by the game
-- `src/game` — Phaser 3 client, placeholder atlas, provisional warrior v0.1, provisional 林冠 v0.1, and scenes
-- `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and `slots.json`
+- `src/game` — Phaser 3 client, placeholder village atlas, provisional warrior v0.1, forest rewards v0.1, provisional 林冠 v0.1, and scenes
+- `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and slot table v0.2
+- `public/assets/chapter/forest/v0.1` — the cape, pin, wreath, and title atlases, plus `manifest.json`
 - `public/assets/boss/canopy/v0.1` — the four 林冠 atlases and `manifest.json`
-- `docs/art` — the warrior pack README, slot table, and QA report. `docs/art/boss-canopy` is the 林冠 readme and QA report. `style_ref_v0.1.png` is concept art and is not in the game
+- `docs/art` — the warrior pack README, slot table v0.2, and QA report. `docs/art/forest-rewards` is the forest reward readme and QA report. `docs/art/boss-canopy` is the 林冠 readme and QA report. `style_ref_v0.1.png` is concept art and is not in the game
 - `src/domain/*.test.ts` — review scheduling, card and badge tone, the 3-slot loadout, question pools, and lexicographic scoring

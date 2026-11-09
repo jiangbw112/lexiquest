@@ -9,11 +9,11 @@ import {
 } from "../../domain/chapter-rewards";
 import { OUTFITS } from "../../domain/outfits";
 import { equipOutfit } from "../../domain/progress";
-import { PLACEHOLDER_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { FOREST_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { WARRIOR_ART_NOTE } from "../p0";
-import { probeEnter } from "../probe";
+import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, paper } from "../ui";
 
@@ -50,7 +50,7 @@ export class WardrobeScene extends Phaser.Scene {
     this.children.removeAll(true);
     paper(this);
     this.add.text(150, 36, "衣柜", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(150, 84, `${WARRIOR_ART_NOTE}。${PLACEHOLDER_ART_LABEL}`, {
+    this.add.text(150, 84, `${WARRIOR_ART_NOTE}。${FOREST_ART_LABEL}`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#8a5a12",
@@ -118,6 +118,10 @@ export class WardrobeScene extends Phaser.Scene {
     const hero = new WarriorSprite(this, 1040, 400, 0.48, save.equippedCosmeticIds);
     hero.play("idle");
     drawEquippedTitle(this, 1040, 120, save.equippedTitleId);
+    const worn = save.equippedCosmeticIds.join(",") || "none";
+    const helmet = hero.isSlotVisible("outfit_head") ? "shown" : "hidden";
+    const back = hero.isSlotDrawn("back") ? "drawn" : "absent";
+    probeNote(`forest:equip:${worn}:helmet=${helmet}:back=${back}`);
     button(this, 1040, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
   }
 }
