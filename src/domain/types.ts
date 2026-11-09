@@ -141,7 +141,7 @@ export interface SaveData {
   equippedTitleId: string | null;
   masteryMilestonesClaimed: string[];
   clearRewardClaimed: boolean;
-  /** Grades the child is studying. At least one. Missing or empty saves become grade 3. */
+  /** Grades the child is studying. Empty until they pick at least one. Missing older saves stay empty. */
   selectedGrades: GradeBand[];
   clockOffsetMs: number;
   rewardQueue: RewardNotice[];

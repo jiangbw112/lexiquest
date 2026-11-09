@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { ensureDailyGoal, goalProgress, goalStatusLine, goalTarget, openingReminder } from "../../domain/parent";
-import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
+import { dismissReward, needsGradeChoice, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
 import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -18,8 +18,13 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (!getSave()) {
+    const save = getSave();
+    if (!save) {
       this.scene.start("title");
+      return;
+    }
+    if (needsGradeChoice(save)) {
+      this.scene.start("grades", { mode: "migrate" });
       return;
     }
     probeEnter("overworld");
@@ -47,6 +52,10 @@ export class OverworldScene extends Phaser.Scene {
   private go(scene: string): void {
     const save = getSave();
     if (!save || this.traveling) return;
+    if ((scene === "learn" || scene === "stages") && needsGradeChoice(save)) {
+      this.scene.start("grades", { mode: "migrate" });
+      return;
+    }
     if (scene === "stages") {
       const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
       if (tooSmall) {

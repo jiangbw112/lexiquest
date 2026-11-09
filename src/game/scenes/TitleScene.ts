@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { WarriorSprite } from "../art/warrior-sprite";
 import { DESKTOP_NOTE, WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
+import { needsGradeChoice } from "../../domain/progress";
 import { getSave } from "../session";
 import { FONT, button, listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
@@ -25,16 +26,21 @@ export class TitleScene extends Phaser.Scene {
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
     button(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
-    if (save) button(this, 640, 640, "新的冒险 N", () => this.scene.start("create"), { width: 220, fill: 0x5c6b62 });
+    if (save) button(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, fill: 0x5c6b62 });
     listenKeys(this, (event) => {
       if (event.code === "Enter") this.go(Boolean(getSave()));
-      if (event.code === "KeyN" && getSave()) this.scene.start("create");
+      if (event.code === "KeyN" && getSave()) this.scene.start("grades", { mode: "new" });
     });
     this.measureFps();
   }
 
   private go(hasSave: boolean): void {
-    this.scene.start(hasSave ? "overworld" : "create");
+    const save = getSave();
+    if (hasSave && save && needsGradeChoice(save)) {
+      this.scene.start("grades", { mode: "migrate" });
+      return;
+    }
+    this.scene.start(hasSave ? "overworld" : "grades", hasSave ? undefined : { mode: "new" });
   }
 
   private measureFps(): void {

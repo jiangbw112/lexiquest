@@ -26,7 +26,7 @@ Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or
 
 ## How to play
 
-1. Press Enter, choose one or more grades (3, 4, 5, 6; grade 3 if you leave them all off), and type a name with the keyboard. This chapter is a warrior. The painted figure is provisional art v0.1 (outfit A, battle view, facing right). Grades can be changed later on 给家长.
+1. Press Enter. A new game asks for one or more grades (3, 4, 5, or 6) before the name. Nothing is selected for you, including grade 3. An older save with no grade opens that same picker before the village. 学堂 and 对战 stay closed until at least one grade is picked. Grades can be changed later on 给家长, which still keeps the last selected grade instead of clearing them. Then type a name with the keyboard. This chapter is a warrior. The painted figure is provisional art v0.1 (outfit A, battle view, facing right).
 2. On the village map, click a building or press its number. 1 学堂, 2 对战, 3 词卡册, 4 复习桌, 5 技能, 6 衣柜, 7 同机练习, 8 给家长.
 3. In 学堂, study a SAMPLE DATA word from the grades you picked. Enter asks a meaning question, L plays a listening question, and P asks for keyboard spelling when that word allows it. Grade-3 basic words still use spelling. Advanced words spell only while the mastery badge is lit. Words marked none are never spelled. A correct answer grants the word card immediately.
 4. 对战 opens the five forest stages. A stage clears when its new words are learned and one small battle is won. Empty stages for a turned-off grade are skipped. Attack, block, and heal are keys 1–3. Skill slots are keys 4–6. Casting a skill card draws a question from due learned chapter words, or from learned chapter words if nothing is due. The same word is not asked again inside the last 3 questions when another word is available. A correct answer uses the card’s full effect. A wrong answer uses only the reduced base effect. Empty skill slots are filled with a weaker class base skill, so one equipped card is enough to start.
@@ -59,7 +59,7 @@ These are decided. They live in `src/domain/provisional.ts`. Boss health is v1 t
 | Base skill power scale | 0.45 of the class starter at level 1, and always weaker than that starter |
 | Base skill energy cost | 0, so a battle can start with one real card |
 | Wrong PvE skill answer | Level-1 power × 0.5. A correct answer still uses the full leveled power |
-| Grades | At least one of grades 3–6, default grade 3. Cards stay if a grade is turned off. Battle questions and due reviews for that grade pause until it is selected again |
+| Grades | At least one of grades 3–6, chosen before learning or battle. No default grade. Cards stay if a grade is turned off. Battle questions and due reviews for that grade pause until it is selected again |
 | Pronunciation | Browser text-to-speech |
 
 Friend 1v1 comparison is a confirmed rule, not a point formula. Combat health and damage in `src/domain/classes.ts` are ordinary MVP tuning.

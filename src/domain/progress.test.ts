@@ -10,6 +10,7 @@ import {
   gradePauseNotice,
   learnedCountInGrade,
   learnWord,
+  needsGradeChoice,
   practiceDuel,
   questLine,
   reviewWord,
@@ -31,6 +32,7 @@ function newSave() {
     classId: "explorer",
     appearance: DEFAULT_APPEARANCE,
     now: START.getTime(),
+    grades: ["G3"],
   });
 }
 
@@ -162,7 +164,8 @@ describe("saved progress", () => {
     delete legacy.titles;
     const restored = deserialize(JSON.stringify(legacy));
     expect(restored?.chapterCleared).toBe(false);
-    expect(restored?.selectedGrades).toEqual(["G3"]);
+    expect(restored?.selectedGrades).toEqual([]);
+    expect(needsGradeChoice(restored!)).toBe(true);
     expect(restored?.stageWins).toEqual({});
     expect(restored?.titles).toEqual([]);
   });
@@ -199,6 +202,23 @@ describe("saved progress", () => {
     expect(again.titles).toEqual(cleared.titles);
   });
 
+  it("leaves an older save with no grade unchosen, so learning stays closed until one is picked", () => {
+    const current = newSave();
+    const raw = JSON.parse(serialize(current)) as { selectedGrades?: string[] };
+    delete raw.selectedGrades;
+    const migrated = deserialize(JSON.stringify(raw));
+    expect(migrated?.selectedGrades).toEqual([]);
+    expect(needsGradeChoice(migrated!)).toBe(true);
+    expect(learnWord(migrated!, "tree", START)).toBe(migrated);
+    const emptyList = deserialize(serialize({ ...current, selectedGrades: [] }));
+    expect(emptyList?.selectedGrades).toEqual([]);
+    expect(needsGradeChoice(emptyList!)).toBe(true);
+    const picked = setSelectedGrades(migrated!, ["G5", "G3"]);
+    expect(picked.selectedGrades).toEqual(["G3", "G5"]);
+    expect(needsGradeChoice(picked)).toBe(false);
+    expect(learnWord(picked, "tree", START).wordCards.tree).toBeTruthy();
+  });
+
   it("filters new learning to the selected grades and keeps a card that was already collected", () => {
     let save = createSave({
       name: "小林",
@@ -209,13 +229,17 @@ describe("saved progress", () => {
     });
     expect(save.selectedGrades).toEqual(["G3", "G6"]);
     expect(wordsForGrades(["G3"])).toHaveLength(228);
-    expect(wordsForGrades([])).toHaveLength(228);
+    expect(wordsForGrades([])).toHaveLength(0);
     expect(selectionBattleNotice(2)).toContain("再选一个年级");
     expect(selectionBattleNotice(wordsForGrades(["G6"]).length)).toBeNull();
 
     save = setSelectedGrades(save, []);
-    expect(save.selectedGrades).toEqual(["G3"]);
+    expect(save.selectedGrades).toEqual([]);
+    expect(needsGradeChoice(save)).toBe(true);
     expect(learnWord(save, "explore", START)).toBe(save);
+    expect(learnWord(save, "tree", START)).toBe(save);
+    save = setSelectedGrades(save, ["G3"]);
+    expect(needsGradeChoice(save)).toBe(false);
     save = learnWord(save, "tree", START);
     expect(save.wordCards.tree?.masteryBadge).toBe(false);
     save = setSelectedGrades(save, ["G6"]);

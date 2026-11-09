@@ -1,4 +1,4 @@
-import { sampleWords, wordById, type WordDef } from "./catalog";
+import { formatMeaning, sampleWords, wordById, type WordDef } from "./catalog";
 import { hashSeed, shuffle } from "./rng";
 
 export interface QuizChoice {
@@ -52,14 +52,14 @@ export function quizForWord(
   const distractors = pickDistractors(word, 2, seed || hashSeed(word.id));
   const choices = shuffle([word, ...distractors], (seed || 1) + 17).map((item) => ({
     id: item.id,
-    label: direction === "zh-to-en" ? item.english : item.chinese,
+    label: direction === "zh-to-en" ? item.english : formatMeaning(item),
   }));
   const listening = direction === "listen-to-zh";
   return {
     wordId: word.id,
     kind: listening ? "listening" : "meaning",
-    prompt: listening ? "听一听，选出意思。" : direction === "zh-to-en" ? `「${word.chinese}」用英语怎么说？` : `${word.english} 是什么意思？`,
-    hint: word.chinese,
+    prompt: listening ? "听一听，选出意思。" : direction === "zh-to-en" ? `「${formatMeaning(word)}」用英语怎么说？` : `${word.english} 是什么意思？`,
+    hint: formatMeaning(word),
     choices,
     answerId: word.id,
     direction,
@@ -88,7 +88,7 @@ export function spellingQuestion(wordId: string, badgeLit: boolean): SpellingQue
   return {
     kind: "spelling",
     wordId: word.id,
-    prompt: `用键盘拼出「${word.chinese}」。`,
+    prompt: `用键盘拼出「${formatMeaning(word)}」。`,
     answer: word.english,
     hint: spellingMarkHint(word.english),
   };

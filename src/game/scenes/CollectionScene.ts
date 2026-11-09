@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { sampleWords } from "../../domain/catalog";
+import { formatMeaning, sampleWords } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import { probeEnter } from "../probe";
@@ -41,7 +41,7 @@ export class CollectionScene extends Phaser.Scene {
       const y = 150 + row * 110;
       this.add.rectangle(x, y, 132, 96, tone === "grey" ? 0xe7e1d6 : 0xfff8ee).setStrokeStyle(3, tone === "bright" ? 0xc9891d : 0x17352a);
       this.add.text(x - 56, y - 34, word.english, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
-      this.add.text(x - 56, y - 6, word.chinese, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
+      this.add.text(x - 56, y - 6, formatMeaning(word), { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
       this.add.text(x - 56, y + 18, TONE_LABEL[tone], { fontFamily: FONT, fontSize: "14px", color: tone === "grey" ? "#8a7560" : "#8a5a12" });
     });
     button(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });

@@ -8,6 +8,8 @@ export interface WordDef {
   id: string;
   english: string;
   chinese: string;
+  /** Present only when the word list has a valid `pos`. The current list has none. */
+  pos?: string;
   gradeEst: GradeEstimate;
   grade: GradeBand;
   spelling: SpellingLevel;
@@ -30,7 +32,12 @@ export interface WordFileEntry {
   meaning_zh: string;
   grade_est: number;
   spelling: string;
+  /** Optional. Word list v1.2 will send this. Absent means the meaning stands alone. */
+  pos?: string;
 }
+
+/** Abbreviations v1.2 may use. `art.` is an article. Anything else is a bad field. */
+export const PARTS_OF_SPEECH = ["n.", "v.", "adj.", "adv.", "prep.", "pron.", "num.", "conj.", "interj.", "art."] as const;
 
 export interface UnitDef {
   id: string;
@@ -62,6 +69,24 @@ function isSpelling(value: string): value is SpellingLevel {
   return value === "basic" || value === "advanced" || value === "none";
 }
 
+function readPos(value: unknown, source: string, english: string): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== "string") throw new Error(`${source} word ${english} has a bad pos`);
+  const pos = value.trim();
+  if (!pos) return undefined;
+  if (!(PARTS_OF_SPEECH as readonly string[]).includes(pos)) {
+    throw new Error(`${source} word ${english} has a bad pos`);
+  }
+  return pos;
+}
+
+/** Part of speech, then the Chinese meaning. No pos means the meaning alone, with no extra space. */
+export function formatMeaning(word: { chinese: string; pos?: string }): string {
+  const pos = word.pos?.trim();
+  if (!pos) return word.chinese;
+  return `${pos} ${word.chinese}`;
+}
+
 export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
   if (!Array.isArray(file.words)) throw new Error(`${source} needs a words array`);
   const theme = file.theme?.trim() || SAMPLE_THEME;
@@ -74,11 +99,13 @@ export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
     if (!isGrade(entry.grade_est) || !isSpelling(entry.spelling)) {
       throw new Error(`${source} word ${english} has a bad grade or spelling`);
     }
+    const pos = readPos(entry.pos, source, english);
     const grade = GRADE_OF[entry.grade_est];
     return {
       id: english,
       english,
       chinese: entry.meaning_zh.trim(),
+      ...(pos ? { pos } : {}),
       gradeEst: entry.grade_est,
       grade,
       spelling: entry.spelling,
@@ -247,11 +274,13 @@ export function catalogWords(): WordDef[] {
 
 const GRADE_ORDER: GradeBand[] = ["G3", "G4", "G5", "G6"];
 
-/** At least one grade. An empty choice falls back to grade 3. */
+/**
+ * Keeps known grades, in order. An empty or missing choice stays empty.
+ * The player has to pick at least one before learning or battle. Grade 3 is not filled in.
+ */
 export function normalizeGrades(input: readonly string[] | undefined): GradeBand[] {
   const picked = new Set(input ?? []);
-  const grades = GRADE_ORDER.filter((grade) => picked.has(grade));
-  return grades.length > 0 ? grades : ["G3"];
+  return GRADE_ORDER.filter((grade) => picked.has(grade));
 }
 
 /** Library words in the selected grades. Chapter-only extras are not included. */

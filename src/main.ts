@@ -4,6 +4,7 @@ import { BattleScene } from "./game/scenes/BattleScene";
 import { BootScene } from "./game/scenes/BootScene";
 import { CollectionScene } from "./game/scenes/CollectionScene";
 import { CreateScene } from "./game/scenes/CreateScene";
+import { GradeScene } from "./game/scenes/GradeScene";
 import { DuelScene } from "./game/scenes/DuelScene";
 import { EndingScene } from "./game/scenes/EndingScene";
 import { GuideScene } from "./game/scenes/GuideScene";
@@ -36,6 +37,7 @@ const game = new Phaser.Game({
   scene: [
     BootScene,
     TitleScene,
+    GradeScene,
     CreateScene,
     OverworldScene,
     LearnScene,

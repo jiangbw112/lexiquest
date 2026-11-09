@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { wordById, wordsForGrades } from "../../domain/catalog";
+import { formatMeaning, wordById, wordsForGrades } from "../../domain/catalog";
 import { PROVISIONAL } from "../../domain/provisional";
 import { notePracticeAnswer } from "../../domain/parent";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
@@ -151,7 +151,7 @@ export class ReviewScene extends Phaser.Scene {
       const y = 228 + index * 100;
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
-      this.add.text(170, y, `${word.english}  ${word.chinese}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
+      this.add.text(170, y, `${word.english}  ${formatMeaning(word)}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
       this.add.text(520, y, tone === "none" ? "未熟练" : tone === "bright" ? "熟练" : "熟练·待复习", { fontFamily: FONT, fontSize: "18px", color: "#8a5a12" });
       this.add.text(170, y + 32, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
       if (due) {

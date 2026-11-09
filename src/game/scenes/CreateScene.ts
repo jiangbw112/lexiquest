@@ -11,14 +11,21 @@ import { commit } from "../session";
 import { FONT, button, paper } from "../ui";
 
 export class CreateScene extends Phaser.Scene {
-  private grades: GradeBand[] = ["G3"];
-  private notice = "默认三年级。可以再点其他年级。";
+  private grades: GradeBand[] = [];
 
   constructor() {
     super("create");
   }
 
+  init(data: { grades?: readonly string[] } = {}): void {
+    this.grades = normalizeGrades(data.grades);
+  }
+
   create(): void {
+    if (this.grades.length === 0) {
+      this.scene.start("grades", { mode: "new" });
+      return;
+    }
     probeEnter("create");
     this.draw();
     probeNote(`grades:${this.grades.join(",")}`);
@@ -53,51 +60,27 @@ export class CreateScene extends Phaser.Scene {
     this.scene.start(scene);
   }
 
-  private toggle(grade: GradeBand): void {
-    if (this.grades.includes(grade)) {
-      const next = this.grades.filter((item) => item !== grade);
-      if (next.length === 0) {
-        this.grades = ["G3"];
-        this.notice = "至少选一个年级。现在留下三年级。";
-      } else {
-        this.grades = next;
-        this.notice = "";
-      }
-    } else {
-      this.grades = normalizeGrades([...this.grades, grade]);
-      this.notice = "";
-    }
-    this.draw();
-    probeNote(`grades:${this.grades.join(",")}`);
-  }
-
   private draw(): void {
     this.children.removeAll(true);
     paper(this);
+    const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label ?? id).join("、");
     this.add.text(180, 64, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
     this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e", wordWrap: { width: 700 } });
     this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: "#17352a", wordWrap: { width: 700 } });
-    this.add.text(180, 470, "学习年级，可以多选", { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
-    GRADE_BANDS.forEach((grade, index) => {
-      const on = this.grades.includes(grade.id);
-      button(this, 280 + index * 190, 540, `${on ? "✓ " : ""}${grade.label}`, () => this.toggle(grade.id), {
-        width: 170,
-        fill: on ? 0x1f7a4d : 0x5c6b62,
-      });
-    });
-    this.add.text(180, 590, this.notice || "名字在画面中间输入。至少要留一个年级。", {
+    this.add.text(180, 470, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
+    this.add.text(180, 520, "名字在画面中间输入。Enter 出发。年级可以稍后在给家长里改。", {
       fontFamily: FONT,
       fontSize: "18px",
       color: "#3d5c4e",
       wordWrap: { width: 760 },
     });
-    this.add.text(180, 700, `${WARRIOR_ART_NOTE}。用键盘输入名字，Enter 出发。以后可以在给家长里改年级。`, {
+    this.add.text(180, 700, `${WARRIOR_ART_NOTE}。用键盘输入名字。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#3d5c4e",
     });
     const hero = new WarriorSprite(this, 980, 280, 0.5);
     hero.play("idle");
-    button(this, 180, 640, "返回", () => this.leave("title"), { width: 140, fill: 0x5c6b62 });
+    button(this, 180, 600, "重选年级", () => this.leave("grades"), { width: 180, fill: 0x5c6b62 });
   }
 }

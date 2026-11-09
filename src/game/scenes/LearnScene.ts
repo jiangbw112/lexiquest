@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { forestLearnUnits, GRADE_BANDS, wordById } from "../../domain/catalog";
-import { learnWord, studyNow } from "../../domain/progress";
+import { forestLearnUnits, formatMeaning, GRADE_BANDS, wordById } from "../../domain/catalog";
+import { learnWord, needsGradeChoice, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
   checkSpelling,
@@ -19,6 +19,10 @@ import { FONT, button, hint, listenKeys, paper } from "../ui";
 
 type Phase = "study" | "quiz" | "listen" | "spell" | "got";
 
+function posFixtureRequested(): boolean {
+  return typeof location !== "undefined" && new URLSearchParams(location.search).get("fixture") === "pos";
+}
+
 export class LearnScene extends Phaser.Scene {
   private unitIndex = 0;
   private phase: Phase = "study";
@@ -32,8 +36,13 @@ export class LearnScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (!getSave()) {
+    const save = getSave();
+    if (!save) {
       this.scene.start("title");
+      return;
+    }
+    if (needsGradeChoice(save)) {
+      this.scene.start("grades", { mode: "migrate" });
       return;
     }
     probeEnter("learn");
@@ -54,7 +63,7 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private units() {
-    const grades = new Set(getSave()?.selectedGrades ?? ["G3"]);
+    const grades = new Set(getSave()?.selectedGrades ?? []);
     return forestLearnUnits().filter((unit) => grades.has(unit.grade));
   }
 
@@ -220,7 +229,7 @@ export class LearnScene extends Phaser.Scene {
     if (this.phase === "got") {
       const got = wordById(this.justId ?? "");
       this.add.text(180, 240, "词卡入手", { fontFamily: FONT, fontSize: "28px", color: "#1f7a4d" });
-      this.add.text(180, 300, got ? `${got.english}  ${got.chinese}` : "", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
+      this.add.text(180, 300, got ? `${got.english}  ${formatMeaning(got)}` : "", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
       this.add.text(180, 370, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
       button(this, 320, 470, "继续 Enter", () => this.showStudy());
     } else if (!word) {
@@ -234,7 +243,16 @@ export class LearnScene extends Phaser.Scene {
     } else if (this.phase === "study") {
       if (this.missed) this.add.text(180, 200, "再看一次。答对才会收下词卡。", { fontFamily: FONT, fontSize: "18px", color: "#a33b24" });
       this.add.text(180, 250, word.english, { fontFamily: FONT, fontSize: "64px", color: "#17352a" });
-      this.add.text(180, 330, `${word.chinese} · 估计 ${word.grade} · 拼写 ${word.spelling}`, { fontFamily: FONT, fontSize: "24px", color: "#3d5c4e" });
+      this.add.text(180, 330, `${formatMeaning(word)} · 估计 ${word.grade} · 拼写 ${word.spelling}`, { fontFamily: FONT, fontSize: "24px", color: "#3d5c4e" });
+      if (posFixtureRequested()) {
+        this.add.text(760, 230, "FIXTURE", { fontFamily: FONT, fontSize: "18px", color: "#8a5a12" });
+        this.add.text(760, 262, formatMeaning({ chinese: "苹果", pos: "n." }), { fontFamily: FONT, fontSize: "32px", color: "#1f7a4d" });
+        this.add.text(760, 310, "词表还没有 pos。\n这不是词表里的词。", {
+          fontFamily: FONT,
+          fontSize: "16px",
+          color: "#8a5a12",
+        });
+      }
       button(this, 300, 460, "听一听 L", () => this.startListening(), { width: 200, fill: 0x3d6ea8 });
       button(this, 540, 460, "选意思 Enter", () => this.startMeaning(), { width: 220 });
       if (spellingAllowed(word, this.badgeLit(word.id))) button(this, 800, 460, "键盘拼写 P", () => this.startSpelling(), { width: 220, fill: 0x8a5a12 });

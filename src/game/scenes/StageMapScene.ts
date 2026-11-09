@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { studyNow } from "../../domain/progress";
+import { needsGradeChoice, studyNow } from "../../domain/progress";
 import {
   chapterDueCount,
   chapterLearnedCount,
@@ -30,8 +30,13 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (!getSave()) {
+    const save = getSave();
+    if (!save) {
       this.scene.start("title");
+      return;
+    }
+    if (needsGradeChoice(save)) {
+      this.scene.start("grades", { mode: "migrate" });
       return;
     }
     probeEnter("stages");

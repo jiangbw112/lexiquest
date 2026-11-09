@@ -1,5 +1,5 @@
 import { Rating, type Grade } from "ts-fsrs";
-import { GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
+import { formatMeaning, GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
 import { chapterWordIds, litMasteryCount } from "./stages";
 import { PROPOSALS } from "./proposals";
 import { withRewardDefaults } from "./chapter-rewards";
@@ -412,7 +412,7 @@ export function struggleWords(
     found.push({
       wordId,
       english: word.english,
-      meaning: word.chinese,
+      meaning: formatMeaning(word),
       againCount: agains.length,
       lastAgainAt,
       hint: "最近几次复习容易混",

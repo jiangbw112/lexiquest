@@ -288,6 +288,11 @@ export function setSelectedGrades(save: SaveData, grades: readonly string[]): Sa
   return { ...save, selectedGrades: normalizeGrades(grades) };
 }
 
+/** True when this save has never had a grade picked. Learning and battle stay closed. */
+export function needsGradeChoice(save: Pick<SaveData, "selectedGrades">): boolean {
+  return save.selectedGrades.length === 0;
+}
+
 /** What the village should tell the child to do next. */
 export function questLine(save: SaveData): string {
   const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);

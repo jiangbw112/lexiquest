@@ -4,13 +4,15 @@ import {
   CATALOG_WORDS,
   chapterExtraWords,
   chapterWords,
+  formatMeaning,
   mergeWordFiles,
+  PARTS_OF_SPEECH,
   readWordFile,
   wordById,
   wordsForGrades,
   type WordFile,
 } from "./catalog";
-import { checkSpelling, spellingAllowed, spellingQuestion } from "./questions";
+import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion } from "./questions";
 import { FOREST_CHAPTER } from "./stages";
 
 const GRADE_COUNTS = { 3: 228, 4: 214, 5: 257, 6: 164 } as const;
@@ -134,5 +136,45 @@ describe("PEP grades 3–6 v1.1 library", () => {
     });
     expect(JSON.stringify(loaded)).not.toContain("ghost");
     expect(JSON.stringify(loaded)).not.toContain("后来的义项");
+    expect(loaded[0]?.pos).toBeUndefined();
+  });
+
+  it("reads an optional pos, keeps a word without one, and rejects a bad pos", () => {
+    expect(CATALOG_WORDS.every((word) => word.pos === undefined)).toBe(true);
+    const withPos = readWordFile({
+      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "n." }],
+    });
+    expect(withPos[0]).toMatchObject({ id: "apple", chinese: "苹果", pos: "n." });
+    const bare = readWordFile({
+      words: [{ word: "big", meaning_zh: "大的", grade_est: 3, spelling: "basic" }],
+    });
+    expect(bare[0]?.pos).toBeUndefined();
+    expect(bare[0]).not.toHaveProperty("pos");
+    const blank = readWordFile({
+      words: [{ word: "big", meaning_zh: "大的", grade_est: 3, spelling: "basic", pos: "   " }],
+    });
+    expect(blank[0]).not.toHaveProperty("pos");
+    expect(() => readWordFile({
+      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "noun" }],
+    })).toThrow(/bad pos/);
+    expect(() => readWordFile({
+      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "n" }],
+    })).toThrow(/bad pos/);
+    for (const pos of PARTS_OF_SPEECH) {
+      const loaded = readWordFile({
+        words: [{ word: "apple", meaning_zh: "苹果", grade_est: 4, spelling: "basic", pos }],
+      });
+      expect(loaded[0]?.pos).toBe(pos);
+    }
+  });
+
+  it("puts the part of speech before the meaning, and leaves a bare meaning untouched", () => {
+    expect(formatMeaning({ chinese: "苹果", pos: "n." })).toBe("n. 苹果");
+    expect(formatMeaning({ chinese: "大的", pos: "adj." })).toBe("adj. 大的");
+    expect(formatMeaning({ chinese: "树" })).toBe("树");
+    expect(formatMeaning({ chinese: "树", pos: "  " })).toBe("树");
+    expect(formatMeaning({ chinese: "树" }).startsWith(" ")).toBe(false);
+    expect(quizForWord("tree", 1).prompt).toBe("「树」用英语怎么说？");
+    expect(quizForWord("tree", 1).hint).toBe("树");
   });
 });
