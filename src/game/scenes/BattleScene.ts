@@ -10,6 +10,8 @@ import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { badgeTone, isDue } from "../../domain/review";
 import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
+import { BOSS_BATTLE_POS, canopyPoses, type BossAnim } from "../art/boss-pack";
+import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
@@ -24,8 +26,11 @@ export class BattleScene extends Phaser.Scene {
   private state!: BattleState;
   private reported = false;
   private poses: WarriorAnim[] = ["idle"];
+  private bossPoses: BossAnim[] = ["idle"];
+  private bossReported = false;
   private clearedChapter = false;
   private launch: BattleLaunch = {};
+  private bossFight = false;
 
   constructor() {
     super("battle");
@@ -33,10 +38,12 @@ export class BattleScene extends Phaser.Scene {
 
   init(data: BattleLaunch = {}): void {
     this.launch = data ?? {};
+    this.bossFight = stageById(this.launch.stageId ?? 0)?.type === "boss";
   }
 
   preload(): void {
     queueWarriorAtlases(this);
+    if (this.bossFight) queueBossAtlases(this);
   }
 
   create(): void {
@@ -53,6 +60,8 @@ export class BattleScene extends Phaser.Scene {
     }
     probeEnter("battle");
     this.reported = false;
+    this.bossReported = false;
+    this.bossPoses = ["idle"];
     this.clearedChapter = false;
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
@@ -98,6 +107,7 @@ export class BattleScene extends Phaser.Scene {
       litWordIds,
     });
     this.poses = ["idle"];
+    this.bossPoses = ["idle"];
     this.draw();
   }
 
@@ -123,14 +133,15 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
-    const before = this.state.playerHp;
+    const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
     this.poses = battlePoses({
       action: "answer",
-      playerHpBefore: before,
+      playerHpBefore: before.playerHp,
       playerHpAfter: this.state.playerHp,
       phase: this.state.phase,
     });
+    this.syncBoss(before);
     this.finishIfNeeded();
     this.draw();
   }
@@ -145,23 +156,41 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
-    const before = this.state.playerHp;
+    const before = this.state;
     const result = takeAction(this.state, action);
     if (!result.ok) {
       this.state = { ...this.state, lastNote: result.reason ?? "现在不能这么做。" };
       this.poses = ["idle"];
+      this.bossPoses = ["idle"];
       this.draw();
       return;
     }
     this.state = result.state;
     this.poses = battlePoses({
       action: action.type,
-      playerHpBefore: before,
+      playerHpBefore: before.playerHp,
       playerHpAfter: this.state.playerHp,
       phase: this.state.phase,
     });
+    this.syncBoss(before);
     this.finishIfNeeded();
     this.draw();
+  }
+
+  private syncBoss(before: BattleState): void {
+    if (this.state.phase === "question") {
+      this.bossPoses = ["idle"];
+      return;
+    }
+    this.bossPoses = canopyPoses({
+      enemyHpBefore: before.enemyHp,
+      enemyHpAfter: this.state.enemyHp,
+      phaseIndexBefore: before.phaseIndex,
+      phaseIndexAfter: this.state.phaseIndex,
+      enemyHitsBefore: before.enemyHits,
+      enemyHitsAfter: this.state.enemyHits,
+      phase: this.state.phase,
+    });
   }
 
   private finishIfNeeded(): void {
@@ -188,13 +217,19 @@ export class BattleScene extends Phaser.Scene {
     this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
     const hero = new WarriorSprite(this, 300, 520, 0.72);
     hero.playSequence(this.poses);
-    const monster = this.add.image(980, 520, "actors", `monster/${this.state.enemySprite}`).setOrigin(0.5, 1).setFlipX(true);
-    monster.setScale(this.state.encounterId === CHAPTER_BOSS_ID ? 1.15 : 0.9);
-    if (this.state.enemySprite === "page" && this.state.encounterId !== "page") {
-      this.add.text(980, 250, "外形暂用页灵", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
-    }
-    if (this.state.enemySprite === "inkling" && this.state.encounterId !== "inkling") {
-      this.add.text(980, 250, "外形暂用墨团", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
+    if (this.state.encounterId === CHAPTER_BOSS_ID && this.state.enemySprite === "canopy") {
+      if (!this.bossReported) {
+        reportBossLoad(this);
+        this.bossReported = true;
+      }
+      const boss = new BossSprite(this, BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y);
+      boss.playSequence(this.bossPoses);
+    } else {
+      const monster = this.add.image(980, 520, "actors", `monster/${this.state.enemySprite}`).setOrigin(0.5, 1).setFlipX(true);
+      monster.setScale(0.9);
+      if (this.state.enemySprite === "inkling" && this.state.encounterId !== "inkling") {
+        this.add.text(980, 250, "外形暂用墨团", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
+      }
     }
     this.add.text(160, 70, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
     const phaseCount = this.state.phases?.length ?? 1;
@@ -205,7 +240,8 @@ export class BattleScene extends Phaser.Scene {
       color: "#17352a",
     });
     this.add.text(160, 108, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d" });
-    this.add.text(160, 146, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 960 } });
+    // Width 640 keeps a wrapped note left of the canopy, whose top sits near y=197 at scale 0.5.
+    this.add.text(160, 146, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 640 } });
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
     if (this.state.phase === "question" && this.state.question) {
       if (this.state.question.kind === "spelling") {

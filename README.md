@@ -31,7 +31,7 @@ Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or
 3. In 学堂, study a SAMPLE DATA word from the grades you picked. Enter asks a meaning question, L plays a listening question, and P asks for keyboard spelling when that word allows it. Grade-3 basic words still use spelling. Advanced words spell only while the mastery badge is lit. Words marked none are never spelled. A correct answer grants the word card immediately.
 4. 对战 opens the five forest stages. A stage clears when its new words are learned and one small battle is won. Empty stages for a turned-off grade are skipped. Attack, block, and heal are keys 1–3. Skill slots are keys 4–6. Casting a skill card draws a question from due learned chapter words, or from learned chapter words if nothing is due. The same word is not asked again inside the last 3 questions when another word is available. A correct answer uses the card’s full effect. A wrong answer uses only the reduced base effect. Empty skill slots are filled with a weaker class base skill, so one equipped card is enough to start.
 5. Winning grants experience, may level a skill, and earns the 林间斗篷. Losing does not take cards away and does not change review memory. A lost boss fight can be retried.
-6. The boss is 林心守护者, on the fifth stage, after the earlier stages are cleared and every chapter word in the selected grades has a card. The fight has two phases. Beating the boss clears the chapter even if no mastery badge is lit. The completion screen shows lit badges out of 28. The boss still uses the page picture until its own drawing is ready. Turning a grade off keeps cards you already collected. Battle questions and due reviews for that grade pause, and come back with the same FSRS state when you select it again. 给家长 shows a notice when that happens. If a future list is too small to start a battle, the village says so instead of starting a broken fight. The village token bobs in place and walks to a building when you choose it. The figure is still the placeholder.
+6. The boss is 林心守护者, on the fifth stage, after the earlier stages are cleared and every chapter word in the selected grades has a card. The fight has two phases. Beating the boss clears the chapter even if no mastery badge is lit. The completion screen shows lit badges out of 28. The boss figure is the provisional v0.1 林冠, one layer, facing left. Turning a grade off keeps cards you already collected. Battle questions and due reviews for that grade pause, and come back with the same FSRS state when you select it again. 给家长 shows a notice when that happens. If a future list is too small to start a battle, the village says so instead of starting a broken fight. The village token bobs in place and walks to a building when you choose it. The figure is still the placeholder.
 7. Open 复习桌. Scheduling follows FSRS (`ts-fsrs`), not a fixed 1/3/7-day ladder. The 学习沙漏 (T, Y, R) moves a local practice clock. An earned badge turns grey when the word is due or lapsed, and turns bright again after a correct review. The card stays.
 8. Collecting every sample card earns the 星光绶带. Collection is not mastery.
 9. 同机练习 is the existing same-device practice. It is not an online match, and it does not update FSRS. Friend 1v1 is deferred.
@@ -45,6 +45,7 @@ Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or
 - Review state is per word and follows FSRS. Mastery needs a correct review on at least 2 different Asia/Shanghai days and FSRS stability of at least 7 days. Repeating a word on the same day cannot award mastery by itself. Winning or losing a battle does not change memory or cards. Pausing a grade does not change that word’s FSRS state.
 - Rewards are earned. There is no random paid loot.
 - The P0 hero is one warrior appearance. Other classes and looks stay in the domain data for later art. The battle figure is 11 layered PNG atlases from the provisional v0.1 pack, not skeletal animation. Garment layers (`outfit_back`, `outfit_body`, `outfit_head`, `outfit_front`) stay separate from the body layers and from the sword and shield, so a later outfit can replace the clothes only. The village map has no top-down sheet in this pack, so the map token stays the geometric placeholder.
+- 林心守护者 uses the provisional v0.1 林冠 pack: one layer, 768² @2x, foot pivot (0.5, 0.875), facing left, scale 0.5, no flip. Idle loops at 6 fps. Attack, hit, and defeat play once. Defeat holds its last frame. The battle note wraps at 640px so a second line stays clear of the canopy.
 - Pronunciation for v1 is the browser speech engine. There are no third-party recordings.
 
 ## Decided v1 numbers
@@ -73,7 +74,7 @@ Provisional chapter numbers, also in `src/domain/provisional.ts`:
 
 林心守护者 is two phases of 65 health. 盾击 clears in 12 casts and 战吼 in 9. 旋风斩 is heavier and clears in 7. Spelling stays at or under 30% of boss questions. These can move after playtesting.
 
-Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB, under the 1.5 MB asset budget. The production JavaScript bundle is about 1.29 MB before gzip (about 348 KB gzipped) because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
+Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB, so `public/assets` is about 1.98 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
 
 ## Sample data
 
@@ -92,7 +93,8 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - The full PEP grades 3–6 word list. It is being researched separately. Drop it in `src/domain/data/` in the same schema when it is ready. Do not paste copyrighted textbook text before that.
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
-- The forest chapter’s completion cosmetic, and whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay out of 28 on the completion screen. The boss picture is still the page placeholder. Replace it by setting `bossSprite` in `src/domain/provisional.ts` when the drawing is in the actors atlas.
+- The forest chapter’s completion cosmetic, and whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay out of 28 on the completion screen. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
+- A final 林冠 drawing. v0.1 is the integrable pack under `public/assets/boss/canopy/v0.1`, documented in `docs/art/boss-canopy/`.
 - Outfit variants. 林间斗篷 and 星光绶带 are stored, but v0.1 bakes a single outfit A. Equipping them does not change the painted layers.
 - More appearances. The save still stores ponytail and freckles. The painted appearance A is short brown hair with the face baked into the body layer.
 - Walk is in the atlas (6 frames at 10 fps) and is not played in battle, because the battle scene does not move the figure.
@@ -102,7 +104,8 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 
 - `src/domain` — cards, FSRS review, battle, skill slots, duel scoring, rewards, save shape
 - `src/domain/data/forest-adventure.json` — the approved sample word list
-- `src/game` — Phaser 3 client, placeholder atlas, provisional warrior v0.1, and scenes
+- `src/game` — Phaser 3 client, placeholder atlas, provisional warrior v0.1, provisional 林冠 v0.1, and scenes
 - `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and `slots.json`
-- `docs/art` — the pack README, slot table, and QA report. `style_ref_v0.1.png` is concept art and is not in the game
+- `public/assets/boss/canopy/v0.1` — the four 林冠 atlases and `manifest.json`
+- `docs/art` — the warrior pack README, slot table, and QA report. `docs/art/boss-canopy` is the 林冠 readme and QA report. `style_ref_v0.1.png` is concept art and is not in the game
 - `src/domain/*.test.ts` — review scheduling, card and badge tone, the 3-slot loadout, question pools, and lexicographic scoring

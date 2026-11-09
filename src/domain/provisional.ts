@@ -3,7 +3,7 @@
  * Mastery, the 3-card skill cap, base-skill numbers, a wrong PvE answer, the
  * grade pause, and browser speech are decided. Friend 1v1 comparison is a
  * confirmed rule and is not configured here. Combat HP is separate MVP tuning.
- * The 林心守护者 figure is still a placeholder: change `bossSprite` when its drawing arrives.
+ * `bossSprite` is `canopy`: the provisional v0.1 林冠 pack, not an actors-atlas frame.
  * `chapterBattle` holds numbers that are not decided yet. Boss phase health is v1 tuning
  * so a clear lands near the confirmed 8–12 successful damage casts.
  */
@@ -28,8 +28,7 @@ export const PROVISIONAL = {
   },
   /**
    * Sample-chapter ending. Not a final story. Winning it does not change cards or memory.
-   * `bossSprite` is the actors-atlas frame under `monster/`. It is "page" until the
-   * 林冠 drawing is added; set it to that frame id and nothing else needs to change.
+   * `bossSprite` selects the provisional v0.1 林冠 pack (`boss_canopy_{anim}`).
    */
   chapterEnding: {
     label: "v1",
@@ -37,7 +36,7 @@ export const PROVISIONAL = {
     bossName: "林心守护者",
     bossHp: 65,
     bossAttack: 5,
-    bossSprite: "page",
+    bossSprite: "canopy",
     /** Two phases. 65 + 65 is about 12 盾击, 9 战吼, and 7 旋风斩 at level 1. */
     phases: [
       { hp: 65, note: "林心守护者挡住了去路。" },

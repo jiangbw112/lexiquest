@@ -1,0 +1,88 @@
+{
+ "frames": {
+  "boss_canopy_body_w_hit_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 528,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 132,
+    "y": 33,
+    "w": 528,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_hit_01": {
+   "frame": {
+    "x": 1060,
+    "y": 2,
+    "w": 529,
+    "h": 661
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 139,
+    "y": 35,
+    "w": 529,
+    "h": 661
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_hit_02": {
+   "frame": {
+    "x": 532,
+    "y": 2,
+    "w": 526,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 133,
+    "y": 33,
+    "w": 526,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest boss_linguan tools/pack_atlas.py (original, project-owned)",
+  "version": "0.1-provisional",
+  "image": "boss_canopy_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1592,
+   "h": 668
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

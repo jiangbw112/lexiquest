@@ -1,0 +1,172 @@
+{
+ "version": "0.1-provisional",
+ "status": "暂定（风格/配色待 Bowen 看 MVP 后定）",
+ "spec": "英语学习2D RPG 美术规范 v0.2；约定沿用战士 P0 v0.1",
+ "pack": "boss_canopy_battle_w",
+ "id": "boss_canopy",
+ "bossId": "canopy",
+ "displayName": "林冠",
+ "chapter": "forest (单人模式森林章节最终战)",
+ "domain": "boss",
+ "subject": "canopy",
+ "slot": "body",
+ "view": "battle side view",
+ "dir": "w",
+ "facing": "left",
+ "flipXNeeded": false,
+ "facingNote": "原图朝左，放在敌方一侧直接用，不要 setFlipX（PR #1 里占位页灵是 setFlipX(true)，换成本包时要去掉）",
+ "layers": [
+  {
+   "slot": "body",
+   "note": "单层，阴影已烘焙在帧内"
+  }
+ ],
+ "layerOrder_backToFront": [
+  "body"
+ ],
+ "logicW": 384,
+ "logicH": 384,
+ "sourceW": 768,
+ "sourceH": 768,
+ "scaleFactor": 2,
+ "pivot": {
+  "name": "foot",
+  "x": 384.0,
+  "y": 672.0,
+  "normalized": [
+   0.5,
+   0.875
+  ]
+ },
+ "anchors": {
+  "foot": [
+   384.0,
+   672.0
+  ]
+ },
+ "recommendedBattle": {
+  "x": 980,
+  "y": 520,
+  "scale": 0.5,
+  "origin": [
+   0.5,
+   0.875
+  ],
+  "screenBBoxUnionAllFrames": [
+   813,
+   197,
+   1121,
+   520
+  ],
+  "note": "scale 0.5 = 逻辑 1x（@2x 源图精确缩半，最清晰）。所有帧在 1280×800 里占 x 813–1121、y 197–520，在 safe 区 (107–1173) 和战斗面板 (90–1190, 70–530) 内。战士在 PR 中是 scale 0.72（显示约 260px 高），林冠约 323px 高、308px 宽。"
+ },
+ "atlases": [
+  {
+   "anim": "idle",
+   "textureKey": "boss_canopy_idle",
+   "json": "atlas/boss_canopy_w_idle@2x.json",
+   "image": "atlas/boss_canopy_w_idle@2x.png",
+   "format": "Phaser3 JSON Hash (trimmed, sourceSize 768x768, pivot per frame)"
+  },
+  {
+   "anim": "attack",
+   "textureKey": "boss_canopy_attack",
+   "json": "atlas/boss_canopy_w_attack@2x.json",
+   "image": "atlas/boss_canopy_w_attack@2x.png",
+   "format": "Phaser3 JSON Hash (trimmed, sourceSize 768x768, pivot per frame)"
+  },
+  {
+   "anim": "hit",
+   "textureKey": "boss_canopy_hit",
+   "json": "atlas/boss_canopy_w_hit@2x.json",
+   "image": "atlas/boss_canopy_w_hit@2x.png",
+   "format": "Phaser3 JSON Hash (trimmed, sourceSize 768x768, pivot per frame)"
+  },
+  {
+   "anim": "defeat",
+   "textureKey": "boss_canopy_defeat",
+   "json": "atlas/boss_canopy_w_defeat@2x.json",
+   "image": "atlas/boss_canopy_w_defeat@2x.png",
+   "format": "Phaser3 JSON Hash (trimmed, sourceSize 768x768, pivot per frame)"
+  }
+ ],
+ "animations": [
+  {
+   "key": "canopy_idle",
+   "anim": "idle",
+   "textureKey": "boss_canopy_idle",
+   "frameCount": 4,
+   "fps": 6,
+   "repeat": -1,
+   "loop": true,
+   "frameNames": [
+    "boss_canopy_body_w_idle_00",
+    "boss_canopy_body_w_idle_01",
+    "boss_canopy_body_w_idle_02",
+    "boss_canopy_body_w_idle_03"
+   ]
+  },
+  {
+   "key": "canopy_attack",
+   "anim": "attack",
+   "textureKey": "boss_canopy_attack",
+   "frameCount": 6,
+   "fps": 12,
+   "repeat": 0,
+   "loop": false,
+   "frameNames": [
+    "boss_canopy_body_w_attack_00",
+    "boss_canopy_body_w_attack_01",
+    "boss_canopy_body_w_attack_02",
+    "boss_canopy_body_w_attack_03",
+    "boss_canopy_body_w_attack_04",
+    "boss_canopy_body_w_attack_05"
+   ]
+  },
+  {
+   "key": "canopy_hit",
+   "anim": "hit",
+   "textureKey": "boss_canopy_hit",
+   "frameCount": 3,
+   "fps": 8,
+   "repeat": 0,
+   "loop": false,
+   "frameNames": [
+    "boss_canopy_body_w_hit_00",
+    "boss_canopy_body_w_hit_01",
+    "boss_canopy_body_w_hit_02"
+   ]
+  },
+  {
+   "key": "canopy_defeat",
+   "anim": "defeat",
+   "textureKey": "boss_canopy_defeat",
+   "frameCount": 6,
+   "fps": 8,
+   "repeat": 0,
+   "loop": false,
+   "frameNames": [
+    "boss_canopy_body_w_defeat_00",
+    "boss_canopy_body_w_defeat_01",
+    "boss_canopy_body_w_defeat_02",
+    "boss_canopy_body_w_defeat_03",
+    "boss_canopy_body_w_defeat_04",
+    "boss_canopy_body_w_defeat_05"
+   ],
+   "holdLastFrame": true,
+   "note": "不循环，停在最后一帧（安静睡着、头顶小芽）"
+  }
+ ],
+ "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+ "source": "原创脚本 tools/make_linguan.py（代码矢量绘制，未用 AI 生图）",
+ "fonts": "无（精灵内无文字）",
+ "tags": [
+  "boss",
+  "forest",
+  "battle",
+  "side",
+  "west"
+ ],
+ "qaStatus": "integrable",
+ "qaNote": "脚本自检 8/8 通过 + 人工看过联系表和战斗 mock；尚未在 Phaser 运行时实际加载"
+}

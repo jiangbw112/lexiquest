@@ -76,6 +76,7 @@ export const ENCOUNTERS: EncounterDef[] = [
     blurb: "森林冒险的最后一关。前面的区域清关，并且所选年级的本章词都学过，才会开门。",
     accent: "#1f7a4d",
     winsRequired: 1,
+    /** Provisional v0.1 林冠 pack. The battle scene loads `boss_canopy_{anim}` instead of an actors frame. */
     sprite: PROVISIONAL.chapterEnding.bossSprite,
   },
 ];

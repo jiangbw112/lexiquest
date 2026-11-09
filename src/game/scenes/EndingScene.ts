@@ -52,7 +52,7 @@ export class EndingScene extends Phaser.Scene {
       color: "#8a5a12",
       wordWrap: { width: 860 },
     });
-    this.add.text(180, 510, "林心守护者的外形暂用页灵，正式的图换上后会替换这一张。", {
+    this.add.text(180, 510, "林心守护者的外形是暂定 v0.1 的林冠。正式的图定下来以后会换掉。", {
       fontFamily: FONT,
       fontSize: "18px",
       color: "#3d5c4e",

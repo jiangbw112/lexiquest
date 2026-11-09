@@ -1,0 +1,213 @@
+{
+ "checks": [
+  {
+   "check": "naming+counts+768x768 RGBA",
+   "pass": true,
+   "detail": "19 files (idle4/attack6/hit3/defeat6); "
+  },
+  {
+   "check": "foot pivot stable (shadow centre x=384±1, lowest opaque y=672±2, front+back roots touch ground, every frame incl. defeat)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "no per-frame jitter (idle bbox range ≤10px, idle bottom fixed, root band stable)",
+   "pass": true,
+   "detail": " range=[9, 8, 3, 0]"
+  },
+  {
+   "check": "no content within 4px of frame edge (no clipping)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "transparent edges clean (straight alpha; AA edge = outline/shadow colour; alpha-0 halo colour-bled, no black/white)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "alpha sanity (0 and 255 present, coverage 12–60%, no isolated specks <12px)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "atlases ≤2048², JSON Hash valid, rects in bounds, names match files, pixel-exact reconstruction",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "manifest fields complete; every manifest frame name exists in an atlas; idle/attack/hit/defeat present",
+   "pass": true,
+   "detail": ""
+  }
+ ],
+ "pass": true,
+ "metrics": {
+  "footLineY": {
+   "boss_canopy_body_w_idle_00": 673,
+   "boss_canopy_body_w_idle_01": 673,
+   "boss_canopy_body_w_idle_02": 673,
+   "boss_canopy_body_w_idle_03": 673,
+   "boss_canopy_body_w_attack_00": 673,
+   "boss_canopy_body_w_attack_01": 673,
+   "boss_canopy_body_w_attack_02": 673,
+   "boss_canopy_body_w_attack_03": 673,
+   "boss_canopy_body_w_attack_04": 673,
+   "boss_canopy_body_w_attack_05": 673,
+   "boss_canopy_body_w_hit_00": 673,
+   "boss_canopy_body_w_hit_01": 673,
+   "boss_canopy_body_w_hit_02": 673,
+   "boss_canopy_body_w_defeat_00": 673,
+   "boss_canopy_body_w_defeat_01": 673,
+   "boss_canopy_body_w_defeat_02": 673,
+   "boss_canopy_body_w_defeat_03": 673,
+   "boss_canopy_body_w_defeat_04": 673,
+   "boss_canopy_body_w_defeat_05": 673
+  },
+  "rootBandSpan": {
+   "boss_canopy_body_w_idle_00": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_idle_01": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_idle_02": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_idle_03": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_attack_00": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_attack_01": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_attack_02": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_attack_03": [
+    93,
+    594
+   ],
+   "boss_canopy_body_w_attack_04": [
+    89,
+    594
+   ],
+   "boss_canopy_body_w_attack_05": [
+    87,
+    594
+   ],
+   "boss_canopy_body_w_hit_00": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_hit_01": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_hit_02": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_defeat_00": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_defeat_01": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_defeat_02": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_defeat_03": [
+    191,
+    594
+   ],
+   "boss_canopy_body_w_defeat_04": [
+    161,
+    618
+   ],
+   "boss_canopy_body_w_defeat_05": [
+    161,
+    618
+   ]
+  },
+  "idleBBoxRange_x0y0x1y1": [
+   9,
+   8,
+   3,
+   0
+  ],
+  "edgeOffColourFraction": {
+   "boss_canopy_body_w_idle_00": 0.0036,
+   "boss_canopy_body_w_idle_01": 0.0034,
+   "boss_canopy_body_w_idle_02": 0.0034,
+   "boss_canopy_body_w_idle_03": 0.0036,
+   "boss_canopy_body_w_attack_00": 0.0037,
+   "boss_canopy_body_w_attack_01": 0.0,
+   "boss_canopy_body_w_attack_02": 0.0036,
+   "boss_canopy_body_w_attack_03": 0.0032,
+   "boss_canopy_body_w_attack_04": 0.003,
+   "boss_canopy_body_w_attack_05": 0.003,
+   "boss_canopy_body_w_hit_00": 0.0041,
+   "boss_canopy_body_w_hit_01": 0.0039,
+   "boss_canopy_body_w_hit_02": 0.0036,
+   "boss_canopy_body_w_defeat_00": 0.0041,
+   "boss_canopy_body_w_defeat_01": 0.0036,
+   "boss_canopy_body_w_defeat_02": 0.0029,
+   "boss_canopy_body_w_defeat_03": 0.0029,
+   "boss_canopy_body_w_defeat_04": 0.0032,
+   "boss_canopy_body_w_defeat_05": 0.003
+  },
+  "eyeTealPx": {
+   "boss_canopy_body_w_idle_00": 779,
+   "boss_canopy_body_w_idle_01": 776,
+   "boss_canopy_body_w_idle_02": 780,
+   "boss_canopy_body_w_idle_03": 781,
+   "boss_canopy_body_w_attack_00": 1089,
+   "boss_canopy_body_w_attack_01": 1061,
+   "boss_canopy_body_w_attack_02": 1138,
+   "boss_canopy_body_w_attack_03": 1422,
+   "boss_canopy_body_w_attack_04": 1256,
+   "boss_canopy_body_w_attack_05": 1235,
+   "boss_canopy_body_w_hit_00": 0,
+   "boss_canopy_body_w_hit_01": 0,
+   "boss_canopy_body_w_hit_02": 779,
+   "boss_canopy_body_w_defeat_00": 0,
+   "boss_canopy_body_w_defeat_01": 504,
+   "boss_canopy_body_w_defeat_02": 472,
+   "boss_canopy_body_w_defeat_03": 0,
+   "boss_canopy_body_w_defeat_04": 0,
+   "boss_canopy_body_w_defeat_05": 0
+  }
+ },
+ "atlasSizes": {
+  "idle": [
+   2028,
+   676
+  ],
+  "attack": [
+   1716,
+   1336
+  ],
+  "hit": [
+   1592,
+   668
+  ],
+  "defeat": [
+   2048,
+   1204
+  ]
+ },
+ "atlasTotalKB": 1115.5
+}

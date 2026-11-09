@@ -1,0 +1,160 @@
+{
+ "frames": {
+  "boss_canopy_body_w_attack_00": {
+   "frame": {
+    "x": 489,
+    "y": 2,
+    "w": 485,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 164,
+    "y": 33,
+    "w": 485,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_attack_01": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 485,
+    "h": 667
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 29,
+    "w": 485,
+    "h": 667
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_attack_02": {
+   "frame": {
+    "x": 976,
+    "y": 2,
+    "w": 516,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 126,
+    "y": 33,
+    "w": 516,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_attack_03": {
+   "frame": {
+    "x": 1165,
+    "y": 671,
+    "w": 546,
+    "h": 660
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 36,
+    "w": 546,
+    "h": 660
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_attack_04": {
+   "frame": {
+    "x": 600,
+    "y": 671,
+    "w": 563,
+    "h": 661
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 69,
+    "y": 35,
+    "w": 563,
+    "h": 661
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_canopy_body_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 671,
+    "w": 596,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 48,
+    "y": 33,
+    "w": 596,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest boss_linguan tools/pack_atlas.py (original, project-owned)",
+  "version": "0.1-provisional",
+  "image": "boss_canopy_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1716,
+   "h": 1336
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}
