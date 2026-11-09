@@ -11,7 +11,7 @@ export type SkillCardRules = {
 
 export const SKILL_CARD_RULES: SkillCardRules = PROVISIONAL.skillCards;
 
-export const MAX_EQUIPPED_SKILLS = 3;
+export const MAX_EQUIPPED_SKILLS = PROVISIONAL.skillCards.maxEquipped;
 export const MAX_SKILL_LEVEL = 3;
 
 export type SkillKind = "damage" | "guard" | "heal" | "strike-guard";

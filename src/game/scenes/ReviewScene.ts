@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { wordById } from "../../domain/catalog";
+import { wordById, wordsForGrades } from "../../domain/catalog";
 import { PROVISIONAL } from "../../domain/provisional";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
@@ -59,7 +59,9 @@ export class ReviewScene extends Phaser.Scene {
   private firstDue(): string | undefined {
     const save = getSave();
     if (!save) return undefined;
-    return reviewDesk(Object.values(save.memory), studyNow(save)).keyTargetId;
+    const allowed = new Set(wordsForGrades(save.selectedGrades).map((word) => word.id));
+    const open = Object.values(save.memory).filter((memory) => allowed.has(memory.wordId));
+    return reviewDesk(open, studyNow(save)).keyTargetId;
   }
 
   private shift(delta: number): void {
@@ -91,7 +93,7 @@ export class ReviewScene extends Phaser.Scene {
     const mastery = PROVISIONAL.mastery;
     const now = studyNow(save);
     this.add.text(160, 36, "复习桌", { fontFamily: FONT, fontSize: "34px", color: "#17352a" });
-    this.add.text(160, 78, `暂定：至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ${mastery.minStability}。同一天反复练习不会点亮徽章。`, {
+    this.add.text(160, 78, `至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ${mastery.minStability} 天。同一天反复练习不会点亮徽章。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#8a5a12",
@@ -103,9 +105,18 @@ export class ReviewScene extends Phaser.Scene {
       mutate((current) => resetClock(current));
       this.draw();
     }, { width: 220, fill: 0x5c6b62 });
-    const desk = reviewDesk(Object.values(save.memory), now);
-    if (desk.shown.length === 0) {
+    const allowed = new Set(wordsForGrades(save.selectedGrades).map((word) => word.id));
+    const open = Object.values(save.memory).filter((memory) => allowed.has(memory.wordId));
+    const desk = reviewDesk(open, now);
+    if (Object.keys(save.wordCards).length === 0) {
       this.add.text(170, 220, "还没有词卡。先去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: "#3d5c4e" });
+    } else if (desk.shown.length === 0) {
+      this.add.text(170, 220, "所选年级里没有要复习的词。已经学过的词卡还在册子里，重新勾选年级后会恢复。", {
+        fontFamily: FONT,
+        fontSize: "22px",
+        color: "#3d5c4e",
+        wordWrap: { width: 860 },
+      });
     } else if (!desk.keyTargetId) {
       this.add.text(170, 190, "现在没有到复习时间的词。按 T 拨快 10 分钟，按 Y 拨快一天。", {
         fontFamily: FONT,

@@ -1,7 +1,6 @@
 /**
- * Pronunciation source is not decided. Callers talk to this interface.
- * The browser implementation uses speechSynthesis. Tests use the placeholder.
- * Do not ship third-party recordings.
+ * v1 pronunciation is the browser speech engine. Callers talk to this interface.
+ * Tests use the placeholder. There are no third-party recordings.
  */
 export interface WordSpeaker {
   speak(text: string): void;

@@ -59,10 +59,10 @@ export const ENCOUNTERS: EncounterDef[] = [
     title: "词灵 · 林冠",
     maxHp: PROVISIONAL.chapterEnding.bossHp,
     attack: PROVISIONAL.chapterEnding.bossAttack,
-    blurb: "暂定结局。示例词卡集齐之后才会出现。外形先沿用页灵。",
+    blurb: "示例章节的结局。所选年级的词卡集齐之后才会出现。",
     accent: "#1f7a4d",
     winsRequired: 1,
-    sprite: "page",
+    sprite: PROVISIONAL.chapterEnding.bossSprite,
   },
 ];
 
@@ -305,7 +305,7 @@ export function takeAction(
       allowedIds: state.allowedWordIds ?? undefined,
     });
     if (pool.length === 0) {
-      return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再选年级。已经学过的词仍会在复习桌出现。", state };
+      return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。", state };
     }
     let drawn: { wordId: string; deck: SkillQuestionDeck };
     try {

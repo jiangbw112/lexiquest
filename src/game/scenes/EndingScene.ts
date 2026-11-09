@@ -40,7 +40,7 @@ export class EndingScene extends Phaser.Scene {
       color: "#3d5c4e",
       wordWrap: { width: 860 },
     });
-    this.add.text(180, 400, "林冠的外形暂用页灵。探险家、其他职业和完整的课文词表还没有。", {
+    this.add.text(180, 400, "林冠的外形暂用页灵，正式的图换上后会替换这一张。探险家和其他职业的图还没有。", {
       fontFamily: FONT,
       fontSize: "20px",
       color: "#3d5c4e",

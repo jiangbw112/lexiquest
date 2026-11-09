@@ -6,6 +6,8 @@ import {
   applyBattleOutcome,
   createSave,
   equipSkill,
+  gradePauseNotice,
+  learnedCountInGrade,
   learnWord,
   practiceDuel,
   questLine,
@@ -201,10 +203,20 @@ describe("saved progress", () => {
     expect(save.wordCards.tree?.masteryBadge).toBe(false);
     save = setSelectedGrades(save, ["G6"]);
     expect(save.wordCards.tree).toBeTruthy();
-    expect(learnWord(save, "tree", START).wordCards.tree).toBe(save.wordCards.tree);
+    expect(learnedCountInGrade(save, "G3")).toBe(1);
+    expect(gradePauseNotice("三年级", 1)).toBe(
+      "取消三年级后，已学的1个单词卡会保留，但战斗里不会再考这些词，到期复习也会暂停；重新勾选即可恢复。",
+    );
+    const pausedMemory = save.memory.tree;
+    const paused = reviewWord(save, "tree", Rating.Good, new Date(save.memory.tree!.fsrs.due));
+    expect(paused).toBe(save);
+    expect(paused.memory.tree).toBe(pausedMemory);
+    save = setSelectedGrades(save, ["G3", "G6"]);
+    expect(save.memory.tree).toBe(pausedMemory);
     const reviewed = reviewWord(save, "tree", Rating.Good, new Date(save.memory.tree!.fsrs.due));
-    expect(reviewed.memory.tree).not.toBe(save.memory.tree);
+    expect(reviewed.memory.tree).not.toBe(pausedMemory);
     expect(reviewed.wordCards.tree?.wordId).toBe("tree");
+    save = setSelectedGrades(reviewed, ["G6"]);
     save = learnWord(save, "explore", START);
     expect(save.wordCards.explore).toBeTruthy();
     expect(save.wordCards.tree).toBeTruthy();

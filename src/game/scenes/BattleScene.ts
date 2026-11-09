@@ -183,7 +183,7 @@ export class BattleScene extends Phaser.Scene {
     hero.playSequence(this.poses);
     const monster = this.add.image(980, 520, "actors", `monster/${encounter.sprite ?? encounter.id}`).setOrigin(0.5, 1).setFlipX(true);
     monster.setScale(encounter.id === CHAPTER_BOSS_ID ? 1.15 : 0.9);
-    if (encounter.sprite) {
+    if (encounter.sprite === "page" && encounter.id !== "page") {
       this.add.text(980, 250, "外形暂用页灵", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
     }
     this.add.text(160, 100, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { SAMPLE_THEME, SAMPLE_WORDS, sampleUnits, wordById } from "./catalog";
+import { mergeWordFiles, SAMPLE_THEME, SAMPLE_WORDS, sampleUnits, wordById, type WordFile } from "./catalog";
 import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingQuestion } from "./questions";
 import { placeholderSpeaker, speakWord } from "./speech";
 
@@ -22,6 +22,19 @@ describe("Forest Adventure sample words", () => {
     expect(grades.filter((grade) => grade === 5)).toHaveLength(6);
     expect(grades.filter((grade) => grade === 6)).toHaveLength(6);
     expect(sampleUnits().map((unit) => unit.grade)).toEqual(["G3", "G4", "G5", "G6"]);
+  });
+
+  it("loads one file or one file per grade from the same schema", () => {
+    const grade3 = raw.words.filter((word) => word.grade_est === 3);
+    const rest = raw.words.filter((word) => word.grade_est !== 3);
+    const files: Record<string, WordFile> = {
+      "grade-3.json": { theme: raw.theme, sample: true, words: grade3 },
+      "grades-4-6.json": { theme: raw.theme, sample: true, words: rest },
+    };
+    const merged = mergeWordFiles(files);
+    expect(merged.map((word) => word.id).sort()).toEqual(raw.words.map((word) => word.word).sort());
+    expect(merged.every((word) => word.sample)).toBe(true);
+    expect(() => mergeWordFiles({ ...files, "again.json": { words: [grade3[0]!] } })).toThrow(/tree/);
   });
 
   it("prefers distractors from the same theme and grade", () => {

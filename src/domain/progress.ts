@@ -105,7 +105,7 @@ export function resetClock(save: SaveData): SaveData {
 
 export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
   const word = wordById(wordId);
-  if (!word?.sample) return save;
+  if (!word) return save;
   if (!normalizeGrades(save.selectedGrades).includes(word.grade)) return save;
   if (save.wordCards[wordId]) return save;
   const wordCards = grantWordCard(save.wordCards, wordId, now.getTime());
@@ -133,10 +133,25 @@ export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
   return refreshUnlocks(next);
 }
 
+export function gradeIsOpen(save: SaveData, wordId: string): boolean {
+  const word = wordById(wordId);
+  return Boolean(word && normalizeGrades(save.selectedGrades).includes(word.grade));
+}
+
+export function learnedCountInGrade(save: SaveData, grade: string): number {
+  return Object.keys(save.wordCards).filter((id) => wordById(id)?.grade === grade).length;
+}
+
+/** Shown when a grade with collected cards is turned off. The change is already saved. */
+export function gradePauseNotice(gradeLabel: string, learnedCount: number): string {
+  return `取消${gradeLabel}后，已学的${learnedCount}个单词卡会保留，但战斗里不会再考这些词，到期复习也会暂停；重新勾选即可恢复。`;
+}
+
 export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: Date): SaveData {
   const existing = save.memory[wordId];
   const card = save.wordCards[wordId];
   if (!existing || !card) return save;
+  if (!gradeIsOpen(save, wordId)) return save;
   const updated = applyReview(existing, rating, now);
   const decision = masteryDecision(updated);
   let wordCards: Record<string, WordCardRecord> = save.wordCards;

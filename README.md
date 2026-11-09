@@ -31,7 +31,7 @@ Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or
 3. In 学堂, study a SAMPLE DATA word from the grades you picked. Enter asks a meaning question, L plays a listening question, and P asks for keyboard spelling when that word allows it. Grade-3 basic words still use spelling. A correct answer grants the word card immediately.
 4. After 4 cards, battle 墨团. Attack, block, and heal are keys 1–3. Skill slots are keys 4–6. Casting a skill card draws a question from due learned words, or from learned words if nothing is due. A correct answer uses the card’s full effect. A wrong answer uses only the reduced base effect. Empty skill slots are filled with a weaker class base skill, so one equipped card is enough to start.
 5. Winning grants experience, may level a skill, and earns the 林间斗篷. Losing does not take cards away and does not change review memory.
-6. The sample chapter goal follows the grades you picked: collect those Forest Adventure cards, then win the provisional 林冠 battle. Selecting every grade is the full 28-word sample. That ending is marked provisional. It does not change cards or review memory. Turning a grade off leaves cards you already collected, and their reviews still come due. New lessons and battle questions that are not drawn from the due list use the selected grades only. If a future list is too small to start a battle, the village says so instead of starting a broken fight. The village token bobs in place and walks to a building when you choose it. The figure is still the placeholder.
+6. The sample chapter goal follows the grades you picked: collect those Forest Adventure cards, then win the provisional 林冠 battle. Selecting every grade is the full 28-word sample. That ending is marked provisional, and the boss still uses the page picture until its own drawing is ready. It does not change cards or review memory. Turning a grade off keeps cards you already collected. Battle questions and due reviews for that grade pause, and come back with the same FSRS state when you select it again. 给家长 shows a notice when that happens. If a future list is too small to start a battle, the village says so instead of starting a broken fight. The village token bobs in place and walks to a building when you choose it. The figure is still the placeholder.
 7. Open 复习桌. Scheduling follows FSRS (`ts-fsrs`), not a fixed 1/3/7-day ladder. The 学习沙漏 (T, Y, R) moves a local practice clock. An earned badge turns grey when the word is due or lapsed, and turns bright again after a correct review. The card stays.
 8. Collecting every sample card earns the 星光绶带. Collection is not mastery.
 9. 同机练习 is the existing same-device practice. It is not an online match, and it does not update FSRS. Friend 1v1 is deferred.
@@ -40,32 +40,36 @@ Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or
 
 - Learning grants the word card at once. A mastery badge is separate. The card is permanent. The badge greys out when the word is due or lapsed and is restored after a correct review. Changing the badge never deletes the card.
 - Word cards and skill cards are different. A skill card is not bound to a word. Players carry at most 3 skill cards. Empty slots are auto-filled with the weaker class base skill.
-- When a skill card is cast in PvE, the question comes from that child’s FSRS-due learned words, including a word whose grade was later turned off. If none are due, it comes from learned words in the selected grades. Unlearned words are never used. The deck uses the whole pool before repeating the same words.
+- When a skill card is cast in PvE, the question comes from that child’s FSRS-due learned words in the grades that are still selected. If none are due, it comes from learned words in those grades. A deselected grade is not asked, and its reviews pause. Unlearned words are never used. The deck uses the whole pool before repeating the same words.
 - In a friend 1v1, both sides use one shared learned-word pool and identical slot values. Scoring is lexicographic: more correct answers wins; if the counts match, the lower total time on correct answers wins. Wrong answers add neither a count nor time. 1v1 answers do not update FSRS.
-- Review state is per word and follows FSRS. Repeating a word on the same Asia/Shanghai calendar day cannot award mastery by itself. Winning or losing a battle does not change memory or cards.
+- Review state is per word and follows FSRS. Mastery needs a correct review on at least 2 different Asia/Shanghai days and FSRS stability of at least 7 days. Repeating a word on the same day cannot award mastery by itself. Winning or losing a battle does not change memory or cards. Pausing a grade does not change that word’s FSRS state.
 - Rewards are earned. There is no random paid loot.
 - The P0 hero is one warrior appearance. Other classes and looks stay in the domain data for later art. The battle figure is 11 layered PNG atlases from the provisional v0.1 pack, not skeletal animation. Garment layers (`outfit_back`, `outfit_body`, `outfit_head`, `outfit_front`) stay separate from the body layers and from the sword and shield, so a later outfit can replace the clothes only. The village map has no top-down sheet in this pack, so the map token stays the geometric placeholder.
-- Audio is an interface. The game uses the browser speech engine when it exists. There are no third-party recordings.
+- Pronunciation for v1 is the browser speech engine. There are no third-party recordings.
 
-## Provisional and configurable numbers
+## Decided v1 numbers
 
-These product numbers are not approved. They live in `src/domain/provisional.ts`.
+These are decided. They live in `src/domain/provisional.ts`. The sample-chapter ending in that file is still open.
 
 | Rule | Value |
 | --- | --- |
-| Mastery badge | At least 2 different Asia/Shanghai calendar days, and FSRS stability ≥ 4 |
+| Mastery badge | A correct review on at least 2 different Asia/Shanghai days, and FSRS stability ≥ 7 days |
+| Skill cards carried | 3 |
 | Base skill power scale | 0.45 of the class starter at level 1, and always weaker than that starter |
 | Base skill energy cost | 0, so a battle can start with one real card |
 | Wrong PvE skill answer | Level-1 power × 0.5. A correct answer still uses the full leveled power |
-| Grade filter | At least one of grades 3–6, default grade 3. Collected cards and due reviews stay if a grade is turned off |
+| Grades | At least one of grades 3–6, default grade 3. Cards stay if a grade is turned off. Battle questions and due reviews for that grade pause until it is selected again |
+| Pronunciation | Browser text-to-speech |
 
-Friend 1v1 comparison is a confirmed rule, not a point formula. Combat health and damage in `src/domain/classes.ts` are ordinary MVP tuning, not these unapproved numbers.
+Friend 1v1 comparison is a confirmed rule, not a point formula. Combat health and damage in `src/domain/classes.ts` are ordinary MVP tuning. The 林冠 health in the same file as these rules is still a placeholder.
 
 Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB, under the 1.5 MB asset budget. The production JavaScript bundle is about 1.29 MB before gzip (about 348 KB gzipped) because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
 
 ## Sample data
 
 `src/domain/data/forest-adventure.json` is the approved 28-word Forest Adventure list. The words are self-chosen common words, marked SAMPLE DATA, not textbook text. `grade_est` is an estimate. Spelling is `basic` (allowed from the start, including grade 3), `advanced` (only after the mastery badge), or `none`. Every word supports meaning and listening questions. Distractors come from the same theme and grade first. The grade map still has G3–G6, two semesters, and six unit slots. Only the first unit of each grade is filled.
+
+The loader reads every JSON file in `src/domain/data/`. Each file uses the same shape: `theme`, `sample`, and a `words` array of `{ word, meaning_zh, grade_est, spelling }`. One file can hold every grade, or each grade can have its own file. Adding a file does not require a code change. A repeated word id is refused. Do not invent words, and do not paste a copyrighted textbook list into the repo until that list is cleared. Set `"sample": false` on a later list if it should be studied without joining the Forest Adventure chapter reward.
 
 ## Save data
 
@@ -75,17 +79,14 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 
 - Server-authoritative save. This browser cache is not the child’s real progress.
 - Networked friend 1v1. Same-device practice uses the tested comparison. A real match must be server-authoritative for the room, judging, timing, the lexicographic result, and rewards, with replay, forgery, and duplicate-reward protection. The client must not submit the final result.
-- Reviewed word lists beyond this 28-word sample. Do not paste copyrighted textbook content into the empty unit slots.
+- The full PEP grades 3–6 word list. It is being researched separately. Drop it in `src/domain/data/` in the same schema when it is ready. Do not paste copyrighted textbook text before that.
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
-- A designed chapter ending. The current 林冠 battle and completion screen are a provisional way to finish the grades the child selected. The full 28-word sample is that path with every grade selected. The boss reuses the page placeholder.
-- A decision on whether turning a grade off should also hide its due reviews from battle questions. This MVP keeps those reviews.
+- A designed chapter ending. The current 林冠 battle and completion screen are a provisional way to finish the grades the child selected. The full 28-word sample is that path with every grade selected. The boss picture is still the page placeholder. Replace it by setting `bossSprite` in `src/domain/provisional.ts` when the drawing is in the actors atlas.
 - Outfit variants. 林间斗篷 and 星光绶带 are stored, but v0.1 bakes a single outfit A. Equipping them does not change the painted layers.
 - More appearances. The save still stores ponytail and freckles. The painted appearance A is short brown hair with the face baked into the body layer.
 - Walk is in the atlas (6 frames at 10 fps) and is not played in battle, because the battle scene does not move the figure.
-- A decided pronunciation source. The speech interface can take a future recording set. Do not drop in third-party audio without that decision.
 - Tablet touch and an iPad app. This MVP does not target them.
-- Approved replacements for the mastery threshold and the skill-card numbers above.
 
 ## Layout
 

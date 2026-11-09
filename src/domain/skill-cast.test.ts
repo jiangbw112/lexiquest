@@ -32,10 +32,10 @@ describe("skill card questions", () => {
     expect(drawn).not.toContain("tree");
   });
 
-  it("keeps a due word from a deselected grade, and filters only the non-due pool", () => {
-    expect(skillQuestionPool(["tree"], ["tree", "explore"], { allowedIds: ["explore"] })).toEqual(["tree"]);
-    expect(skillQuestionPool([], ["tree", "explore"], { allowedIds: ["explore"] })).toEqual(["explore"]);
-    expect(skillQuestionPool([], ["tree"], { allowedIds: ["explore"] })).toEqual([]);
+  it("does not ask a due word from a deselected grade", () => {
+    expect(skillQuestionPool(["tree"], ["tree", "explore"], { allowedIds: ["explore"] })).toEqual(["explore"]);
+    expect(skillQuestionPool(["tree", "explore"], ["tree", "explore"], { allowedIds: ["explore"] })).toEqual(["explore"]);
+    expect(skillQuestionPool(["tree"], ["tree"], { allowedIds: ["explore"] })).toEqual([]);
   });
 
   it("deals the whole pool before repeating, instead of cycling the same three words", () => {

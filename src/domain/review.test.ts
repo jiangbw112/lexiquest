@@ -50,7 +50,7 @@ describe("adaptive review", () => {
     expect(decision.stability).toBeGreaterThanOrEqual(PROVISIONAL.mastery.minStability);
   });
 
-  it("awards mastery only after another calendar day once stability reaches the provisional threshold", () => {
+  it("awards mastery only after another calendar day once stability reaches 7 days", () => {
     const start = new Date("2026-03-01T02:00:00Z");
     let memory = introduceMemory("map", start, Rating.Good);
     expect(masteryDecision(memory, PROVISIONAL.mastery, TZ).award).toBe(false);

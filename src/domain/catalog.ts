@@ -1,4 +1,3 @@
-import forest from "./data/forest-adventure.json";
 import type { GradeBand, Semester } from "./types";
 
 export type SpellingLevel = "basic" | "advanced" | "none";
@@ -11,10 +10,25 @@ export interface WordDef {
   gradeEst: GradeEstimate;
   grade: GradeBand;
   spelling: SpellingLevel;
-  theme: "Forest Adventure";
+  theme: string;
   unitId: string;
-  /** Original sample content. Not textbook text. */
-  sample: true;
+  /** True for the Forest Adventure sample. A later file can set this false. */
+  sample: boolean;
+}
+
+/** One word list. A file may hold every grade, or only one grade. */
+export interface WordFile {
+  theme?: string;
+  sample?: boolean;
+  note?: string;
+  words: WordFileEntry[];
+}
+
+export interface WordFileEntry {
+  word: string;
+  meaning_zh: string;
+  grade_est: number;
+  spelling: string;
 }
 
 export interface UnitDef {
@@ -47,23 +61,58 @@ function isSpelling(value: string): value is SpellingLevel {
   return value === "basic" || value === "advanced" || value === "none";
 }
 
-export const SAMPLE_WORDS: WordDef[] = forest.words.map((entry) => {
-  if (!isGrade(entry.grade_est) || !isSpelling(entry.spelling)) {
-    throw new Error(`Bad sample word: ${entry.word}`);
+export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
+  if (!Array.isArray(file.words)) throw new Error(`${source} needs a words array`);
+  const theme = file.theme?.trim() || SAMPLE_THEME;
+  const sample = file.sample !== false;
+  return file.words.map((entry) => {
+    const english = typeof entry.word === "string" ? entry.word.trim().toLowerCase() : "";
+    if (!english || typeof entry.meaning_zh !== "string" || !entry.meaning_zh.trim()) {
+      throw new Error(`${source} has a word entry missing word or meaning_zh`);
+    }
+    if (!isGrade(entry.grade_est) || !isSpelling(entry.spelling)) {
+      throw new Error(`${source} word ${english} has a bad grade or spelling`);
+    }
+    const grade = GRADE_OF[entry.grade_est];
+    return {
+      id: english,
+      english,
+      chinese: entry.meaning_zh.trim(),
+      gradeEst: entry.grade_est,
+      grade,
+      spelling: entry.spelling,
+      theme,
+      unitId: `${grade}-S1-U1`,
+      sample,
+    };
+  });
+}
+
+/** Merges every list. Adding a JSON file does not require a code change. Duplicate ids are refused. */
+export function mergeWordFiles(files: Record<string, WordFile>): WordDef[] {
+  const merged: WordDef[] = [];
+  const seen = new Map<string, string>();
+  for (const path of Object.keys(files).sort()) {
+    const file = files[path];
+    if (!file) continue;
+    for (const word of readWordFile(file, path)) {
+      const previous = seen.get(word.id);
+      if (previous) throw new Error(`Word ${word.id} is in both ${previous} and ${path}`);
+      seen.set(word.id, path);
+      merged.push(word);
+    }
   }
-  const grade = GRADE_OF[entry.grade_est];
-  return {
-    id: entry.word,
-    english: entry.word,
-    chinese: entry.meaning_zh,
-    gradeEst: entry.grade_est,
-    grade,
-    spelling: entry.spelling,
-    theme: SAMPLE_THEME,
-    unitId: `${grade}-S1-U1`,
-    sample: true,
-  };
-});
+  return merged;
+}
+
+interface WordGlob {
+  glob(pattern: string, options: { eager: true; import: "default" }): Record<string, WordFile>;
+}
+
+const wordFiles = (import.meta as unknown as WordGlob).glob("./data/**/*.json", { eager: true, import: "default" });
+
+export const CATALOG_WORDS: WordDef[] = mergeWordFiles(wordFiles);
+export const SAMPLE_WORDS: WordDef[] = CATALOG_WORDS.filter((word) => word.sample);
 
 export function listUnits(): UnitDef[] {
   const grades: GradeBand[] = ["G3", "G4", "G5", "G6"];
@@ -73,7 +122,7 @@ export function listUnits(): UnitDef[] {
     for (const semester of semesters) {
       for (let index = 1; index <= 6; index += 1) {
         const id = `${grade}-S${semester}-U${index}`;
-        const wordIds = SAMPLE_WORDS.filter((word) => word.unitId === id).map((word) => word.id);
+        const wordIds = CATALOG_WORDS.filter((word) => word.unitId === id).map((word) => word.id);
         const sample = wordIds.length > 0;
         units.push({
           id,
@@ -102,6 +151,10 @@ export function sampleWords(): WordDef[] {
   return SAMPLE_WORDS;
 }
 
+export function catalogWords(): WordDef[] {
+  return CATALOG_WORDS;
+}
+
 const GRADE_ORDER: GradeBand[] = ["G3", "G4", "G5", "G6"];
 
 /** At least one grade. An empty choice falls back to grade 3. */
@@ -114,11 +167,11 @@ export function normalizeGrades(input: readonly string[] | undefined): GradeBand
 /** Sample words whose estimated grade is one of the selected grades. */
 export function wordsForGrades(grades: readonly string[] | undefined): WordDef[] {
   const selected = new Set(normalizeGrades(grades));
-  return SAMPLE_WORDS.filter((word) => selected.has(word.grade));
+  return CATALOG_WORDS.filter((word) => selected.has(word.grade));
 }
 
 export function wordById(id: string): WordDef | undefined {
-  return SAMPLE_WORDS.find((word) => word.id === id);
+  return CATALOG_WORDS.find((word) => word.id === id);
 }
 
 export function wordsInUnit(unitId: string): WordDef[] {

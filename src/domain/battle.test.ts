@@ -168,7 +168,7 @@ describe("word-monster battle", () => {
     expect(rejected.state).toBe(state);
   });
 
-  it("asks a due word outside the selected grades, and explains an empty fallback pool", () => {
+  it("does not ask a due word outside the selected grades", () => {
     const shared = {
       encounterId: "inkling",
       classId: "warrior" as const,
@@ -182,8 +182,9 @@ describe("word-monster battle", () => {
     expect(empty.ok).toBe(false);
     expect(empty.reason).toContain("所选年级");
     const due = takeAction(startBattle({ ...shared, dueWordIds: ["tree"] }), { type: "skill", slotIndex: 0 });
-    expect(due.ok).toBe(true);
-    expect(due.state.question?.answerId).toBe("tree");
+    expect(due.ok).toBe(false);
+    expect(due.reason).toContain("所选年级");
+    expect(due.state.question).toBeNull();
   });
 
   it("keeps the chapter boss locked until every sample card is collected", () => {

@@ -43,7 +43,8 @@ describe("skill cards", () => {
   });
 
   it("fills empty slots with a weaker configurable base skill and never carries a fourth card", () => {
-    expect(PROVISIONAL.skillCards.label).toBe("CONFIGURABLE");
+    expect(PROVISIONAL.skillCards.label).toBe("v1");
+    expect(MAX_EQUIPPED_SKILLS).toBe(3);
     const one = fillSkillSlots("warrior", ["warrior-bash"], { "warrior-bash": 1 });
     expect(one).toHaveLength(MAX_EQUIPPED_SKILLS);
     expect(one.filter((slot) => slot.origin === "equipped").map((slot) => slot.skillId)).toEqual(["warrior-bash"]);

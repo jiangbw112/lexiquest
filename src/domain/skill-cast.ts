@@ -22,6 +22,7 @@ export function emptySkillDeck(): SkillQuestionDeck {
  * Due words that the player has actually learned come first.
  * If none of those are due, the pool is every learned word.
  * Unlearned ids are dropped even when a due list names them.
+ * `allowedIds` limits both the due list and the fallback, so a deselected grade is not asked.
  */
 export function skillQuestionPool(
   dueIds: readonly string[],
@@ -29,11 +30,11 @@ export function skillQuestionPool(
   options?: { allowedIds?: readonly string[] },
 ): string[] {
   const learned = new Set(learnedIds);
-  const knownLearned = (id: string) => learned.has(id) && Boolean(wordById(id));
-  const due = unique(dueIds.filter(knownLearned));
-  if (due.length > 0) return due;
   const allowed = options?.allowedIds ? new Set(options.allowedIds) : null;
-  return unique(learnedIds.filter((id) => knownLearned(id) && (!allowed || allowed.has(id))));
+  const inPool = (id: string) => learned.has(id) && Boolean(wordById(id)) && (!allowed || allowed.has(id));
+  const due = unique(dueIds.filter(inPool));
+  if (due.length > 0) return due;
+  return unique(learnedIds.filter(inPool));
 }
 
 /**
