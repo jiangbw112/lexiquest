@@ -1,0 +1,206 @@
+{
+  "source": "/workspace/vocab-validation/fixtures/forest-adventure.json",
+  "mapped_to_catalog": [
+    {
+      "id": "tree",
+      "word": "tree",
+      "meaning_zh": "树",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "bird",
+      "word": "bird",
+      "meaning_zh": "鸟",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "fish",
+      "word": "fish",
+      "meaning_zh": "鱼",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "sun",
+      "word": "sun",
+      "meaning_zh": "太阳",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "map",
+      "word": "map",
+      "meaning_zh": "地图",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "run",
+      "word": "run",
+      "meaning_zh": "跑",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "big",
+      "word": "big",
+      "meaning_zh": "大的",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "red",
+      "word": "red",
+      "meaning_zh": "红色的",
+      "grade_est": 3,
+      "spelling": "basic"
+    },
+    {
+      "id": "river",
+      "word": "river",
+      "meaning_zh": "河",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "forest",
+      "word": "forest",
+      "meaning_zh": "森林",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "mountain",
+      "word": "mountain",
+      "meaning_zh": "山",
+      "grade_est": 4,
+      "spelling": "advanced"
+    },
+    {
+      "id": "flower",
+      "word": "flower",
+      "meaning_zh": "花",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "rain",
+      "word": "rain",
+      "meaning_zh": "雨",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "cloud",
+      "word": "cloud",
+      "meaning_zh": "云",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "jump",
+      "word": "jump",
+      "meaning_zh": "跳",
+      "grade_est": 4,
+      "spelling": "basic"
+    },
+    {
+      "id": "village",
+      "word": "village",
+      "meaning_zh": "村庄",
+      "grade_est": 5,
+      "spelling": "advanced"
+    },
+    {
+      "id": "climb",
+      "word": "climb",
+      "meaning_zh": "攀爬",
+      "grade_est": 5,
+      "spelling": "advanced"
+    },
+    {
+      "id": "weather",
+      "word": "weather",
+      "meaning_zh": "天气",
+      "grade_est": 5,
+      "spelling": "advanced"
+    },
+    {
+      "id": "dangerous",
+      "word": "dangerous",
+      "meaning_zh": "危险的",
+      "grade_est": 5,
+      "spelling": "none"
+    },
+    {
+      "id": "explore",
+      "word": "explore",
+      "meaning_zh": "探索",
+      "grade_est": 6,
+      "spelling": "advanced"
+    }
+  ],
+  "extra_word_candidates": [
+    {
+      "id": "bridge",
+      "word": "bridge",
+      "meaning_zh": "桥",
+      "grade_est": 4,
+      "spelling": "advanced"
+    },
+    {
+      "id": "brave",
+      "word": "brave",
+      "meaning_zh": "勇敢的",
+      "grade_est": 5,
+      "spelling": "basic"
+    },
+    {
+      "id": "path",
+      "word": "path",
+      "meaning_zh": "小路",
+      "grade_est": 5,
+      "spelling": "basic"
+    },
+    {
+      "id": "treasure",
+      "word": "treasure",
+      "meaning_zh": "宝藏",
+      "grade_est": 6,
+      "spelling": "none"
+    },
+    {
+      "id": "journey",
+      "word": "journey",
+      "meaning_zh": "旅程",
+      "grade_est": 6,
+      "spelling": "none"
+    },
+    {
+      "id": "discover",
+      "word": "discover",
+      "meaning_zh": "发现",
+      "grade_est": 6,
+      "spelling": "advanced"
+    },
+    {
+      "id": "adventure",
+      "word": "adventure",
+      "meaning_zh": "冒险",
+      "grade_est": 6,
+      "spelling": "none"
+    },
+    {
+      "id": "protect",
+      "word": "protect",
+      "meaning_zh": "保护",
+      "grade_est": 6,
+      "spelling": "advanced"
+    }
+  ],
+  "missing_refs": [],
+  "extra_collisions": [],
+  "adapter": "legacy_word_file→ids; extras decided vs catalog"
+}

@@ -13,6 +13,7 @@ import {
 import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
+import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, button, hint, listenKeys, paper } from "../ui";
 
@@ -106,6 +107,7 @@ export class LearnScene extends Phaser.Scene {
     this.phase = "study";
     this.question = null;
     document.getElementById("spell-form")?.classList.remove("open");
+    showSpellingHint(null);
     this.draw();
   }
 
@@ -173,6 +175,7 @@ export class LearnScene extends Phaser.Scene {
     this.phase = "got";
     probeNote("learn:got");
     document.getElementById("spell-form")?.classList.remove("open");
+    showSpellingHint(null);
     this.draw();
   }
 
@@ -180,7 +183,10 @@ export class LearnScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     this.children.removeAll(true);
-    if (this.phase !== "spell") document.getElementById("spell-form")?.classList.remove("open");
+    if (this.phase !== "spell") {
+      document.getElementById("spell-form")?.classList.remove("open");
+      showSpellingHint(null);
+    }
     paper(this);
     const units = this.units();
     if (this.unitIndex >= units.length) this.unitIndex = 0;
@@ -244,8 +250,9 @@ export class LearnScene extends Phaser.Scene {
     } else if (this.phase === "spell") {
       const prompt = spellingQuestion(word.id, this.badgeLit(word.id));
       this.add.text(180, 240, prompt?.prompt ?? "", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
-      this.add.text(180, 310, "在画面上的输入框里用键盘拼写，然后 Enter。", { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
+      this.add.text(180, 310, spellingInstruction(prompt?.answer ?? null), { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e", wordWrap: { width: 760 } });
       document.getElementById("spell-form")?.classList.add("open");
+      showSpellingHint(prompt?.answer ?? null);
       const input = document.getElementById("spell-input");
       if (input instanceof HTMLInputElement) {
         input.value = "";

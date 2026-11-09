@@ -80,7 +80,7 @@ Placeholder art, the village map, and the provisional v0.1 warrior atlases toget
 
 `src/domain/data/forest-adventure.json` is the approved 28-word Forest Adventure list. The words are self-chosen common words, marked SAMPLE DATA, not textbook text. `grade_est` is an estimate. Spelling is `basic` (allowed from the start, including grade 3), `advanced` (only after the mastery badge), or `none`. Every word supports meaning and listening questions. Distractors come from the same theme and grade first. The grade map still has G3–G6, two semesters, and six unit slots. Only the first unit of each grade is filled.
 
-The loader reads every JSON file in `src/domain/data/` that has a `words` array. `forest-stages.json` is the chapter, not a word list, so the loader skips it. A word file uses `theme`, `sample`, and a `words` array of `{ word, meaning_zh, grade_est, spelling }`. One file can hold every grade, or each grade can have its own file. Adding a word file does not require a code change. A repeated word id is refused. Do not invent words, and do not paste a copyrighted textbook list into the repo until that list is cleared. Set `"sample": false` on a later list if it should be studied without joining the Forest Adventure chapter reward.
+The forest loader reads every JSON file in `src/domain/data/` that has a `words` array. `forest-stages.json` is the chapter, not a word list, so the loader skips it. A word file uses `theme`, `sample`, and a `words` array of `{ word, meaning_zh, grade_est, spelling }`. Extra fields, including `senses`, `notes`, and top-level lists such as `dedup_dropped`, are ignored. One file can hold every grade, or each grade can have its own file. Adding a word file there does not require a code change. A repeated word id is refused. The PEP grades 3–6 list is loaded separately from `src/domain/pep/` and is not part of that directory, because 20 ids also appear in the forest sample. The playable chapter stays on the sample list. `docs/pep/forest_chapter_mapping_v1.json` is kept for later and is not read by the game. `unitId` is still hard-coded, and semester and unit are not used.
 
 ## Save data
 
@@ -90,7 +90,7 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 
 - Server-authoritative save. This browser cache is not the child’s real progress.
 - Networked friend 1v1. Same-device practice uses the tested comparison. A real match must be server-authoritative for the room, judging, timing, the lexicographic result, and rewards, with replay, forgery, and duplicate-reward protection. The client must not submit the final result.
-- The full PEP grades 3–6 word list. It is being researched separately. Drop it in `src/domain/data/` in the same schema when it is ready. Do not paste copyrighted textbook text before that.
+- Switching the forest chapter onto PEP ids. The two lists stay separate until that reference is decided. `unitId` is still hard-coded, and semester and unit are not used.
 - Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
 - A top-down warrior for the village map. v0.1 is battle view only, so the map token is still the placeholder. It only bobs and walks with a tween.
 - The forest chapter’s completion cosmetic, and whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay out of 28 on the completion screen. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
@@ -105,7 +105,9 @@ The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP c
 - `src/domain` — cards, FSRS review, battle, skill slots, duel scoring, rewards, save shape
 - `src/domain/proposals.ts` — confirmed v1 numbers for the parent page and the daily goal
 - `src/domain/parent-pin.ts` — local parent PIN gate against accidental changes. The adult-check form is a tech default pending product and design confirmation
-- `src/domain/data/forest-adventure.json` — the approved sample word list
+- `src/domain/data/forest-adventure.json` — the approved sample word list, still the playable chapter
+- `src/domain/pep/pep_words_g3-6_v1_loader.json` — the PEP grades 3–6 list, loaded separately
+- `docs/pep/forest_chapter_mapping_v1.json` — unused forest-to-PEP mapping
 - `src/game` — Phaser 3 client, placeholder atlas, provisional warrior v0.1, provisional 林冠 v0.1, and scenes
 - `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and `slots.json`
 - `public/assets/boss/canopy/v0.1` — the four 林冠 atlases and `manifest.json`

@@ -9,6 +9,7 @@ import {
 import { notePracticeAnswer } from "../../domain/parent";
 import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
+import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
 import { BOSS_BATTLE_POS, canopyPoses, type BossAnim } from "../art/boss-pack";
@@ -215,7 +216,10 @@ export class BattleScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     this.children.removeAll(true);
-    if (this.state.question?.kind !== "spelling") document.getElementById("spell-form")?.classList.remove("open");
+    if (this.state.question?.kind !== "spelling") {
+      document.getElementById("spell-form")?.classList.remove("open");
+      showSpellingHint(null);
+    }
     this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
     this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
     const hero = new WarriorSprite(this, 300, 520, 0.72);
@@ -251,8 +255,14 @@ export class BattleScene extends Phaser.Scene {
         probeQuestion(this.state.question.wordId, []);
         this.add.rectangle(640, 690, 1100, 160, 0xfff8ee).setStrokeStyle(3, 0x17352a);
         this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
-        this.add.text(180, 700, "在画面上的输入框里用键盘拼写，然后 Enter。", { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e" });
+        this.add.text(180, 700, spellingInstruction(this.state.question.answer), {
+          fontFamily: FONT,
+          fontSize: "18px",
+          color: "#3d5c4e",
+          wordWrap: { width: 640 },
+        });
         document.getElementById("spell-form")?.classList.add("open");
+        showSpellingHint(this.state.question.answer);
         const input = document.getElementById("spell-input");
         if (input instanceof HTMLInputElement) window.setTimeout(() => input.focus(), 30);
         return;

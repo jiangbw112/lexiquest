@@ -113,6 +113,7 @@ function isWordFile(file: unknown): file is WordFile {
   return typeof file === "object" && file !== null && Array.isArray((file as WordFile).words);
 }
 
+// Only this directory. The PEP list is src/domain/pep and is not merged in here.
 const loadedFiles = (import.meta as unknown as WordGlob).glob("./data/**/*.json", { eager: true, import: "default" });
 const wordFiles: Record<string, WordFile> = {};
 for (const [path, file] of Object.entries(loadedFiles)) {

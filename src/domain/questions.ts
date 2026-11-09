@@ -23,6 +23,14 @@ export interface SpellingQuestion {
   wordId: string;
   prompt: string;
   answer: string;
+  /** Set when the answer contains a hyphen or an apostrophe. */
+  hint: string | null;
+}
+
+/** Hyphens and apostrophes are compared exactly. Phrases only collapse whitespace. */
+export function spellingMarkHint(answer: string): string | null {
+  if (answer.includes("-") || answer.includes("'")) return "连字符和撇号要原样输入。";
+  return null;
 }
 
 /** Same theme and same grade first, then the rest of the theme, then anything else. */
@@ -82,6 +90,7 @@ export function spellingQuestion(wordId: string, badgeLit: boolean): SpellingQue
     wordId: word.id,
     prompt: `用键盘拼出「${word.chinese}」。`,
     answer: word.english,
+    hint: spellingMarkHint(word.english),
   };
 }
 

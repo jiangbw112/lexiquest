@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { mergeWordFiles, SAMPLE_THEME, SAMPLE_WORDS, sampleUnits, wordById, type WordFile } from "./catalog";
-import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingQuestion } from "./questions";
+import { spellingInstruction } from "../game/spelling-form";
+import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingMarkHint, spellingQuestion } from "./questions";
 import { placeholderSpeaker, speakWord } from "./speech";
 
 const raw = JSON.parse(readFileSync("src/domain/data/forest-adventure.json", "utf8")) as {
@@ -60,6 +61,21 @@ describe("Forest Adventure sample words", () => {
     expect(spellingQuestion("dangerous", true)).toBeNull();
     expect(checkSpelling("Tree", "  tree ")).toBe(true);
     expect(checkSpelling("tree", "three")).toBe(false);
+    expect(checkSpelling("red panda", "red   panda")).toBe(true);
+    expect(checkSpelling("red panda", "red-panda")).toBe(false);
+    for (const word of ["T-shirt", "hard-working", "ping-pong", "ice-skate", "o'clock"]) {
+      expect(checkSpelling(word, `  ${word.toUpperCase()}  `)).toBe(true);
+      expect(checkSpelling(word, word.replaceAll("-", "").replaceAll("'", ""))).toBe(false);
+      expect(spellingMarkHint(word)).toBe("连字符和撇号要原样输入。");
+    }
+    expect(checkSpelling("T-shirt", "t shirt")).toBe(false);
+    expect(checkSpelling("ice-skate", "ice skate")).toBe(false);
+    expect(checkSpelling("o'clock", "o clock")).toBe(false);
+    expect(spellingMarkHint("tree")).toBeNull();
+    expect(spellingMarkHint("red panda")).toBeNull();
+    expect(spellingInstruction("T-shirt")).toContain("连字符和撇号要原样输入。");
+    expect(spellingInstruction("o'clock")).toContain("连字符和撇号要原样输入。");
+    expect(spellingInstruction("tree")).toBe("在画面上的输入框里用键盘拼写，然后 Enter。");
     const log: string[] = [];
     speakWord("tree", placeholderSpeaker(log));
     expect(log).toEqual(["cancel", "tree"]);

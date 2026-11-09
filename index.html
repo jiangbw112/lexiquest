@@ -28,6 +28,7 @@
       #pin-form label { display: grid; gap: 4px; }
       #hero-name, #spell-input, #pin-input, #pin-confirm, #pin-answer { font: inherit; font-size: 18px; padding: 8px 10px; width: 240px; }
       #name-error, #spell-error, #pin-error { color: #a33b24; margin: 0; min-height: 1.2em; }
+      #spell-hint { margin: 0; color: #8a5a12; min-height: 1.2em; max-width: 280px; }
       #pin-title { margin: 0; color: #17352a; }
       #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #3d5c4e; font-size: 14px; }
       #pin-form button[type="submit"] { background: #1f7a4d; color: #fffaf3; border: 0; border-radius: 12px; padding: 8px 12px; }
@@ -47,6 +48,7 @@
     </form>
     <form id="spell-form">
       <label>拼写<input id="spell-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></label>
+      <p id="spell-hint"></p>
       <p id="spell-error"></p>
       <button type="submit">确认</button>
     </form>

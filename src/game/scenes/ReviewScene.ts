@@ -5,6 +5,7 @@ import { notePracticeAnswer } from "../../domain/parent";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
+import { showSpellingHint } from "../spelling-form";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, paper } from "../ui";
@@ -98,6 +99,7 @@ export class ReviewScene extends Phaser.Scene {
     if (!save) return;
     this.children.removeAll(true);
     document.getElementById("spell-form")?.classList.remove("open");
+    showSpellingHint(null);
     paper(this);
     const mastery = PROVISIONAL.mastery;
     const now = studyNow(save);
@@ -166,6 +168,7 @@ export class ReviewScene extends Phaser.Scene {
           this.spellId = memory.wordId;
           this.draw();
           document.getElementById("spell-form")?.classList.add("open");
+          showSpellingHint(word.english);
           const input = document.getElementById("spell-input");
           if (input instanceof HTMLInputElement) input.focus();
         }, { width: 90, height: 34, fill: 0x8a5a12 });
