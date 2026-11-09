@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { forestLearnUnits, GRADE_BANDS, posGloss, wordById } from "../../domain/catalog";
+import { GRADE_BANDS, lessonUnits, posGloss, wordById } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
 import { learnWord, needsGradeChoice, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
@@ -72,8 +72,7 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private units() {
-    const grades = new Set(getSave()?.selectedGrades ?? []);
-    return forestLearnUnits().filter((unit) => grades.has(unit.grade));
+    return lessonUnits(getSave()?.selectedGrades);
   }
 
   private badgeLit(wordId: string): boolean {

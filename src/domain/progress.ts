@@ -18,7 +18,7 @@ import {
   wordsUntilBoss,
 } from "./stages";
 import { classById } from "./classes";
-import { normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
+import { isChapterExtra, normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
 import { deviceTimeZone, ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
@@ -141,7 +141,7 @@ export function resetClock(save: SaveData): SaveData {
 export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = deviceTimeZone()): SaveData {
   const word = wordById(wordId);
   if (!word) return save;
-  if (!normalizeGrades(save.selectedGrades).includes(word.grade)) return save;
+  if (!gradeIsOpen(save, wordId)) return save;
   if (save.wordCards[wordId]) return save;
   const wordCards = grantWordCard(save.wordCards, wordId, now.getTime());
   const memory: Record<string, MemoryRecord> = {
@@ -169,6 +169,8 @@ export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = 
 }
 
 export function gradeIsOpen(save: SaveData, wordId: string): boolean {
+  if (normalizeGrades(save.selectedGrades).length === 0) return false;
+  if (isChapterExtra(wordId)) return true;
   const word = wordById(wordId);
   return Boolean(word && normalizeGrades(save.selectedGrades).includes(word.grade));
 }
@@ -307,7 +309,7 @@ export function questLine(save: SaveData): string {
   if (next.type === "boss") {
     return bossReady(save)
       ? `可以挑战林心守护者了。${progress}`
-      : `林心守护还锁着。还差 ${wordsUntilBoss(save)} 个所选年级的词。${progress}`;
+      : `林心守护还锁着。还差 ${wordsUntilBoss(save)} 个词。${progress}`;
   }
   const ids = stageWordIds(save, next);
   const got = ids.filter((id) => save.wordCards[id]).length;

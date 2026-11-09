@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { State } from "ts-fsrs";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades } from "./progress";
-import { sampleWords } from "./catalog";
+import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
 import { classById } from "./classes";
 import { PROVISIONAL } from "./provisional";
 import { skillById, skillMagnitude } from "./skills";
@@ -10,6 +10,7 @@ import { startBattle } from "./battle";
 import { badgeTone } from "./review";
 import {
   bossReady,
+  bossUnlockLine,
   chapterLearnedCount,
   clearedStageCount,
   FOREST_CHAPTER,
@@ -20,6 +21,7 @@ import {
   stageCleared,
   stageStatuses,
   stageWordIds,
+  wordsUntilBoss,
 } from "./stages";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -110,25 +112,93 @@ describe("forest chapter", () => {
     expect(early.chapterCleared).toBe(false);
   });
 
-  it("skips an empty grade filter without blocking, and the boss ignores words that grade cannot learn", () => {
+  it("counts selected-grade chapter words plus every extra, and skips a stage with neither", () => {
+    const extras = chapterExtraWords().map((word) => word.id);
+    expect(extras).toHaveLength(8);
+
     const grade3 = newSave(["G3"]);
-    expect(stageWordIds(grade3, FOREST_CHAPTER.stages[2]!).length).toBe(0);
-    expect(stageStatuses(grade3)).toEqual(["open", "locked", "skipped", "skipped", "locked"]);
+    const required3 = requiredWordIds(grade3);
+    expect(required3).toHaveLength(16);
+    for (const id of extras) expect(required3).toContain(id);
+    expect(required3).not.toContain("run");
+    expect(required3).not.toContain("cloud");
+    expect(stageWordIds(grade3, FOREST_CHAPTER.stages[2]!)).toEqual(["bridge", "path"]);
+    expect(stageStatuses(grade3)).toEqual(["open", "locked", "locked", "locked", "locked"]);
+    expect(wordsUntilBoss(grade3)).toBe(16);
+    expect(bossUnlockLine(grade3)).toBe("通过前 4 关并学完 16 个词");
+    expect(bossReady(grade3)).toBe(false);
+
     let ready = grade3;
-    for (const id of requiredWordIds(grade3)) ready = learnWord(ready, id, START);
-    ready = { ...ready, stageWins: { "1": 1, "2": 1 } };
-    expect(requiredWordIds(ready)).toHaveLength(8);
+    for (const id of required3) ready = learnWord(ready, id, START);
+    ready = { ...ready, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+    expect(chapterLearnedCount(ready)).toBe(16);
+    expect(wordsUntilBoss(ready)).toBe(0);
     expect(bossReady(ready)).toBe(true);
-    expect(chapterLearnedCount(ready)).toBe(8);
     expect(masteryLabel(ready, START)).toBe("0/28");
 
+    const several = newSave(["G3", "G4", "G5"]);
+    expect(requiredWordIds(several)).toHaveLength(25);
+    expect(bossUnlockLine(several)).toBe("通过前 4 关并学完 25 个词");
+    expect(requiredWordIds(newSave())).toHaveLength(28);
+    expect(bossUnlockLine(newSave())).toBe("通过前 4 关并学完 28 个词");
+
     const grade5 = newSave(["G5"]);
+    expect(stageWordIds(grade5, FOREST_CHAPTER.stages[0]!)).toEqual([]);
     expect(stageStatuses(grade5)).toEqual(["skipped", "open", "locked", "locked", "locked"]);
+    expect(requiredWordIds(grade5)).toHaveLength(14);
+    for (const id of extras) expect(requiredWordIds(grade5)).toContain(id);
     const second = FOREST_CHAPTER.stages[1]!;
     let opened = grade5;
     for (const id of stageWordIds(grade5, second)) opened = learnWord(opened, id, START);
     opened = { ...opened, stageWins: { "2": 1 } };
     expect(stageStatuses(opened)[2]).toBe("open");
+  });
+
+  it("drops a cancelled grade from the boss count and can open the boss", () => {
+    let save = newSave();
+    for (const id of requiredWordIds(save)) {
+      if (id !== "weather") save = learnWord(save, id, START);
+    }
+    save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+    expect(requiredWordIds(save)).toHaveLength(28);
+    expect(wordsUntilBoss(save)).toBe(1);
+    expect(bossReady(save)).toBe(false);
+    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 28 个词");
+
+    save = setSelectedGrades(save, ["G3", "G5", "G6"]);
+    const left = requiredWordIds(save);
+    expect(left).toHaveLength(25);
+    expect(left).not.toContain("weather");
+    expect(left).not.toContain("run");
+    expect(left).not.toContain("rain");
+    for (const extra of chapterExtraWords()) expect(left).toContain(extra.id);
+    expect(wordsUntilBoss(save)).toBe(0);
+    expect(bossReady(save)).toBe(true);
+    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 25 个词");
+  });
+
+  it("keeps the boss locked when no grade is selected, even if the extras are collected", () => {
+    let save = newSave([]);
+    expect(save.selectedGrades).toEqual([]);
+    const extras = chapterExtraWords().map((word) => word.id);
+    expect(requiredWordIds(save)).toEqual(expect.arrayContaining(extras));
+    expect(requiredWordIds(save)).toHaveLength(8);
+    expect(requiredWordIds(save).every((id) => isChapterExtra(id))).toBe(true);
+    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 8 个词");
+    expect(bossReady(save)).toBe(false);
+    for (const id of requiredWordIds(save)) {
+      save = {
+        ...save,
+        wordCards: {
+          ...save.wordCards,
+          [id]: { wordId: id, collectedAt: START.getTime(), masteryBadge: false },
+        },
+      };
+    }
+    save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+    expect(wordsUntilBoss(save)).toBe(0);
+    expect(bossReady(save)).toBe(false);
+    expect(stageStatuses(save)[4]).toBe("locked");
   });
 
   it("tunes exploration fights to 3–5 warrior damage casts and the boss near 8–12", () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { createSave, learnWord, setSelectedGrades } from "./progress";
 import { mapPanel } from "./map-panel";
-import { FOREST_CHAPTER, stageStatuses } from "./stages";
+import { bossUnlockLine, FOREST_CHAPTER, requiredWordIds, stageStatuses } from "./stages";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -66,15 +66,26 @@ describe("forest map panel", () => {
     ]);
   });
 
-  it("keeps the boss locked copy on the real chapter words", () => {
-    const save = saveWith();
+  it("shows the boss lock line for the grades that are actually selected", () => {
     const stage = FOREST_CHAPTER.stages[4]!;
-    const panel = mapPanel(save, stage, "locked");
-    expect(panel.goal).toBe("夺回宝藏，通关本章");
-    expect(panel.unlockLine).toBe("通过前 4 关并学完 28 个词");
-    expect(panel.words.every((face) => face.english === null)).toBe(true);
-    expect(panel.total).toBe(4);
-    expect(panel.buttons).toEqual([{ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" }]);
+    const everyGrade = saveWith();
+    const all = mapPanel(everyGrade, stage, "locked");
+    expect(all.goal).toBe("夺回宝藏，通关本章");
+    expect(requiredWordIds(everyGrade)).toHaveLength(28);
+    expect(all.unlockLine).toBe("通过前 4 关并学完 28 个词");
+    expect(all.unlockLine).toBe(bossUnlockLine(everyGrade));
+    expect(all.words.every((face) => face.english === null)).toBe(true);
+    expect(all.total).toBe(4);
+    expect(all.buttons).toEqual([{ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" }]);
+
+    const grade3 = saveWith(["G3"]);
+    const one = mapPanel(grade3, stage, "locked");
+    expect(requiredWordIds(grade3)).toHaveLength(16);
+    expect(one.unlockLine).toBe("通过前 4 关并学完 16 个词");
+    expect(one.unlockLine).not.toBe(all.unlockLine);
+
+    const three = saveWith(["G3", "G4", "G5"]);
+    expect(mapPanel(three, stage, "locked").unlockLine).toBe("通过前 4 关并学完 25 个词");
   });
 
   it("reveals a boss word only after that card exists", () => {
@@ -88,9 +99,9 @@ describe("forest map panel", () => {
   });
 
   it("does not invent words for a skipped stage", () => {
-    const save = saveWith(["G3"]);
-    const stage = FOREST_CHAPTER.stages[2]!;
-    expect(stageStatuses(save)[2]).toBe("skipped");
+    const save = saveWith(["G5"]);
+    const stage = FOREST_CHAPTER.stages[0]!;
+    expect(stageStatuses(save)[0]).toBe("skipped");
     const panel = mapPanel(save, stage, "skipped");
     expect(panel.words).toEqual([]);
     expect(panel.note).toBe("所选年级没有这一关的新词");

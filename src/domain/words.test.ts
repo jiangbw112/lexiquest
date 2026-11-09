@@ -4,6 +4,7 @@ import {
   chapterExtraWords,
   chapterWords,
   forestLearnUnits,
+  lessonUnits,
   mergeWordFiles,
   sampleUnits,
   sampleWords,
@@ -33,6 +34,15 @@ describe("Forest chapter words", () => {
       ["adventure", "brave", "bridge", "discover", "journey", "path", "protect", "treasure"],
     );
     expect(forestLearnUnits().map((unit) => unit.grade)).toEqual(["G3", "G4", "G5", "G6"]);
+    const only3 = lessonUnits(["G3"]);
+    expect(only3).toHaveLength(1);
+    const extras = chapterExtraWords().map((word) => word.id);
+    expect(extras.every((id) => only3[0]?.wordIds.includes(id))).toBe(true);
+    expect(only3[0]?.wordIds).toHaveLength(16);
+    const all = lessonUnits(["G3", "G4", "G5", "G6"]);
+    const seen = all.flatMap((unit) => unit.wordIds);
+    expect(new Set(seen).size).toBe(seen.length);
+    expect(extras.every((id) => seen.includes(id))).toBe(true);
     expect(sampleUnits()).toEqual([]);
   });
 

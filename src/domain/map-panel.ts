@@ -1,6 +1,6 @@
 import { wordById } from "./catalog";
 import { uiLabel } from "./ui-label";
-import { stageWins, type ForestStage, type StageStatus } from "./stages";
+import { bossUnlockLine, stageWins, type ForestStage, type StageStatus } from "./stages";
 import type { SaveData } from "./types";
 
 export interface MapWordFace {
@@ -32,8 +32,6 @@ export interface MapPanel {
   note: string | null;
   buttons: MapPanelButton[];
 }
-
-const BOSS_LOCK_LINE = "通过前 4 关并学完 28 个词";
 
 function faces(stage: ForestStage, save: SaveData, mode: "hide" | "learned" | "all"): MapWordFace[] {
   return stage.new_words.map((id) => {
@@ -92,7 +90,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       showLock: true,
       wins: null,
       words: faces(stage, save, "learned"),
-      unlockLine: BOSS_LOCK_LINE,
+      unlockLine: bossUnlockLine(save),
       note: null,
       buttons: [{ id: "fight", label: uiLabel("挑战林心守护者"), enabled: false, tone: "coral" }],
     };

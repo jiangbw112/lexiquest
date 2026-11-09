@@ -248,6 +248,27 @@ export function chapterExtraWords(): WordDef[] {
   return CHAPTER_EXTRAS;
 }
 
+/** True for an id listed in the chapter file's chapter_extra_words array. */
+export function isChapterExtra(id: string): boolean {
+  return EXTRA_BY_ID.has(id);
+}
+
+/**
+ * Forest lessons for the selected grades. Extra words whose own grade is off
+ * still appear, on the first open lesson, because they always count.
+ */
+export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
+  const selected = new Set(normalizeGrades(grades));
+  const units = forestLearnUnits().filter((unit) => selected.has(unit.grade));
+  if (units.length === 0) return [];
+  const shown = new Set(units.flatMap((unit) => unit.wordIds));
+  const missing = CHAPTER_EXTRAS.map((word) => word.id).filter((id) => !shown.has(id));
+  if (missing.length === 0) return units;
+  const [first, ...rest] = units;
+  if (!first) return units;
+  return [{ ...first, wordIds: [...first.wordIds, ...missing] }, ...rest];
+}
+
 export function listUnits(): UnitDef[] {
   const grades: GradeBand[] = ["G3", "G4", "G5", "G6"];
   const semesters: Semester[] = [1, 2];

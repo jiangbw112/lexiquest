@@ -104,7 +104,7 @@ export class StageMapScene extends Phaser.Scene {
     this.add.text(180, 36, `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(430, 36, `掌握 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(660, 36, `到期 ${chapterDueCount(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
-    this.add.text(180, 64, `距林心守护还差 ${wordsUntilBoss(save)} 个所选年级的词`, {
+    this.add.text(180, 64, `距林心守护还差 ${wordsUntilBoss(save)} 个词`, {
       fontFamily: FONT,
       fontSize: "14px",
       color: MUTED,

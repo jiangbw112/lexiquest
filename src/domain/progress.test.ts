@@ -278,6 +278,9 @@ describe("saved progress", () => {
     expect(needsGradeChoice(save)).toBe(false);
     save = learnWord(save, "tree", START);
     expect(save.wordCards.tree?.masteryBadge).toBe(false);
+    save = learnWord(save, "bridge", START);
+    expect(save.wordCards.bridge?.wordId).toBe("bridge");
+    expect(learnWord(save, "explore", START).wordCards.explore).toBeUndefined();
     save = setSelectedGrades(save, ["G6"]);
     expect(save.wordCards.tree).toBeTruthy();
     expect(learnedCountInGrade(save, "G3")).toBe(1);

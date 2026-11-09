@@ -1,4 +1,4 @@
-import { wordById } from "./catalog";
+import { chapterExtraWords, isChapterExtra, wordById } from "./catalog";
 import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
 import { PROVISIONAL } from "./provisional";
@@ -196,21 +196,43 @@ export function explorationStageByEncounter(encounterId: string | undefined): Fo
   return stage;
 }
 
-/** Chapter words the selected grades can actually learn. Deselected grades stay out of the boss gate. */
+/**
+ * A chapter word counts when its grade is selected. chapter_extra_words always
+ * count, even when that entry's grade_est is not selected. Ids are unique.
+ */
+function countsTowardBoss(id: string, grades: ReadonlySet<string>): boolean {
+  if (isChapterExtra(id)) return true;
+  const word = wordById(id);
+  return Boolean(word && grades.has(word.grade));
+}
+
+/** Chapter words in the selected grades, plus every chapter_extra_words id, deduped. */
 export function requiredWordIds(save: SaveData): string[] {
   const grades = new Set(save.selectedGrades);
-  return chapterWordIds().filter((id) => {
-    const word = wordById(id);
-    return Boolean(word && grades.has(word.grade));
-  });
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  const push = (id: string) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    ids.push(id);
+  };
+  for (const id of chapterWordIds()) {
+    if (countsTowardBoss(id, grades)) push(id);
+  }
+  for (const extra of chapterExtraWords()) push(extra.id);
+  return ids;
 }
 
 export function stageWordIds(save: SaveData, stage: ForestStage): string[] {
   const grades = new Set(save.selectedGrades);
-  return stage.new_words.filter((id) => {
-    const word = wordById(id);
-    return Boolean(word && grades.has(word.grade));
-  });
+  return stage.new_words.filter((id) => countsTowardBoss(id, grades));
+}
+
+/** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
+export function bossUnlockLine(save: SaveData): string {
+  const boss = FOREST_CHAPTER.stages.find((stage) => stage.type === "boss");
+  const prior = boss?.unlock && "stages_cleared" in boss.unlock ? boss.unlock.stages_cleared.length : 0;
+  return `通过前 ${prior} 关并学完 ${requiredWordIds(save).length} 个词`;
 }
 
 export function battleWordIds(save: SaveData): string[] {
@@ -249,10 +271,13 @@ export function explorationCleared(save: SaveData): boolean {
 }
 
 /**
- * The chapter file says all 28 cards. A grade that is turned off cannot be learned,
- * so those words do not block the boss. The completion denominator stays 28.
+ * Stages 1–4 cleared, and every required word collected.
+ * Required words are the selected grades' chapter words plus chapter_extra_words.
+ * No selected grade means the grade gate should already have stopped the player.
+ * If a save still gets here, the boss stays locked.
  */
 export function bossReady(save: SaveData): boolean {
+  if (save.selectedGrades.length === 0) return false;
   if (FOREST_CHAPTER.boss_unlock.stages_1_to_4_cleared && !explorationCleared(save)) return false;
   if (!FOREST_CHAPTER.boss_unlock.all_28_learned) return explorationCleared(save);
   const required = requiredWordIds(save);
