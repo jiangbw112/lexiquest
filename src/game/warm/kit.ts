@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import sliceFile from "./slices.json";
 import { blip } from "../audio";
+import { tabFrame, tabLabelY } from "./frames";
 import { CREAM, DIS_TEXT, FONT_LATIN, FONT_TITLE, INK, motionOff } from "./theme";
 
 interface SlicePart {
@@ -302,13 +303,11 @@ export function warmTab(
   const states: ButtonState[] = ["normal", "hover", "pressed", "disabled"];
   const slices = {} as Record<ButtonState, Phaser.GameObjects.NineSlice>;
   for (const state of states) {
-    // The delivered tab sheet has no pressed frame. Press uses the hover frame.
-    const delivered = state === "pressed" ? "hover" : state;
-    const frame = selected ? "tab_selected" : `tab_${delivered}`;
+    const frame = state === "disabled" ? (selected ? "tab_selected" : "tab_disabled") : tabFrame(selected, state);
     slices[state] = warmSlice(scene, "atlas_ui_core", frame, width, height);
   }
   const text = scene.add
-    .text(0, -2, label, {
+    .text(0, tabLabelY(selected, "normal"), label, {
       fontFamily: FONT_TITLE,
       fontSize: "22px",
       color: INK,
@@ -328,14 +327,22 @@ export function warmTab(
   root.on("pointerout", () => {
     down = false;
     showState(slices, "normal");
+    text.setY(tabLabelY(selected, "normal"));
   });
   root.on("pointerdown", () => {
     down = true;
-    if (!selected) showState(slices, "pressed");
+    if (selected) return;
+    showState(slices, "pressed");
+    text.setY(tabLabelY(false, "pressed"));
   });
   root.on("pointerup", () => {
     if (!down) return;
     down = false;
+    if (!selected) {
+      slices.normal.setFrame(tabFrame(false, "released"));
+      showState(slices, "normal");
+    }
+    text.setY(tabLabelY(true, "released"));
     blip();
     onClick();
   });

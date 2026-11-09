@@ -2,13 +2,13 @@
  "_status": "暂定 provisional",
  "groups": {
   "ui_core": {
-   "frames": 64,
+   "frames": 65,
    "size": [
     1024,
     2048
    ],
-   "png_bytes": 162358,
-   "json_bytes": 17809
+   "png_bytes": 163164,
+   "json_bytes": 18083
   },
   "battle": {
    "frames": 29,
@@ -20,13 +20,13 @@
    "json_bytes": 8288
   },
   "map": {
-   "frames": 9,
+   "frames": 10,
    "size": [
     1024,
     1024
    ],
-   "png_bytes": 89286,
-   "json_bytes": 2719
+   "png_bytes": 137311,
+   "json_bytes": 3001
   },
   "parent": {
    "frames": 3,
@@ -154,7 +154,12 @@
   "icon_calendar": "parent",
   "icon_trophy": "parent",
   "icon_outfit": "wardrobe",
-  "icon_coin": "wardrobe"
+  "icon_coin": "wardrobe",
+  "tab_pressed": "ui_core",
+  "map_node_boss_ready": "map"
  },
- "unassigned": []
+ "unassigned": [],
+ "_changelog": [
+  "b2.1 2026-11-09: tab_pressed -> ui_core, map_node_boss_ready -> map; no existing frame moved"
+ ]
 }

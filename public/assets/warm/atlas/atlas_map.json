@@ -179,6 +179,26 @@
     "w": 160,
     "h": 80
    }
+  },
+  "map_node_boss_ready": {
+   "frame": {
+    "x": 440,
+    "y": 386,
+    "w": 300,
+    "h": 300
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 300,
+    "h": 300
+   },
+   "sourceSize": {
+    "w": 300,
+    "h": 300
+   }
   }
  },
  "meta": {

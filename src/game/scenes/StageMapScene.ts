@@ -19,6 +19,7 @@ import { getSave } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmPanel } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
+import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
 import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
 
 const NODE_AT = [
@@ -114,13 +115,14 @@ export class StageMapScene extends Phaser.Scene {
       const itemStatus = statuses[index] ?? "locked";
       const spot = NODE_AT[index] ?? NODE_AT[0]!;
       const frame = item.type === "boss"
-        ? "map_node_boss"
+        ? bossMapFrame(itemStatus)
         : itemStatus === "cleared"
           ? "map_node_cleared"
           : itemStatus === "open"
             ? "map_node_current"
             : "map_node_locked";
       const node = this.add.image(spot.x, spot.y, "atlas_map", frame).setScale(0.5);
+      if (item.type === "boss") node.setOrigin(BOSS_NODE_ORIGIN.x, BOSS_NODE_ORIGIN.y);
       const picked = item.id === stage.id;
       if (picked) node.setScale(0.56);
       if (itemStatus === "open") {

@@ -1279,6 +1279,26 @@
     "w": 96,
     "h": 96
    }
+  },
+  "tab_pressed": {
+   "frame": {
+    "x": 782,
+    "y": 602,
+    "w": 208,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 208,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 208,
+    "h": 104
+   }
   }
  },
  "meta": {

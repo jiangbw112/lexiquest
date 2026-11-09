@@ -1126,6 +1126,38 @@
    "group": "badges",
    "nineslice": null,
    "note": "技能卡框 = 技能 Lv3（与 batch1 相同，固定尺寸）；掌握徽章另放"
+  },
+  "tab_pressed": {
+   "file": "components/tab/tab_pressed.png",
+   "w": 208,
+   "h": 104,
+   "group": "tab",
+   "state": "pressed",
+   "nineslice": {
+    "left": 34,
+    "right": 34,
+    "top": 30,
+    "bottom": 24
+   },
+   "label_box": [
+    0,
+    20,
+    208,
+    104
+   ],
+   "note": "页签 pressed = 未选中页签被按住（松开后切换为 selected）；尺寸/insets 同其它页签；标签中心比 normal 低 2 逻辑 px。b2.1 新增"
+  },
+  "map_node_boss_ready": {
+   "file": "components/map/map_node_boss_ready.png",
+   "w": 300,
+   "h": 300,
+   "group": "map",
+   "state": "boss_ready",
+   "nineslice": null,
+   "note": "Boss 节点·已开启可挑战（无锁，金色光晕+金边+闪光）；尺寸与锚点同 map_node_boss：300×300，节点圆心 = (150, 142) 贴图 px，setOrigin(0.5, 142/300)。b2.1 新增"
   }
- }
+ },
+ "_changelog": [
+  "b2.1 2026-11-09: + tab_pressed, + map_node_boss_ready (existing frames unchanged)"
+ ]
 }
