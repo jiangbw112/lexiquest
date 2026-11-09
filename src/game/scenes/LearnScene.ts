@@ -8,6 +8,7 @@ import {
   listeningQuestion,
   quizForWord,
   spellingAllowed,
+  spellingChildLabel,
   spellingQuestion,
   type QuizQuestion,
 } from "../../domain/questions";
@@ -280,7 +281,8 @@ export class LearnScene extends Phaser.Scene {
       this.meaningRow(640, 300, word.english, word.pos, word.chinese, 88);
       const gloss = posGloss(word.pos);
       const gradeLabel = GRADE_BANDS.find((grade) => grade.id === word.grade)?.label ?? String(word.grade);
-      const meta = [gloss, gradeLabel, `拼写 ${word.spelling}`].filter(Boolean).join(" · ");
+      const spellingLine = spellingChildLabel(word.spelling, this.badgeLit(word.id));
+      const meta = [gloss, gradeLabel, spellingLine].filter(Boolean).join(" · ");
       this.add.text(640, 430, meta, { fontFamily: FONT, fontSize: "18px", color: MUTED }).setOrigin(0.5);
       warmButton(this, 360, 540, uiLabel("听一听"), () => this.startListening(), { width: 180, tone: "secondary" });
       warmButton(this, 580, 540, uiLabel("选意思"), () => this.startMeaning(), { width: 180 });

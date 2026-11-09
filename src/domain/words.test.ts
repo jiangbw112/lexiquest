@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  CATALOG_WORDS,
   chapterExtraWords,
   chapterWords,
   forestLearnUnits,
@@ -12,7 +13,7 @@ import {
   type WordFile,
 } from "./catalog";
 import { spellingInstruction } from "../game/spelling-form";
-import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingMarkHint, spellingQuestion } from "./questions";
+import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingChildLabel, spellingMarkHint, spellingQuestion } from "./questions";
 import { placeholderSpeaker, speakWord } from "./speech";
 
 const PREVIOUS_CARD_IDS = [
@@ -108,5 +109,30 @@ describe("Forest chapter words", () => {
     expect(log).toEqual(["cancel", "tree"]);
     expect(readFileSync("src/domain/catalog.ts", "utf8")).not.toContain("words_resolved");
     expect(readFileSync("src/domain/stages.ts", "utf8")).not.toContain("words_resolved");
+    const scene = readFileSync("src/game/scenes/LearnScene.ts", "utf8");
+    expect(scene).toContain("spellingChildLabel");
+    expect(scene).not.toMatch(/\$\{word\.spelling\}/);
+  });
+
+  it("maps the spelling field to a child line and hides the raw value", () => {
+    const values = [...new Set(CATALOG_WORDS.map((word) => word.spelling))].sort();
+    expect(values).toEqual(["advanced", "basic", "none"]);
+    expect(wordById("tree")?.spelling).toBe("basic");
+    expect(spellingChildLabel("basic", false)).toBe("要会拼");
+    expect(spellingChildLabel("basic", true)).toBe("要会拼");
+    expect(spellingChildLabel(wordById("tree")!.spelling, false)).toBe("要会拼");
+    expect(wordById("big")?.spelling).toBe("advanced");
+    expect(spellingChildLabel("advanced", false)).toBe("先认读");
+    expect(spellingChildLabel(wordById("big")!.spelling, false)).toBe("先认读");
+    expect(spellingChildLabel("advanced", true)).toBeNull();
+    expect(spellingChildLabel(wordById("big")!.spelling, true)).toBeNull();
+    expect(wordById("hello")?.spelling).toBe("none");
+    expect(spellingChildLabel("none", false)).toBeNull();
+    expect(spellingChildLabel("none", true)).toBeNull();
+    expect(spellingChildLabel(wordById("hello")!.spelling, true)).toBeNull();
+    for (const unknown of ["", "BASIC", "expert", "basic "]) {
+      expect(spellingChildLabel(unknown, false)).toBeNull();
+      expect(spellingChildLabel(unknown, true)).toBeNull();
+    }
   });
 });

@@ -82,6 +82,18 @@ export function spellingAllowed(word: WordDef, badgeLit: boolean): boolean {
   return badgeLit;
 }
 
+/**
+ * Child-facing study-card line for the spelling field. The raw value is never returned.
+ * basic is 「要会拼」. advanced is 「先认读」 until the mastery badge is lit.
+ * After that badge is lit, this file only says the word may be asked. It does not
+ * name a line for the card, so the line is left off. none and any other value are left off.
+ */
+export function spellingChildLabel(spelling: string, badgeLit: boolean): string | null {
+  if (spelling === "basic") return "要会拼";
+  if (spelling === "advanced" && !badgeLit) return "先认读";
+  return null;
+}
+
 export function spellingQuestion(wordId: string, badgeLit: boolean): SpellingQuestion | null {
   const word = wordById(wordId);
   if (!word || !spellingAllowed(word, badgeLit)) return null;
