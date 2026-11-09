@@ -102,7 +102,24 @@ describe("warm text contrast", () => {
     const doc = readFileSync(new URL("../../docs/contrast_wcag.md", import.meta.url), "utf8");
     expect(doc).toBe(renderContrastDoc());
     expect(contrastRows().length).toBeGreaterThan(40);
-    expect(contrastRows().some((row) => row.pass === false)).toBe(true);
+    expect(contrastRows().filter((row) => !row.pass)).toEqual([]);
+    const approved = [
+      ["徽章", "变灰", "#5B4B6B", "#FFF8EE"],
+      ["名称", "未解锁", "#5B4B6B", "#FFF8EE"],
+      ["确认", "悬停", "#FFF4DC", "#1F6F64"],
+      ["技能", "常态", "#FFF4DC", "#A9432B"],
+      ["能量", "常态", "#1F4E3D", "#C9E6D4"],
+      ["学堂", "常态", "#FFF4DC", "#A9432B"],
+      ["衣柜", "常态", "#FFF4DC", "#5B4B6B"],
+      ["确认", "禁用", "#3F2E25", "#CFC4B2"],
+    ] as const;
+    for (const [control, state, fg, bg] of approved) {
+      const row = contrastRows().find((item) => item.control === control && item.state === state && item.fg === fg && item.bg === bg);
+      expect(row?.pass, `${control} ${state}`).toBe(true);
+      expect(row && row.ratio).toBeGreaterThanOrEqual(4.5);
+    }
+    const ui = readFileSync(new URL("./ui.ts", import.meta.url), "utf8");
+    expect(ui).not.toContain("0x2f9a63");
     expect(doc).not.toContain("Colors were not changed");
     expect(doc).not.toContain("没有改颜色");
     const terra = contrastRows().find((row) => row.control === "赤陶按钮" && row.state === "常态");

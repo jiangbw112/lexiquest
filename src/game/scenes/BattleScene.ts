@@ -255,7 +255,7 @@ export class BattleScene extends Phaser.Scene {
       fontSize: "22px",
       color: "#17352a",
     });
-    this.add.text(160, 108, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1f7a4d" });
+    this.add.text(160, 108, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1F4E3D" });
     // Width 640 keeps a wrapped note left of the canopy, whose top sits near y=197 at scale 0.5.
     this.add.text(160, 146, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 640 } });
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
@@ -295,7 +295,7 @@ export class BattleScene extends Phaser.Scene {
           680,
           `${slot.index + 4} ${slot.origin === "base" ? "基础" : slot.name}`,
           () => this.act({ type: "skill", slotIndex: slot.index }),
-          { width: 150, fill: slot.origin === "base" ? 0x8a5a12 : 0xc4533a },
+          { width: 150, fill: slot.origin === "base" ? 0x8a5a12 : 0xa9432b },
         );
       });
     }

@@ -39,10 +39,10 @@ export class CollectionScene extends Phaser.Scene {
       const row = Math.floor(index / 7);
       const x = 200 + column * 145;
       const y = 150 + row * 110;
-      this.add.rectangle(x, y, 132, 96, tone === "grey" ? 0xe7e1d6 : 0xfff8ee).setStrokeStyle(3, tone === "bright" ? 0xc9891d : 0x17352a);
+      this.add.rectangle(x, y, 132, 96, 0xfff8ee).setStrokeStyle(3, tone === "bright" ? 0xc9891d : 0x17352a);
       this.add.text(x - 56, y - 34, word.english, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
       this.add.text(x - 56, y - 6, formatMeaning(word), { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
-      this.add.text(x - 56, y + 18, TONE_LABEL[tone], { fontFamily: FONT, fontSize: "14px", color: tone === "grey" ? "#8a7560" : "#8a5a12" });
+      this.add.text(x - 56, y + 18, TONE_LABEL[tone], { fontFamily: FONT, fontSize: "14px", color: tone === "grey" ? "#5B4B6B" : "#8a5a12" });
     });
     button(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
     this.input.keyboard?.once("keydown-ESC", () => this.scene.start("overworld"));

@@ -48,7 +48,7 @@ export class SkillsScene extends Phaser.Scene {
       const y = 240 + index * 90;
       const unlocked = save.unlockedSkillIds.includes(skill.id);
       const equipped = save.equippedSkillIds.includes(skill.id);
-      this.add.text(180, y, `${skill.name}  能量 ${skillEnergyCost(skill, hero)}`, { fontFamily: FONT, fontSize: "24px", color: unlocked ? "#17352a" : "#8a918c" });
+      this.add.text(180, y, `${skill.name}  能量 ${skillEnergyCost(skill, hero)}`, { fontFamily: FONT, fontSize: "24px", color: unlocked ? "#17352a" : "#5B4B6B" });
       this.add.text(180, y + 32, skill.description, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
       if (!unlocked) return;
       button(this, 980, y + 16, equipped ? "卸下" : "装备", () => {

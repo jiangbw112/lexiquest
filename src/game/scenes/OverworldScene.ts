@@ -104,21 +104,29 @@ export class OverworldScene extends Phaser.Scene {
       color: "#17352a",
       wordWrap: { width: 700 },
     });
+    const housePoints = [0, -28, 54, -8, 54, 34, 0, 54, -54, 34, -54, -8];
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < housePoints.length; i += 2) {
+      minX = Math.min(minX, housePoints[i]);
+      maxX = Math.max(maxX, housePoints[i]);
+      minY = Math.min(minY, housePoints[i + 1]);
+      maxY = Math.max(maxY, housePoints[i + 1]);
+    }
     for (const place of PLACES) {
-      const house = this.add.polygon(
-        place.x,
-        place.y,
-        [0, -28, 54, -8, 54, 34, 0, 54, -54, 34, -54, -8],
-        place.color,
-        1,
-      );
+      const house = this.add.polygon(place.x, place.y, housePoints, place.color, 1);
       house.setStrokeStyle(3, 0x17352a);
       house.setInteractive({ useHandCursor: true });
       house.on("pointerdown", () => this.go(place.scene));
-      this.add.text(place.x, place.y + 4, `${place.label} ${place.key}`, {
+      const onFill = place.id === "learn" || place.id === "wardrobe";
+      const labelX = onFill ? place.x - (maxX - minX) / 2 + (minX + maxX) / 2 : place.x;
+      const labelY = onFill ? place.y - (maxY - minY) / 2 + (minY + maxY) / 2 : place.y + 4;
+      this.add.text(labelX, labelY, `${place.label} ${place.key}`, {
         fontFamily: FONT,
         fontSize: "18px",
-        color: "#fffaf3",
+        color: onFill ? "#FFF4DC" : "#fffaf3",
       }).setOrigin(0.5);
     }
     const hero = new LayeredActor(this, 640, 760, "top");
