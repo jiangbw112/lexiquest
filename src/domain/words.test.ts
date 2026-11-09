@@ -26,7 +26,7 @@ describe("Forest chapter words", () => {
     expect(sampleWords().map((word) => word.id)).toEqual(chapterWords().map((word) => word.id));
     expect(new Set(chapterWords().map((word) => word.id))).toEqual(new Set(PREVIOUS_CARD_IDS));
     expect(wordById("tree")).toMatchObject({ chinese: "树", spelling: "basic", theme: "PEP Grades 3-6", sample: false });
-    expect(wordById("red")?.chinese).toBe("红色");
+    expect(wordById("red")?.chinese).toBe("红色的");
     expect(wordById("mountain")).toMatchObject({ chinese: "高山", spelling: "basic", grade: "G5" });
     expect(wordById("bridge")).toMatchObject({ chinese: "桥", theme: "Forest Adventure", sample: false, grade: "G4" });
     expect(chapterExtraWords().map((word) => word.id).sort()).toEqual(

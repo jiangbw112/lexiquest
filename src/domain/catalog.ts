@@ -16,7 +16,7 @@ export interface WordDef {
   chinese: string;
   /** Set only when the list gives a non-empty string. Shown exactly as written. */
   pos?: string;
-  /** Set only when the entry included sense objects. The v1.2 loader file does not. */
+  /** Set only when the entry included sense objects that v1 can show. A new_sense is left out. The v1.2.2 loader file has no senses. */
   senses?: WordSense[];
   gradeEst: GradeEstimate;
   grade: GradeBand;
@@ -88,7 +88,8 @@ function readSenses(value: unknown, source: string, english: string): WordSense[
   const senses: WordSense[] = [];
   for (const item of value) {
     if (typeof item !== "object" || item === null || Array.isArray(item)) continue;
-    const record = item as { meaning_zh?: unknown; pos?: unknown };
+    const record = item as { meaning_zh?: unknown; pos?: unknown; relation?: unknown };
+    if (record.relation === "new_sense") continue;
     const pos = readPos(record.pos, source, english);
     const chinese = typeof record.meaning_zh === "string" ? record.meaning_zh.trim() : "";
     if (!chinese) continue;

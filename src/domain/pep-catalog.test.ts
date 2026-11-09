@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -17,7 +18,7 @@ import { FOREST_CHAPTER } from "./stages";
 const GRADE_COUNTS = { 3: 228, 4: 214, 5: 257, 6: 164 } as const;
 const EXTRAS = ["bridge", "brave", "path", "treasure", "journey", "discover", "adventure", "protect"];
 
-describe("PEP grades 3–6 v1.2 library", () => {
+describe("PEP grades 3–6 v1.2.2 library", () => {
   it("loads 863 words with unique ids and the delivered grade and spelling counts", () => {
     expect(CATALOG_WORDS).toHaveLength(863);
     expect(new Set(CATALOG_WORDS.map((word) => word.id)).size).toBe(863);
@@ -138,10 +139,19 @@ describe("PEP grades 3–6 v1.2 library", () => {
     expect(loaded[0]?.pos).toBeUndefined();
   });
 
-  it("keeps pos as an opaque string, including null and the forms v1.2.1 will add", () => {
-    expect(CATALOG_WORDS.filter((word) => word.pos === undefined)).toHaveLength(33);
+  it("keeps pos as an opaque string, including null, modal v., and a dual form", () => {
+    expect(CATALOG_WORDS.filter((word) => word.pos === undefined)).toHaveLength(19);
+    expect(CATALOG_WORDS.filter((word) => word.pos === "modal v.").map((word) => word.id).sort()).toEqual(["can", "could", "must", "should"]);
+    expect(CATALOG_WORDS.filter((word) => word.pos?.includes("/"))).toHaveLength(13);
     expect(wordById("tree")).toMatchObject({ pos: "n.", chinese: "树" });
-    expect(wordById("rain")).not.toHaveProperty("pos");
+    expect(wordById("can")).toMatchObject({ pos: "modal v.", chinese: "能；会" });
+    expect(formatMeaning(wordById("can")!)).toBe("modal v. 能；会");
+    expect(wordById("may")).toMatchObject({ pos: "n.", chinese: "五月" });
+    expect(wordById("rain")).toMatchObject({ pos: "v./n.", chinese: "下雨；雨" });
+    expect(wordById("plant")).toMatchObject({ pos: "v./n.", chinese: "种植；植物" });
+    expect(wordById("today")).not.toHaveProperty("pos");
+    expect(formatMeaning(wordById("today")!)).toBe("今天");
+    expect(formatMeaning(wordById("today")!).startsWith(" ")).toBe(false);
     expect(wordById("in class")?.pos).toBe("phr.");
     const modal = readWordFile({
       words: [{ word: "can", meaning_zh: "能；会", grade_est: 3, spelling: "advanced", pos: "modal v." }],
@@ -232,11 +242,74 @@ describe("PEP grades 3–6 v1.2 library", () => {
     expect(formatMeaning({ chinese: "树", pos: "" })).toBe("树");
     expect(formatMeaning({ chinese: "树", pos: null })).toBe("树");
     expect(formatMeaning(wordById("tree")!)).toBe("n. 树");
-    expect(formatMeaning(wordById("rain")!)).toBe("下雨；雨");
-    expect(formatMeaning(wordById("rain")!).startsWith(" ")).toBe(false);
+    expect(formatMeaning(wordById("rain")!)).toBe("v./n. 下雨；雨");
+    expect(formatMeaning(wordById("orange")!)).toBe("n. 橙子");
+    expect(formatMeaning(wordById("red")!)).toBe("adj. 红色的");
     expect(quizForWord("tree", 1).prompt).toBe("「n. 树」用英语怎么说？");
     expect(quizForWord("tree", 1).hint).toBe("n. 树");
-    expect(quizForWord("rain", 1).prompt).toBe("「下雨；雨」用英语怎么说？");
-    expect(quizForWord("rain", 1).hint).toBe("下雨；雨");
+    expect(quizForWord("rain", 1).prompt).toBe("「v./n. 下雨；雨」用英语怎么说？");
+    expect(quizForWord("rain", 1).hint).toBe("v./n. 下雨；雨");
+    expect(quizForWord("can", 1).prompt).toBe("「modal v. 能；会」用英语怎么说？");
+  });
+
+  it("resolves red from the word list when the chapter snapshot still says the old meaning", () => {
+    const chapter = JSON.parse(readFileSync("src/domain/chapters/chapter_forest_v1.1.json", "utf8")) as {
+      formal_wordlist: string;
+      words_resolved_snapshot: { word: string; meaning_zh: string }[];
+    };
+    const snapshot = chapter.words_resolved_snapshot.find((item) => item.word === "red");
+    expect(chapter.formal_wordlist).toContain("pep_words_g3-6_v1.2.2.json");
+    expect(snapshot?.meaning_zh).toBe("红色");
+    expect(wordById("red")).toMatchObject({ chinese: "红色的", pos: "adj." });
+    expect(formatMeaning(wordById("red")!)).toBe("adj. 红色的");
+    expect(readFileSync("src/domain/catalog.ts", "utf8")).not.toContain("words_resolved");
+    expect(createHash("sha256").update(readFileSync("src/domain/data/pep_words_g3-6_v1.2.2_loader.json")).digest("hex")).toBe(
+      "6baeec1b6237eb91ed381e8308bd2f28cc7db61c49dcce749f7c8e12b0e61702",
+    );
+    expect(createHash("sha256").update(readFileSync("src/domain/chapters/chapter_forest_v1.1.json")).digest("hex")).toBe(
+      "7f3ce2afec071ba9d488f82f393b3a852a1461be33dcaf28c18cd617d339b4ee",
+    );
+  });
+
+  it("keeps new_sense meanings out of the catalog and out of every quiz", () => {
+    expect(wordById("orange")).toMatchObject({ chinese: "橙子", pos: "n." });
+    expect(wordById("cook")).toMatchObject({ chinese: "做饭", pos: "v." });
+    const hidden = ["橙色的", "厨师", "也许；可能"];
+    for (const word of CATALOG_WORDS) {
+      for (const text of hidden) expect(word.chinese).not.toContain(text);
+    }
+    const loaded = readWordFile({
+      words: [{
+        word: "orange",
+        meaning_zh: "橙子",
+        grade_est: 3,
+        spelling: "basic",
+        pos: "n.",
+        senses: [
+          { meaning_zh: "橙子", pos: "n." },
+          { meaning_zh: "橙色的", pos: "adj.", relation: "new_sense" },
+        ],
+      }, {
+        word: "May",
+        meaning_zh: "五月",
+        grade_est: 5,
+        spelling: "basic",
+        pos: "n.",
+        senses: [
+          { meaning_zh: "五月", pos: "n." },
+          { meaning_zh: "也许；可能", pos: "modal v.", relation: "new_sense" },
+        ],
+      }],
+    });
+    expect(JSON.stringify(loaded)).not.toContain("橙色的");
+    expect(JSON.stringify(loaded)).not.toContain("也许；可能");
+    expect(loaded[1]?.senses).toEqual([{ chinese: "五月", pos: "n." }]);
+    for (const id of CATALOG_WORDS.map((word) => word.id)) {
+      for (const direction of ["zh-to-en", "en-to-zh", "listen-to-zh"] as const) {
+        const quiz = quizForWord(id, 1, direction);
+        const text = `${quiz.prompt} ${quiz.hint} ${quiz.choices.map((choice) => choice.label).join(" ")}`;
+        for (const hiddenText of hidden) expect(text).not.toContain(hiddenText);
+      }
+    }
   });
 });

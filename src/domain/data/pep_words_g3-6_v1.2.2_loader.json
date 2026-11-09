@@ -8,7 +8,7 @@
       "meaning_zh": "大约；关于",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": null
+      "pos": "adv./prep."
     },
     {
       "word": "after",
@@ -85,7 +85,7 @@
       "meaning_zh": "回；后面",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": null
+      "pos": "adv./n."
     },
     {
       "word": "bag",
@@ -131,17 +131,17 @@
     },
     {
       "word": "black",
-      "meaning_zh": "黑色",
+      "meaning_zh": "黑色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "blue",
-      "meaning_zh": "蓝色",
+      "meaning_zh": "蓝色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "boat",
@@ -201,10 +201,10 @@
     },
     {
       "word": "brown",
-      "meaning_zh": "棕色",
+      "meaning_zh": "棕色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "cake",
@@ -218,7 +218,7 @@
       "meaning_zh": "能；会",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": "v."
+      "pos": "modal v."
     },
     {
       "word": "Canada",
@@ -428,7 +428,7 @@
       "meaning_zh": "英语；英国的",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": null
+      "pos": "n./adj."
     },
     {
       "word": "eraser",
@@ -672,10 +672,10 @@
     },
     {
       "word": "green",
-      "meaning_zh": "绿色",
+      "meaning_zh": "绿色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "hand",
@@ -915,7 +915,7 @@
       "meaning_zh": "许多；非常",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": null
+      "pos": "adj./adv."
     },
     {
       "word": "mum",
@@ -1024,7 +1024,7 @@
     },
     {
       "word": "orange",
-      "meaning_zh": "橙子；橙色",
+      "meaning_zh": "橙子",
       "grade_est": 3,
       "spelling": "basic",
       "notes": "同年级多处出现: 上U4, 上U5；多义合并",
@@ -1084,21 +1084,21 @@
       "meaning_zh": "储蓄罐",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "pink",
-      "meaning_zh": "粉色",
+      "meaning_zh": "粉色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "plant",
       "meaning_zh": "种植；植物",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": null
+      "pos": "v./n."
     },
     {
       "word": "plate",
@@ -1109,10 +1109,10 @@
     },
     {
       "word": "purple",
-      "meaning_zh": "紫色",
+      "meaning_zh": "紫色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "put",
@@ -1130,17 +1130,17 @@
     },
     {
       "word": "red",
-      "meaning_zh": "红色",
+      "meaning_zh": "红色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "red panda",
       "meaning_zh": "小熊猫",
       "grade_est": 3,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "rice",
@@ -1537,10 +1537,10 @@
     },
     {
       "word": "water",
-      "meaning_zh": "水；浇水",
+      "meaning_zh": "浇水；水",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": null
+      "pos": "v./n."
     },
     {
       "word": "where",
@@ -1551,10 +1551,10 @@
     },
     {
       "word": "white",
-      "meaning_zh": "白色",
+      "meaning_zh": "白色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "who",
@@ -1587,10 +1587,10 @@
     },
     {
       "word": "yellow",
-      "meaning_zh": "黄色",
+      "meaning_zh": "黄色的",
       "grade_est": 3,
       "spelling": "basic",
-      "pos": "n."
+      "pos": "adj."
     },
     {
       "word": "yummy",
@@ -1723,7 +1723,7 @@
       "meaning_zh": "公交车站",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "busy",
@@ -1807,7 +1807,7 @@
       "meaning_zh": "打扫；干净的",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "v./adj."
     },
     {
       "word": "cleaner",
@@ -1874,11 +1874,11 @@
     },
     {
       "word": "cook",
-      "meaning_zh": "做饭；厨师",
+      "meaning_zh": "做饭",
       "grade_est": 4,
       "spelling": "basic",
       "notes": "同年级多处出现: 上U1, 上U4；多义合并",
-      "pos": null
+      "pos": "v."
     },
     {
       "word": "cow",
@@ -1906,7 +1906,7 @@
       "meaning_zh": "快递员",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "desk",
@@ -1969,7 +1969,7 @@
       "meaning_zh": "工厂工人",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "fall",
@@ -2032,7 +2032,7 @@
       "meaning_zh": "首先；第一",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "adv./num."
     },
     {
       "word": "floor",
@@ -2144,7 +2144,7 @@
       "meaning_zh": "四季豆",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "hair",
@@ -2347,7 +2347,7 @@
       "meaning_zh": "客厅",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "look after",
@@ -2445,7 +2445,7 @@
       "meaning_zh": "上班族；办公室职员",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "over",
@@ -2537,7 +2537,7 @@
       "meaning_zh": "警察",
       "grade_est": 4,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "potato",
@@ -2558,7 +2558,7 @@
       "meaning_zh": "下雨；雨",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "v./n."
     },
     {
       "word": "rainy",
@@ -2691,7 +2691,7 @@
       "meaning_zh": "雪；下雪",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "n./v."
     },
     {
       "word": "snowman",
@@ -2887,7 +2887,7 @@
       "meaning_zh": "整洁的；整理",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "adj./v."
     },
     {
       "word": "tired",
@@ -3038,10 +3038,10 @@
     },
     {
       "word": "when",
-      "meaning_zh": "什么时候；当…的时候",
+      "meaning_zh": "当…的时候；什么时候",
       "grade_est": 4,
       "spelling": "advanced",
-      "pos": null
+      "pos": "conj./adv."
     },
     {
       "word": "which",
@@ -3230,7 +3230,7 @@
       "meaning_zh": "京剧",
       "grade_est": 5,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "beside",
@@ -3419,7 +3419,7 @@
       "meaning_zh": "可以；可能",
       "grade_est": 5,
       "spelling": "advanced",
-      "pos": "v."
+      "pos": "modal v."
     },
     {
       "word": "country",
@@ -3811,7 +3811,7 @@
       "meaning_zh": "火锅",
       "grade_est": 5,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "hotel",
@@ -3860,7 +3860,7 @@
       "meaning_zh": "冰淇淋",
       "grade_est": 5,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "if",
@@ -4014,7 +4014,7 @@
       "meaning_zh": "左边；向左",
       "grade_est": 5,
       "spelling": "advanced",
-      "pos": null
+      "pos": "n./adv."
     },
     {
       "word": "less",
@@ -4168,7 +4168,7 @@
       "meaning_zh": "必须",
       "grade_est": 5,
       "spelling": "advanced",
-      "pos": "v."
+      "pos": "modal v."
     },
     {
       "word": "National Day",
@@ -4483,7 +4483,7 @@
       "meaning_zh": "应该",
       "grade_est": 5,
       "spelling": "advanced",
-      "pos": "v."
+      "pos": "modal v."
     },
     {
       "word": "shout",
@@ -4917,7 +4917,7 @@
       "meaning_zh": "空调",
       "grade_est": 6,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "airport",
@@ -4996,7 +4996,7 @@
       "meaning_zh": "书市",
       "grade_est": 6,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "bottle",
@@ -5150,7 +5150,7 @@
       "grade_est": 6,
       "spelling": "basic",
       "notes": "旧版PEP六下（新版尚未发行）；tier未标注",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "dirty",
@@ -5302,7 +5302,7 @@
       "meaning_zh": "姜饼屋",
       "grade_est": 6,
       "spelling": "none",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "glass",
@@ -5569,7 +5569,7 @@
       "meaning_zh": "外太空",
       "grade_est": 6,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "own",
@@ -5604,7 +5604,7 @@
       "meaning_zh": "零花钱",
       "grade_est": 6,
       "spelling": "advanced",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "power",
@@ -5696,7 +5696,7 @@
       "meaning_zh": "流鼻涕",
       "grade_est": 6,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "sale",
@@ -5833,7 +5833,7 @@
       "meaning_zh": "空间站",
       "grade_est": 6,
       "spelling": "basic",
-      "pos": "phr."
+      "pos": "n."
     },
     {
       "word": "spaceship",

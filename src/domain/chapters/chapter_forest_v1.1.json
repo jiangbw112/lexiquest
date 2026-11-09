@@ -5,7 +5,7 @@
  "created_at": "2026-11-09",
  "decided_by": "Haru 按 PM 权限定（决定1）",
  "design_ref": "/workspace/english-rpg-design/DES-04_forest_single_player_v1.md",
- "formal_wordlist": "/workspace/english-rpg-design/pep_words_g3-6_v1.2.1.json",
+ "formal_wordlist": "/workspace/english-rpg-design/pep_words_g3-6_v1.2.2.json",
  "note": "MVP 继续用 28 词样例与 6/6/6/6/4 分组。20 词按 loader id（word.trim().toLowerCase()）引用正式表，spelling/释义/年级以正式表为准；8 词为「章节额外词」，只在本章使用，不进年级词池。本文件只引用，不重复定义正式表词条（words_resolved 仅为便于查看的快照）。 v1.1（2026-11-09）：正式表改指 v1.2；8 个章节额外词补 pos；其余引用不变。",
  "clear_rule": "defeat_boss",
  "mastery_blocks_clear": false,
