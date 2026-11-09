@@ -27,6 +27,9 @@ export interface WordCardRecord {
   collectedAt: number;
   masteryBadge: boolean;
   masteredAt?: number;
+  /** True after the badge has been bright at least once. Grey does not clear it. */
+  badgeEverOn?: boolean;
+  badgeLastChangedAt?: number;
 }
 
 export interface StoredFsrs {
@@ -60,8 +63,8 @@ export interface PlayerProfile {
   appearance: Appearance;
 }
 
-export type GoalPreset = "light" | "standard" | "more";
-export type GoalMode = "review" | "learn" | "practice";
+export type GoalPreset = "easy" | "normal" | "more";
+export type GoalMode = "review" | "learn_fallback" | "practice_fallback";
 export type MemoryTrack = "meaning" | "spelling";
 export type DueRating = "again" | "hard" | "good" | "easy";
 
@@ -76,21 +79,29 @@ export interface DueAnswerLog {
 export interface DailyStat {
   learnedWordIds: string[];
   reviewedDueWordIds: string[];
-  badgeOnGainedWordIds: string[];
+  badgeFirstOnWordIds: string[];
   badgeRestoredWordIds: string[];
 }
 
-/** Snapshotted for one study day. The target does not rise later that day. */
+/** Snapshotted for one study day. The targets do not rise later that day. */
 export interface DailyGoal {
   dayKey: string;
   snapshotDue: number;
   mode: GoalMode;
-  target: number;
-  progress: number;
-  practiceCount: number;
+  targetReview: number;
+  targetLearn: number;
+  targetPractice: number;
+  progressReview: number;
+  progressLearn: number;
+  progressPractice: number;
   completed: boolean;
   rewardClaimed: boolean;
-  skipped: boolean;
+}
+
+export interface ParentPinRecord {
+  algorithm: "sha-256";
+  salt: string;
+  hash: string;
 }
 
 export interface SaveData {
@@ -107,9 +118,15 @@ export interface SaveData {
   dailyGoal: DailyGoal | null;
   goalDaysTotal: number;
   lastGoalCompletedDayKey: string | null;
-  goalCalendar: Record<string, "completed" | "skipped">;
-  /** Appearance token. Completing a day's goal adds one. It does not change battle stats. */
+  goalCalendar: Record<string, "completed" | "missed">;
+  /** Appearance token. Completing a day's goal adds one. It does not change battle stats or XP. */
   cosmeticTokens: number;
+  /** Last device time zone used to name a study day. History keys are not rewritten when it changes. */
+  lastTimezone: string | null;
+  /** True when the clock or zone moved to a study day earlier than the saved goal. Tokens stay. */
+  clockAnomaly: boolean;
+  /** Salted hash of the parent PIN. The PIN itself is not stored. */
+  parentPin: ParentPinRecord | null;
   skillLevels: Record<string, number>;
   unlockedSkillIds: string[];
   equippedSkillIds: string[];

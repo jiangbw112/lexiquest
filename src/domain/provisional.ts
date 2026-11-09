@@ -59,13 +59,13 @@ export const PROVISIONAL = {
   },
   skillCards: {
     label: "v1",
-    /** At most this many real skill cards. Empty slots still fill with the base skill. */
+    /** Confirmed v1. At most this many real skill cards. Empty slots still fill with the base skill. */
     maxEquipped: 3,
-    /** Share of the class starter's level-1 power. The filler stays weaker than that starter. */
+    /** Confirmed v1. Share of the class starter's level-1 power. The filler stays weaker than that starter. */
     baseSkillPowerScale: 0.45,
-    /** Energy to cast an auto-filled base skill. 0 lets a battle start with one real card. */
+    /** Confirmed v1. Energy to cast an auto-filled base skill. 0 lets a battle start with one real card. */
     baseSkillEnergyCost: 0,
-    /** Wrong PvE answers multiply the card's level-1 power, not its upgraded power. */
+    /** Confirmed v1. Wrong PvE answers multiply the card's level-1 power, not its upgraded power. */
     wrongAnswerMultiplier: 0.5,
   },
 } as const;

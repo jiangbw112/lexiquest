@@ -7,23 +7,24 @@ import {
   ensureDailyGoal,
   goalStatusLine,
   noteDueAnswer,
+  notePracticeAnswer,
   openingReminder,
   parentFacingLines,
   parentView,
   parentWordRows,
   planDailyGoal,
-  recordPracticeRound,
   setGoalPreset,
-  skipTodayGoal,
   struggleWords,
   studyDayKey,
+  withParentDefaults,
 } from "./parent";
 import { applyBattleOutcome, createSave, learnWord, reviewWord, setSelectedGrades } from "./progress";
 import { PROPOSALS } from "./proposals";
 import { PROVISIONAL } from "./provisional";
-import type { MemoryRecord, SaveData } from "./types";
+import type { DailyGoal, MemoryRecord, SaveData } from "./types";
 
 const START = new Date("2026-03-01T02:00:00Z");
+const ZONE = "Asia/Shanghai";
 
 function newSave() {
   return createSave({
@@ -37,6 +38,26 @@ function newSave() {
 
 function day(offset: number): Date {
   return new Date(START.getTime() + offset * 24 * 60 * 60 * 1000);
+}
+
+function view(save: SaveData, now: Date, zone = ZONE) {
+  return parentView(save, now, 10, zone);
+}
+
+function learn(save: SaveData, wordId: string, now: Date, zone = ZONE) {
+  return learnWord(save, wordId, now, zone);
+}
+
+function answer(
+  save: SaveData,
+  wordId: string,
+  rating: "again" | "good",
+  at: Date,
+  track: "meaning" | "spelling" = "meaning",
+  dueFirst = true,
+  beforeTone?: "none" | "grey" | "bright",
+) {
+  return noteDueAnswer(save, { wordId, track, rating, at, dueFirst, beforeTone, timeZone: ZONE });
 }
 
 function withDue(save: SaveData, wordIds: readonly string[], now: Date, due: boolean): SaveData {
@@ -61,97 +82,173 @@ function addExtraDue(save: SaveData, count: number, now: Date): SaveData {
       reviewInstants: [],
       fsrs: { ...sample.fsrs, due: new Date(now.getTime() - 60_000).toISOString() },
     };
-    wordCards[wordId] = { wordId, collectedAt: now.getTime(), masteryBadge: false };
+    wordCards[wordId] = { wordId, collectedAt: now.getTime(), masteryBadge: false, badgeEverOn: false };
   }
   return { ...save, memory, wordCards };
 }
 
-describe("DES-05 parent progress and daily goal proposals", () => {
-  it("keeps the proposal numbers out of the decided v1 module", () => {
-    expect(PROPOSALS.label).toBe("PROPOSAL");
-    expect(PROPOSALS.dailyGoal.goalMax).toEqual({ light: 8, standard: 15, more: 25 });
-    expect(PROPOSALS.dailyGoal.learnFallback).toEqual({ light: 2, standard: 3, more: 5 });
-    expect(PROPOSALS.dailyGoal.practiceRounds).toBe(3);
+function bright(save: SaveData, wordId: string, now: Date, ever: boolean): SaveData {
+  const current = save.memory[wordId];
+  if (!current) return save;
+  return {
+    ...save,
+    memory: {
+      ...save.memory,
+      [wordId]: { ...current, fsrs: { ...current.fsrs, due: new Date(now.getTime() + 86_400_000).toISOString() } },
+    },
+    wordCards: {
+      ...save.wordCards,
+      [wordId]: { ...save.wordCards[wordId]!, masteryBadge: true, badgeEverOn: ever },
+    },
+  };
+}
+
+describe("DES-05 parent progress and daily goal", () => {
+  it("keeps the confirmed numbers in one module", () => {
+    expect(PROPOSALS.label).toBe("v1");
+    expect(PROPOSALS.dailyGoal.goalMax).toEqual({ easy: 8, normal: 15, more: 25 });
+    expect(PROPOSALS.dailyGoal.learnFallback).toEqual({ easy: 2, normal: 3, more: 5 });
+    expect(PROPOSALS.dailyGoal.practiceQuestions).toBe(3);
     expect(PROPOSALS.dailyGoal.dayBoundaryHour).toBe(4);
-    expect(PROVISIONAL.mastery.label).toBe("v1");
-    expect(JSON.stringify(PROVISIONAL)).not.toContain("GOAL_MAX");
+    expect(PROPOSALS.dailyGoal).not.toHaveProperty("timeZone");
+    expect(PROVISIONAL.mastery.timeZone).toBe("Asia/Shanghai");
+    expect(PROVISIONAL.skillCards.baseSkillPowerScale).toBe(0.45);
+    expect(PROVISIONAL.skillCards.baseSkillEnergyCost).toBe(0);
+    expect(PROVISIONAL.skillCards.wrongAnswerMultiplier).toBe(0.5);
   });
 
-  it("rolls the study day at 04:00 Asia/Shanghai and resets today's count", () => {
+  it("rolls the study day at 04:00 local time, including across DST", () => {
     const early = new Date("2026-03-02T03:59:00+08:00");
     const late = new Date("2026-03-02T04:00:00+08:00");
-    expect(studyDayKey(early)).toBe("2026-03-01");
-    expect(studyDayKey(late)).toBe("2026-03-02");
-    let save = learnWord(newSave(), "tree", early);
-    expect(parentView(save, early).learnedToday).toBe(1);
-    expect(learnWord(save, "tree", early).wordCards).toBe(save.wordCards);
-    expect(parentView(learnWord(save, "tree", early), early).learnedToday).toBe(1);
-    save = ensureDailyGoal(save, late);
+    expect(studyDayKey(early, ZONE)).toBe("2026-03-01");
+    expect(studyDayKey(late, ZONE)).toBe("2026-03-02");
+    expect(studyDayKey(new Date("2026-03-02T03:59:00Z"), "UTC")).toBe("2026-03-01");
+    expect(studyDayKey(new Date("2026-03-02T04:00:00Z"), "UTC")).toBe("2026-03-02");
+    expect(studyDayKey(new Date("2026-03-08T03:30:00-04:00"), "America/New_York")).toBe("2026-03-07");
+    expect(studyDayKey(new Date("2026-03-08T04:00:00-04:00"), "America/New_York")).toBe("2026-03-08");
+    expect(studyDayKey(new Date("2026-11-01T03:30:00-05:00"), "America/New_York")).toBe("2026-10-31");
+    expect(studyDayKey(new Date("2026-11-01T04:00:00-05:00"), "America/New_York")).toBe("2026-11-01");
+
+    let save = learn(newSave(), "tree", early);
+    expect(view(save, early).learnedToday).toBe(1);
+    expect(learn(save, "tree", early).wordCards).toBe(save.wordCards);
+    save = ensureDailyGoal(save, late, ZONE);
     expect(save.dailyGoal?.dayKey).toBe("2026-03-02");
-    expect(save.dailyGoal?.progress).toBe(0);
-    expect(parentView(save, late).learnedToday).toBe(0);
-    expect(parentView(save, late).learned7d).toBe(1);
+    expect(save.dailyGoal?.progressLearn).toBe(0);
+    expect(view(save, late).learnedToday).toBe(0);
+    expect(view(save, late).learned7d).toBe(1);
+  });
+
+  it("does not take tokens back, rewrite history, or fill skipped days when the clock or zone moves", () => {
+    const instant = new Date("2026-03-02T03:00:00Z");
+    let save = learn(newSave(), "tree", instant);
+    save = learn(save, "fish", instant);
+    save = learn(save, "map", instant);
+    expect(studyDayKey(instant, ZONE)).toBe("2026-03-02");
+    expect(save.dailyGoal?.dayKey).toBe("2026-03-02");
+    expect(save.cosmeticTokens).toBe(1);
+    const stats = save.dailyStats["2026-03-02"];
+    const tokens = save.cosmeticTokens;
+    const days = save.goalDaysTotal;
+
+    const behind = ensureDailyGoal(save, instant, "America/Los_Angeles");
+    expect(studyDayKey(instant, "America/Los_Angeles")).toBe("2026-03-01");
+    expect(behind.clockAnomaly).toBe(true);
+    expect(behind.dailyGoal?.dayKey).toBe("2026-03-02");
+    expect(behind.dailyGoal?.completed).toBe(true);
+    expect(behind.cosmeticTokens).toBe(tokens);
+    expect(behind.goalDaysTotal).toBe(days);
+    expect(behind.dailyStats["2026-03-02"]).toEqual(stats);
+    expect(behind.goalCalendar["2026-03-01"]).toBeUndefined();
+    const parentLines = parentFacingLines(view(behind, instant, "America/Los_Angeles"));
+    expect(parentLines.join("\n")).toContain("这台电脑的时间比学习记录更早");
+    const child = `${goalStatusLine(behind.dailyGoal)}\n${openingReminder(behind, instant, "America/Los_Angeles")}`;
+    expect(child).not.toContain("时间比学习记录");
+    expect(child).not.toMatch(/连续|断签|落后/);
+
+    const ahead = ensureDailyGoal(save, instant, ZONE);
+    expect(ahead.clockAnomaly).toBe(false);
+    expect(ahead.dailyGoal?.dayKey).toBe("2026-03-02");
+    expect(ahead.dailyStats["2026-03-02"]).toEqual(stats);
+    expect(ahead.cosmeticTokens).toBe(tokens);
+
+    const jumped = ensureDailyGoal(save, new Date(instant.getTime() + 5 * 86_400_000), ZONE);
+    expect(jumped.dailyGoal?.dayKey).toBe("2026-03-07");
+    expect(jumped.dailyGoal?.completed).toBe(false);
+    expect(jumped.cosmeticTokens).toBe(tokens);
+    expect(jumped.goalDaysTotal).toBe(days);
+    expect(jumped.dailyStats["2026-03-02"]).toEqual(stats);
+    expect(Object.keys(jumped.goalCalendar)).toEqual(["2026-03-02"]);
+    expect(jumped.goalCalendar["2026-03-03"]).toBeUndefined();
+
+    const same = new Date("2026-06-15T12:00:00Z");
+    const held = ensureDailyGoal(learn(newSave(), "tree", same, "UTC"), same, "UTC");
+    const shifted = ensureDailyGoal(held, same, ZONE);
+    expect(studyDayKey(same, "UTC")).toBe(studyDayKey(same, ZONE));
+    expect(shifted.dailyGoal?.dayKey).toBe(held.dailyGoal?.dayKey);
+    expect(shifted.dailyGoal?.snapshotDue).toBe(held.dailyGoal?.snapshotDue);
+    expect(shifted.dailyGoal?.progressLearn).toBe(held.dailyGoal?.progressLearn);
+    expect(shifted.clockAnomaly).toBe(false);
+    expect(shifted.lastTimezone).toBe(ZONE);
   });
 
   it("sets the review target to min(due, the tier cap) and does not raise it later that day", () => {
-    let save = learnWord(newSave(), "tree", START);
+    let save = learn(newSave(), "tree", START);
     save = addExtraDue(save, 9, START);
     save = withDue(save, ["tree"], START, true);
     save = { ...save, dailyGoal: null };
-    save = ensureDailyGoal(save, START);
+    save = ensureDailyGoal(save, START, ZONE);
     expect(dueWordIds(save, START)).toHaveLength(10);
-    expect(save.dailyGoal).toMatchObject({ mode: "review", target: 10, snapshotDue: 10 });
+    expect(save.dailyGoal).toMatchObject({ mode: "review", targetReview: 10, snapshotDue: 10 });
 
     save = addExtraDue(save, 29, START);
     save = withDue(save, ["tree"], START, true);
-    const raised = ensureDailyGoal(save, START);
-    expect(raised.dailyGoal?.target).toBe(10);
+    const raised = ensureDailyGoal(save, START, ZONE);
+    expect(raised.dailyGoal?.targetReview).toBe(10);
     expect(raised.dailyGoal?.snapshotDue).toBe(10);
 
-    const standard = planDailyGoal(addExtraDue(learnWord(newSave(), "tree", START), 30, START), START);
-    expect(standard.target).toBe(15);
-    const light = planDailyGoal(setGoalPreset(addExtraDue(learnWord(newSave(), "tree", START), 30, START), "light"), START);
-    expect(light.target).toBe(8);
-    const more = planDailyGoal(setGoalPreset(addExtraDue(learnWord(newSave(), "tree", START), 30, START), "more"), START);
-    expect(more.target).toBe(25);
-    expect(planDailyGoal(withDue(learnWord(newSave(), "tree", START), ["tree"], START, true), START).target).toBe(1);
+    const standard = planDailyGoal(addExtraDue(learn(newSave(), "tree", START), 30, START), START, ZONE);
+    expect(standard.targetReview).toBe(15);
+    const easy = planDailyGoal(setGoalPreset(addExtraDue(learn(newSave(), "tree", START), 30, START), "easy"), START, ZONE);
+    expect(easy.targetReview).toBe(8);
+    const more = planDailyGoal(setGoalPreset(addExtraDue(learn(newSave(), "tree", START), 30, START), "more"), START, ZONE);
+    expect(more.targetReview).toBe(25);
+    expect(planDailyGoal(withDue(learn(newSave(), "tree", START), ["tree"], START, true), START, ZONE).targetReview).toBe(1);
 
-    const snapped = setGoalPreset(raised, "light");
-    expect(ensureDailyGoal(snapped, START).dailyGoal?.target).toBe(10);
-    const logged = noteDueAnswer(snapped, {
-      wordId: "tree",
-      track: "meaning",
-      rating: "again",
-      at: new Date(START.getTime() - 3 * 86_400_000),
-      dueFirst: true,
-    });
-    expect(logged.dailyGoal?.target).toBe(10);
-    expect(logged.dailyGoal?.dayKey).toBe(studyDayKey(START));
-    const tomorrow = ensureDailyGoal(snapped, day(1));
-    expect(tomorrow.dailyGoal).toMatchObject({ mode: "review", target: 8 });
+    const snapped = setGoalPreset(raised, "easy");
+    expect(ensureDailyGoal(snapped, START, ZONE).dailyGoal?.targetReview).toBe(10);
+    const logged = answer(snapped, "tree", "again", new Date(START.getTime() - 3 * 86_400_000));
+    expect(logged.dailyGoal?.targetReview).toBe(10);
+    expect(logged.dailyGoal?.dayKey).toBe(studyDayKey(START, ZONE));
+    expect(logged.clockAnomaly).toBe(true);
+    expect(logged.cosmeticTokens).toBe(snapped.cosmeticTokens);
+    const tomorrow = ensureDailyGoal(snapped, day(1), ZONE);
+    expect(tomorrow.dailyGoal).toMatchObject({ mode: "review", targetReview: 8 });
+    expect(tomorrow.dailyGoal).not.toHaveProperty("skipped");
   });
 
-  it("falls back to new words, then to practice rounds that do not change FSRS", () => {
-    const fresh = ensureDailyGoal(newSave(), START);
-    expect(fresh.dailyGoal).toMatchObject({ mode: "learn", target: 3, snapshotDue: 0 });
-    expect(ensureDailyGoal(setGoalPreset(newSave(), "light"), START).dailyGoal?.target).toBe(2);
-    expect(ensureDailyGoal(setGoalPreset(newSave(), "more"), START).dailyGoal?.target).toBe(5);
+  it("falls back to new words, then counts each answered question without changing FSRS", () => {
+    const fresh = ensureDailyGoal(newSave(), START, ZONE);
+    expect(fresh.dailyGoal).toMatchObject({ mode: "learn_fallback", targetLearn: 3, snapshotDue: 0 });
+    expect(ensureDailyGoal(setGoalPreset(newSave(), "easy"), START, ZONE).dailyGoal?.targetLearn).toBe(2);
+    expect(ensureDailyGoal(setGoalPreset(newSave(), "more"), START, ZONE).dailyGoal?.targetLearn).toBe(5);
 
     let save = newSave();
-    for (const word of wordsForGrades(["G3"])) save = learnWord(save, word.id, START);
+    for (const word of wordsForGrades(["G3"])) save = learn(save, word.id, START);
     expect(save.cosmeticTokens).toBe(1);
-    expect(save.dailyGoal?.mode).toBe("learn");
+    expect(save.dailyGoal?.mode).toBe("learn_fallback");
     const next = day(1);
     save = withDue(save, Object.keys(save.memory), next, false);
     save = { ...save, dailyGoal: null };
-    save = ensureDailyGoal(save, next);
-    expect(save.dailyGoal).toMatchObject({ mode: "practice", target: 3, progress: 0 });
+    save = ensureDailyGoal(save, next, ZONE);
+    expect(save.dailyGoal).toMatchObject({ mode: "practice_fallback", targetPractice: 3, progressPractice: 0 });
+    expect(goalStatusLine(save.dailyGoal)).toContain("暂时没有新词可学，做 3 次练习也算完成今日目标");
     const memory = save.memory;
     const xp = save.xp;
     const cards = save.wordCards;
-    save = recordPracticeRound(save, next);
-    save = recordPracticeRound(save, next);
-    save = recordPracticeRound(save, next);
+    save = notePracticeAnswer(save, "tree", next, ZONE);
+    save = notePracticeAnswer(save, "fish", next, ZONE);
+    save = reviewWord(save, "map", Rating.Again, next, ZONE);
     expect(save.memory).toBe(memory);
     expect(save.wordCards).toBe(cards);
     expect(save.xp).toBe(xp);
@@ -159,80 +256,93 @@ describe("DES-05 parent progress and daily goal proposals", () => {
     expect(save.cosmeticTokens).toBe(2);
     expect(save.dailyGoal?.completed).toBe(true);
     expect(save.goalCalendar[save.dailyGoal?.dayKey ?? ""]).toBe("completed");
-    const again = recordPracticeRound(save, next);
+    const again = notePracticeAnswer(save, "tree", next, ZONE);
     expect(again.cosmeticTokens).toBe(2);
     expect(again.goalDaysTotal).toBe(2);
+    expect(goalStatusLine(save.dailyGoal)).toContain("今天的练习目标完成了，真棒");
   });
 
   it("pays only an appearance token for a finished review goal, once per study day", () => {
     let save = setSelectedGrades(newSave(), ["G3"]);
-    save = learnWord(save, "tree", START);
-    save = learnWord(save, "fish", START);
-    save = learnWord(save, "map", START);
+    save = learn(save, "tree", START);
+    save = learn(save, "fish", START);
     save = withDue(save, ["tree", "fish"], START, true);
-    save = withDue(save, ["map"], START, false);
     save = { ...save, dailyGoal: null };
-    save = ensureDailyGoal(save, START);
-    expect(save.dailyGoal).toMatchObject({ mode: "review", target: 2 });
-    const held = save.memory.map;
+    save = ensureDailyGoal(save, START, ZONE);
+    expect(save.dailyGoal).toMatchObject({ mode: "review", targetReview: 2 });
     const xp = save.xp;
     const tokens = save.cosmeticTokens;
-    save = reviewWord(save, "tree", Rating.Again, START);
+    save = reviewWord(save, "tree", Rating.Again, START, ZONE);
     expect(save.cosmeticTokens).toBe(tokens);
-    expect(parentView(save, START).reviewedToday).toBe(1);
-    save = reviewWord(save, "fish", Rating.Again, START);
-    expect(save.memory.map).toBe(held);
+    expect(view(save, START).reviewedToday).toBe(1);
+    save = reviewWord(save, "fish", Rating.Again, START, ZONE);
     expect(save.xp).toBe(xp);
-    expect(save.battlesWon).toBe(save.battlesLost);
     expect(save.cosmeticTokens).toBe(tokens + 1);
-    expect(save.goalDaysTotal).toBe(save.cosmeticTokens);
+    expect(save.goalDaysTotal).toBe(1);
     expect(save.dailyGoal?.rewardClaimed).toBe(true);
     const paid = save.cosmeticTokens;
-    save = reviewWord(save, "tree", Rating.Good, new Date(START.getTime() + 1000));
+    save = reviewWord(save, "tree", Rating.Good, new Date(START.getTime() + 1000), ZONE);
     expect(save.cosmeticTokens).toBe(paid);
-    expect(parentView(save, START).reviewedToday).toBe(2);
+    expect(view(save, START).reviewedToday).toBe(2);
+    const wiped = ensureDailyGoal({ ...save, dailyGoal: null }, START, ZONE);
+    const replayed = reviewWord(withDue(wiped, ["tree", "fish"], START, true), "tree", Rating.Good, START, ZONE);
+    expect(replayed.cosmeticTokens).toBe(paid);
     const fought = applyBattleOutcome(save, "win", START.getTime());
     expect(fought.cosmeticTokens).toBe(paid);
-    expect(fought.memory.map).toBe(held);
   });
 
-  it("skips today with no reward and keeps the running day total across a gap", () => {
-    let save = ensureDailyGoal(newSave(), START);
-    const skipped = skipTodayGoal(save, START);
-    expect(skipped.dailyGoal?.skipped).toBe(true);
-    expect(skipped.cosmeticTokens).toBe(0);
-    expect(skipped.goalCalendar[studyDayKey(START)]).toBe("skipped");
-    save = learnWord(skipped, "tree", START);
-    save = learnWord(save, "fish", START);
-    save = learnWord(save, "map", START);
-    expect(save.cosmeticTokens).toBe(0);
-    expect(save.dailyGoal?.completed).toBe(false);
-
+  it("keeps the running day total across a gap and has no skip control", () => {
     let finished = newSave();
-    finished = learnWord(finished, "tree", START);
-    finished = learnWord(finished, "fish", START);
-    finished = learnWord(finished, "map", START);
+    finished = learn(finished, "tree", START);
+    finished = learn(finished, "fish", START);
+    finished = learn(finished, "map", START);
     expect(finished.goalDaysTotal).toBe(1);
     const later = day(5);
     finished = withDue(finished, ["tree", "fish", "map"], later, false);
-    finished = ensureDailyGoal(finished, later);
+    finished = ensureDailyGoal(finished, later, ZONE);
     expect(finished.goalDaysTotal).toBe(1);
     expect(finished.dailyGoal?.completed).toBe(false);
+    expect(finished.dailyGoal).not.toHaveProperty("skipped");
     const remaining = wordsForGrades(["G3"]).map((word) => word.id).filter((id) => !finished.wordCards[id]);
-    finished = learnWord(finished, remaining[0]!, later);
-    finished = learnWord(finished, remaining[1]!, later);
-    finished = learnWord(finished, remaining[2]!, later);
+    finished = learn(finished, remaining[0]!, later);
+    finished = learn(finished, remaining[1]!, later);
+    finished = learn(finished, remaining[2]!, later);
     expect(finished.goalDaysTotal).toBe(2);
-    const lines = parentFacingLines(parentView(finished, later));
+    const lines = parentFacingLines(view(finished, later));
     expect(lines.join("\n")).toContain("累计完成 2 天");
-    expect(lines.join("\n")).not.toMatch(/连续|断签/);
-    const away = { ...finished, dailyGoal: { ...finished.dailyGoal!, completed: false, skipped: false }, lastGoalCompletedDayKey: studyDayKey(START) };
-    expect(openingReminder(away, day(8))).toContain("欢迎回来");
+    expect(lines.join("\n")).not.toMatch(/连续|断签|跳过今日/);
+    const away = {
+      ...finished,
+      dailyGoal: { ...(finished.dailyGoal as DailyGoal), completed: false },
+      lastGoalCompletedDayKey: studyDayKey(START, ZONE),
+    };
+    expect(openingReminder(away, day(8), ZONE)).toContain("欢迎回来");
     expect(goalStatusLine(finished.dailyGoal)).toContain("完成了，真棒");
   });
 
+  it("counts a first bright badge and a later grey-to-bright badge as different rows", () => {
+    let save = learn(newSave(), "tree", START);
+    save = bright(save, "tree", START, false);
+    save = answer(save, "tree", "good", START, "meaning", true, "none");
+    expect(save.wordCards.tree?.badgeEverOn).toBe(true);
+    expect(view(save, START).masteredFirst7d).toBe(1);
+    expect(view(save, START).masteredRestored7d).toBe(0);
+
+    const next = day(1);
+    save = bright(save, "tree", next, true);
+    save = answer(save, "tree", "good", next, "meaning", true, "grey");
+    expect(view(save, next).masteredFirst7d).toBe(1);
+    expect(view(save, next).masteredRestored7d).toBe(1);
+    const again = answer(bright(save, "tree", day(2), true), "tree", "good", day(2), "meaning", true, "grey");
+    const seen = view(again, day(2));
+    expect(seen.masteredRestored7d).toBe(1);
+    expect(seen.firstMasteredLine).toBe("首次掌握：1 个");
+    expect(seen.restoredMasteredLine).toBe("重新掌握：1 个");
+    expect(seen.weekLine).not.toContain("新掌握");
+  });
+
   it("merges meaning and spelling into one word and lists the 14-day struggle set", () => {
-    let save = learnWord(setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]), "tree", START);
+    let save = learn(setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]), "tree", START);
     const spelling: MemoryRecord = {
       ...save.memory.tree!,
       fsrs: { ...save.memory.tree!.fsrs, due: new Date(START.getTime() - 60_000).toISOString() },
@@ -244,86 +354,100 @@ describe("DES-05 parent progress and daily goal proposals", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ wordId: "tree", tracks: ["meaning", "spelling"], due: true });
 
-    const quiet = noteDueAnswer(save, { wordId: "tree", track: "meaning", rating: "again", at: START, dueFirst: false });
+    const quiet = answer(save, "tree", "again", START, "meaning", false);
     expect(quiet.dueAnswers).toEqual([]);
-    expect(struggleWords(quiet, START)).toEqual([]);
+    expect(struggleWords(quiet, START, 10, ZONE)).toEqual([]);
 
     let counted = save;
-    for (const offset of [0, 1, 2]) {
-      counted = noteDueAnswer(counted, {
-        wordId: "tree",
-        track: "meaning",
-        rating: "again",
-        at: day(offset),
-        dueFirst: true,
-      });
-    }
-    expect(struggleWords(counted, day(2)).map((word) => word.wordId)).toEqual(["tree"]);
-    expect(parentView(counted, day(2)).rows).toHaveLength(1);
+    for (const offset of [0, 1, 2]) counted = answer(counted, "tree", "again", day(offset));
+    expect(struggleWords(counted, day(2), 10, ZONE).map((word) => word.wordId)).toEqual(["tree"]);
+    expect(view(counted, day(2)).rows).toHaveLength(1);
 
-    let rated = learnWord(setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]), "tree", START);
+    let rated = learn(setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]), "tree", START);
     const pattern: Array<"again" | "good"> = ["again", "good", "again", "good"];
     pattern.forEach((rating, index) => {
-      rated = noteDueAnswer(rated, { wordId: "tree", track: "spelling", rating, at: day(index), dueFirst: true });
+      rated = answer(rated, "tree", rating, day(index), "spelling");
     });
-    expect(struggleWords(rated, day(3)).map((word) => word.wordId)).toContain("tree");
+    expect(struggleWords(rated, day(3), 10, ZONE).map((word) => word.wordId)).toContain("tree");
 
-    let mild = learnWord(newSave(), "fish", START);
+    let mild = learn(newSave(), "fish", START);
     for (const [rating, index] of [["again", 0], ["good", 1], ["good", 2]] as const) {
-      mild = noteDueAnswer(mild, { wordId: "fish", track: "meaning", rating, at: day(index), dueFirst: true });
+      mild = answer(mild, "fish", rating, day(index));
     }
-    expect(struggleWords(mild, day(2))).toEqual([]);
+    expect(struggleWords(mild, day(2), 10, ZONE)).toEqual([]);
 
-    let grey = learnWord(newSave(), "map", START);
+    let grey = learn(newSave(), "map", START);
     grey = withDue(grey, ["map"], START, true);
     grey = {
       ...grey,
-      wordCards: { ...grey.wordCards, map: { ...grey.wordCards.map!, masteryBadge: true } },
+      wordCards: { ...grey.wordCards, map: { ...grey.wordCards.map!, masteryBadge: true, badgeEverOn: true } },
     };
-    grey = noteDueAnswer(grey, { wordId: "map", track: "meaning", rating: "again", at: START, dueFirst: true });
-    expect(struggleWords(grey, START).map((word) => word.wordId)).toEqual(["map"]);
+    grey = answer(grey, "map", "again", START);
+    expect(struggleWords(grey, START, 10, ZONE).map((word) => word.wordId)).toEqual(["map"]);
 
     let crowd = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
     const words = sampleWords().slice(0, 12);
-    for (const word of words) crowd = learnWord(crowd, word.id, START);
+    for (const word of words) crowd = learn(crowd, word.id, START);
     words.forEach((word, index) => {
       const agains = index + 3;
       for (let time = 0; time < agains; time += 1) {
-        crowd = noteDueAnswer(crowd, {
-          wordId: word.id,
-          track: time % 2 === 0 ? "meaning" : "spelling",
-          rating: "again",
-          at: day(time),
-          dueFirst: true,
-        });
+        crowd = answer(crowd, word.id, "again", day(time), time % 2 === 0 ? "meaning" : "spelling");
       }
     });
-    const listed = struggleWords(crowd, day(13));
+    const listed = struggleWords(crowd, day(13), 10, ZONE);
     expect(listed).toHaveLength(PROPOSALS.parentProgress.struggleListLimit);
     expect(listed[0]?.wordId).toBe(words[11]?.id);
     expect(listed[0]?.againCount).toBeGreaterThan(listed[9]?.againCount ?? 0);
-    expect(parentView(crowd, day(13)).struggleTotal).toBe(12);
+    expect(view(crowd, day(13)).struggleTotal).toBe(12);
   });
 
   it("keeps history after a grade is turned off and uses the empty-state copy", () => {
-    let save = learnWord(newSave(), "tree", START);
+    let save = learn(newSave(), "tree", START);
     save = setSelectedGrades(save, ["G6"]);
-    const view = parentView(save, START);
-    expect(view.learnedToday).toBe(1);
-    expect(view.gradesLabel).toBe("六年级");
-    expect(view.rows).toHaveLength(1);
-    const empty = parentView(newSave(), START);
+    const seen = view(save, START);
+    expect(seen.learnedToday).toBe(1);
+    expect(seen.gradesLabel).toBe("六年级");
+    expect(seen.rows).toHaveLength(1);
+    const empty = view(newSave(), START);
     expect(empty.emptyLine).toContain("还没有学习记录");
-    const text = parentFacingLines(view).concat(parentFacingLines(empty), [openingReminder(save, day(8))]).join("\n");
+    const text = parentFacingLines(seen).concat(parentFacingLines(empty), [openingReminder(save, day(8), ZONE)]).join("\n");
     expect(text).not.toMatch(/FSRS|稳定度|断签|连续|排行|正确率|落后|忘光/);
   });
 
   it("does not count a review that was not due", () => {
-    let save = learnWord(newSave(), "tree", START);
+    let save = learn(newSave(), "tree", START);
     save = withDue(save, ["tree"], START, false);
-    save = reviewWord(save, "tree", Rating.Again, START);
-    expect(parentView(save, START).reviewedToday).toBe(0);
+    save = reviewWord(save, "tree", Rating.Again, START, ZONE);
+    expect(view(save, START).reviewedToday).toBe(0);
     expect(save.dueAnswers).toEqual([]);
     expect(save.cosmeticTokens).toBe(0);
+  });
+
+  it("reads an older proposal save without a skip flag or a fixed time zone", () => {
+    const legacy = withParentDefaults({
+      ...newSave(),
+      parentGoalPreset: "light" as SaveData["parentGoalPreset"],
+      dailyGoal: {
+        dayKey: "2026-03-01",
+        mode: "learn",
+        target: 3,
+        progress: 1,
+        skipped: true,
+      } as unknown as DailyGoal,
+      dailyStats: {
+        "2026-03-01": {
+          learnedWordIds: ["tree"],
+          reviewedDueWordIds: [],
+          badgeOnGainedWordIds: ["tree"],
+        },
+      } as unknown as SaveData["dailyStats"],
+      goalCalendar: { "2026-03-01": "skipped" } as unknown as SaveData["goalCalendar"],
+    });
+    expect(legacy.parentGoalPreset).toBe("easy");
+    expect(legacy.dailyGoal).toMatchObject({ mode: "learn_fallback", targetLearn: 3, progressLearn: 1 });
+    expect(legacy.dailyGoal).not.toHaveProperty("skipped");
+    expect(legacy.dailyStats["2026-03-01"]?.badgeFirstOnWordIds).toEqual(["tree"]);
+    expect(legacy.goalCalendar["2026-03-01"]).toBeUndefined();
+    expect(legacy.parentPin).toBeNull();
   });
 });

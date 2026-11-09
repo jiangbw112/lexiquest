@@ -1,12 +1,7 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
-import {
-  ensureDailyGoal,
-  parentView,
-  recordPracticeRound,
-  setGoalPreset,
-  skipTodayGoal,
-} from "../../domain/parent";
+import { ensureDailyGoal, parentView, setGoalPreset } from "../../domain/parent";
+import { pinIsAcceptable, sha256PinGate } from "../../domain/parent-pin";
 import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
@@ -18,8 +13,8 @@ import { FONT, button, paper } from "../ui";
 type GuideTab = "progress" | "notes";
 
 const PRESETS: { id: GoalPreset; label: string }[] = [
-  { id: "light", label: "轻松" },
-  { id: "standard", label: "标准" },
+  { id: "easy", label: "轻松" },
+  { id: "normal", label: "标准" },
   { id: "more", label: "多一点" },
 ];
 
@@ -28,6 +23,7 @@ export class GuideScene extends Phaser.Scene {
   private notice = "";
   private tab: GuideTab = "progress";
   private showAllStruggle = false;
+  private unlocked = false;
 
   constructor() {
     super("guide");
@@ -38,8 +34,70 @@ export class GuideScene extends Phaser.Scene {
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (event.code === "Escape") this.scene.start("overworld");
-      if (event.code === "KeyY" && this.confirming && this.tab === "notes") this.clearSave();
+      if (event.code === "KeyY" && this.unlocked && this.confirming && this.tab === "notes") this.clearSave();
     });
+    this.openPin();
+    this.draw();
+  }
+
+  private openPin(): void {
+    const form = document.getElementById("pin-form");
+    const input = document.getElementById("pin-input");
+    const confirm = document.getElementById("pin-confirm");
+    const confirmLabel = document.getElementById("pin-confirm-label");
+    const error = document.getElementById("pin-error");
+    const title = document.getElementById("pin-title");
+    const setting = !getSave()?.parentPin;
+    if (title) title.textContent = setting ? "先设一个家长密码" : "输入家长密码";
+    confirmLabel?.classList.toggle("hidden", !setting);
+    form?.classList.add("open");
+    if (input instanceof HTMLInputElement) {
+      input.value = "";
+      window.setTimeout(() => input.focus(), 30);
+    }
+    if (confirm instanceof HTMLInputElement) confirm.value = "";
+    if (error) error.textContent = "";
+    const submit = (event: Event) => {
+      event.preventDefault();
+      void this.submitPin();
+    };
+    form?.addEventListener("submit", submit);
+    this.events.once("shutdown", () => {
+      form?.removeEventListener("submit", submit);
+      form?.classList.remove("open");
+    });
+  }
+
+  private async submitPin(): Promise<void> {
+    const input = document.getElementById("pin-input");
+    const confirm = document.getElementById("pin-confirm");
+    const error = document.getElementById("pin-error");
+    const pin = input instanceof HTMLInputElement ? input.value.trim() : "";
+    const again = confirm instanceof HTMLInputElement ? confirm.value.trim() : "";
+    const save = getSave();
+    if (!save) return;
+    if (!pinIsAcceptable(pin)) {
+      if (error) error.textContent = "请用 4 到 8 位数字。";
+      return;
+    }
+    if (!save.parentPin) {
+      if (pin !== again) {
+        if (error) error.textContent = "两次输入不一致。";
+        return;
+      }
+      const record = await sha256PinGate.protect(pin);
+      mutate((current) => ({ ...current, parentPin: record }));
+    } else {
+      const ok = await sha256PinGate.matches(pin, save.parentPin);
+      if (!ok) {
+        if (error) error.textContent = "密码不对。";
+        return;
+      }
+    }
+    this.unlocked = true;
+    document.getElementById("pin-form")?.classList.remove("open");
+    if (input instanceof HTMLInputElement) input.value = "";
+    if (confirm instanceof HTMLInputElement) confirm.value = "";
     this.draw();
   }
 
@@ -73,6 +131,16 @@ export class GuideScene extends Phaser.Scene {
     this.children.removeAll(true);
     paper(this);
     this.add.text(160, 40, "给家长", { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
+    if (!this.unlocked) {
+      this.add.text(160, 120, "改年级和改每日目标都要家长密码。密码只留在这台电脑上。", {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: "#17352a",
+        wordWrap: { width: 900 },
+      });
+      button(this, 280, 220, "返回 Esc", () => this.scene.start("overworld"), { width: 180, height: 48, fill: 0x5c6b62 });
+      return;
+    }
     button(this, 430, 48, "学习进度", () => this.show("progress"), {
       width: 170,
       height: 42,
@@ -115,42 +183,34 @@ export class GuideScene extends Phaser.Scene {
       color: "#1f7a4d",
       wordWrap: { width: 960 },
     });
-    const note = view.emptyLine ?? view.todayLine ?? (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
+    const note = view.clockNote ?? view.emptyLine ?? view.todayLine ?? (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
     this.add.text(160, 246, note, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e", wordWrap: { width: 960 } });
     this.add.text(160, 278, view.weekLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
-    this.add.text(160, 310, `${view.masteredLine}  ${view.masteredNote}`, {
+    this.add.text(160, 308, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
+      fontFamily: FONT,
+      fontSize: "18px",
+      color: "#17352a",
+    });
+    this.add.text(160, 338, `${view.masteredLine}  ${view.masteredNote}`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: "#17352a",
       wordWrap: { width: 960 },
     });
-    if (view.masteredRestored7d > 0) {
-      this.add.text(160, 338, `其中重新掌握 ${view.masteredRestored7d} 个`, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" });
-    }
-    this.add.text(160, 366, view.gradesLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
-    this.add.text(160, 398, "每日目标从明天的新一天起改档。今天的数量不会变多。", {
+    this.add.text(160, 370, view.gradesLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
+    this.add.text(160, 402, "每日目标从明天的新一天起改档。今天的数量不会变多。", {
       fontFamily: FONT,
       fontSize: "15px",
       color: "#8a5a12",
     });
     PRESETS.forEach((preset, index) => {
       const on = save.parentGoalPreset === preset.id;
-      button(this, 230 + index * 150, 448, preset.label, () => {
+      button(this, 230 + index * 150, 452, preset.label, () => {
         mutate((current) => setGoalPreset(current, preset.id));
         this.draw();
       }, { width: 130, height: 42, fill: on ? 0x1f7a4d : 0x5c6b62 });
     });
-    button(this, 700, 448, "跳过今日目标", () => {
-      mutate((current) => skipTodayGoal(current, studyNow(current)));
-      this.draw();
-    }, { width: 190, height: 42, fill: 0x8a5a12 });
-    if (save.dailyGoal?.mode === "practice" && !save.dailyGoal.completed && !save.dailyGoal.skipped) {
-      button(this, 940, 448, "练习一次", () => {
-        mutate((current) => recordPracticeRound(current, studyNow(current)));
-        this.draw();
-      }, { width: 150, height: 42, fill: 0x3d6ea8 });
-    }
-    this.add.text(160, 490, view.struggleLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
+    this.add.text(160, 498, view.struggleLine, { fontFamily: FONT, fontSize: "18px", color: "#17352a" });
     view.struggle.slice(0, this.showAllStruggle ? view.struggle.length : 4).forEach((word, index) => {
       this.add.text(180, 524 + index * 28, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
         fontFamily: FONT,
@@ -183,7 +243,7 @@ export class GuideScene extends Phaser.Scene {
       `基础招式强度比例 ${skills.baseSkillPowerScale}，能量 ${skills.baseSkillEnergyCost}。PvE 答错只给基础效果 × ${skills.wrongAnswerMultiplier}。这是这一版定下的数字。`,
       "好友 1v1：答对题数多的赢；题数相同，答对用时更少的赢。答错没有速度收益。同机练习不更新 FSRS。真正的联网对战要由服务器判房间、对错、时间和奖励。",
       "森林冒险分五关。每关学完新词并赢一场小战斗才算通过。第五关是林心守护者，打败才通关。亮着的熟练徽章单独显示，不够 28 也不挡住通关。",
-      "每天的学习目标、家长进度和外观代币都是提案数字，存在这台电脑上，不联网。完成目标只加一枚外观代币，不改战斗数值。",
+      "每天的学习目标按这台电脑当地时间凌晨 4 点换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级用同一个家长密码。",
       "现在的词是 Forest Adventure 的 28 个 SAMPLE DATA，年级是估计，不是教材原文。发音用浏览器朗读，这是这一版定下的做法。",
     ];
     const save = getSave();

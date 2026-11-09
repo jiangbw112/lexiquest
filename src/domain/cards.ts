@@ -13,6 +13,7 @@ export function grantWordCard(
       wordId,
       collectedAt: at,
       masteryBadge: false,
+      badgeEverOn: false,
     },
   };
 }
@@ -32,10 +33,9 @@ export function setMasteryBadge(
     throw new Error(`Cannot change a badge for a card that was never collected: ${wordId}`);
   }
   const next: WordCardRecord = {
-    wordId: existing.wordId,
-    collectedAt: existing.collectedAt,
+    ...existing,
     masteryBadge: badge,
+    masteredAt: badge ? (existing.masteredAt ?? at) : undefined,
   };
-  if (badge) next.masteredAt = existing.masteredAt ?? at;
   return { ...cards, [wordId]: next };
 }

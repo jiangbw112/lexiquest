@@ -1,11 +1,11 @@
 /**
- * DES-05 numbers that are not approved yet.
- * Decided v1 values stay in `provisional.ts`. Change these without touching those.
- * Every field below is a proposal.
+ * Confirmed v1 numbers for the parent page and the daily goal.
+ * They stay in this module so they can be changed without editing the other v1 rules.
+ * The study day uses the device time zone. It is not fixed to Asia/Shanghai.
  */
 export const PROPOSALS = {
-  label: "PROPOSAL",
-  status: "待审，不是已定的 v1",
+  label: "v1",
+  status: "已确认 v1",
   parentProgress: {
     /** Study days in the “keeps getting it wrong” window, including today. */
     struggleWindowDays: 14,
@@ -24,14 +24,13 @@ export const PROPOSALS = {
     recentWindowDays: 7,
   },
   dailyGoal: {
-    timeZone: "Asia/Shanghai",
-    /** The study day rolls at this hour in `timeZone`, not at midnight and not in the device zone. */
+    /** Local wall-clock hour when the study day rolls, in the device time zone. */
     dayBoundaryHour: 4,
-    goalMax: { light: 8, standard: 15, more: 25 },
+    goalMax: { easy: 8, normal: 15, more: 25 },
     /** New words to learn when nothing is due. */
-    learnFallback: { light: 2, standard: 3, more: 5 },
-    /** Practice rounds when nothing is due and no new words are left. Practice does not change FSRS. */
-    practiceRounds: 3,
+    learnFallback: { easy: 2, normal: 3, more: 5 },
+    /** Answered questions on learned words when nothing is due and no new words are left. */
+    practiceQuestions: 3,
     cosmeticTokenReward: 1,
     /** Days since the last completed goal, used only for the gentle opening line. */
     reminderRecentDays: 2,

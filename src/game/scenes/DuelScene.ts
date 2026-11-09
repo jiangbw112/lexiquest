@@ -1,11 +1,12 @@
 import Phaser from "phaser";
 import { sampleWords } from "../../domain/catalog";
 import { compareRounds, type DuelAnswer } from "../../domain/duel";
-import { practiceDuel } from "../../domain/progress";
+import { notePracticeAnswer } from "../../domain/parent";
+import { practiceDuel, studyNow } from "../../domain/progress";
 import { quizForWord, type QuizQuestion } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
 import { probeEnter, probeQuestion } from "../probe";
-import { getSave } from "../session";
+import { getSave, mutate } from "../session";
 import { FONT, button, paper } from "../ui";
 
 type Step = { name: "cover"; round: number; player: 0 | 1 } | { name: "ask"; round: number; player: 0 | 1 } | { name: "result" };
@@ -59,6 +60,7 @@ export class DuelScene extends Phaser.Scene {
       index === player ? { ...seat, answers: [...seat.answers, { correct: choiceId === question.answerId, responseMs }] } : seat,
     );
     if (player === 0) {
+      mutate((save) => notePracticeAnswer(save, question.wordId, studyNow(save)));
       this.step = { name: "cover", round: this.step.round, player: 1 };
     } else if (this.step.round >= this.questions.length - 1) {
       const save = getSave();

@@ -6,6 +6,7 @@ import {
   CHAPTER_BOSS_ID,
   type BattleState,
 } from "../../domain/battle";
+import { notePracticeAnswer } from "../../domain/parent";
 import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { badgeTone, isDue } from "../../domain/review";
@@ -133,6 +134,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
+    const wordId = this.state.question?.wordId;
+    if (wordId) mutate((save) => notePracticeAnswer(save, wordId, studyNow(save)));
     const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
     this.poses = battlePoses({

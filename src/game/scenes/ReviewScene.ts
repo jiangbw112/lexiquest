@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { wordById, wordsForGrades } from "../../domain/catalog";
 import { PROVISIONAL } from "../../domain/provisional";
+import { notePracticeAnswer } from "../../domain/parent";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
@@ -85,6 +86,8 @@ export class ReviewScene extends Phaser.Scene {
     const input = document.getElementById("spell-input");
     if (!save || !this.spellId || !(input instanceof HTMLInputElement)) return;
     const prompt = spellingQuestion(this.spellId, this.badgeLit(this.spellId));
+    const wordId = this.spellId;
+    mutate((current) => notePracticeAnswer(current, wordId, studyNow(current)));
     this.spellNote = prompt && checkSpelling(prompt.answer, input.value) ? "拼对了。这不改变复习时间。" : "还不对。复习时间没有变。";
     input.value = "";
     this.draw();

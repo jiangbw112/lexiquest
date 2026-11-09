@@ -17,7 +17,7 @@ import { classById } from "./classes";
 import { normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
-import { noteDueReview, noteLearned } from "./parent";
+import { deviceTimeZone, ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
 import { applyReview, badgeTone, introduceMemory, isDue, masteryDecision } from "./review";
 import {
   equipSkillIds,
@@ -90,12 +90,15 @@ export function createSave(input: {
     spellingMemory: {},
     dailyStats: {},
     dueAnswers: [],
-    parentGoalPreset: "standard",
+    parentGoalPreset: "normal",
     dailyGoal: null,
     goalDaysTotal: 0,
     lastGoalCompletedDayKey: null,
     goalCalendar: {},
     cosmeticTokens: 0,
+    lastTimezone: null,
+    clockAnomaly: false,
+    parentPin: null,
     skillLevels: { [starter]: 1 },
     unlockedSkillIds: [starter],
     equippedSkillIds: [starter],
@@ -126,7 +129,7 @@ export function resetClock(save: SaveData): SaveData {
   return { ...save, clockOffsetMs: 0 };
 }
 
-export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
+export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = deviceTimeZone()): SaveData {
   const word = wordById(wordId);
   if (!word) return save;
   if (!normalizeGrades(save.selectedGrades).includes(word.grade)) return save;
@@ -153,7 +156,7 @@ export function learnWord(save: SaveData, wordId: string, now: Date): SaveData {
       ),
     };
   }
-  return refreshUnlocks(noteLearned(next, wordId, now));
+  return refreshUnlocks(noteLearned(next, wordId, now, timeZone));
 }
 
 export function gradeIsOpen(save: SaveData, wordId: string): boolean {
@@ -170,17 +173,21 @@ export function gradePauseNotice(gradeLabel: string, learnedCount: number): stri
   return `取消${gradeLabel}后，已学的${learnedCount}个单词卡会保留，但战斗里不会再考这些词，到期复习也会暂停；重新勾选即可恢复。`;
 }
 
-export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: Date): SaveData {
+export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: Date, timeZone = deviceTimeZone()): SaveData {
   const existing = save.memory[wordId];
   const card = save.wordCards[wordId];
   if (!existing || !card) return save;
   if (!gradeIsOpen(save, wordId)) return save;
+  const ready = ensureDailyGoal(save, now, timeZone);
   const wasDue = isDue(existing, now);
+  if (!wasDue && ready.dailyGoal?.mode === "practice_fallback") {
+    return notePracticeAnswer(ready, wordId, now, timeZone);
+  }
   const beforeTone = badgeTone(card, existing, now);
   const updated = applyReview(existing, rating, now);
   const decision = masteryDecision(updated);
-  let wordCards: Record<string, WordCardRecord> = save.wordCards;
-  let rewardQueue = save.rewardQueue;
+  let wordCards: Record<string, WordCardRecord> = ready.wordCards;
+  let rewardQueue = ready.rewardQueue;
   if (decision.award && !card.masteryBadge) {
     wordCards = setMasteryBadge(wordCards, wordId, true, now.getTime());
     const word = wordById(wordId);
@@ -194,12 +201,12 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
   }
   return noteDueReview(
     {
-      ...save,
-      memory: { ...save.memory, [wordId]: updated },
+      ...ready,
+      memory: { ...ready.memory, [wordId]: updated },
       wordCards,
       rewardQueue,
     },
-    { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning" },
+    { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning", timeZone },
   );
 }
 
