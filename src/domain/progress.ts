@@ -85,6 +85,7 @@ export function createSave(input: {
   const name = sanitizeName(input.name);
   if (!name) throw new Error("Name must be 1–12 characters");
   const starter = starterSkillId(input.classId);
+  const selectedGrades = normalizeGrades(input.grades);
   const save: SaveData = {
     version: 1,
     createdAt: input.now,
@@ -119,7 +120,8 @@ export function createSave(input: {
     equippedTitleId: null,
     masteryMilestonesClaimed: [],
     clearRewardClaimed: false,
-    selectedGrades: normalizeGrades(input.grades),
+    selectedGrades,
+    gradesConfirmed: selectedGrades.length > 0,
     clockOffsetMs: 0,
     rewardQueue: [],
   };
@@ -287,12 +289,24 @@ export function selectionBattleNotice(sampleCount: number, minimum = PROVISIONAL
 }
 
 export function setSelectedGrades(save: SaveData, grades: readonly string[]): SaveData {
-  return { ...save, selectedGrades: normalizeGrades(grades) };
+  return { ...save, selectedGrades: normalizeGrades(grades), gradesConfirmed: true };
 }
 
-/** True when this save has never had a grade picked. Learning and battle stay closed. */
+/** True whenever no grade is selected. Learning and battle stay closed. */
 export function needsGradeChoice(save: Pick<SaveData, "selectedGrades">): boolean {
   return save.selectedGrades.length === 0;
+}
+
+export type GradeGate = "ready" | "migrate" | "ask-parent";
+
+/**
+ * ready: at least one grade.
+ * migrate: an older save that never stored a grade. That page may write the first choice.
+ * ask-parent: grades were chosen and later cleared. The child cannot write a new choice there.
+ */
+export function gradeGate(save: Pick<SaveData, "selectedGrades" | "gradesConfirmed">): GradeGate {
+  if (save.selectedGrades.length > 0) return "ready";
+  return save.gradesConfirmed ? "ask-parent" : "migrate";
 }
 
 /** What the village should tell the child to do next. */

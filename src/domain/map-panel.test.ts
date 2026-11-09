@@ -98,6 +98,16 @@ describe("forest map panel", () => {
     expect(panel.buttons[0]?.enabled).toBe(true);
   });
 
+  it("keeps an unlearned word hidden after the stage is cleared", () => {
+    let save = saveWith(["G3"]);
+    for (const id of ["tree", "bird", "fish", "sun", "map"]) save = learnWord(save, id, START);
+    save = { ...save, stageWins: { "1": 1 } };
+    expect(stageStatuses(save)[0]).toBe("cleared");
+    const panel = mapPanel(save, FOREST_CHAPTER.stages[0]!, "cleared");
+    expect(panel.words.find((face) => face.id === "tree")).toMatchObject({ english: "tree", interactive: true });
+    expect(panel.words.find((face) => face.id === "run")).toMatchObject({ english: null, interactive: false });
+  });
+
   it("does not invent words for a skipped stage", () => {
     const save = saveWith(["G5"]);
     const stage = FOREST_CHAPTER.stages[0]!;

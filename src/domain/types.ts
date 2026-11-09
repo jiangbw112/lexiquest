@@ -143,6 +143,11 @@ export interface SaveData {
   clearRewardClaimed: boolean;
   /** Grades the child is studying. Empty until they pick at least one. Missing older saves stay empty. */
   selectedGrades: GradeBand[];
+  /**
+   * True after a grade choice has been written, including a parent clearing every grade.
+   * Older saves omit it. An empty list with this flag is not the first-time migrate page.
+   */
+  gradesConfirmed: boolean;
   clockOffsetMs: number;
   rewardQueue: RewardNotice[];
 }

@@ -1,7 +1,7 @@
 {
   "theme": "PEP Grades 3-6",
   "sample": false,
-  "note": "Converted from pep_words_g3-6 draft. PEP is sole catalog (product rule 3). Cross-grade id collisions: keep earliest grade_est; later distinct meanings in notes (not merged into meaning_zh). spelling=unknown retained (rule 1; still a validation block). notes currently ignored by catalog.ts loader. theme='PEP Grades 3-6'; sample=false.",
+  "note": "Converted from pep_words_g3-6 draft. PEP is sole catalog (product rule 3). Cross-grade id collisions: keep earliest grade_est; later distinct meanings in notes (not merged into meaning_zh). spelling is basic, advanced, or none; any other value is refused. notes and senses are not loaded. theme='PEP Grades 3-6'; sample=false.",
   "words": [
     {
       "word": "about",

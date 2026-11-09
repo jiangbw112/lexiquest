@@ -17,6 +17,8 @@ import {
   FOREST_WORD_COUNT,
   litMasteryCount,
   masteryLabel,
+  explorationCleared,
+  initialMapStageId,
   requiredWordIds,
   stageCleared,
   stageStatuses,
@@ -282,5 +284,50 @@ describe("forest chapter", () => {
     expect(litMasteryCount(grey, START)).toBe(0);
     const won = applyBattleOutcome(save, "win", START.getTime(), "canopy");
     expect(won.chapterCleared).toBe(false);
+  });
+
+  it("keeps the boss locked after only the grade-3 library words and two small battles", () => {
+    let save = setSelectedGrades(
+      createSave({
+        name: "小林",
+        classId: "warrior",
+        appearance: DEFAULT_APPEARANCE,
+        now: START.getTime(),
+      }),
+      ["G3"],
+    );
+    for (const id of ["tree", "bird", "fish", "sun", "map", "big", "red", "flower"]) save = learnWord(save, id, START);
+    save = { ...save, stageWins: { "1": 1, "2": 1 } };
+    expect(requiredWordIds(save)).toHaveLength(16);
+    expect(wordsUntilBoss(save)).toBe(8);
+    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 16 个词");
+    expect(explorationCleared(save)).toBe(false);
+    expect(bossReady(save)).toBe(false);
+    const statuses = stageStatuses(save);
+    expect(statuses[0]).toBe("cleared");
+    expect(statuses[1]).toBe("cleared");
+    expect(statuses[2]).toBe("open");
+    expect(statuses[3]).toBe("locked");
+    expect(statuses[4]).toBe("locked");
+    expect(initialMapStageId(statuses)).toBe(3);
+    expect(FOREST_CHAPTER.boss_unlock.stages_1_to_4_cleared).toBe(true);
+  });
+
+  it("selects the next open stage after stage 1 is cleared", () => {
+    let save = setSelectedGrades(
+      createSave({
+        name: "小林",
+        classId: "warrior",
+        appearance: DEFAULT_APPEARANCE,
+        now: START.getTime(),
+      }),
+      ["G3"],
+    );
+    for (const id of ["tree", "bird", "fish", "sun", "map"]) save = learnWord(save, id, START);
+    save = { ...save, stageWins: { "1": 1 } };
+    const statuses = stageStatuses(save);
+    expect(statuses[0]).toBe("cleared");
+    expect(statuses[1]).toBe("open");
+    expect(initialMapStageId(statuses)).toBe(2);
   });
 });

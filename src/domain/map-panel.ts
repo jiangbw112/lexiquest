@@ -38,7 +38,8 @@ function faces(stage: ForestStage, save: SaveData, mode: "hide" | "learned" | "a
     const word = wordById(id);
     if (!word) throw new Error(`stage word ${id} is not in the catalog`);
     const known = Boolean(save.wordCards[id]);
-    const show = mode === "all" || (mode === "learned" && known);
+    // Cleared stages pass "all". A word that was never learned still shows "?" and stays closed.
+    const show = mode !== "hide" && known;
     return { id, english: show ? word.english : null, interactive: show };
   });
 }

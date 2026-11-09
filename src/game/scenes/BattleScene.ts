@@ -7,7 +7,7 @@ import {
   type BattleState,
 } from "../../domain/battle";
 import { notePracticeAnswer } from "../../domain/parent";
-import { applyBattleOutcome, needsGradeChoice, studyNow } from "../../domain/progress";
+import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
@@ -18,6 +18,7 @@ import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, button, listenKeys } from "../ui";
@@ -54,10 +55,7 @@ export class BattleScene extends Phaser.Scene {
   create(): void {
     const save = getSave();
     const stage = stageById(this.launch.stageId ?? 0);
-    if (save && needsGradeChoice(save)) {
-      this.scene.start("grades", { mode: "migrate" });
-      return;
-    }
+    if (save && redirectUngraded(this, save)) return;
     if (!save || !stage) {
       this.scene.start("stages");
       return;

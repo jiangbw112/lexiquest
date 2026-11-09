@@ -311,6 +311,12 @@ export function stageStatuses(save: SaveData): StageStatus[] {
   return statuses;
 }
 
+/** First open stage when the map is entered, including a return from battle. */
+export function initialMapStageId(statuses: readonly StageStatus[]): number {
+  const open = statuses.findIndex((status) => status === "open");
+  return FOREST_CHAPTER.stages[open >= 0 ? open : 0]!.id;
+}
+
 export function clearedStageCount(save: SaveData): number {
   return stageStatuses(save).filter((status) => status === "cleared").length;
 }

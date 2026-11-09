@@ -28,3 +28,70 @@ export const PLACES: Place[] = [
   { id: "duel", scene: "duel", label: "同机练习", key: "7", code: "Digit7", x: 980, y: 610, color: 0x2f6f9f },
   { id: "guide", scene: "guide", label: "给家长", key: "8", code: "Digit8", x: 1040, y: 400, color: 0x8a5a12 },
 ];
+
+/** Shared screen numbers so the parent list and the study card can be tested without Phaser. */
+
+export const STRUGGLE_LIST = {
+  firstY: 548,
+  pitch: 26,
+  fontSize: 15,
+  /** Rows that stay above the buttons at y=730 (top edge 702) and inside 800px. */
+  pageSize: 6,
+  collapsed: 4,
+  buttonTop: 702,
+  screenBottom: 800,
+} as const;
+
+export interface StruggleWindow {
+  total: number;
+  expanded: boolean;
+  page: number;
+  pages: number;
+  start: number;
+  count: number;
+  /** Bottom of the last visible row. Equals firstY when nothing is drawn. */
+  bottom: number;
+}
+
+export function struggleWindow(total: number, expanded: boolean, page: number): StruggleWindow {
+  const pages = expanded ? Math.max(1, Math.ceil(total / STRUGGLE_LIST.pageSize)) : 1;
+  const safePage = Math.min(Math.max(0, page), pages - 1);
+  const start = expanded ? safePage * STRUGGLE_LIST.pageSize : 0;
+  const room = expanded ? STRUGGLE_LIST.pageSize : STRUGGLE_LIST.collapsed;
+  const count = Math.max(0, Math.min(room, total - start));
+  const bottom = count === 0 ? STRUGGLE_LIST.firstY : STRUGGLE_LIST.firstY + (count - 1) * STRUGGLE_LIST.pitch + STRUGGLE_LIST.fontSize;
+  return { total, expanded, page: safePage, pages, start, count, bottom };
+}
+
+export const STUDY_CARD = {
+  noticeY: 178,
+  noticeFont: 18,
+  englishSize: 88,
+  /** meaningRow y. The English word is drawn 70px above it. */
+  missedRowY: 348,
+  restingRowY: 300,
+  meaningMaxWidth: 640,
+} as const;
+
+export function studyRowY(missed: boolean): number {
+  return missed ? STUDY_CARD.missedRowY : STUDY_CARD.restingRowY;
+}
+
+export function studyEnglishCenterY(missed: boolean): number {
+  return studyRowY(missed) - 70;
+}
+
+/** Space between the miss notice and the top of the English word. */
+export function studyNoticeGap(): number {
+  const englishTop = studyEnglishCenterY(true) - STUDY_CARD.englishSize / 2;
+  const noticeBottom = STUDY_CARD.noticeY + STUDY_CARD.noticeFont / 2;
+  return englishTop - noticeBottom;
+}
+
+/** Logical inset of the option index. The yellow badge center is texture x=44, shown at half scale. */
+export const OPTION_BADGE_CENTER = 22;
+
+export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): number {
+  if (width <= max) return 1;
+  return max / width;
+}

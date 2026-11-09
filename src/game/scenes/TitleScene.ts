@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { WarriorSprite } from "../art/warrior-sprite";
 import { DESKTOP_NOTE, WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
-import { needsGradeChoice } from "../../domain/progress";
+import { redirectUngraded } from "../grade-route";
 import { getSave } from "../session";
 import { FONT, button, listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
@@ -36,8 +36,7 @@ export class TitleScene extends Phaser.Scene {
 
   private go(hasSave: boolean): void {
     const save = getSave();
-    if (hasSave && save && needsGradeChoice(save)) {
-      this.scene.start("grades", { mode: "migrate" });
+    if (hasSave && save && redirectUngraded(this, save)) {
       return;
     }
     this.scene.start(hasSave ? "overworld" : "grades", hasSave ? undefined : { mode: "new" });

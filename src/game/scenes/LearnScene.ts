@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, lessonUnits, posGloss, wordById } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
-import { learnWord, needsGradeChoice, studyNow } from "../../domain/progress";
+import { learnWord, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
   checkSpelling,
@@ -14,6 +14,8 @@ import {
 } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
+import { redirectUngraded } from "../grade-route";
+import { meaningScale, STUDY_CARD, studyNoticeGap, studyRowY } from "../layout";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
@@ -50,10 +52,7 @@ export class LearnScene extends Phaser.Scene {
       this.scene.start("title");
       return;
     }
-    if (needsGradeChoice(save)) {
-      this.scene.start("grades", { mode: "migrate" });
-      return;
-    }
+    if (redirectUngraded(this, save)) return;
     probeEnter("learn");
     this.phase = "study";
     listenKeys(this, (event) => this.onKey(event));
@@ -277,8 +276,15 @@ export class LearnScene extends Phaser.Scene {
     }
     if (this.phase === "study") {
       warmPanel(this, 640, 400, 900, 460);
-      if (this.missed) this.add.text(640, 210, "再看一次。答对才会收下词卡。", { fontFamily: FONT, fontSize: "18px", color: ERR_TEXT }).setOrigin(0.5);
-      this.meaningRow(640, 300, word.english, word.pos, word.chinese, 88);
+      if (this.missed) {
+        this.add.text(640, STUDY_CARD.noticeY, "再看一次。答对才会收下词卡。", {
+          fontFamily: FONT,
+          fontSize: `${STUDY_CARD.noticeFont}px`,
+          color: ERR_TEXT,
+        }).setOrigin(0.5);
+        probeNote(`learn:notice-gap:${studyNoticeGap()}`);
+      }
+      this.meaningRow(640, studyRowY(this.missed), word.english, word.pos, word.chinese, STUDY_CARD.englishSize);
       const gloss = posGloss(word.pos);
       const gradeLabel = GRADE_BANDS.find((grade) => grade.id === word.grade)?.label ?? String(word.grade);
       const spellingLine = spellingChildLabel(word.spelling, this.badgeLit(word.id));
@@ -347,6 +353,7 @@ export class LearnScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0.5);
+    meaning.setScale(meaningScale(meaning.width));
     if (!pos) {
       meaning.setOrigin(0.5);
       meaning.setPosition(x, y + 20);
@@ -364,7 +371,7 @@ export class LearnScene extends Phaser.Scene {
     tag.fillRoundedRect(0, -20, tagW, 40, 14);
     tagText.setPosition(12, 0);
     meaning.setPosition(tagW + 12, 0);
-    const rowWidth = tagW + 12 + meaning.width;
+    const rowWidth = tagW + 12 + meaning.displayWidth;
     this.add.container(x - rowWidth / 2, y + 20, [tag, tagText, meaning]);
   }
 }

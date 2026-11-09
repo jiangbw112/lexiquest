@@ -50,6 +50,7 @@ export function deserialize(raw: string): SaveData | null {
       ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")
       : undefined;
     save.selectedGrades = normalizeGrades(grades);
+    save.gradesConfirmed = typeof value.gradesConfirmed === "boolean" ? value.gradesConfirmed : save.selectedGrades.length > 0;
     return withParentDefaults(save);
   } catch {
     return null;

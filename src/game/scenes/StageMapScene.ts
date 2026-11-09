@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
 import { mapPanel } from "../../domain/map-panel";
-import { needsGradeChoice, studyNow } from "../../domain/progress";
+import { studyNow } from "../../domain/progress";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
   chapterDueCount,
@@ -10,10 +10,12 @@ import {
   FOREST_WORD_COUNT,
   masteryLabel,
   stageById,
+  initialMapStageId,
   stageStatuses,
   wordsUntilBoss,
 } from "../../domain/stages";
 import { uiLabel } from "../../domain/ui-label";
+import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
 import { FONT, listenKeys } from "../ui";
@@ -49,11 +51,10 @@ export class StageMapScene extends Phaser.Scene {
       this.scene.start("title");
       return;
     }
-    if (needsGradeChoice(save)) {
-      this.scene.start("grades", { mode: "migrate" });
-      return;
-    }
+    if (redirectUngraded(this, save)) return;
     probeEnter("stages");
+    this.selected = initialMapStageId(stageStatuses(save));
+    this.lookedAt = null;
     listenKeys(this, (event) => {
       if (event.code === "Escape") this.scene.start("overworld");
       const index = Number(event.code.replace("Digit", "")) - 1;
@@ -80,6 +81,7 @@ export class StageMapScene extends Phaser.Scene {
   private draw(): void {
     const save = getSave();
     if (!save) return;
+    this.tweens.killAll();
     this.children.removeAll(true);
     warmBackground(this, "bg_map");
     const now = studyNow(save);

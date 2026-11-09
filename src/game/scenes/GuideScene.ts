@@ -16,6 +16,7 @@ import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
 import { DESKTOP_NOTE } from "../p0";
+import { struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { FONT } from "../ui";
 import { warmButton, warmChip, warmPanel, warmTab } from "../warm/kit";
@@ -35,6 +36,7 @@ export class GuideScene extends Phaser.Scene {
   private notice = "";
   private tab: GuideTab = "progress";
   private showAllStruggle = false;
+  private strugglePage = 0;
   private pinSession!: ParentPinSession;
   private pinBusy = false;
   private pinNotice = "";
@@ -203,7 +205,7 @@ export class GuideScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     const now = studyNow(save);
-    const view = parentView(save, now, this.showAllStruggle ? 100 : undefined);
+    const view = parentView(save, now, Number.MAX_SAFE_INTEGER);
     probeNote(`parent:ready:${view.learnedToday}:${view.reviewedToday}:${view.dueNow}`);
     this.add.text(760, 88, "数据只保存在这台电脑", { fontFamily: FONT, fontSize: "14px", color: MUTED });
     const cards = [
@@ -250,7 +252,10 @@ export class GuideScene extends Phaser.Scene {
       }, { width: 146 });
     });
     this.add.text(140, 520, view.struggleLine, { fontFamily: FONT, fontSize: "16px", color: MUTED });
-    view.struggle.slice(0, this.showAllStruggle ? view.struggle.length : 4).forEach((word, index) => {
+    const list = struggleWindow(view.struggleTotal, this.showAllStruggle, this.strugglePage);
+    this.strugglePage = list.page;
+    probeNote(`struggle:${list.total}:${list.page}:${list.count}:${list.bottom}`);
+    view.struggle.slice(list.start, list.start + list.count).forEach((word, index) => {
       this.add.text(160, 548 + index * 26, `${word.english}  ${word.meaning}  ·  ${word.hint}`, {
         fontFamily: FONT,
         fontSize: "15px",
@@ -258,8 +263,19 @@ export class GuideScene extends Phaser.Scene {
       });
     });
     if (view.struggleTotal > 4) {
-      warmButton(this, 1040, 520, uiLabel(this.showAllStruggle ? "收起" : "查看全部"), () => {
+      if (this.showAllStruggle && list.pages > 1) {
+        warmButton(this, 760, 520, "上一页", () => {
+          this.strugglePage -= 1;
+          this.draw();
+        }, { width: 120, tone: "secondary", disabled: list.page === 0 });
+        warmButton(this, 900, 520, "下一页", () => {
+          this.strugglePage += 1;
+          this.draw();
+        }, { width: 120, tone: "secondary", disabled: list.page >= list.pages - 1 });
+      }
+      warmButton(this, 1060, 520, uiLabel(this.showAllStruggle ? "收起" : "查看全部"), () => {
         this.showAllStruggle = !this.showAllStruggle;
+        this.strugglePage = 0;
         this.draw();
       }, { width: 150, tone: "secondary" });
     }

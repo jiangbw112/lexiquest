@@ -271,7 +271,7 @@ describe("PEP grades 3–6 v1.2.2 library", () => {
     expect(formatMeaning(wordById("red")!)).toBe("adj. 红色的");
     expect(readFileSync("src/domain/catalog.ts", "utf8")).not.toContain("words_resolved");
     expect(createHash("sha256").update(readFileSync("src/domain/data/pep_words_g3-6_v1.2.2_loader.json")).digest("hex")).toBe(
-      "6baeec1b6237eb91ed381e8308bd2f28cc7db61c49dcce749f7c8e12b0e61702",
+      "8229269445379022a0b9e3da059b77e236e4f5582df5a45a8b5d7a9666985dd1",
     );
     expect(createHash("sha256").update(readFileSync("src/domain/chapters/chapter_forest_v1.1.json")).digest("hex")).toBe(
       "bbf3e72c59bf21673cd29ff474239ce1fe7b42bdf2ad62b8b588a1eb956b4e83",

@@ -8,6 +8,7 @@ import {
   applyBattleOutcome,
   createSave,
   equipSkill,
+  gradeGate,
   gradePauseNotice,
   learnedCountInGrade,
   learnWord,
@@ -240,19 +241,37 @@ describe("saved progress", () => {
 
   it("leaves an older save with no grade unchosen, so learning stays closed until one is picked", () => {
     const current = newSave();
-    const raw = JSON.parse(serialize(current)) as { selectedGrades?: string[] };
+    expect(current.gradesConfirmed).toBe(true);
+    const raw = JSON.parse(serialize(current)) as { selectedGrades?: string[]; gradesConfirmed?: boolean };
     delete raw.selectedGrades;
+    delete raw.gradesConfirmed;
     const migrated = deserialize(JSON.stringify(raw));
     expect(migrated?.selectedGrades).toEqual([]);
+    expect(migrated?.gradesConfirmed).toBe(false);
+    expect(gradeGate(migrated!)).toBe("migrate");
     expect(needsGradeChoice(migrated!)).toBe(true);
     expect(learnWord(migrated!, "tree", START)).toBe(migrated);
-    const emptyList = deserialize(serialize({ ...current, selectedGrades: [] }));
+    const cleared = setSelectedGrades(current, []);
+    expect(cleared.gradesConfirmed).toBe(true);
+    expect(needsGradeChoice(cleared)).toBe(true);
+    expect(gradeGate(cleared)).toBe("ask-parent");
+    const emptyList = deserialize(serialize(cleared));
     expect(emptyList?.selectedGrades).toEqual([]);
-    expect(needsGradeChoice(emptyList!)).toBe(true);
+    expect(gradeGate(emptyList!)).toBe("ask-parent");
     const picked = setSelectedGrades(migrated!, ["G5", "G3"]);
     expect(picked.selectedGrades).toEqual(["G3", "G5"]);
+    expect(picked.gradesConfirmed).toBe(true);
     expect(needsGradeChoice(picked)).toBe(false);
+    expect(gradeGate(picked)).toBe("ready");
     expect(learnWord(picked, "tree", START).wordCards.tree).toBeTruthy();
+    const fresh = createSave({
+      name: "小林",
+      classId: "explorer",
+      appearance: DEFAULT_APPEARANCE,
+      now: START.getTime(),
+    });
+    expect(fresh.gradesConfirmed).toBe(false);
+    expect(gradeGate(fresh)).toBe("migrate");
   });
 
   it("filters new learning to the selected grades and keeps a card that was already collected", () => {

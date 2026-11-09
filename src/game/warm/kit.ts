@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import sliceFile from "./slices.json";
 import { blip } from "../audio";
+import { OPTION_BADGE_CENTER } from "../layout";
 import { tabFrame, tabLabelY } from "./frames";
 import { CREAM, DIS_TEXT, FONT_LATIN, FONT_TITLE, INK, motionOff } from "./theme";
 
@@ -54,7 +55,7 @@ function showState(slices: Record<ButtonState, Phaser.GameObjects.NineSlice>, st
 
 function labelStyle(tone: ButtonTone, disabled: boolean): Phaser.Types.GameObjects.Text.TextStyle {
   if (disabled) {
-    return { fontFamily: FONT_TITLE, fontSize: "24px", color: DIS_TEXT };
+    return { fontFamily: FONT_TITLE, fontSize: "22px", color: DIS_TEXT };
   }
   const onDark = tone === "coral" || tone === "teal";
   return {
@@ -217,7 +218,7 @@ export function warmOption(
   };
   show("normal");
   const number = scene.add
-    .text(-width / 2 + 36, -2, String(index + 1), {
+    .text(-width / 2 + OPTION_BADGE_CENTER, -2, String(index + 1), {
       fontFamily: FONT_LATIN,
       fontSize: "28px",
       fontStyle: "900",

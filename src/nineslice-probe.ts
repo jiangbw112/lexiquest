@@ -29,6 +29,7 @@ class ProbeScene extends Phaser.Scene {
     const afterUpdateUVs = { width: slice.width, height: slice.height, frame: slice.frame.name, uv: signature(slice) };
     const result = {
       phaser: Phaser.VERSION,
+      renderer: this.game.renderer.type,
       before,
       afterSetFrame,
       afterUpdateUVs,
@@ -50,7 +51,8 @@ declare global {
 }
 
 new Phaser.Game({
-  type: Phaser.CANVAS,
+  type: Phaser.WEBGL,
+  render: { failIfMajorPerformanceCaveat: false },
   width: 800,
   height: 600,
   parent: "game",
