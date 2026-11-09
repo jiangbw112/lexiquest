@@ -1,15 +1,23 @@
 import type { GradeBand, Semester } from "./types";
-import forestChapterFile from "./chapters/chapter_forest_v1.json";
+import forestChapterFile from "./chapters/chapter_forest_v1.1.json";
 
 export type SpellingLevel = "basic" | "advanced" | "none";
 export type GradeEstimate = 3 | 4 | 5 | 6;
+
+export interface WordSense {
+  chinese: string;
+  /** Set only when this sense has its own non-empty pos. Otherwise the word's pos is used. */
+  pos?: string;
+}
 
 export interface WordDef {
   id: string;
   english: string;
   chinese: string;
-  /** Present only when the word list has a valid `pos`. The current list has none. */
+  /** Set only when the list gives a non-empty string. Shown exactly as written. */
   pos?: string;
+  /** Set only when the entry included sense objects. The v1.2 loader file does not. */
+  senses?: WordSense[];
   gradeEst: GradeEstimate;
   grade: GradeBand;
   spelling: SpellingLevel;
@@ -32,12 +40,10 @@ export interface WordFileEntry {
   meaning_zh: string;
   grade_est: number;
   spelling: string;
-  /** Optional. Word list v1.2 will send this. Absent means the meaning stands alone. */
-  pos?: string;
+  /** Opaque. A non-empty string is shown as written. Null, missing, or "" means no prefix. */
+  pos?: unknown;
+  senses?: unknown;
 }
-
-/** Abbreviations v1.2 may use. `art.` is an article. Anything else is a bad field. */
-export const PARTS_OF_SPEECH = ["n.", "v.", "adj.", "adv.", "prep.", "pron.", "num.", "conj.", "interj.", "art."] as const;
 
 export interface UnitDef {
   id: string;
@@ -69,22 +75,45 @@ function isSpelling(value: string): value is SpellingLevel {
   return value === "basic" || value === "advanced" || value === "none";
 }
 
+/** A non-empty string is kept exactly. Null, missing, and "" mean there is no prefix. */
 function readPos(value: unknown, source: string, english: string): string | undefined {
   if (value === undefined || value === null) return undefined;
   if (typeof value !== "string") throw new Error(`${source} word ${english} has a bad pos`);
-  const pos = value.trim();
-  if (!pos) return undefined;
-  if (!(PARTS_OF_SPEECH as readonly string[]).includes(pos)) {
-    throw new Error(`${source} word ${english} has a bad pos`);
-  }
-  return pos;
+  if (value.length === 0) return undefined;
+  return value;
 }
 
-/** Part of speech, then the Chinese meaning. No pos means the meaning alone, with no extra space. */
-export function formatMeaning(word: { chinese: string; pos?: string }): string {
-  const pos = word.pos?.trim();
-  if (!pos) return word.chinese;
-  return `${pos} ${word.chinese}`;
+function readSenses(value: unknown, source: string, english: string): WordSense[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const senses: WordSense[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) continue;
+    const record = item as { meaning_zh?: unknown; pos?: unknown };
+    const pos = readPos(record.pos, source, english);
+    const chinese = typeof record.meaning_zh === "string" ? record.meaning_zh.trim() : "";
+    if (!chinese) continue;
+    senses.push({ chinese, ...(pos ? { pos } : {}) });
+  }
+  return senses.length > 0 ? senses : undefined;
+}
+
+function displayPos(value: string | null | undefined): string | undefined {
+  if (typeof value !== "string" || value.length === 0) return undefined;
+  return value;
+}
+
+/**
+ * Part of speech, then the Chinese meaning. No pos means the meaning alone, with no extra space.
+ * A sense uses its own pos, and falls back to the word's pos when that sense has none.
+ */
+export function formatMeaning(
+  word: { chinese: string; pos?: string | null },
+  sense?: { chinese?: string; pos?: string | null },
+): string {
+  const chinese = sense?.chinese ? sense.chinese : word.chinese;
+  const pos = sense ? displayPos(sense.pos) ?? displayPos(word.pos) : displayPos(word.pos);
+  if (!pos) return chinese;
+  return `${pos} ${chinese}`;
 }
 
 export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
@@ -100,12 +129,14 @@ export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
       throw new Error(`${source} word ${english} has a bad grade or spelling`);
     }
     const pos = readPos(entry.pos, source, english);
+    const senses = readSenses(entry.senses, source, english);
     const grade = GRADE_OF[entry.grade_est];
     return {
       id: english,
       english,
       chinese: entry.meaning_zh.trim(),
       ...(pos ? { pos } : {}),
+      ...(senses ? { senses } : {}),
       gradeEst: entry.grade_est,
       grade,
       spelling: entry.spelling,
@@ -166,7 +197,7 @@ export const SAMPLE_WORDS: WordDef[] = CATALOG_WORDS.filter((word) => word.sampl
 /** Chapter-only words. They resolve for this chapter and stay out of the grade pools. */
 const CHAPTER_EXTRAS: WordDef[] = readWordFile(
   { theme: SAMPLE_THEME, sample: false, words: forestChapter.chapter_extra_words },
-  "chapter_forest_v1.json",
+  "chapter_forest_v1.1.json",
 );
 
 const LIBRARY_IDS = new Set(CATALOG_WORDS.map((word) => word.id));

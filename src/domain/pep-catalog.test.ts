@@ -6,7 +6,6 @@ import {
   chapterWords,
   formatMeaning,
   mergeWordFiles,
-  PARTS_OF_SPEECH,
   readWordFile,
   wordById,
   wordsForGrades,
@@ -18,7 +17,7 @@ import { FOREST_CHAPTER } from "./stages";
 const GRADE_COUNTS = { 3: 228, 4: 214, 5: 257, 6: 164 } as const;
 const EXTRAS = ["bridge", "brave", "path", "treasure", "journey", "discover", "adventure", "protect"];
 
-describe("PEP grades 3–6 v1.1 library", () => {
+describe("PEP grades 3–6 v1.2 library", () => {
   it("loads 863 words with unique ids and the delivered grade and spelling counts", () => {
     expect(CATALOG_WORDS).toHaveLength(863);
     expect(new Set(CATALOG_WORDS.map((word) => word.id)).size).toBe(863);
@@ -62,7 +61,7 @@ describe("PEP grades 3–6 v1.1 library", () => {
 
   it("resolves every forest reference and keeps the eight extras out of every grade pool", () => {
     const library = new Set(CATALOG_WORDS.map((word) => word.id));
-    const chapter = JSON.parse(readFileSync("src/domain/chapters/chapter_forest_v1.json", "utf8")) as {
+    const chapter = JSON.parse(readFileSync("src/domain/chapters/chapter_forest_v1.1.json", "utf8")) as {
       word_refs_formal: string[];
       chapter_extra_words: { id: string; chapter_only: boolean; in_grade_pool: boolean }[];
       words?: unknown;
@@ -93,7 +92,7 @@ describe("PEP grades 3–6 v1.1 library", () => {
     }
     expect(new Set(chapterWords().map((word) => word.id)).size).toBe(28);
     expect(FOREST_CHAPTER.stages.map((stage) => stage.new_words.length)).toEqual([6, 6, 6, 6, 4]);
-    expect(() => readWordFile(chapter as unknown as WordFile, "chapter_forest_v1.json")).toThrow(/needs a words array/);
+    expect(() => readWordFile(chapter as unknown as WordFile, "chapter_forest_v1.1.json")).toThrow(/needs a words array/);
     const tree = CATALOG_WORDS.find((word) => word.id === "tree");
     expect(() => mergeWordFiles({
       "library.json": { words: [{ word: "tree", meaning_zh: "树", grade_est: 3, spelling: "basic" }] },
@@ -139,42 +138,105 @@ describe("PEP grades 3–6 v1.1 library", () => {
     expect(loaded[0]?.pos).toBeUndefined();
   });
 
-  it("reads an optional pos, keeps a word without one, and rejects a bad pos", () => {
-    expect(CATALOG_WORDS.every((word) => word.pos === undefined)).toBe(true);
-    const withPos = readWordFile({
-      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "n." }],
+  it("keeps pos as an opaque string, including null and the forms v1.2.1 will add", () => {
+    expect(CATALOG_WORDS.filter((word) => word.pos === undefined)).toHaveLength(33);
+    expect(wordById("tree")).toMatchObject({ pos: "n.", chinese: "树" });
+    expect(wordById("rain")).not.toHaveProperty("pos");
+    expect(wordById("in class")?.pos).toBe("phr.");
+    const modal = readWordFile({
+      words: [{ word: "can", meaning_zh: "能；会", grade_est: 3, spelling: "advanced", pos: "modal v." }],
     });
-    expect(withPos[0]).toMatchObject({ id: "apple", chinese: "苹果", pos: "n." });
-    const bare = readWordFile({
+    expect(modal[0]?.pos).toBe("modal v.");
+    const slash = readWordFile({
+      words: [{ word: "plant", meaning_zh: "种植；植物", grade_est: 3, spelling: "advanced", pos: "n./v." }],
+    });
+    expect(slash[0]?.pos).toBe("n./v.");
+    const absent = readWordFile({
       words: [{ word: "big", meaning_zh: "大的", grade_est: 3, spelling: "basic" }],
     });
-    expect(bare[0]?.pos).toBeUndefined();
-    expect(bare[0]).not.toHaveProperty("pos");
-    const blank = readWordFile({
-      words: [{ word: "big", meaning_zh: "大的", grade_est: 3, spelling: "basic", pos: "   " }],
+    expect(absent[0]).not.toHaveProperty("pos");
+    const empty = readWordFile({
+      words: [{ word: "big", meaning_zh: "大的", grade_est: 3, spelling: "basic", pos: "" }],
     });
-    expect(blank[0]).not.toHaveProperty("pos");
+    expect(empty[0]).not.toHaveProperty("pos");
+    const cleared = readWordFile({
+      words: [{ word: "rain", meaning_zh: "下雨；雨", grade_est: 4, spelling: "advanced", pos: null }],
+    });
+    expect(cleared[0]).not.toHaveProperty("pos");
     expect(() => readWordFile({
-      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "noun" }],
+      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: 1 }],
     })).toThrow(/bad pos/);
     expect(() => readWordFile({
-      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: "n" }],
+      words: [{ word: "apple", meaning_zh: "苹果", grade_est: 3, spelling: "basic", pos: { kind: "n." } }],
     })).toThrow(/bad pos/);
-    for (const pos of PARTS_OF_SPEECH) {
-      const loaded = readWordFile({
-        words: [{ word: "apple", meaning_zh: "苹果", grade_est: 4, spelling: "basic", pos }],
-      });
-      expect(loaded[0]?.pos).toBe(pos);
-    }
+  });
+
+  it("uses a sense pos when that sense is shown, and falls back to the word pos", () => {
+    const loaded = readWordFile({
+      words: [{
+        word: "can",
+        meaning_zh: "能；会",
+        grade_est: 3,
+        spelling: "advanced",
+        pos: "modal v.",
+        senses: [
+          { meaning_zh: "能；会", pos: null },
+          { meaning_zh: "能；会" },
+          { meaning_zh: "能；会", pos: "" },
+          { meaning_zh: "罐；罐头", pos: "n./v." },
+        ],
+      }],
+    });
+    const word = loaded[0]!;
+    expect(word.senses).toEqual([
+      { chinese: "能；会" },
+      { chinese: "能；会" },
+      { chinese: "能；会" },
+      { chinese: "罐；罐头", pos: "n./v." },
+    ]);
+    expect(formatMeaning(word)).toBe("modal v. 能；会");
+    expect(formatMeaning(word, word.senses?.[0])).toBe("modal v. 能；会");
+    expect(formatMeaning(word, word.senses?.[1])).toBe("modal v. 能；会");
+    expect(formatMeaning(word, word.senses?.[2])).toBe("modal v. 能；会");
+    expect(formatMeaning(word, word.senses?.[3])).toBe("n./v. 罐；罐头");
+    const bare = readWordFile({
+      words: [{
+        word: "rain",
+        meaning_zh: "下雨；雨",
+        grade_est: 4,
+        spelling: "advanced",
+        pos: null,
+        senses: [{ meaning_zh: "雨", pos: null }],
+      }],
+    });
+    expect(formatMeaning(bare[0]!, bare[0]?.senses?.[0])).toBe("雨");
+    expect(formatMeaning(bare[0]!, bare[0]?.senses?.[0]).startsWith(" ")).toBe(false);
+    expect(() => readWordFile({
+      words: [{
+        word: "can",
+        meaning_zh: "能；会",
+        grade_est: 3,
+        spelling: "advanced",
+        pos: "v.",
+        senses: [{ meaning_zh: "罐；罐头", pos: 2 }],
+      }],
+    })).toThrow(/bad pos/);
   });
 
   it("puts the part of speech before the meaning, and leaves a bare meaning untouched", () => {
     expect(formatMeaning({ chinese: "苹果", pos: "n." })).toBe("n. 苹果");
     expect(formatMeaning({ chinese: "大的", pos: "adj." })).toBe("adj. 大的");
+    expect(formatMeaning({ chinese: "能；会", pos: "modal v." })).toBe("modal v. 能；会");
+    expect(formatMeaning({ chinese: "种植；植物", pos: "n./v." })).toBe("n./v. 种植；植物");
     expect(formatMeaning({ chinese: "树" })).toBe("树");
-    expect(formatMeaning({ chinese: "树", pos: "  " })).toBe("树");
-    expect(formatMeaning({ chinese: "树" }).startsWith(" ")).toBe(false);
-    expect(quizForWord("tree", 1).prompt).toBe("「树」用英语怎么说？");
-    expect(quizForWord("tree", 1).hint).toBe("树");
+    expect(formatMeaning({ chinese: "树", pos: "" })).toBe("树");
+    expect(formatMeaning({ chinese: "树", pos: null })).toBe("树");
+    expect(formatMeaning(wordById("tree")!)).toBe("n. 树");
+    expect(formatMeaning(wordById("rain")!)).toBe("下雨；雨");
+    expect(formatMeaning(wordById("rain")!).startsWith(" ")).toBe(false);
+    expect(quizForWord("tree", 1).prompt).toBe("「n. 树」用英语怎么说？");
+    expect(quizForWord("tree", 1).hint).toBe("n. 树");
+    expect(quizForWord("rain", 1).prompt).toBe("「下雨；雨」用英语怎么说？");
+    expect(quizForWord("rain", 1).hint).toBe("下雨；雨");
   });
 });

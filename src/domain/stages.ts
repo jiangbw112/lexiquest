@@ -1,5 +1,5 @@
 import { wordById } from "./catalog";
-import chapterFile from "./chapters/chapter_forest_v1.json";
+import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
