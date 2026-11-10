@@ -12,10 +12,10 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     this.load.atlas("actors", "assets/atlases/actors.png", "assets/atlases/actors.json");
-    this.load.image("village", "assets/map/village.png");
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core"], ["bg_forest"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_forest", "bg_home", "bg_village"]);
+    this.load.image("logo_title", "assets/warm/logo/logo_title_2x.webp");
   }
 
   create(): void {

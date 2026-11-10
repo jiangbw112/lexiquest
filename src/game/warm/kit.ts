@@ -74,10 +74,10 @@ export function warmButton(
   y: number,
   label: string,
   onClick: () => void,
-  options: { width?: number; tone?: ButtonTone; disabled?: boolean } = {},
+  options: { width?: number; height?: number; tone?: ButtonTone; disabled?: boolean } = {},
 ): Phaser.GameObjects.Container {
   const width = options.width ?? 220;
-  const height = 56;
+  const height = options.height ?? 56;
   const tone = options.tone ?? "primary";
   const disabled = options.disabled === true;
   const atlas = TONE_ATLAS[tone];

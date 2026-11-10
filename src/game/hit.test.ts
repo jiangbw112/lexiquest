@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { pointerHitsContainer, polygonContainsAtVisual, VILLAGE_HOUSE_POINTS } from "./hit";
+import { pointerHitsContainer, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "./hit";
+import { PLACES } from "./layout";
 
 function hits(centerX: number, centerY: number, width: number, height: number, worldX: number, worldY: number): boolean {
   return pointerHitsContainer(width, height, worldX - centerX, worldY - centerY);
@@ -50,24 +51,32 @@ describe("control hit areas", () => {
     expect(hits(block.x, block.y, block.width, block.height, between, attack.y)).toBe(false);
   });
 
-  it("keeps the village house hit on the drawn polygon, including the lower tip", () => {
-    const points = [];
-    for (let i = 0; i < VILLAGE_HOUSE_POINTS.length; i += 2) {
-      points.push({ x: VILLAGE_HOUSE_POINTS[i]!, y: VILLAGE_HOUSE_POINTS[i + 1]! });
+  it("covers each village building, including the sign, and misses the gap between neighbors", () => {
+    const width = VILLAGE_BUILDING_WIDTH;
+    const height = VILLAGE_BUILDING_HEIGHT;
+    const sign = villageSignLocal();
+    expect(sign).toEqual({ x: 0, y: 49.5 });
+    for (const place of PLACES) {
+      const inside = [
+        [place.x, place.y],
+        [place.x, place.y + sign.y],
+        [place.x - width / 2 + 8, place.y - height / 2 + 8],
+        [place.x + width / 2 - 8, place.y - height / 2 + 8],
+        [place.x - width / 2 + 8, place.y + height / 2 - 8],
+        [place.x + width / 2 - 8, place.y + height / 2 - 8],
+      ];
+      for (const [px, py] of inside) {
+        expect(hits(place.x, place.y, width, height, px!, py!), place.id).toBe(true);
+        for (const other of PLACES) {
+          if (other.id === place.id) continue;
+          expect(hits(other.x, other.y, width, height, px!, py!), `${place.id} into ${other.id}`).toBe(false);
+        }
+      }
+      expect(hits(place.x, place.y, width, height, place.x, place.y - height / 2 - 4)).toBe(false);
+      expect(hits(place.x, place.y, width, height, place.x, place.y + height / 2 + 4)).toBe(false);
     }
-    const minX = Math.min(...points.map((point) => point.x));
-    const maxX = Math.max(...points.map((point) => point.x));
-    const minY = Math.min(...points.map((point) => point.y));
-    const maxY = Math.max(...points.map((point) => point.y));
-    const polygon = { points };
-    const origin = { displayOriginX: (maxX - minX) / 2, displayOriginY: (maxY - minY) / 2 };
-    const hit = (x: number, y: number) => polygonContainsAtVisual(polygon, x + origin.displayOriginX, y + origin.displayOriginY, origin);
-    expect(hit(0, 13)).toBe(true);
-    expect(hit(0, 48)).toBe(true);
-    expect(hit(0, -20)).toBe(true);
-    expect(hit(0, 58)).toBe(false);
-    expect(hit(0, -32)).toBe(false);
-    expect(hit(0, -40)).toBe(false);
+    expect(hits(900, 320, width, height, 970, 360)).toBe(false);
+    expect(hits(1040, 400, width, height, 970, 360)).toBe(false);
   });
 
   it("wires the containers and the house through the aligned hit helpers", () => {
@@ -78,7 +87,9 @@ describe("control hit areas", () => {
     expect(ui).not.toContain("Rectangle(-width / 2");
     expect(kit.match(/containerHitArea\(width, height\)/g)).toHaveLength(4);
     expect(kit).not.toContain("Rectangle(-width / 2");
-    expect(village).toContain("polygonContainsAtVisual");
+    expect(village).toContain("village_bld_");
+    expect(village).toContain("containerHitArea");
+    expect(village).not.toContain("polygon");
     expect(ui).toContain("if (!down) return");
     expect(ui).toContain("down = false");
     expect(kit).toContain("if (!down) return");

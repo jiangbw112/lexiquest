@@ -120,6 +120,26 @@
     "h": 300
    }
   },
+  "map_node_boss_ready": {
+   "frame": {
+    "x": 440,
+    "y": 386,
+    "w": 300,
+    "h": 300
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 300,
+    "h": 300
+   },
+   "sourceSize": {
+    "w": 300,
+    "h": 300
+   }
+  },
   "map_name_plate": {
    "frame": {
     "x": 764,
@@ -179,31 +199,11 @@
     "w": 160,
     "h": 80
    }
-  },
-  "map_node_boss_ready": {
-   "frame": {
-    "x": 440,
-    "y": 386,
-    "w": 300,
-    "h": 300
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 300,
-    "h": 300
-   },
-   "sourceSize": {
-    "w": 300,
-    "h": 300
-   }
   }
  },
  "meta": {
   "app": "LexiQuest batch2 export.py (code-drawn)",
-  "version": "0.3-batch2",
+  "version": "0.4-batch3 (node frames repainted in place; coordinates unchanged)",
   "image": "atlas_map.png",
   "format": "RGBA8888",
   "size": {
@@ -211,6 +211,6 @@
    "h": 1024
   },
   "scale": "2",
-  "status": "暂定 provisional"
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
  }
 }

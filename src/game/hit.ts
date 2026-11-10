@@ -28,32 +28,17 @@ export function pointerHitsContainer(width: number, height: number, localX: numb
   return rectContains(containerHitArea(width, height), localX + width / 2, localY + height / 2);
 }
 
-/** Village house outline. The points sit above and below the polygon's position. */
-export const VILLAGE_HOUSE_POINTS = [0, -28, 54, -8, 54, 34, 0, 54, -54, 34, -54, -8];
+/** Logical size of one village entrance. The texture is this size at 2×, and the hit area is the whole frame. */
+export const VILLAGE_BUILDING_WIDTH = 136;
+export const VILLAGE_BUILDING_HEIGHT = 128;
 
-function pointInPolygon(points: readonly { x: number; y: number }[], x: number, y: number): boolean {
-  let inside = false;
-  for (let i = -1, j = points.length - 1; ++i < points.length; j = i) {
-    const ix = points[i]!.x;
-    const iy = points[i]!.y;
-    const jx = points[j]!.x;
-    const jy = points[j]!.y;
-    if (((iy <= y && y < jy) || (jy <= y && y < iy)) && x < ((jx - ix) * (y - iy)) / (jy - iy) + ix) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
+/** Sign label center, measured from the top-left of the building frame. */
+export const VILLAGE_SIGN = { x: 68, y: 113.5 } as const;
 
-/**
- * Polygon input points already include the shape's display origin.
- * Subtract it so the test uses the same coordinates as the drawn vertices.
- */
-export function polygonContainsAtVisual(
-  polygon: { points: readonly { x: number; y: number }[] },
-  x: number,
-  y: number,
-  target: { displayOriginX: number; displayOriginY: number },
-): boolean {
-  return pointInPolygon(polygon.points, x - target.displayOriginX, y - target.displayOriginY);
+/** Same point, relative to the container origin at the frame center. */
+export function villageSignLocal(): { x: number; y: number } {
+  return {
+    x: VILLAGE_SIGN.x - VILLAGE_BUILDING_WIDTH / 2,
+    y: VILLAGE_SIGN.y - VILLAGE_BUILDING_HEIGHT / 2,
+  };
 }

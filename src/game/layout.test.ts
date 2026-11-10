@@ -109,8 +109,7 @@ describe("warm text contrast", () => {
       ["确认", "悬停", "#FFF4DC", "#1F6F64"],
       ["技能", "常态", "#FFF4DC", "#A9432B"],
       ["能量", "常态", "#1F4E3D", "#C9E6D4"],
-      ["学堂", "常态", "#FFF4DC", "#A9432B"],
-      ["衣柜", "常态", "#FFF4DC", "#5B4B6B"],
+      ["招牌", "常态", "#3B2A20", "#FFF4DC"],
       ["确认", "禁用", "#3F2E25", "#CFC4B2"],
     ] as const;
     for (const [control, state, fg, bg] of approved) {
@@ -143,7 +142,9 @@ describe("warm text contrast", () => {
 describe("boot and renderer guards", () => {
   it("counts the files the boot scene loads and forces WebGL", () => {
     const budget = readFileSync(new URL("../../tools/boot-budget.mjs", import.meta.url), "utf8");
-    expect(budget).toContain("village.png");
+    expect(budget).toContain("bg_village_2x.webp");
+    expect(budget).toContain("atlas_village");
+    expect(budget).toContain("bg_home_2x.webp");
     expect(budget).toContain("actors.png");
     expect(budget).toContain("chapter/forest/v0.1/atlas");
     const main = readFileSync(new URL("./../main.ts", import.meta.url), "utf8");

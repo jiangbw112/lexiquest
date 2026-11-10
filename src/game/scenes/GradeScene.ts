@@ -76,7 +76,8 @@ export class GradeScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    warmBackground(this, "bg_forest");
+    warmBackground(this, "bg_home");
+    this.add.image(640, 71, "logo_title").setDisplaySize(310, 118);
     warmPanel(this, 640, 420, 980, 560);
     if (this.mode === "ask-parent") {
       this.add.text(180, 220, "请家长选年级", { fontFamily: FONT, fontSize: "40px", color: INK });
