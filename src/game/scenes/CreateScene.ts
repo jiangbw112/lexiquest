@@ -5,6 +5,7 @@ import { sanitizeName } from "../../domain/appearance";
 import { classById } from "../../domain/classes";
 import type { GradeBand } from "../../domain/types";
 import { WarriorSprite } from "../art/warrior-sprite";
+import { cjkWrap } from "../layout";
 import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { commit } from "../session";
@@ -73,14 +74,14 @@ export class CreateScene extends Phaser.Scene {
     warmPanel(this, 640, 400, 1040, 740);
     const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label ?? id).join("、");
     this.add.text(180, 64, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: INK });
-    this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: MUTED, wordWrap: { width: 700 } });
-    this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: INK, wordWrap: { width: 700 } });
+    this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: MUTED, wordWrap: cjkWrap(700) });
+    this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: INK, wordWrap: cjkWrap(700) });
     this.add.text(180, 470, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "24px", color: INK });
     this.add.text(180, 520, "名字在画面中间输入。Enter 出发。年级可以稍后在给家长里改。", {
       fontFamily: FONT,
       fontSize: "18px",
       color: MUTED,
-      wordWrap: { width: 760 },
+      wordWrap: cjkWrap(760),
     });
     this.add.text(180, 700, "用键盘输入名字。", {
       fontFamily: FONT,

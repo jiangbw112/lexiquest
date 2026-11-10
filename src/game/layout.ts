@@ -112,3 +112,53 @@ export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): n
   if (width <= max) return 1;
   return max / width;
 }
+
+/** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */
+export function cjkWrap(width: number): { width: number; useAdvancedWrap: true } {
+  return { width, useAdvancedWrap: true };
+}
+
+/**
+ * Wardrobe preview only. The chip is 36 logical pixels tall, so a center of 200
+ * ends at 218, above the head and the wreath (the wreath sits near y=330).
+ */
+export const WARDROBE_TITLE_Y = 200;
+
+/** Village reward dialog. The slice is drawn at this size, centered on x/y. */
+export const REWARD_DIALOG = { x: 640, y: 230, width: 860, height: 220 } as const;
+
+/**
+ * Opaque header behind the dialog art. The wood grain has transparent stripes,
+ * so the title is painted on this fill (#775036), not on the cream body.
+ */
+export const DIALOG_HEADER = 0x775036;
+
+export interface RewardDialogChrome {
+  top: number;
+  titleY: number;
+  fillX: number;
+  fillY: number;
+  fillWidth: number;
+  fillHeight: number;
+  fillTop: number;
+  fillBottom: number;
+  /** Bottom of the wood band, before the cream body. */
+  headerBottom: number;
+}
+
+export function rewardDialogChrome(): RewardDialogChrome {
+  const top = REWARD_DIALOG.y - REWARD_DIALOG.height / 2;
+  const fillHeight = 40;
+  const fillTop = top + 4;
+  return {
+    top,
+    titleY: top + 26,
+    fillX: REWARD_DIALOG.x,
+    fillY: fillTop + fillHeight / 2,
+    fillWidth: REWARD_DIALOG.width - 80,
+    fillHeight,
+    fillTop,
+    fillBottom: fillTop + fillHeight,
+    headerBottom: top + 48,
+  };
+}

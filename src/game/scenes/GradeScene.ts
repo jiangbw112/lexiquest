@@ -3,6 +3,7 @@ import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, canConfirmGrades, toggleGradeChoice
 import { uiLabel } from "../../domain/ui-label";
 import { needsGradeChoice, setSelectedGrades } from "../../domain/progress";
 import type { GradeBand } from "../../domain/types";
+import { cjkWrap } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
@@ -87,7 +88,7 @@ export class GradeScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: INK,
-        wordWrap: { width: 900 },
+        wordWrap: cjkWrap(900),
       });
       warmButton(this, 360, 480, "去给家长", () => this.scene.start("guide"), { width: 220 });
       warmButton(this, 640, 480, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
@@ -105,7 +106,7 @@ export class GradeScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "20px",
       color: INK,
-      wordWrap: { width: 900 },
+      wordWrap: cjkWrap(900),
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = this.grades.includes(grade.id);
@@ -122,7 +123,7 @@ export class GradeScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "20px",
       color: ready ? INK : ERR_TEXT,
-      wordWrap: { width: 900 },
+      wordWrap: cjkWrap(900),
     });
     warmButton(this, 360, 560, uiLabel(migrating ? "选好了，继续" : "选好了，去起名字"), () => this.confirm(), {
       width: 280,

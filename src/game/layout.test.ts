@@ -5,7 +5,7 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { OPTION_BADGE_CENTER, STRUGGLE_LIST, meaningScale, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
+import { OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkWrap, meaningScale, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -166,5 +166,32 @@ describe("boot and renderer guards", () => {
     expect(map).toContain("learnedRequiredCount(save)");
     expect(map).toContain("required.length");
     expect(map).not.toContain("FOREST_WORD_COUNT");
+  });
+});
+
+describe("reward dialog header", () => {
+  it("keeps the 22px title inside the opaque header and above the cream body", () => {
+    const chrome = rewardDialogChrome();
+    const half = 11;
+    expect(chrome.top).toBe(120);
+    expect(chrome.titleY - half).toBeGreaterThanOrEqual(chrome.fillTop);
+    expect(chrome.titleY + half).toBeLessThanOrEqual(chrome.fillBottom);
+    expect(chrome.fillBottom).toBeLessThanOrEqual(chrome.headerBottom);
+    expect(chrome.titleY + half).toBeLessThan(chrome.headerBottom);
+    expect(chrome.fillWidth).toBeLessThan(860);
+  });
+});
+
+describe("wardrobe title chip", () => {
+  it("ends above the wreath on the preview", () => {
+    expect(WARDROBE_TITLE_Y + 18).toBeLessThan(330);
+    const wardrobe = readFileSync(new URL("./scenes/WardrobeScene.ts", import.meta.url), "utf8");
+    expect(wardrobe).toContain("drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId)");
+  });
+});
+
+describe("Chinese line wrap", () => {
+  it("asks Phaser to break CJK at the given width", () => {
+    expect(cjkWrap(960)).toEqual({ width: 960, useAdvancedWrap: true });
   });
 });

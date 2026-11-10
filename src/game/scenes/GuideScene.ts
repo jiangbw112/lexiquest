@@ -15,7 +15,7 @@ import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } fr
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
-import { STRUGGLE_LIST, struggleWindow } from "../layout";
+import { STRUGGLE_LIST, cjkWrap, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { FONT } from "../ui";
 import { warmButton, warmChip, warmPanel, warmTab } from "../warm/kit";
@@ -207,7 +207,7 @@ export class GuideScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: INK,
-        wordWrap: { width: 880, useAdvancedWrap: true },
+        wordWrap: cjkWrap(880),
       });
       warmButton(this, 280, 340, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
       return;
@@ -244,10 +244,10 @@ export class GuideScene extends Phaser.Scene {
       fontSize: "18px",
       fontStyle: "700",
       color: INK,
-      wordWrap: { width: 1000 },
+      wordWrap: cjkWrap(1000),
     });
     const note = this.pinNotice || view.clockNote || view.emptyLine || view.todayLine || (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
-    this.add.text(140, 264, note, { fontFamily: FONT, fontSize: "16px", color: MUTED, wordWrap: { width: 1000 } });
+    this.add.text(140, 264, note, { fontFamily: FONT, fontSize: "16px", color: MUTED, wordWrap: cjkWrap(1000) });
     this.add.text(140, 296, view.weekLine, { fontFamily: FONT, fontSize: "16px", color: INK });
     this.add.text(140, 324, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
       fontFamily: FONT,
@@ -258,7 +258,7 @@ export class GuideScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "15px",
       color: INK,
-      wordWrap: { width: 1000 },
+      wordWrap: cjkWrap(1000),
     });
     this.add.text(140, 384, view.gradesLine, { fontFamily: FONT, fontSize: "16px", color: INK });
     this.add.text(140, 414, "每日目标从明天的新一天起改档。今天的数量不会变多。", {
@@ -330,7 +330,7 @@ export class GuideScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "16px",
       color: !canSave || this.notice === GRADE_REQUIRED_NOTICE ? ERR_TEXT : MUTED,
-      wordWrap: { width: 1000 },
+      wordWrap: cjkWrap(1000),
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = selected.includes(grade.id);
@@ -342,7 +342,7 @@ export class GuideScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "14px",
       color: INK,
-      wordWrap: { width: 1000, useAdvancedWrap: true },
+      wordWrap: cjkWrap(1000),
       lineSpacing: 4,
     });
     warmButton(this, 360, 730, uiLabel(this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存"), () => {

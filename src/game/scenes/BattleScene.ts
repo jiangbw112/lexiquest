@@ -20,6 +20,7 @@ import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
+import { cjkWrap } from "../layout";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { listenKeys } from "../ui";
@@ -336,7 +337,7 @@ export class BattleScene extends Phaser.Scene {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       color: INK,
-      wordWrap: { width: 640 },
+      wordWrap: cjkWrap(640),
     }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
     if (battleControlOpen(this.state.phase, "action", this.resolving)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
@@ -366,7 +367,7 @@ export class BattleScene extends Phaser.Scene {
           fontFamily: FONT_BODY,
           fontSize: "18px",
           color: MUTED,
-          wordWrap: { width: 640 },
+          wordWrap: cjkWrap(640),
         });
         document.getElementById("spell-form")?.classList.add("open");
         showSpellingHint(this.state.question.answer);

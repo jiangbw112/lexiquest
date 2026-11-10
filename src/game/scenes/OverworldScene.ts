@@ -1,13 +1,14 @@
 import Phaser from "phaser";
 import { ensureDailyGoal, goalProgress, goalStatusLine, goalTarget, openingReminder } from "../../domain/parent";
 import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
+import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { containerHitArea, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "../hit";
 import { listenKeys } from "../ui";
 import { LayeredActor } from "../actors";
-import { PLACES, SAFE, type Place } from "../layout";
+import { DIALOG_HEADER, PLACES, REWARD_DIALOG, SAFE, cjkWrap, rewardDialogChrome, type Place } from "../layout";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { CREAM, FONT_BODY, FONT_TITLE, INK, TEAL_DEEP } from "../warm/theme";
@@ -88,7 +89,7 @@ export class OverworldScene extends Phaser.Scene {
   private draw(): void {
     const save = getSave();
     if (!save) return;
-    this.children.removeAll(true);
+    destroyDrawn(this.children.list);
     warmBackground(this, "bg_village");
     warmPanel(this, SAFE.x + SAFE.width / 2, 62, SAFE.width - 24, 96);
     const quest = questLine(save);
@@ -96,7 +97,7 @@ export class OverworldScene extends Phaser.Scene {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       color: INK,
-      wordWrap: { width: SAFE.width - 60 },
+      wordWrap: cjkWrap(SAFE.width - 60),
     });
     const goal = save.dailyGoal;
     const goalText = `${goalStatusLine(goal)}  ·  累计完成 ${save.goalDaysTotal} 天`;
@@ -104,12 +105,12 @@ export class OverworldScene extends Phaser.Scene {
     const target = goal ? goalTarget(goal) : 0;
     probeNote(`goal:${progress}/${target}:${goal?.completed ? "done" : "open"}`);
     warmPanel(this, 520, 168, 780, 78);
-    this.add.text(160, 142, goalText, { fontFamily: FONT_BODY, fontSize: "18px", color: TEAL_DEEP, wordWrap: { width: 700 } });
+    this.add.text(160, 142, goalText, { fontFamily: FONT_BODY, fontSize: "18px", color: TEAL_DEEP, wordWrap: cjkWrap(700) });
     this.add.text(160, 174, openingReminder(save, studyNow(save)), {
       fontFamily: FONT_BODY,
       fontSize: "16px",
       color: INK,
-      wordWrap: { width: 700 },
+      wordWrap: cjkWrap(700),
     });
     for (const place of PLACES) this.building(place);
     // SPEC Part A puts the hero on the plaza. Buildings stay where layout.ts placed them.
@@ -130,18 +131,21 @@ export class OverworldScene extends Phaser.Scene {
     }
     if (this.toast || save.rewardQueue[0]) {
       const notice = save.rewardQueue[0];
+      const chrome = rewardDialogChrome();
       const mask = this.add.rectangle(640, 400, 1280, 800, 0x3b2a20, 0.65);
       mask.setInteractive();
-      const dialog = warmSlice(this, "atlas_ui_core", "dialog", 860, 220);
-      dialog.setPosition(640, 230);
+      if (mask.input) mask.input.cursor = "default";
+      this.add.rectangle(chrome.fillX, chrome.fillY, chrome.fillWidth, chrome.fillHeight, DIALOG_HEADER, 1);
+      const dialog = warmSlice(this, "atlas_ui_core", "dialog", REWARD_DIALOG.width, REWARD_DIALOG.height);
+      dialog.setPosition(REWARD_DIALOG.x, REWARD_DIALOG.y);
       const title = notice?.title ?? "";
       const detail = notice?.detail ?? this.toast;
-      this.add.text(640, 172, title, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: CREAM }).setOrigin(0.5);
-      this.add.text(640, 248, detail, { fontFamily: FONT_BODY, fontSize: "18px", color: INK, wordWrap: { width: 760 }, align: "center" }).setOrigin(0.5);
-      this.add.text(640, 308, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: INK }).setOrigin(0.5);
-      const hit = this.add.container(640, 230);
-      hit.setSize(860, 220);
-      const area = containerHitArea(860, 220);
+      this.add.text(REWARD_DIALOG.x, chrome.titleY, title, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: CREAM }).setOrigin(0.5);
+      this.add.text(REWARD_DIALOG.x, 248, detail, { fontFamily: FONT_BODY, fontSize: "18px", color: INK, wordWrap: cjkWrap(760), align: "center" }).setOrigin(0.5);
+      this.add.text(REWARD_DIALOG.x, 308, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: INK }).setOrigin(0.5);
+      const hit = this.add.container(REWARD_DIALOG.x, REWARD_DIALOG.y);
+      hit.setSize(REWARD_DIALOG.width, REWARD_DIALOG.height);
+      const area = containerHitArea(REWARD_DIALOG.width, REWARD_DIALOG.height);
       hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
       if (hit.input) hit.input.cursor = "pointer";
       hit.on("pointerdown", () => {

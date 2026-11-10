@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { formatMeaning, sampleWords } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
-import { parchmentTitleY } from "../layout";
+import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, paper } from "../ui";
@@ -39,6 +39,7 @@ export class CollectionScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "18px",
       color: NOTE,
+      wordWrap: cjkWrap(760),
     });
     if (owned.length === 0) {
       this.add.text(160, 160, "册子还是空的。去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: MUTED });

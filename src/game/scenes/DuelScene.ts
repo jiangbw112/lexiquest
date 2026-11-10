@@ -5,7 +5,7 @@ import { notePracticeAnswer } from "../../domain/parent";
 import { practiceDuel, studyNow } from "../../domain/progress";
 import { quizForWord, type QuizQuestion } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
-import { parchmentTitleY } from "../layout";
+import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -90,7 +90,7 @@ export class DuelScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "18px",
       color: MUTED,
-      wordWrap: { width: 960 },
+      wordWrap: cjkWrap(960),
     });
     if (this.step.name === "cover") {
       warmPanel(this, 420, 300, 560, 220);

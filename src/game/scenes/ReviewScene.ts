@@ -7,6 +7,7 @@ import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
+import { cjkWrap } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -124,7 +125,7 @@ export class ReviewScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
-      wordWrap: { width: 960 },
+      wordWrap: cjkWrap(960),
     });
     if (this.dev) {
       warmButton(this, 250, layout.clockY, "沙漏 +10 分钟 T", () => this.shift(reviewClockDelta("advance-10m")), { width: 230, height: 56, tone: "secondary" });
@@ -141,7 +142,7 @@ export class ReviewScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "22px",
         color: MUTED,
-        wordWrap: { width: 860 },
+        wordWrap: cjkWrap(860),
       });
     } else if (!desk.keyTargetId) {
       this.add.text(170, layout.bodyY, "现在没有到复习时间的词。", {

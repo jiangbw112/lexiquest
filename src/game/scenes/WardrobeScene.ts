@@ -11,7 +11,7 @@ import { equipOutfit } from "../../domain/progress";
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
-import { parchmentTitleY } from "../layout";
+import { WARDROBE_TITLE_Y, parchmentTitleY } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -142,7 +142,7 @@ export class WardrobeScene extends Phaser.Scene {
     this.add.image(1000, 492, "atlas_wardrobe", "wardrobe_stage").setDisplaySize(280, 105);
     const hero = new WarriorSprite(this, 1000, 500, 0.48, save.equippedCosmeticIds);
     hero.play("idle");
-    drawEquippedTitle(this, 1000, 360, save.equippedTitleId);
+    drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId);
     const worn = save.equippedCosmeticIds.join(",") || "none";
     const helmet = hero.isSlotVisible("outfit_head") ? "shown" : "hidden";
     const back = hero.isSlotDrawn("back") ? "drawn" : "absent";

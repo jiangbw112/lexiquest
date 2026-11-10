@@ -1,10 +1,9 @@
 import Phaser from "phaser";
 import { classById } from "../../domain/classes";
-import { PROVISIONAL } from "../../domain/provisional";
 import { equipSkill, unequipSkill } from "../../domain/progress";
 import { MAX_EQUIPPED_SKILLS, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
 import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame } from "../../domain/skill-card-face";
-import { parchmentTitleY } from "../layout";
+import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -40,14 +39,13 @@ export class SkillsScene extends Phaser.Scene {
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
     const hero = classById(save.player.classId);
-    const rules = PROVISIONAL.skillCards;
     const titleY = parchmentTitleY(400, 740);
     this.add.text(160, titleY, "技能卡", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(160, titleY + 48, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上更弱的基础招式，比例 ${rules.baseSkillPowerScale}，能量 ${rules.baseSkillEnergyCost}。答错效果 ×${rules.wrongAnswerMultiplier}。`, {
+    this.add.text(160, titleY + 48, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: MUTED,
-      wordWrap: { width: 960 },
+      wordWrap: cjkWrap(960),
     });
     skillsInEquipOrder(save.player.classId, save.equippedSkillIds).forEach((skill, index) => {
       const top = 196 + index * 116;

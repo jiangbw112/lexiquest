@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { blip } from "./audio";
 import { containerHitArea } from "./hit";
+import { cjkWrap } from "./layout";
 import { CREAM, CHIP_ON, CONFIRM_REST, FONT_BODY, TEAL_DEEP, TERRA, TERRA_HOVER, TERRA_PRESSED } from "./warm/theme";
 
 export const FONT = FONT_BODY;
@@ -12,7 +13,7 @@ export function paper(scene: Phaser.Scene, fill = 0xfff8ee): Phaser.GameObjects.
 
 export function heading(scene: Phaser.Scene, title: string, sub = ""): void {
   scene.add.text(180, 56, title, { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-  if (sub) scene.add.text(180, 102, sub, { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e", wordWrap: { width: 920 } });
+  if (sub) scene.add.text(180, 102, sub, { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e", wordWrap: cjkWrap(920) });
 }
 
 export function hint(scene: Phaser.Scene, text: string, color = "#3d5c4e"): Phaser.GameObjects.Text {

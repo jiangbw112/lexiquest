@@ -17,6 +17,7 @@ import {
 } from "../../domain/stages";
 import { uiLabel } from "../../domain/ui-label";
 import { MAP_WORD_CARD_HIT, mapWordCardCenter } from "../hit";
+import { cjkWrap } from "../layout";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
@@ -173,7 +174,7 @@ export class StageMapScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "15px",
         color: MUTED,
-        wordWrap: { width: 252 },
+        wordWrap: cjkWrap(252),
       });
       cursor += 48;
     }
@@ -192,7 +193,7 @@ export class StageMapScene extends Phaser.Scene {
       cursor += 28;
     }
     if (panel.note) {
-      this.add.text(panelX - 126, cursor, panel.note, { fontFamily: FONT, fontSize: "16px", color: INK, wordWrap: { width: 252 } });
+      this.add.text(panelX - 126, cursor, panel.note, { fontFamily: FONT, fontSize: "16px", color: INK, wordWrap: cjkWrap(252) });
       cursor += 56;
     }
     panel.words.forEach((face, index) => {
@@ -230,7 +231,7 @@ export class StageMapScene extends Phaser.Scene {
         fontSize: "15px",
         fontStyle: "700",
         color: INK,
-        wordWrap: { width: 252 },
+        wordWrap: cjkWrap(252),
         align: "center",
       }).setOrigin(0.5, 0);
       cursor += 48;
@@ -241,7 +242,7 @@ export class StageMapScene extends Phaser.Scene {
         fontSize: "16px",
         fontStyle: "700",
         color: INK,
-        wordWrap: { width: 252 },
+        wordWrap: cjkWrap(252),
         align: "center",
       }).setOrigin(0.5, 0);
     }

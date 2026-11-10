@@ -6,7 +6,7 @@ import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../doma
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
-import { parchmentTitleY } from "../layout";
+import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, paper } from "../ui";
@@ -61,14 +61,14 @@ export class EndingScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "18px",
       color: MUTED,
-      wordWrap: { width: 700 },
+      wordWrap: cjkWrap(700),
     });
     this.add.text(150, 280, "外观奖励", { fontFamily: FONT, fontSize: "28px", color: INK });
     this.add.text(150, 324, granted.length > 0 ? granted.join("，") : "还没有外观。", {
       fontFamily: FONT,
       fontSize: "20px",
       color: INK,
-      wordWrap: { width: 700 },
+      wordWrap: cjkWrap(700),
     });
     this.add.text(150, 390, title ? `称号：${title.shownZh}` : "称号还没戴上。可以在衣柜里戴。", {
       fontFamily: FONT,
