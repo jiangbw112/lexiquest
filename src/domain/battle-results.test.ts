@@ -14,6 +14,8 @@ import {
   moreBadgeLabel,
   practiceItemLine,
   resultsLowerShift,
+  resultsSkipHintState,
+  resultsSkipKind,
   resultsStackNudge,
   RESULTS_LAYOUT,
   starsFor,
@@ -302,6 +304,27 @@ describe("battle results stars and words", () => {
     const boss = mapPanel(save, stageById(5)!, "cleared");
     expect(boss.note).toBeNull();
     expect(boss.bestStars).toBeNull();
+  });
+
+  it("hides the corner skip hint and its hit on every open settlement", () => {
+    const kinds = ["practice", "win", "loss", "boss"] as const;
+    for (const kind of kinds) {
+      expect(resultsSkipHintState(kind)).toEqual({ visible: false, interactive: false });
+    }
+    expect(resultsSkipKind({ won: true, boss: false, practiceOnly: true })).toBe("practice");
+    expect(resultsSkipKind({ won: true, boss: false, practiceOnly: false })).toBe("win");
+    expect(resultsSkipKind({ won: false, boss: false, practiceOnly: false })).toBe("loss");
+    expect(resultsSkipKind({ won: true, boss: true, practiceOnly: false })).toBe("boss");
+    const scene = source("../game/scenes/BattleResultsScene.ts");
+    const open = scene.slice(scene.indexOf("create():"), scene.indexOf("private applySkipHint"));
+    expect(open).toContain("点一下看全部");
+    expect(open.indexOf("this.applySkipHint()")).toBeGreaterThan(open.indexOf("点一下看全部"));
+    expect(open.indexOf("this.applySkipHint()")).toBeLessThan(open.indexOf("this.tweens.add"));
+    const handler = open.slice(open.indexOf("dim.on(\"pointerdown\""), open.indexOf("this.drawGlow"));
+    expect(handler).toContain("if (!resultsSkipHintState(resultsSkipKind(this.view)).interactive) return;");
+    expect(handler.indexOf("finishMotion")).toBeGreaterThan(handler.indexOf("interactive) return"));
+    expect(open).toContain("dim.setInteractive()");
+    expect(open.indexOf("dim.setInteractive()")).toBeLessThan(open.indexOf("dim.on(\"pointerdown\""));
   });
 
   it("BR-A1 BR-A22 and BR-A34 keep the forbidden words off the results page", () => {
