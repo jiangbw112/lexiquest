@@ -236,20 +236,43 @@ export function moreBadgeLabel(extra: number): string {
 export interface XpFillSegment {
   from: number;
   to: number;
+  ms: number;
 }
+
+export const XP_GROW_MS = 600;
+/** The full bar stays put after a level-up, then drops back to empty. */
+export const XP_LEVEL_HOLD_MS = 150;
 
 /**
  * One segment stays inside the current level.
- * Crossing a level fills the bar, then starts again from empty up to the final remainder.
- * 220 → 240 is the boss first-clear case: half full, then full, then empty.
+ * Crossing a level fills the bar, holds it full, then starts again from empty.
+ * 220 → 240 still fills, holds, and resets even though the remainder is 0.
  */
 export function xpBarSegments(beforeXp: number, afterXp: number): XpFillSegment[] {
   const before = levelFromXp(Math.max(0, beforeXp));
   const after = levelFromXp(Math.max(0, afterXp));
   const start = before.into / before.span;
   const end = after.into / after.span;
-  if (after.level > before.level) return [{ from: start, to: 1 }, { from: 0, to: end }];
-  return [{ from: start, to: end }];
+  if (after.level > before.level) {
+    const fill = Math.round(XP_GROW_MS * 0.6);
+    return [
+      { from: start, to: 1, ms: fill },
+      { from: 1, to: 1, ms: XP_LEVEL_HOLD_MS },
+      { from: 0, to: end, ms: end === 0 ? 0 : XP_GROW_MS - fill },
+    ];
+  }
+  return [{ from: start, to: end, ms: XP_GROW_MS }];
+}
+
+const MASTERY_COSMETIC_IDS = new Set(
+  FOREST_REWARDS.mastery_milestones.flatMap((milestone) => milestone.cosmetic_ids),
+);
+
+/** Cape-style battle loot. Mastery cosmetics win when both arrive together. */
+export function practiceItemLine(items: readonly { id: string }[]): string {
+  if (items.some((item) => MASTERY_COSMETIC_IDS.has(item.id))) return MASTERY_ITEM_LINE;
+  if (items.some((item) => item.id === "forest-cape")) return BATTLE_DROP_ITEM_LINE;
+  return MASTERY_ITEM_LINE;
 }
 
 /**
@@ -326,3 +349,4 @@ export const PRACTICE_LINE_2 = "练习也很棒！";
 export const PRACTICE_NOTICE = "今天再战的奖励都拿到啦！";
 export const MAP_PRACTICE_NOTE = "今天再战的奖励领完啦，还可以练习。";
 export const MASTERY_ITEM_LINE = "熟练徽章攒够啦，得到新外观！";
+export const BATTLE_DROP_ITEM_LINE = "打赢啦，捡到一件新装备！";

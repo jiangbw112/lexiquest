@@ -7,15 +7,19 @@ import {
   MAP_PRACTICE_NOTE,
   PRACTICE_LINE_1,
   PRACTICE_LINE_2,
+  BATTLE_DROP_ITEM_LINE,
+  MASTERY_ITEM_LINE,
   mapResultsFramesReady,
   mapStarCenter,
   moreBadgeLabel,
+  practiceItemLine,
   resultsLowerShift,
   resultsStackNudge,
   RESULTS_LAYOUT,
   starsFor,
   visibleItems,
   wordsForResults,
+  XP_LEVEL_HOLD_MS,
   xpBarSegments,
 } from "./battle-results";
 import { deviceTimeZone, localDayKey } from "./local-day";
@@ -179,10 +183,42 @@ describe("battle results stars and words", () => {
   });
 
   it("grows the XP bar in one segment, and fills then resets when a level is crossed", () => {
-    expect(xpBarSegments(55, 70)).toEqual([{ from: 15 / 40, to: 30 / 40 }]);
-    expect(xpBarSegments(0, 0)).toEqual([{ from: 0, to: 0 }]);
-    expect(xpBarSegments(220, 240)).toEqual([{ from: 20 / 40, to: 1 }, { from: 0, to: 0 }]);
-    expect(xpBarSegments(10, 90)).toEqual([{ from: 10 / 40, to: 1 }, { from: 0, to: 10 / 40 }]);
+    expect(xpBarSegments(55, 70)).toEqual([{ from: 15 / 40, to: 30 / 40, ms: 600 }]);
+    expect(xpBarSegments(0, 0)).toEqual([{ from: 0, to: 0, ms: 600 }]);
+    expect(xpBarSegments(10, 90).map(({ from, to }) => ({ from, to }))).toEqual([
+      { from: 10 / 40, to: 1 },
+      { from: 1, to: 1 },
+      { from: 0, to: 10 / 40 },
+    ]);
+  });
+
+  it("holds a full XP bar for about 150ms before resetting, including a level that ends empty", () => {
+    const crossed = xpBarSegments(10, 90);
+    const fillAt = crossed.findIndex((segment) => segment.to === 1 && segment.from < 1);
+    const holdAt = crossed.findIndex((segment) => segment.from === 1 && segment.to === 1);
+    const restAt = crossed.findIndex((segment) => segment.from === 0);
+    expect(fillAt).toBeLessThan(holdAt);
+    expect(holdAt).toBeLessThan(restAt);
+    expect(crossed[holdAt]?.ms).toBe(XP_LEVEL_HOLD_MS);
+    expect(XP_LEVEL_HOLD_MS).toBeGreaterThanOrEqual(140);
+    expect(XP_LEVEL_HOLD_MS).toBeLessThanOrEqual(160);
+
+    const exact = xpBarSegments(220, 240);
+    const exactFill = exact.findIndex((segment) => segment.to === 1 && segment.from < 1);
+    const exactHold = exact.findIndex((segment) => segment.from === 1 && segment.to === 1);
+    const exactEmpty = exact.findIndex((segment) => segment.from === 0 && segment.to === 0);
+    expect(exactFill).toBeLessThan(exactHold);
+    expect(exactHold).toBeLessThan(exactEmpty);
+    expect(exact[exactHold]?.ms).toBe(XP_LEVEL_HOLD_MS);
+    expect(exact[exactEmpty]?.ms).toBe(0);
+  });
+
+  it("picks the practice item line for a mastery cosmetic, a cape, or both", () => {
+    expect(practiceItemLine([{ id: "acorn_pin" }])).toBe(MASTERY_ITEM_LINE);
+    expect(practiceItemLine([{ id: "forest_wreath" }])).toBe(MASTERY_ITEM_LINE);
+    expect(practiceItemLine([{ id: "forest-cape" }])).toBe(BATTLE_DROP_ITEM_LINE);
+    expect(practiceItemLine([{ id: "forest-cape" }, { id: "acorn_pin" }])).toBe(MASTERY_ITEM_LINE);
+    expect(practiceItemLine([{ id: "warrior-hold" }])).toBe(MASTERY_ITEM_LINE);
   });
 
   it("grants the forest cape on a practice win after the daily quota is full", () => {

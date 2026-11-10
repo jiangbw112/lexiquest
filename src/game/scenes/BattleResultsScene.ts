@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import {
   LOSS_ENCOURAGEMENT,
-  MASTERY_ITEM_LINE,
   moreBadgeLabel,
   PRACTICE_LINE_1,
   PRACTICE_LINE_2,
@@ -9,6 +8,7 @@ import {
   RESULTS_LAYOUT,
   resultsLowerShift,
   resultsStackNudge,
+  practiceItemLine,
   visibleItems,
   xpBarSegments,
   type XpFillSegment,
@@ -28,7 +28,6 @@ import { queueWarm } from "../warm/load";
 import { CREAM, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, TEAL_DEEP, motionOff } from "../warm/theme";
 
 const KEY_LOCK_MS = 300;
-const XP_GROW_MS = 600;
 const BROWN = 0x5d3e2b;
 const GOLD = 0xe9c46a;
 
@@ -49,6 +48,7 @@ export class BattleResultsScene extends Phaser.Scene {
   } | null = null;
   private xpSegments: XpFillSegment[] = [];
   private xpRunning: { value: number } | null = null;
+  private xpHold: Phaser.Time.TimerEvent | null = null;
   private finalNoted = false;
 
   constructor() {
@@ -63,6 +63,7 @@ export class BattleResultsScene extends Phaser.Scene {
     this.xpFills = null;
     this.xpSegments = [];
     this.xpRunning = null;
+    this.xpHold = null;
     this.finalNoted = false;
   }
 
@@ -425,7 +426,7 @@ export class BattleResultsScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(617, this.dy(560), MASTERY_ITEM_LINE, {
+    this.add.text(617, this.dy(560), practiceItemLine(this.view.items), {
       fontFamily: FONT_BODY,
       fontSize: "16px",
       color: TEAL_DEEP,
@@ -490,19 +491,28 @@ export class BattleResultsScene extends Phaser.Scene {
       this.noteFinal();
       return;
     }
-    const gold = this.xpSegments.length > 1 && index > 0 ? 0 : (this.xpSegments[0]?.from ?? 0);
+    const gold = this.xpGold(index);
     const state = { value: segment.from };
     this.xpRunning = state;
     this.paintXp(gold, segment.from);
-    if (segment.to === segment.from) {
+    const holding = segment.from === 1 && segment.to === 1 && segment.ms > 0;
+    if (holding) probeNote("battle:results:xp-hold");
+    if (!holding && (segment.ms <= 0 || segment.from === segment.to)) {
+      this.paintXp(gold, segment.to);
       this.growSegment(index + 1);
       return;
     }
-    const duration = this.xpSegments.length === 1 ? XP_GROW_MS : index === 0 ? 360 : XP_GROW_MS - 360;
+    if (holding) {
+      this.xpHold = this.time.delayedCall(segment.ms, () => {
+        this.xpHold = null;
+        if (!this.settled) this.growSegment(index + 1);
+      });
+      return;
+    }
     this.tweens.add({
       targets: state,
       value: segment.to,
-      duration,
+      duration: segment.ms,
       ease: "Linear",
       onUpdate: () => {
         if (!this.settled) this.paintXp(gold, state.value);
@@ -515,7 +525,17 @@ export class BattleResultsScene extends Phaser.Scene {
     });
   }
 
+  /** Gold is the progress already banked. After the full-bar hold it goes back to zero. */
+  private xpGold(index: number): number {
+    const start = this.xpSegments[0]?.from ?? 0;
+    const holdAt = this.xpSegments.findIndex((segment) => segment.from === 1 && segment.to === 1);
+    if (holdAt >= 0 && index > holdAt) return 0;
+    return start;
+  }
+
   private snapXp(): void {
+    this.xpHold?.remove(false);
+    this.xpHold = null;
     if (this.xpRunning) this.tweens.killTweensOf(this.xpRunning);
     const last = this.xpSegments[this.xpSegments.length - 1];
     if (!last) return;
