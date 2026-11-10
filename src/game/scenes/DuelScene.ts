@@ -5,6 +5,7 @@ import { notePracticeAnswer } from "../../domain/parent";
 import { practiceDuel, studyNow } from "../../domain/progress";
 import { quizForWord, type QuizQuestion } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
+import { parchmentTitleY } from "../layout";
 import { probeEnter, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -83,8 +84,9 @@ export class DuelScene extends Phaser.Scene {
     this.children.removeAll(true);
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
-    this.add.text(160, 40, "同机练习", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(160, 88, "两个朋友轮流用这一台电脑。答对题数多的赢；题数一样，答对用时更少的赢。答错不计分也不计时。不会写入复习记忆，也不是联网对战。", {
+    const titleY = parchmentTitleY(400, 740);
+    this.add.text(160, titleY, "同机练习", { fontFamily: FONT, fontSize: "36px", color: INK });
+    this.add.text(160, titleY + 50, "两个朋友轮流用这一台电脑。答对题数多的赢；题数一样，答对用时更少的赢。答错不计分也不计时。不会写入复习记忆，也不是联网对战。", {
       fontFamily: FONT,
       fontSize: "18px",
       color: MUTED,

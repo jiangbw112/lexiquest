@@ -6,6 +6,7 @@ import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../doma
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, paper } from "../ui";
@@ -48,8 +49,9 @@ export class EndingScene extends Phaser.Scene {
     const granted = chapterCosmeticLayers()
       .filter((layer) => save.unlockedCosmeticIds.includes(layer.id))
       .map((layer) => COSMETIC_LABEL[layer.id] ?? "");
-    this.add.text(150, 48, "已通关森林", { fontFamily: FONT, fontSize: "42px", color: INK });
-    this.add.text(150, 110, `${save.player.name} 打败了${ending.bossName}。这一章走完了。`, {
+    const titleY = parchmentTitleY(400, 740);
+    this.add.text(150, titleY, "已通关森林", { fontFamily: FONT, fontSize: "42px", color: INK });
+    this.add.text(150, titleY + 62, `${save.player.name} 打败了${ending.bossName}。这一章走完了。`, {
       fontFamily: FONT,
       fontSize: "22px",
       color: INK,

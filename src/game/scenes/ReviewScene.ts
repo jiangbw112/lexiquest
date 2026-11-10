@@ -6,6 +6,7 @@ import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progr
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
+import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -24,6 +25,7 @@ const RATINGS: { rating: Grade; label: string; code: string }[] = [
 export class ReviewScene extends Phaser.Scene {
   private spellId: string | null = null;
   private spellNote = "";
+  private dev = false;
 
   constructor() {
     super("review");
@@ -39,6 +41,7 @@ export class ReviewScene extends Phaser.Scene {
       return;
     }
     probeEnter("review");
+    this.dev = devModeEnabled(window.location.search);
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();
@@ -51,12 +54,9 @@ export class ReviewScene extends Phaser.Scene {
     });
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (event.code === "Escape") this.scene.start("overworld");
-      if (event.code === "KeyT") this.shift(10 * 60 * 1000);
-      if (event.code === "KeyY") this.shift(24 * 60 * 60 * 1000);
-      if (event.code === "KeyR") {
-        mutate((save) => resetClock(save));
-        this.draw();
-      }
+      const clock = reviewClockCommand(event.code, this.dev);
+      if (clock === "reset") this.resetPracticeClock();
+      else if (clock) this.shift(reviewClockDelta(clock));
       const spelling = document.getElementById("spell-form")?.classList.contains("open");
       const rating = RATINGS.find((item) => item.code === event.code);
       const due = this.firstDue();
@@ -80,7 +80,14 @@ export class ReviewScene extends Phaser.Scene {
   }
 
   private shift(delta: number): void {
+    if (!this.dev) return;
     mutate((save) => shiftClock(save, delta));
+    this.draw();
+  }
+
+  private resetPracticeClock(): void {
+    if (!this.dev) return;
+    mutate((save) => resetClock(save));
     this.draw();
   }
 
@@ -111,42 +118,42 @@ export class ReviewScene extends Phaser.Scene {
     warmPanel(this, 640, 400, 1040, 740);
     const mastery = PROVISIONAL.mastery;
     const now = studyNow(save);
-    this.add.text(160, 36, "复习桌", { fontFamily: FONT, fontSize: "34px", color: INK });
-    this.add.text(160, 78, `至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ${mastery.minStability} 天。同一天反复练习不会点亮徽章。`, {
+    const layout = reviewDeskLayout(this.dev);
+    this.add.text(160, layout.titleY, "复习桌", { fontFamily: FONT, fontSize: "34px", color: INK });
+    this.add.text(160, layout.subtitleY, `至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ${mastery.minStability} 天。同一天反复练习不会点亮徽章。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
       wordWrap: { width: 960 },
     });
-    warmButton(this, 250, 140, "沙漏 +10 分钟 T", () => this.shift(10 * 60 * 1000), { width: 230, height: 56, tone: "secondary" });
-    warmButton(this, 500, 140, "沙漏 +1 天 Y", () => this.shift(24 * 60 * 60 * 1000), { width: 200, height: 56, tone: "secondary" });
-    warmButton(this, 735, 140, "回到真实时间 R", () => {
-      mutate((current) => resetClock(current));
-      this.draw();
-    }, { width: 220, height: 56, tone: "secondary" });
+    if (this.dev) {
+      warmButton(this, 250, layout.clockY, "沙漏 +10 分钟 T", () => this.shift(reviewClockDelta("advance-10m")), { width: 230, height: 56, tone: "secondary" });
+      warmButton(this, 500, layout.clockY, "沙漏 +1 天 Y", () => this.shift(reviewClockDelta("advance-1d")), { width: 200, height: 56, tone: "secondary" });
+      warmButton(this, 735, layout.clockY, "回到真实时间 R", () => this.resetPracticeClock(), { width: 220, height: 56, tone: "secondary" });
+    }
     const allowed = new Set(wordsForGrades(save.selectedGrades).map((word) => word.id));
     const open = Object.values(save.memory).filter((memory) => allowed.has(memory.wordId));
     const desk = reviewDesk(open, now);
     if (Object.keys(save.wordCards).length === 0) {
-      this.add.text(170, 220, "还没有词卡。先去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: MUTED });
+      this.add.text(170, layout.bodyY, "还没有词卡。先去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: MUTED });
     } else if (desk.shown.length === 0) {
-      this.add.text(170, 220, "所选年级里没有要复习的词。已经学过的词卡还在册子里，重新勾选年级后会恢复。", {
+      this.add.text(170, layout.bodyY, "所选年级里没有要复习的词。已经学过的词卡还在册子里，重新勾选年级后会恢复。", {
         fontFamily: FONT,
         fontSize: "22px",
         color: MUTED,
         wordWrap: { width: 860 },
       });
     } else if (!desk.keyTargetId) {
-      this.add.text(170, 190, "现在没有到复习时间的词。", {
+      this.add.text(170, layout.bodyY, "现在没有到复习时间的词。", {
         fontFamily: FONT,
         fontSize: "18px",
         color: MUTED,
       });
     } else {
-      this.add.text(170, 190, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: "16px", color: NOTE });
+      this.add.text(170, layout.bodyY, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: "16px", color: NOTE });
     }
     if (desk.hiddenDue > 0) {
-      this.add.text(620, 190, `还有 ${desk.hiddenDue} 个词也到了复习时间。先复习画面上的。`, {
+      this.add.text(620, layout.bodyY, `还有 ${desk.hiddenDue} 个词也到了复习时间。先复习画面上的。`, {
         fontFamily: FONT,
         fontSize: "16px",
         color: NOTE,
@@ -156,7 +163,7 @@ export class ReviewScene extends Phaser.Scene {
       const word = wordById(memory.wordId);
       const card = save.wordCards[memory.wordId];
       if (!word || !card) return;
-      const y = 228 + index * 100;
+      const y = layout.bodyY + 38 + index * 100;
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
       warmSlice(this, "atlas_ui_pages", "list_row", 980, 86).setPosition(640, y + 29);

@@ -11,6 +11,7 @@ import { equipOutfit } from "../../domain/progress";
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { parchmentTitleY } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -53,8 +54,9 @@ export class WardrobeScene extends Phaser.Scene {
     this.children.removeAll(true);
     if (!paintRoom(this)) paper(this);
     warmSlice(this, "atlas_ui_core", "panel_parchment", 1040, 740).setPosition(640, 400);
-    this.add.text(150, 36, "衣柜", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(150, 84, "戴上花环，头盔会藏起来。", {
+    const titleY = parchmentTitleY(400, 740);
+    this.add.text(150, titleY, "衣柜", { fontFamily: FONT, fontSize: "36px", color: INK });
+    this.add.text(150, titleY + 48, "戴上花环，头盔会藏起来。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,

@@ -4,6 +4,7 @@ import { PROVISIONAL } from "../../domain/provisional";
 import { equipSkill, unequipSkill } from "../../domain/progress";
 import { MAX_EQUIPPED_SKILLS, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
 import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame } from "../../domain/skill-card-face";
+import { parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -40,8 +41,9 @@ export class SkillsScene extends Phaser.Scene {
     warmPanel(this, 640, 400, 1040, 740);
     const hero = classById(save.player.classId);
     const rules = PROVISIONAL.skillCards;
-    this.add.text(160, 48, "技能卡", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(160, 96, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上更弱的基础招式，比例 ${rules.baseSkillPowerScale}，能量 ${rules.baseSkillEnergyCost}。答错效果 ×${rules.wrongAnswerMultiplier}。`, {
+    const titleY = parchmentTitleY(400, 740);
+    this.add.text(160, titleY, "技能卡", { fontFamily: FONT, fontSize: "36px", color: INK });
+    this.add.text(160, titleY + 48, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上更弱的基础招式，比例 ${rules.baseSkillPowerScale}，能量 ${rules.baseSkillEnergyCost}。答错效果 ×${rules.wrongAnswerMultiplier}。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: MUTED,

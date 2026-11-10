@@ -1,6 +1,14 @@
 export const GAME_W = 1280;
 export const GAME_H = 800;
 
+/** Parchment nine-slice top inset is 40 source pixels, drawn at 0.5, so the frame is 20 logical pixels. */
+export const PARCHMENT_FRAME = 20;
+
+/** Top of a top-left title that sits fully inside the parchment frame. */
+export function parchmentTitleY(centerY: number, height: number, pad = 4): number {
+  return centerY - height / 2 + PARCHMENT_FRAME + pad;
+}
+
 /** Central 4:3 area inside the 16:10 design buffer. Interactive UI stays here. */
 export const SAFE = { x: 107, y: 16, width: 1066, height: 768 };
 
