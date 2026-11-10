@@ -8,7 +8,7 @@ import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmButton, warmChip, warmPanel } from "../warm/kit";
 import { warmBackground } from "../warm/load";
-import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
+import { CREAM, ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
 export type GradeLaunchMode = "new" | "migrate" | "ask-parent";
 
@@ -77,6 +77,7 @@ export class GradeScene extends Phaser.Scene {
   private draw(): void {
     this.children.removeAll(true);
     warmBackground(this, "bg_home");
+    this.add.rectangle(640, 400, 1280, 800, Number.parseInt(CREAM.slice(1), 16), 0.24);
     this.add.image(640, 71, "logo_title").setDisplaySize(310, 118);
     warmPanel(this, 640, 420, 980, 560);
     if (this.mode === "ask-parent") {

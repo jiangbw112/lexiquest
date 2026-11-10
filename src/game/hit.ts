@@ -42,3 +42,19 @@ export function villageSignLocal(): { x: number; y: number } {
     y: VILLAGE_SIGN.y - VILLAGE_BUILDING_HEIGHT / 2,
   };
 }
+
+/**
+ * `map_word_card` is 160×80. At scale 0.5 the picture is 80×40.
+ * The rectangle starts 8 texture pixels above the frame, so the click
+ * area is 80×48: 4 logical pixels past the art on the top and the bottom.
+ * Phaser adds the image origin before testing this rectangle.
+ */
+export const MAP_WORD_CARD_HIT: HitRect = { x: 0, y: -8, width: 160, height: 96 };
+
+/** World offset from a word card's center. Scale is 0.5 and the origin is the frame center. */
+export function pointerHitsMapWordCard(dx: number, dy: number): boolean {
+  const scale = 0.5;
+  const x = dx / scale + 80;
+  const y = dy / scale + 40;
+  return rectContains(MAP_WORD_CARD_HIT, x, y);
+}

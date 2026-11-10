@@ -9,9 +9,9 @@ import { containerHitArea, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, vill
 import { listenKeys } from "../ui";
 import { LayeredActor } from "../actors";
 import { PLACES, SAFE, type Place } from "../layout";
-import { warmButton, warmPanel, warmSlice } from "../warm/kit";
+import { warmButton, warmPanel } from "../warm/kit";
 import { warmBackground } from "../warm/load";
-import { CREAM, FONT_BODY, FONT_TITLE, INK, MUTED, TEAL_DEEP } from "../warm/theme";
+import { CREAM, FONT_BODY, FONT_TITLE, INK, TEAL_DEEP } from "../warm/theme";
 
 export class OverworldScene extends Phaser.Scene {
   private toast = "";
@@ -109,15 +109,14 @@ export class OverworldScene extends Phaser.Scene {
       wordWrap: { width: 700 },
     });
     for (const place of PLACES) this.building(place);
-    // batch3 says this spot covers the wardrobe sign and suggests the plaza.
-    // The pack still marks that point as undecided, so the spawn stays put.
-    const hero = new LayeredActor(this, 640, 760, "top");
+    // SPEC Part A puts the hero on the plaza. Buildings stay where layout.ts placed them.
+    const hero = new LayeredActor(this, 640, 520, "top");
     hero.applyOutfit(save.equippedOutfitId);
     hero.root.setScale(0.85);
     this.heroRoot = hero.root;
     this.tweens.add({
       targets: hero.root,
-      y: 748,
+      y: 508,
       duration: 900,
       yoyo: true,
       repeat: -1,
@@ -125,12 +124,20 @@ export class OverworldScene extends Phaser.Scene {
     });
     this.footer(`地图小人是${PLACEHOLDER_NOTE} · ${DESKTOP_NOTE}`);
     if (save.chapterCleared) {
-      warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160 });
+      warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }
     if (this.toast || save.rewardQueue[0]) {
       const notice = save.rewardQueue[0];
       const text = notice ? `${notice.title}。${notice.detail}` : this.toast;
-      this.notice(text);
+      const banner = this.add.rectangle(640, 188, 860, 128, 0x17352a, 0.92);
+      banner.setInteractive({ useHandCursor: true });
+      banner.on("pointerdown", () => {
+        if (getSave()?.rewardQueue[0]) mutate((current) => dismissReward(current));
+        this.toast = "";
+        this.draw();
+      });
+      this.add.text(640, 168, text, { fontFamily: FONT_BODY, fontSize: "18px", color: "#fffaf3", wordWrap: { width: 800 } }).setOrigin(0.5);
+      this.add.text(640, 224, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: "#d7ecdf" }).setOrigin(0.5);
     }
   }
 
@@ -173,52 +180,15 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   private footer(text: string): void {
-    const label = this.add.text(148, 762, text, { fontFamily: FONT_BODY, fontSize: "16px", color: INK }).setOrigin(0, 0.5);
+    const label = this.add.text(142, 762, text, { fontFamily: FONT_BODY, fontSize: "14px", color: INK }).setOrigin(0, 0.5);
     const fill = Number.parseInt(CREAM.slice(1), 16);
     const ink = Number.parseInt(INK.slice(1), 16);
     const plate = this.add.graphics();
     plate.fillStyle(fill, 1);
     plate.lineStyle(2, ink, 1);
-    plate.fillRoundedRect(136, 746, label.width + 28, 32, 12);
-    plate.strokeRoundedRect(136, 746, label.width + 28, 32, 12);
+    plate.fillRoundedRect(130, 750, label.width + 24, 24, 12);
+    plate.strokeRoundedRect(130, 750, label.width + 24, 24, 12);
     this.children.moveBelow(plate, label);
-  }
-
-  private notice(text: string): void {
-    const width = 860;
-    const height = 128;
-    const panel = warmSlice(this, "atlas_ui_core", "panel_parchment", width, height);
-    const body = this.add.text(0, -16, text, {
-      fontFamily: FONT_BODY,
-      fontSize: "18px",
-      color: INK,
-      wordWrap: { width: width - 60 },
-      align: "center",
-    }).setOrigin(0.5);
-    const hint = this.add.text(0, 40, "点击或按 Enter 收下", {
-      fontFamily: FONT_BODY,
-      fontSize: "16px",
-      color: MUTED,
-    }).setOrigin(0.5);
-    const root = this.add.container(640, 188, [panel, body, hint]);
-    root.setSize(width, height);
-    const area = containerHitArea(width, height);
-    root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
-    if (root.input) root.input.cursor = "pointer";
-    let down = false;
-    root.on("pointerout", () => {
-      down = false;
-    });
-    root.on("pointerdown", () => {
-      down = true;
-    });
-    root.on("pointerup", () => {
-      if (!down) return;
-      down = false;
-      if (getSave()?.rewardQueue[0]) mutate((current) => dismissReward(current));
-      this.toast = "";
-      this.draw();
-    });
   }
 
   private measureFps(): void {

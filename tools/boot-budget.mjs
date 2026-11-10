@@ -18,7 +18,6 @@ const boot = [
   ...files(path.join(root, "public/assets/chapter/forest/v0.1/atlas")),
   ...files(path.join(root, "public/assets/warm/atlas")).filter((file) => path.basename(file).startsWith("atlas_ui_core")),
   ...files(path.join(root, "public/assets/warm/atlas")).filter((file) => path.basename(file).startsWith("atlas_village")),
-  path.join(root, "public/assets/warm/backgrounds/bg_forest_battle_2x.webp"),
   path.join(root, "public/assets/warm/backgrounds/bg_home_2x.webp"),
   path.join(root, "public/assets/warm/backgrounds/bg_village_2x.webp"),
   path.join(root, "public/assets/warm/logo/logo_title_2x.webp"),

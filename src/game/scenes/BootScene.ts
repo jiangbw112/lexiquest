@@ -14,7 +14,7 @@ export class BootScene extends Phaser.Scene {
     this.load.atlas("actors", "assets/atlases/actors.png", "assets/atlases/actors.json");
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_forest", "bg_home", "bg_village"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_home", "bg_village"]);
     this.load.image("logo_title", "assets/warm/logo/logo_title_2x.webp");
   }
 

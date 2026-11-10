@@ -145,6 +145,12 @@ describe("boot and renderer guards", () => {
     expect(budget).toContain("bg_village_2x.webp");
     expect(budget).toContain("atlas_village");
     expect(budget).toContain("bg_home_2x.webp");
+    expect(budget).not.toContain("bg_forest_battle");
+    const boot = readFileSync(new URL("./scenes/BootScene.ts", import.meta.url), "utf8");
+    expect(boot).toContain("bg_village");
+    expect(boot).not.toContain("bg_forest");
+    const battle = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");
+    expect(battle).toContain("bg_forest");
     expect(budget).toContain("actors.png");
     expect(budget).toContain("chapter/forest/v0.1/atlas");
     const main = readFileSync(new URL("./../main.ts", import.meta.url), "utf8");

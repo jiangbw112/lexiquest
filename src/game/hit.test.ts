@@ -1,10 +1,20 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { pointerHitsContainer, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "./hit";
+import { pointerHitsContainer, pointerHitsMapWordCard, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "./hit";
 import { PLACES } from "./layout";
 
 function hits(centerX: number, centerY: number, width: number, height: number, worldX: number, worldY: number): boolean {
   return pointerHitsContainer(width, height, worldX - centerX, worldY - centerY);
+}
+
+function rectGap(
+  a: { x0: number; y0: number; x1: number; y1: number },
+  b: { x0: number; y0: number; x1: number; y1: number },
+): number {
+  const dx = Math.max(a.x0 - b.x1, b.x0 - a.x1);
+  const dy = Math.max(a.y0 - b.y1, b.y0 - a.y1);
+  if (dx > 0 && dy > 0) return Math.hypot(dx, dy);
+  return Math.max(dx, dy);
 }
 
 describe("control hit areas", () => {
@@ -79,6 +89,44 @@ describe("control hit areas", () => {
     expect(hits(1040, 400, width, height, 970, 360)).toBe(false);
   });
 
+  it("keeps the plaza spawn clear of every building, sign, and HUD box", () => {
+    const hero = { x0: 585.6, y0: 372, x1: 694.4, y1: 520 };
+    const boxes = [
+      ...PLACES.map((place) => ({
+        name: place.label,
+        x0: place.x - VILLAGE_BUILDING_WIDTH / 2,
+        y0: place.y - VILLAGE_BUILDING_HEIGHT / 2,
+        x1: place.x + VILLAGE_BUILDING_WIDTH / 2,
+        y1: place.y + VILLAGE_BUILDING_HEIGHT / 2,
+      })),
+      ...PLACES.map((place) => ({
+        name: `${place.label} sign`,
+        x0: place.x - 58,
+        y0: place.y + 38,
+        x1: place.x + 58,
+        y1: place.y + 61,
+      })),
+      { name: "top bar", x0: 119, y0: 14, x1: 1161, y1: 110 },
+      { name: "goal", x0: 130, y0: 129, x1: 910, y1: 207 },
+      { name: "footer", x0: 130, y0: 750, x1: 640, y1: 774 },
+      { name: "ending", x0: 1020, y0: 112, x1: 1180, y1: 168 },
+    ];
+    const gaps = boxes.map((box) => ({ name: box.name, gap: rectGap(hero, box) }));
+    expect(Math.min(...gaps.map((item) => item.gap))).toBeGreaterThanOrEqual(56);
+    expect(gaps.find((item) => item.name === "衣柜")?.gap).toBe(56);
+  });
+
+  it("grows the map word card hit area to 80 by 48 without reaching the next card", () => {
+    expect(pointerHitsMapWordCard(0, 0)).toBe(true);
+    expect(pointerHitsMapWordCard(39, 0)).toBe(true);
+    expect(pointerHitsMapWordCard(41, 0)).toBe(false);
+    expect(pointerHitsMapWordCard(0, -23)).toBe(true);
+    expect(pointerHitsMapWordCard(0, 23)).toBe(true);
+    expect(pointerHitsMapWordCard(0, -20)).toBe(true);
+    expect(pointerHitsMapWordCard(0, 25)).toBe(false);
+    expect(pointerHitsMapWordCard(0, -25)).toBe(false);
+  });
+
   it("wires the containers and the house through the aligned hit helpers", () => {
     const ui = readFileSync(new URL("./ui.ts", import.meta.url), "utf8");
     const kit = readFileSync(new URL("./warm/kit.ts", import.meta.url), "utf8");
@@ -88,8 +136,15 @@ describe("control hit areas", () => {
     expect(kit.match(/containerHitArea\(width, height\)/g)).toHaveLength(4);
     expect(kit).not.toContain("Rectangle(-width / 2");
     expect(village).toContain("village_bld_");
+    expect(village).toContain("new LayeredActor(this, 640, 520, \"top\")");
+    expect(village).toContain("y: 508");
     expect(village).toContain("containerHitArea");
     expect(village).not.toContain("polygon");
+    const map = readFileSync(new URL("./scenes/StageMapScene.ts", import.meta.url), "utf8");
+    expect(map).toContain("cursor + 40");
+    expect(map).toContain("cursor += 64");
+    expect(map).toContain("MAP_WORD_CARD_HIT");
+    expect(map).not.toContain("cursor + 28");
     expect(ui).toContain("if (!down) return");
     expect(ui).toContain("down = false");
     expect(kit).toContain("if (!down) return");

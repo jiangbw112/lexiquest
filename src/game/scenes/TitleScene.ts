@@ -23,7 +23,7 @@ export class TitleScene extends Phaser.Scene {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       color: INK,
-    });
+    }, { height: 46, padX: 28, radius: 23 });
     this.creamLine(640, 414, `${WARRIOR_ART_NOTE} · SAMPLE DATA`, {
       fontFamily: FONT_BODY,
       fontSize: "14px",
@@ -34,10 +34,10 @@ export class TitleScene extends Phaser.Scene {
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
     warmButton(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
-    if (save) warmButton(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, tone: "secondary" });
-    this.creamLine(640, save ? 700 : 660, DESKTOP_NOTE, {
+    if (save) warmButton(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, height: 56, tone: "secondary" });
+    this.creamLine(640, 700, DESKTOP_NOTE, {
       fontFamily: FONT_BODY,
-      fontSize: "16px",
+      fontSize: "15px",
       color: INK,
     });
     listenKeys(this, (event) => {
@@ -47,17 +47,24 @@ export class TitleScene extends Phaser.Scene {
     this.measureFps();
   }
 
-  private creamLine(x: number, y: number, text: string, style: Phaser.Types.GameObjects.Text.TextStyle): void {
+  private creamLine(
+    x: number,
+    y: number,
+    text: string,
+    style: Phaser.Types.GameObjects.Text.TextStyle,
+    plateSize?: { height: number; padX: number; radius: number },
+  ): void {
     const label = this.add.text(x, y, text, style).setOrigin(0.5);
-    const width = label.width + 48;
-    const height = label.height + 16;
+    const width = label.width + (plateSize ? plateSize.padX * 2 : 48);
+    const height = plateSize ? plateSize.height : label.height + 16;
+    const radius = plateSize ? plateSize.radius : 16;
     const fill = Number.parseInt(CREAM.slice(1), 16);
     const ink = Number.parseInt(INK.slice(1), 16);
     const plate = this.add.graphics();
     plate.fillStyle(fill, 1);
     plate.lineStyle(2, ink, 1);
-    plate.fillRoundedRect(x - width / 2, y - height / 2, width, height, 16);
-    plate.strokeRoundedRect(x - width / 2, y - height / 2, width, height, 16);
+    plate.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    plate.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
     this.children.moveBelow(plate, label);
   }
 

@@ -51,7 +51,7 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_battle"], []);
+    queueWarm(this, ["atlas_ui_core", "atlas_battle"], ["bg_forest"]);
     if (this.bossFight) queueBossAtlases(this);
   }
 

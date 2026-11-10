@@ -16,6 +16,7 @@ import {
   wordsUntilBoss,
 } from "../../domain/stages";
 import { uiLabel } from "../../domain/ui-label";
+import { MAP_WORD_CARD_HIT } from "../hit";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
@@ -183,8 +184,8 @@ export class StageMapScene extends Phaser.Scene {
         fontStyle: "700",
         color: INK,
       });
-      warmBar(this, panelX, cursor + 28, 240, panel.total === 0 ? 0 : panel.learned / panel.total, panel.status === "cleared" ? "gold" : "leaf");
-      cursor += 52;
+      warmBar(this, panelX, cursor + 40, 240, panel.total === 0 ? 0 : panel.learned / panel.total, panel.status === "cleared" ? "gold" : "leaf");
+      cursor += 64;
     }
     if (panel.wins !== null) {
       this.add.text(panelX - 126, cursor, `小战斗 ${panel.wins} 胜`, { fontFamily: FONT, fontSize: "16px", color: INK });
@@ -208,7 +209,11 @@ export class StageMapScene extends Phaser.Scene {
       }).setOrigin(0.5);
       if (text.width > 72) text.setScale(72 / text.width);
       if (face.interactive && face.english) {
-        card.setInteractive({ useHandCursor: true });
+        card.setInteractive(
+          new Phaser.Geom.Rectangle(MAP_WORD_CARD_HIT.x, MAP_WORD_CARD_HIT.y, MAP_WORD_CARD_HIT.width, MAP_WORD_CARD_HIT.height),
+          Phaser.Geom.Rectangle.Contains,
+        );
+        if (card.input) card.input.cursor = "pointer";
         card.on("pointerup", () => {
           const word = wordById(face.id);
           if (!word) return;
