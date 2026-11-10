@@ -6,6 +6,7 @@ import {
   FOREST_REWARDS,
   unequipCosmetic,
 } from "../../domain/chapter-rewards";
+import { COSMETIC_LABEL } from "../../domain/cosmetic-label";
 import { OUTFITS } from "../../domain/outfits";
 import { equipOutfit } from "../../domain/progress";
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -19,12 +20,6 @@ import { warmButton, warmSlice } from "../warm/kit";
 import { paintRoom, queueWarm } from "../warm/load";
 import { containerHitArea } from "../hit";
 import { DIS_TEXT, INK, MUTED, NOTE } from "../warm/theme";
-
-const COSMETIC_LABEL: Record<string, string> = {
-  forest_leaf_cape: "林叶披肩",
-  acorn_pin: "橡实别针",
-  forest_wreath: "森语花环",
-};
 
 export class WardrobeScene extends Phaser.Scene {
   constructor() {

@@ -20,7 +20,11 @@ export function tabLabelY(selected: boolean, pointer: TabPointer | "released"): 
   return TAB_LABEL_Y;
 }
 
-/** Locked boss nodes keep the lock frame. An open or cleared boss uses the ready frame. */
-export function bossMapFrame(status: "locked" | "open" | "cleared" | "skipped"): "map_node_boss" | "map_node_boss_ready" {
-  return status === "locked" ? "map_node_boss" : "map_node_boss_ready";
+/** Locked boss nodes keep the lock frame. A cleared boss uses the settled portrait. */
+export function bossMapFrame(
+  status: "locked" | "open" | "cleared" | "skipped",
+): "map_node_boss" | "map_node_boss_ready" | "map_node_boss_cleared" {
+  if (status === "locked") return "map_node_boss";
+  if (status === "cleared") return "map_node_boss_cleared";
+  return "map_node_boss_ready";
 }

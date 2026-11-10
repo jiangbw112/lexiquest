@@ -209,11 +209,12 @@ describe("saved progress", () => {
     expect(cleared.unlockedCosmeticIds).toContain("forest_leaf_cape");
     expect(cleared.unlockedTitleIds).toContain("title_forest_trekker");
     expect(cleared.titles).toContain(displayTitle(FOREST_REWARDS, FOREST_REWARDS.clear_reward.title_id).shownZh);
-    expect(cleared.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(1);
+    expect(cleared.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
+    expect(cleared.rewardQueue.filter((notice) => notice.title === "对战胜利")).toHaveLength(0);
     expect(questLine(cleared)).toContain("掌握 0/28");
     expect(questLine(cleared)).toContain("通关");
     const again = applyBattleOutcome(cleared, "win", START.getTime() + 3, "canopy");
-    expect(again.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(1);
+    expect(again.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
     expect(again.clearRewardClaimed).toBe(true);
     expect(again.titles).toEqual(cleared.titles);
   });

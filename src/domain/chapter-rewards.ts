@@ -88,7 +88,13 @@ function notice(title: string, detail: string): RewardNotice {
   return { id: `${title}-${detail}`.slice(0, 140), title, detail };
 }
 
-function grantPieces(save: SaveData, config: ChapterRewardConfig, cosmeticIds: readonly string[], titleId: string): SaveData {
+function grantPieces(
+  save: SaveData,
+  config: ChapterRewardConfig,
+  cosmeticIds: readonly string[],
+  titleId: string,
+  notify = true,
+): SaveData {
   const unlockedCosmeticIds = [...save.unlockedCosmeticIds];
   const equippedCosmeticIds = [...save.equippedCosmeticIds];
   for (const id of cosmeticIds) {
@@ -108,7 +114,7 @@ function grantPieces(save: SaveData, config: ChapterRewardConfig, cosmeticIds: r
     unlockedTitleIds,
     equippedTitleId,
     titles,
-    rewardQueue: [...save.rewardQueue, notice("外观奖励", detail)].slice(-6),
+    rewardQueue: notify ? [...save.rewardQueue, notice("外观奖励", detail)].slice(-6) : save.rewardQueue,
   };
 }
 
@@ -121,16 +127,17 @@ export function applyChapterRewards(
   lit: number,
   total: number,
   config: ChapterRewardConfig = FOREST_REWARDS,
+  notify = true,
 ): SaveData {
   let next = save;
   if (next.chapterCleared && !next.clearRewardClaimed && config.clear_reward.grant_once) {
-    next = grantPieces(next, config, config.clear_reward.cosmetic_ids, config.clear_reward.title_id);
+    next = grantPieces(next, config, config.clear_reward.cosmetic_ids, config.clear_reward.title_id, notify);
     next = { ...next, clearRewardClaimed: true };
   }
   for (const milestone of config.mastery_milestones) {
     if (!milestone.grant_once || next.masteryMilestonesClaimed.includes(milestone.id)) continue;
     if (lit < badgeLitMin(total, milestone.ratio)) continue;
-    next = grantPieces(next, config, milestone.cosmetic_ids, milestone.title_id);
+    next = grantPieces(next, config, milestone.cosmetic_ids, milestone.title_id, notify);
     next = { ...next, masteryMilestonesClaimed: [...next.masteryMilestonesClaimed, milestone.id] };
   }
   return next;

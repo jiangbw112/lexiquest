@@ -171,42 +171,52 @@ describe("round 3 combat numbers", () => {
   });
 
   it("A4 heals at least 8 on a correct button and half of that when wrong", () => {
-    const open = { ...fightFor("warrior", 1, [], {}, 3), playerHp: 1, playerMaxHp: 200 };
+    const open = { ...fightFor("warrior", 1, [], {}, 3), playerHp: 1, playerMaxHp: 200, enemyAttack: 0 };
     const healed = act(open, { type: "heal" }, true);
-    expect(healed.lastNote).toContain("恢复 8");
+    expect(healed.playerHp).toBe(9);
+    expect(healed.lastNote).toContain("恢复了体力");
+    expect(healed.lastNote).not.toMatch(/[0-9]/);
     const wrong = act(open, { type: "heal" }, false);
-    expect(wrong.lastNote).toContain("恢复 4");
+    expect(wrong.playerHp).toBe(5);
+    expect(wrong.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("S1 diminishes block and heal after two full actions", () => {
     let state = { ...fightFor("warrior", 1, [], {}, 4), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500, enemyAttack: 0 };
     const amounts: number[] = [];
     for (let turn = 0; turn < 6; turn += 1) {
+      const before = state.playerHp;
       state = act(state, { type: "heal" });
-      const found = /恢复 (\d+)/.exec(state.lastNote);
-      amounts.push(Number(found?.[1] ?? -1));
+      amounts.push(state.playerHp - before);
     }
     expect(amounts).toEqual([8, 8, 4, 2, 1, 0]);
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("S2 gives the healer 10 then 10, 5, 2, 1", () => {
-    let state = { ...fightFor("healer", 1, [], {}, 5), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500 };
+    let state = { ...fightFor("healer", 1, [], {}, 5), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500, enemyAttack: 0 };
     const amounts: number[] = [];
     for (let turn = 0; turn < 5; turn += 1) {
+      const before = state.playerHp;
       state = act(state, { type: "heal" });
-      amounts.push(Number(/恢复 (\d+)/.exec(state.lastNote)?.[1] ?? -1));
+      amounts.push(state.playerHp - before);
     }
     expect(amounts).toEqual([10, 10, 5, 2, 1]);
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("S3 shares one streak across block and heal", () => {
-    let state = { ...fightFor("warrior", 1, [], {}, 6), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500 };
+    let state = { ...fightFor("warrior", 1, [], {}, 6), playerHp: 20, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500, enemyAttack: 6 };
     state = act(state, { type: "block" });
-    expect(state.lastNote).toContain("6");
+    expect(state.playerHp).toBe(20);
+    state = { ...state, enemyAttack: 0 };
     state = act(state, { type: "heal" });
-    expect(state.lastNote).toContain("恢复 8");
+    expect(state.playerHp).toBe(28);
+    state = { ...state, enemyAttack: 6 };
     state = act(state, { type: "block" });
-    expect(state.lastNote).toContain("3");
+    expect(state.playerHp).toBe(25);
+    expect(state.lastNote).toContain("挡下了下一次伤害");
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("S4 keeps the weaken sentence out of lastNote and raises the hint only on the third", () => {
@@ -229,8 +239,10 @@ describe("round 3 combat numbers", () => {
     let state = { ...fightFor("warrior", 1, [], {}, 8), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500, enemyAttack: 0 };
     state = act(state, { type: "heal" }, false);
     state = act(state, { type: "heal" }, false);
+    const before = state.playerHp;
     state = act(state, { type: "heal" }, false);
-    expect(state.lastNote).toContain("恢复 2");
+    expect(state.playerHp - before).toBe(2);
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("T1 loses a stage-1 fight that only heals or only blocks", () => {
@@ -598,16 +610,14 @@ describe("round 3 new words, hints, and replay", () => {
     const beforeTokens = save.cosmeticTokens;
     const xpBefore = save.xp;
     const encounter = stageEncounterId(1);
-    const details: string[] = [];
+    const queued = save.rewardQueue.length;
     for (let win = 0; win < 4; win += 1) {
       save = applyBattleOutcome(save, "win", now.getTime(), encounter);
-      details.push(save.rewardQueue.at(-1)?.detail ?? "");
     }
     expect(save.replayWinsByDay?.[localDayKey(now, ZONE)]).toBe(4);
     expect(save.xp).toBe(xpBefore + 60);
     expect(save.skillLevels[starterSkillId("warrior")]).toBe(3);
-    expect(details[3]).toContain("今天的复习战奖励领完啦");
-    expect(details[0]).toContain("经验 +20");
+    expect(save.rewardQueue).toHaveLength(queued);
     expect(save.cosmeticTokens).toBe(beforeTokens);
     const uncleared = applyBattleOutcome(fresh(now), "win", now.getTime(), encounter);
     expect(uncleared.replayWinsByDay).toBeUndefined();
@@ -631,15 +641,11 @@ describe("round 3 new words, hints, and replay", () => {
     expect(save.xp).toBe(xpBefore + 20);
     expect(save.skillLevels[skill]).toBe(2);
     const afterClear = save.xp;
-    const details: string[] = [];
     for (let win = 0; win < 4; win += 1) {
       save = applyBattleOutcome(save, "win", now.getTime(), encounter);
-      details.push(save.rewardQueue.at(-1)?.detail ?? "");
     }
     expect(save.replayWinsByDay?.[localDayKey(now, ZONE)]).toBe(4);
     expect(save.xp).toBe(afterClear + 60);
-    expect(details[0]).toContain("经验 +20");
-    expect(details[3]).toContain("今天的复习战奖励领完啦");
     expect(save.skillLevels[skill]).toBe(MAX_SKILL_LEVEL);
   });
 
@@ -665,7 +671,7 @@ describe("round 3 new words, hints, and replay", () => {
     expect(blocked.replayWinsByDay?.[day]).toBe(4);
     expect(blocked.xp).toBe(save.xp);
     expect(blocked.skillLevels).toEqual(save.skillLevels);
-    expect(blocked.rewardQueue.at(-1)?.detail).toContain("今天的复习战奖励领完啦");
+    expect(blocked.rewardQueue).toEqual(save.rewardQueue);
   });
 
   it("RP8 an open stage cannot farm experience or card levels after the first win", () => {
@@ -694,7 +700,7 @@ describe("round 3 new words, hints, and replay", () => {
     save = applyBattleOutcome(save, "win", now.getTime(), encounter);
     expect(save.xp).toBe(cappedXp);
     expect(save.skillLevels[skill]).toBe(cappedLevel);
-    expect(save.rewardQueue.at(-1)?.detail).toContain("今天的复习战奖励领完啦");
+    expect(save.rewardQueue.every((notice) => notice.title !== "对战胜利")).toBe(true);
   });
 
   it("N8 shows the cap notice and skips the next word card once the daily cap is reached", () => {
@@ -827,11 +833,14 @@ describe("round 3 remaining assertions", () => {
     let state = { ...fightFor("warrior", 1, [], {}, 15), playerHp: 1, playerMaxHp: 500, enemyMaxHp: 500, enemyHp: 500, enemyAttack: 0 };
     state = act(state, { type: "heal" });
     state = act(state, { type: "block" });
+    const weakened = state.playerHp;
     state = act(state, { type: "heal" });
-    expect(state.lastNote).toContain("恢复 4");
+    expect(state.playerHp - weakened).toBe(4);
     state = act(state, { type: "attack" });
+    const restored = state.playerHp;
     state = act(state, { type: "heal" });
-    expect(state.lastNote).toContain("恢复 8");
+    expect(state.playerHp - restored).toBe(8);
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("S5 counts heal and guard cards together and clears the streak on a strike", () => {
@@ -853,9 +862,12 @@ describe("round 3 remaining assertions", () => {
     state = act(state, { type: "skill", slotIndex: 2 });
     expect(state.supportStreak).toBe(0);
     state = { ...state, energy: 8 };
+    const healedFrom = state.playerHp;
     state = act(state, { type: "skill", slotIndex: 0 });
     expect(state.supportStreak).toBe(1);
-    expect(state.lastNote).toContain("恢复 14");
+    expect(state.playerHp - healedFrom).toBe(14);
+    expect(state.lastNote).toContain("恢复了体力");
+    expect(state.lastNote).not.toMatch(/[0-9]/);
   });
 
   it("W1 raises the hint on every third support action and an attack starts the count over", () => {

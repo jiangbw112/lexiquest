@@ -156,4 +156,9 @@ export interface SaveData {
   rewardQueue: RewardNotice[];
   /** Wins of an already-cleared exploration stage, keyed by the local day. */
   replayWinsByDay?: Record<string, number>;
+  /**
+   * Best star count for a stage, keyed by the stage id. Missing means no record yet.
+   * A loss does not write it. Old saves omit the field and read as empty.
+   */
+  bestStars?: Record<string, 1 | 2 | 3>;
 }

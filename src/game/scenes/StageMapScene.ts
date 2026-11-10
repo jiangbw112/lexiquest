@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
+import { mapResultsFramesReady, mapStarCenter } from "../../domain/battle-results";
 import { mapPanel } from "../../domain/map-panel";
 import { studyNow } from "../../domain/progress";
 import { browserSpeaker, speakWord } from "../../domain/speech";
@@ -41,9 +42,12 @@ export class StageMapScene extends Phaser.Scene {
   private lookedAt: string | null = null;
   private fontSample = "";
   private restPrompt = false;
+  private retryStageId: number | null = null;
+  private waitingForMapArt = false;
 
-  init(data: { fromBattleEnd?: boolean } = {}): void {
+  init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
+    this.retryStageId = this.restPrompt ? data.retryStageId ?? null : null;
   }
 
   constructor() {
@@ -51,7 +55,7 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_battle"], ["bg_map"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], ["bg_map"]);
   }
 
   create(): void {
@@ -78,6 +82,26 @@ export class StageMapScene extends Phaser.Scene {
     this.draw();
   }
 
+  /** atlas_map_results loads with this scene. Nodes and stars wait until its frames exist. */
+  private mapArtReady(): boolean {
+    if (!this.textures.exists("atlas_map_results")) return false;
+    const atlas = this.textures.get("atlas_map_results");
+    return mapResultsFramesReady((frame) => atlas.has(frame));
+  }
+
+  private waitForMapArt(): void {
+    if (this.waitingForMapArt) return;
+    this.waitingForMapArt = true;
+    this.load.once("complete", () => {
+      this.waitingForMapArt = false;
+      if (this.scene.isActive()) this.draw();
+    });
+    if (this.load.isLoading()) return;
+    queueWarm(this, ["atlas_map_results"], []);
+    if (this.load.totalToLoad > 0) this.load.start();
+    else this.waitingForMapArt = false;
+  }
+
   private fight(stageId: number): void {
     const save = getSave();
     const stage = stageById(stageId);
@@ -89,6 +113,10 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   private draw(): void {
+    if (!this.mapArtReady()) {
+      this.waitForMapArt();
+      return;
+    }
     const save = getSave();
     if (!save) return;
     this.tweens.killAll();
@@ -140,7 +168,8 @@ export class StageMapScene extends Phaser.Scene {
           : itemStatus === "open"
             ? "map_node_current"
             : "map_node_locked";
-      const node = this.add.image(spot.x, spot.y, "atlas_map", frame).setScale(0.5);
+      const atlas = frame === "map_node_boss_cleared" ? "atlas_map_results" : "atlas_map";
+      const node = this.add.image(spot.x, spot.y, atlas, frame).setScale(0.5);
       if (item.type === "boss") node.setOrigin(BOSS_NODE_ORIGIN.x, BOSS_NODE_ORIGIN.y);
       const picked = item.id === stage.id;
       if (picked) node.setScale(0.56);
@@ -153,6 +182,11 @@ export class StageMapScene extends Phaser.Scene {
           repeat: -1,
           ease: "Sine.easeInOut",
         });
+      }
+      const record = save.bestStars?.[String(item.id)];
+      if (record === 1 || record === 2 || record === 3) {
+        const starAt = mapStarCenter(index);
+        this.drawMapStars(starAt.x, starAt.y, record, 24, true);
       }
       node.setInteractive({ useHandCursor: true });
       node.on("pointerup", () => {
@@ -198,6 +232,11 @@ export class StageMapScene extends Phaser.Scene {
     if (panel.wins !== null) {
       this.add.text(panelX - 126, cursor, `小战斗 ${panel.wins} 胜`, { fontFamily: FONT, fontSize: "16px", color: INK });
       cursor += 28;
+    }
+    if (panel.bestStars) {
+      this.add.text(panelX - 126, cursor, "最好成绩", { fontFamily: FONT, fontSize: "16px", color: INK });
+      this.drawMapStars(panelX + 36, cursor + 8, panel.bestStars, 20, false);
+      cursor += 36;
     }
     if (panel.note) {
       this.add.text(panelX - 126, cursor, panel.note, { fontFamily: FONT, fontSize: "16px", color: INK, wordWrap: cjkWrap(252) });
@@ -285,8 +324,34 @@ export class StageMapScene extends Phaser.Scene {
     }, { width: 200 });
     warmButton(this, 780, 460, "再玩一会儿", () => {
       snoozeRest();
+      const retry = this.retryStageId;
       this.restPrompt = false;
+      this.retryStageId = null;
+      if (retry) {
+        this.scene.start("battle", { stageId: retry });
+        return;
+      }
       this.draw();
     }, { width: 200, tone: "secondary" });
+  }
+
+  private drawMapStars(x: number, y: number, lit: number, size: number, cream: boolean): void {
+    const gap = 4;
+    let start = x - (size * 3 + gap * 2) / 2 + size / 2;
+    let rowY = y;
+    if (cream) {
+      const plate = this.add.graphics();
+      plate.fillStyle(0xfff4dc, 0.92);
+      plate.lineStyle(1.5, 0x3b2a20, 1);
+      plate.fillRoundedRect(x - 46, y - 15, 92, 30, 15);
+      plate.strokeRoundedRect(x - 46, y - 15, 92, 30, 15);
+      start = x - 46 + 6 + size / 2;
+      rowY = y - 15 + 3 + size / 2;
+    }
+    for (let i = 0; i < 3; i += 1) {
+      const frame = i < lit ? "map_star_on" : "map_star_off";
+      const step = cream ? 28 : size + gap;
+      this.add.image(start + i * step, rowY, "atlas_map_results", frame).setDisplaySize(size, size);
+    }
   }
 }

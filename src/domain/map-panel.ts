@@ -1,4 +1,7 @@
+import { MAP_PRACTICE_NOTE } from "./battle-results";
 import { wordById } from "./catalog";
+import { deviceTimeZone, localDayKey } from "./local-day";
+import { studyNow } from "./progress";
 import { uiLabel } from "./ui-label";
 import { bossUnlockLine, FOREST_CHAPTER, stageWins, stageWordIds, type ForestStage, type StageStatus } from "./stages";
 import type { SaveData } from "./types";
@@ -32,7 +35,19 @@ export interface MapPanel {
   words: MapWordFace[];
   unlockLine: string | null;
   note: string | null;
+  /** Best stars for this stage. Null means there is no record, so the map draws nothing. */
+  bestStars: 1 | 2 | 3 | null;
   buttons: MapPanelButton[];
+}
+
+function bestOf(save: SaveData, stageId: number): 1 | 2 | 3 | null {
+  const value = save.bestStars?.[String(stageId)];
+  return value === 1 || value === 2 || value === 3 ? value : null;
+}
+
+function practiceFull(save: SaveData): boolean {
+  const day = localDayKey(studyNow(save), deviceTimeZone());
+  return (save.replayWinsByDay?.[day] ?? 0) >= 3;
 }
 
 function faces(stage: ForestStage, save: SaveData, mode: "hide" | "learned" | "all"): MapWordFace[] {
@@ -64,6 +79,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     learned,
     total,
     progressLabel,
+    bestStars: bestOf(save, stage.id),
   };
   if (status === "locked" && !boss) {
     const after = stage.unlock && "after_stage" in stage.unlock ? stage.unlock.after_stage : null;
@@ -132,7 +148,11 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     wins: stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
-    note: emptyLearn ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。` : null,
+    note: cleared && practiceFull(save)
+      ? MAP_PRACTICE_NOTE
+      : emptyLearn
+        ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。`
+        : null,
     buttons: [
       { id: "learn", label: uiLabel("去学堂"), enabled: true, tone: "secondary" },
       { id: "fight", label: uiLabel(cleared ? "再战" : "小战斗"), enabled: true, tone: cleared ? "coral" : "primary" },
