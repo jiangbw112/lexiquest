@@ -20,4 +20,5 @@ jobs:
       - run: python -m pip install fonttools brotli
       - run: npx eslint .
       - run: npx vitest run
+      # tools/boot-budget.mjs warns above 3800000 bytes and fails above 4194304. The warning is a GitHub workflow command, not a failed step.
       - run: npm run build

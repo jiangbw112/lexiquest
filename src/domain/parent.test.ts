@@ -109,34 +109,49 @@ describe("DES-05 parent progress and daily goal", () => {
     expect(PROPOSALS.dailyGoal.goalMax).toEqual({ easy: 8, normal: 15, more: 25 });
     expect(PROPOSALS.dailyGoal.learnFallback).toEqual({ easy: 2, normal: 3, more: 5 });
     expect(PROPOSALS.dailyGoal.practiceQuestions).toBe(3);
-    expect(PROPOSALS.dailyGoal.dayBoundaryHour).toBe(4);
+    expect(PROPOSALS.dailyGoal).not.toHaveProperty("dayBoundaryHour");
     expect(PROPOSALS.dailyGoal).not.toHaveProperty("timeZone");
-    expect(PROVISIONAL.mastery.timeZone).toBe("Asia/Shanghai");
+    expect(PROVISIONAL.mastery).not.toHaveProperty("timeZone");
     expect(PROVISIONAL.skillCards.baseSkillPowerScale).toBe(0.45);
     expect(PROVISIONAL.skillCards.baseSkillEnergyCost).toBe(0);
     expect(PROVISIONAL.skillCards.wrongAnswerMultiplier).toBe(0.5);
   });
 
-  it("rolls the study day at 04:00 local time, including across DST", () => {
-    const early = new Date("2026-03-02T03:59:00+08:00");
-    const late = new Date("2026-03-02T04:00:00+08:00");
-    expect(studyDayKey(early, ZONE)).toBe("2026-03-01");
-    expect(studyDayKey(late, ZONE)).toBe("2026-03-02");
-    expect(studyDayKey(new Date("2026-03-02T03:59:00Z"), "UTC")).toBe("2026-03-01");
-    expect(studyDayKey(new Date("2026-03-02T04:00:00Z"), "UTC")).toBe("2026-03-02");
-    expect(studyDayKey(new Date("2026-03-08T03:30:00-04:00"), "America/New_York")).toBe("2026-03-07");
-    expect(studyDayKey(new Date("2026-03-08T04:00:00-04:00"), "America/New_York")).toBe("2026-03-08");
-    expect(studyDayKey(new Date("2026-11-01T03:30:00-05:00"), "America/New_York")).toBe("2026-10-31");
-    expect(studyDayKey(new Date("2026-11-01T04:00:00-05:00"), "America/New_York")).toBe("2026-11-01");
+  it("uses the local calendar date through Beijing 00:00-08:00, when UTC is still the previous day", () => {
+    for (const iso of [
+      "2026-03-10T00:30:00+08:00",
+      "2026-03-10T03:59:00+08:00",
+      "2026-03-10T04:00:00+08:00",
+      "2026-03-10T07:30:00+08:00",
+    ]) {
+      const now = new Date(iso);
+      expect(now.toISOString().slice(0, 10)).toBe("2026-03-09");
+      expect(studyDayKey(now, ZONE)).toBe("2026-03-10");
+    }
+    expect(studyDayKey(new Date("2026-03-02T03:59:00+08:00"), ZONE)).toBe("2026-03-02");
+    expect(studyDayKey(new Date("2026-03-02T03:59:00Z"), "UTC")).toBe("2026-03-02");
+    expect(studyDayKey(new Date("2026-03-08T03:30:00-04:00"), "America/New_York")).toBe("2026-03-08");
+    expect(studyDayKey(new Date("2026-11-01T03:30:00-05:00"), "America/New_York")).toBe("2026-11-01");
 
+    const early = new Date("2026-03-10T02:00:00+08:00");
+    const late = new Date("2026-03-10T07:30:00+08:00");
     let save = learn(newSave(), "tree", early);
+    expect(save.dailyGoal?.dayKey).toBe("2026-03-10");
     expect(view(save, early).learnedToday).toBe(1);
-    expect(learn(save, "tree", early).wordCards).toBe(save.wordCards);
+    expect(view(save, late).learnedToday).toBe(1);
     save = ensureDailyGoal(save, late, ZONE);
-    expect(save.dailyGoal?.dayKey).toBe("2026-03-02");
-    expect(save.dailyGoal?.progressLearn).toBe(0);
-    expect(view(save, late).learnedToday).toBe(0);
-    expect(view(save, late).learned7d).toBe(1);
+    expect(save.dailyGoal?.dayKey).toBe("2026-03-10");
+    expect(save.dailyGoal?.progressLearn).toBe(1);
+
+    const stored = {
+      ...save,
+      dailyGoal: save.dailyGoal ? { ...save.dailyGoal, dayKey: "2026-03-09" } : save.dailyGoal,
+      dailyStats: { "2026-03-09": save.dailyStats["2026-03-10"]! },
+    };
+    const next = ensureDailyGoal(stored, early, ZONE);
+    expect(next.dailyGoal?.dayKey).toBe("2026-03-10");
+    expect(next.dailyStats["2026-03-09"]).toEqual(stored.dailyStats["2026-03-09"]);
+    expect(next.goalCalendar["2026-03-09"]).toBeUndefined();
   });
 
   it("does not take tokens back, rewrite history, or fill skipped days when the clock or zone moves", () => {

@@ -14,8 +14,9 @@ import {
 } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
+import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
-import { meaningScale, STUDY_CARD, studyNoticeGap, studyRowY } from "../layout";
+import { STUDY_CARD, cjkWrap, meaningScale, studyNoticeGap, studyRowY } from "../layout";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
@@ -54,6 +55,7 @@ export class LearnScene extends Phaser.Scene {
     }
     if (redirectUngraded(this, save)) return;
     probeEnter("learn");
+    this.input.setDefaultCursor("default");
     this.phase = "study";
     listenKeys(this, (event) => this.onKey(event));
     const form = document.getElementById("spell-form");
@@ -209,8 +211,9 @@ export class LearnScene extends Phaser.Scene {
   private draw(): void {
     const save = getSave();
     if (!save) return;
-    this.children.removeAll(true);
+    destroyDrawn(this.children.list);
     this.options = [];
+    probeNote(this.phase === "study" ? "learn:actions:open" : "learn:actions:closed");
     if (this.phase !== "spell") {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
@@ -227,7 +230,7 @@ export class LearnScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: MUTED,
-        wordWrap: { width: 760 },
+        wordWrap: cjkWrap(760),
       });
       return;
     }
@@ -270,7 +273,7 @@ export class LearnScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: MUTED,
-        wordWrap: { width: 760 },
+        wordWrap: cjkWrap(760),
       });
       return;
     }
@@ -304,7 +307,7 @@ export class LearnScene extends Phaser.Scene {
         fontSize: "28px",
         fontStyle: "700",
         color: INK,
-        wordWrap: { width: 820 },
+        wordWrap: cjkWrap(820),
         align: "center",
       }).setOrigin(0.5);
       probeQuestion(this.question.answerId, this.question.choices.map((choice) => choice.id));
@@ -326,7 +329,7 @@ export class LearnScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: MUTED,
-        wordWrap: { width: 760 },
+        wordWrap: cjkWrap(760),
         align: "center",
       }).setOrigin(0.5);
       document.getElementById("spell-form")?.classList.add("open");

@@ -1,11 +1,13 @@
 import Phaser from "phaser";
 import { WarriorSprite } from "../art/warrior-sprite";
-import { DESKTOP_NOTE, WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { redirectUngraded } from "../grade-route";
 import { getSave } from "../session";
-import { FONT, button, listenKeys } from "../ui";
+import { listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
+import { warmButton } from "../warm/kit";
+import { warmBackground, warmInBackground } from "../warm/load";
+import { CREAM, FONT_BODY, INK } from "../warm/theme";
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -14,24 +16,46 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     probeEnter("title");
-    this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
-    this.add.rectangle(640, 430, 860, 560, 0xfff8ee);
-    this.add.text(640, 230, "词境冒险", { fontFamily: FONT, fontSize: "72px", color: "#17352a" }).setOrigin(0.5);
-    this.add.text(640, 300, "LexiQuest", { fontFamily: FONT, fontSize: "28px", color: "#1f7a4d" }).setOrigin(0.5);
-    this.add.text(640, 360, "认识单词，收集词卡，和词灵比试。", { fontFamily: FONT, fontSize: "22px", color: "#3d5c4e" }).setOrigin(0.5);
-    this.add.text(640, 410, `${WARRIOR_ART_NOTE} · SAMPLE DATA`, { fontFamily: FONT, fontSize: "16px", color: "#8a5a12" }).setOrigin(0.5);
-    this.add.text(640, 660, DESKTOP_NOTE, { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
+    warmInBackground(this, ["atlas_village"], ["bg_village"]);
+    warmBackground(this, "bg_home");
+    this.add.image(640, 196, "logo_title").setDisplaySize(620, 236);
+    this.creamLine(640, 365, "认识单词，收集词卡，和词灵比试。", {
+      fontFamily: FONT_BODY,
+      fontSize: "22px",
+      color: INK,
+    }, { height: 46, padX: 28, radius: 23 });
     const hero = new WarriorSprite(this, 250, 640, 0.5);
     hero.play("idle");
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
-    button(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
-    if (save) button(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, fill: 0x5c6b62 });
+    warmButton(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
+    if (save) warmButton(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, height: 56, tone: "secondary" });
     listenKeys(this, (event) => {
       if (event.code === "Enter") this.go(Boolean(getSave()));
       if (event.code === "KeyN" && getSave()) this.scene.start("grades", { mode: "new" });
     });
     this.measureFps();
+  }
+
+  private creamLine(
+    x: number,
+    y: number,
+    text: string,
+    style: Phaser.Types.GameObjects.Text.TextStyle,
+    plateSize?: { height: number; padX: number; radius: number },
+  ): void {
+    const label = this.add.text(x, y, text, style).setOrigin(0.5);
+    const width = label.width + (plateSize ? plateSize.padX * 2 : 48);
+    const height = plateSize ? plateSize.height : label.height + 16;
+    const radius = plateSize ? plateSize.radius : 16;
+    const fill = Number.parseInt(CREAM.slice(1), 16);
+    const ink = Number.parseInt(INK.slice(1), 16);
+    const plate = this.add.graphics();
+    plate.fillStyle(fill, 1);
+    plate.lineStyle(2, ink, 1);
+    plate.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    plate.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    this.children.moveBelow(plate, label);
   }
 
   private go(hasSave: boolean): void {

@@ -54,6 +54,18 @@ export const SKILLS: SkillDef[] = [
   { id: "explorer-find", classId: "explorer", name: "发现一击", description: "找到词灵的破绽。", cost: 3, kind: "damage", power: 16, order: 3 },
 ];
 
+/** Equipped cards first, in equip order, then the rest of the class catalog. */
+export function skillsInEquipOrder(classId: ClassId, equippedIds: readonly string[]): SkillDef[] {
+  const catalog = skillsForClass(classId);
+  const equipped: SkillDef[] = [];
+  for (const id of equippedIds) {
+    const skill = catalog.find((item) => item.id === id);
+    if (skill && !equipped.some((item) => item.id === skill.id)) equipped.push(skill);
+  }
+  const rest = catalog.filter((skill) => !equipped.some((item) => item.id === skill.id));
+  return [...equipped, ...rest];
+}
+
 export function skillsForClass(classId: ClassId): SkillDef[] {
   return SKILLS.filter((skill) => skill.classId === classId).sort((a, b) => a.order - b.order);
 }
@@ -104,6 +116,8 @@ export interface SkillSlot {
   /** Level-1 power, or the weaker filler power. A wrong answer reduces this, not fullPower. */
   basePower: number;
   energyCost: number;
+  /** 1–3 on an equipped card. Base fillers and the attack/block/heal stand-in have none. */
+  level: number | null;
 }
 
 /** Weaker than the class starter at level 1. Scale is configurable and still clamped below the starter. */
@@ -131,7 +145,7 @@ export function fillSkillSlots(
     if (slots.length >= MAX_EQUIPPED_SKILLS) break;
     const skill = skillById(id);
     if (!skill || skill.classId !== classId) continue;
-    const level = skillLevels[id] ?? 1;
+    const level = Math.min(MAX_SKILL_LEVEL, Math.max(1, skillLevels[id] ?? 1));
     slots.push({
       index: slots.length,
       skillId: skill.id,
@@ -141,6 +155,7 @@ export function fillSkillSlots(
       fullPower: skillMagnitude(skill, hero, level),
       basePower: skillMagnitude(skill, hero, 1),
       energyCost: skillEnergyCost(skill, hero),
+      level,
     });
   }
   const starter = skillsForClass(classId)[0];
@@ -156,6 +171,7 @@ export function fillSkillSlots(
       fullPower: filler,
       basePower: filler,
       energyCost: Math.max(0, rules.baseSkillEnergyCost),
+      level: null,
     });
   }
   return slots;

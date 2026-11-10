@@ -5,7 +5,7 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { OPTION_BADGE_CENTER, STRUGGLE_LIST, meaningScale, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
+import { OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkWrap, meaningScale, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -104,13 +104,12 @@ describe("warm text contrast", () => {
     expect(contrastRows().length).toBeGreaterThan(40);
     expect(contrastRows().filter((row) => !row.pass)).toEqual([]);
     const approved = [
-      ["徽章", "变灰", "#5B4B6B", "#FFF8EE"],
-      ["名称", "未解锁", "#5B4B6B", "#FFF8EE"],
+      ["徽章", "变灰", "#5B4B6B", "#FFF4DC"],
+      ["名称", "未解锁", "#5B4B6B", "#FFF4DC"],
       ["确认", "悬停", "#FFF4DC", "#1F6F64"],
       ["技能", "常态", "#FFF4DC", "#A9432B"],
-      ["能量", "常态", "#1F4E3D", "#C9E6D4"],
-      ["学堂", "常态", "#FFF4DC", "#A9432B"],
-      ["衣柜", "常态", "#FFF4DC", "#5B4B6B"],
+      ["奖励标题", "常态", "#FFF4DC", "#775036"],
+      ["招牌", "常态", "#3B2A20", "#FFF4DC"],
       ["确认", "禁用", "#3F2E25", "#CFC4B2"],
     ] as const;
     for (const [control, state, fg, bg] of approved) {
@@ -143,7 +142,15 @@ describe("warm text contrast", () => {
 describe("boot and renderer guards", () => {
   it("counts the files the boot scene loads and forces WebGL", () => {
     const budget = readFileSync(new URL("../../tools/boot-budget.mjs", import.meta.url), "utf8");
-    expect(budget).toContain("village.png");
+    expect(budget).toContain("bg_village_2x.webp");
+    expect(budget).toContain("atlas_village");
+    expect(budget).toContain("bg_home_2x.webp");
+    expect(budget).not.toContain("bg_forest_battle");
+    const boot = readFileSync(new URL("./scenes/BootScene.ts", import.meta.url), "utf8");
+    expect(boot).toContain("bg_village");
+    expect(boot).not.toContain("bg_forest");
+    const battle = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");
+    expect(battle).toContain("bg_forest");
     expect(budget).toContain("actors.png");
     expect(budget).toContain("chapter/forest/v0.1/atlas");
     const main = readFileSync(new URL("./../main.ts", import.meta.url), "utf8");
@@ -159,5 +166,32 @@ describe("boot and renderer guards", () => {
     expect(map).toContain("learnedRequiredCount(save)");
     expect(map).toContain("required.length");
     expect(map).not.toContain("FOREST_WORD_COUNT");
+  });
+});
+
+describe("reward dialog header", () => {
+  it("keeps the 22px title inside the opaque header and above the cream body", () => {
+    const chrome = rewardDialogChrome();
+    const half = 11;
+    expect(chrome.top).toBe(120);
+    expect(chrome.titleY - half).toBeGreaterThanOrEqual(chrome.fillTop);
+    expect(chrome.titleY + half).toBeLessThanOrEqual(chrome.fillBottom);
+    expect(chrome.fillBottom).toBeLessThanOrEqual(chrome.headerBottom);
+    expect(chrome.titleY + half).toBeLessThan(chrome.headerBottom);
+    expect(chrome.fillWidth).toBeLessThan(860);
+  });
+});
+
+describe("wardrobe title chip", () => {
+  it("ends above the wreath on the preview", () => {
+    expect(WARDROBE_TITLE_Y + 18).toBeLessThan(330);
+    const wardrobe = readFileSync(new URL("./scenes/WardrobeScene.ts", import.meta.url), "utf8");
+    expect(wardrobe).toContain("drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId)");
+  });
+});
+
+describe("Chinese line wrap", () => {
+  it("asks Phaser to break CJK at the given width", () => {
+    expect(cjkWrap(960)).toEqual({ width: 960, useAdvancedWrap: true });
   });
 });

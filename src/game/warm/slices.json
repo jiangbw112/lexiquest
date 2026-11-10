@@ -1155,6 +1155,792 @@
    "state": "boss_ready",
    "nineslice": null,
    "note": "Boss 节点·已开启可挑战（无锁，金色光晕+金边+闪光）；尺寸与锚点同 map_node_boss：300×300，节点圆心 = (150, 142) 贴图 px，setOrigin(0.5, 142/300)。b2.1 新增"
+  },
+  "card_lv_badge_bronze":   {
+   "file": "components/cards/card_lv_badge_bronze.png",
+   "atlas": "atlas_battle",
+   "w": 80,
+   "h": 80,
+   "nineslice": null,
+   "state": null,
+   "note": "卡面等级标识 Lv1（bronze），与 card_frame_bronze 同档；显示 32×32；不可点"
+  },
+  "card_lv_badge_silver":   {
+   "file": "components/cards/card_lv_badge_silver.png",
+   "atlas": "atlas_battle",
+   "w": 80,
+   "h": 80,
+   "nineslice": null,
+   "state": null,
+   "note": "卡面等级标识 Lv2（silver），与 card_frame_silver 同档；显示 32×32；不可点"
+  },
+  "card_lv_badge_gold":   {
+   "file": "components/cards/card_lv_badge_gold.png",
+   "atlas": "atlas_battle",
+   "w": 80,
+   "h": 80,
+   "nineslice": null,
+   "state": null,
+   "note": "卡面等级标识 Lv3（gold），与 card_frame_gold 同档；显示 32×32；不可点"
+  },
+  "equip_order_1":   {
+   "file": "components/cards/equip_order_1.png",
+   "atlas": "atlas_battle",
+   "w": 88,
+   "h": 88,
+   "nineslice": null,
+   "state": null,
+   "note": "装备顺序角标 第1张（1 个圆点，不显示数字或数值）；贴卡片右上角，显示 44×44；不可点"
+  },
+  "equip_order_2":   {
+   "file": "components/cards/equip_order_2.png",
+   "atlas": "atlas_battle",
+   "w": 88,
+   "h": 88,
+   "nineslice": null,
+   "state": null,
+   "note": "装备顺序角标 第2张（2 个圆点，不显示数字或数值）；贴卡片右上角，显示 44×44；不可点"
+  },
+  "equip_order_3":   {
+   "file": "components/cards/equip_order_3.png",
+   "atlas": "atlas_battle",
+   "w": 88,
+   "h": 88,
+   "nineslice": null,
+   "state": null,
+   "note": "装备顺序角标 第3张（3 个圆点，不显示数字或数值）；贴卡片右上角，显示 44×44；不可点"
+  },
+  "card_frame_base":   {
+   "file": "components/cards/card_frame_base.png",
+   "atlas": "atlas_battle",
+   "w": 280,
+   "h": 352,
+   "nineslice": null,
+   "state": null,
+   "note": "基础招式（补位）卡框：木色，无等级、无角标"
+  },
+  "card_frame_disabled":   {
+   "file": "components/cards/card_frame_disabled.png",
+   "atlas": "atlas_battle",
+   "w": 280,
+   "h": 352,
+   "nineslice": null,
+   "state": "disabled",
+   "note": "技能卡禁用态（扁平灰 #CFC4B2 / 描边 #7E6F62，字 #3F2E25）；能量不够时用"
+  },
+  "card_hover_ring":   {
+   "file": "components/cards/card_hover_ring.png",
+   "atlas": "atlas_battle",
+   "w": 280,
+   "h": 352,
+   "nineslice": null,
+   "state": "hover",
+   "note": "技能卡 hover 叠加层（金边），与卡框同尺寸、同位置"
+  },
+  "energy_pip_on":   {
+   "file": "components/energy/energy_pip_on.png",
+   "atlas": "atlas_battle",
+   "w": 40,
+   "h": 40,
+   "nineslice": null,
+   "state": null,
+   "note": "能量点：可用（HUD，显示 20×20）"
+  },
+  "energy_pip_off":   {
+   "file": "components/energy/energy_pip_off.png",
+   "atlas": "atlas_battle",
+   "w": 40,
+   "h": 40,
+   "nineslice": null,
+   "state": null,
+   "note": "能量点：空（HUD）"
+  },
+  "energy_pip_cost":   {
+   "file": "components/energy/energy_pip_cost.png",
+   "atlas": "atlas_battle",
+   "w": 40,
+   "h": 40,
+   "nineslice": null,
+   "state": null,
+   "note": "卡面耗能点（个数 = 耗能，显示 18×18；不写数字）"
+  },
+  "skill_warrior_bash":   {
+   "file": "components/skills/skill_warrior_bash.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 盾击（warrior-bash，strike-guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_warrior_shout":   {
+   "file": "components/skills/skill_warrior_shout.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 战吼（warrior-shout，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_warrior_hold":   {
+   "file": "components/skills/skill_warrior_hold.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 坚守（warrior-hold，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_warrior_spin":   {
+   "file": "components/skills/skill_warrior_spin.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 旋风斩（warrior-spin，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_mage_spark":   {
+   "file": "components/skills/skill_mage_spark.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 火花（mage-spark，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_mage_ward":   {
+   "file": "components/skills/skill_mage_ward.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 星盾（mage-ward，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_mage_glow":   {
+   "file": "components/skills/skill_mage_glow.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 微光（mage-glow，heal）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_mage_star":   {
+   "file": "components/skills/skill_mage_star.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 星落（mage-star，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_ranger_aim":   {
+   "file": "components/skills/skill_ranger_aim.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 瞄准（ranger-aim，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_ranger_step":   {
+   "file": "components/skills/skill_ranger_step.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 疾走（ranger-step，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_ranger_herb":   {
+   "file": "components/skills/skill_ranger_herb.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 草药（ranger-herb，heal）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_ranger_volley":   {
+   "file": "components/skills/skill_ranger_volley.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 连射（ranger-volley，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_healer_cure":   {
+   "file": "components/skills/skill_healer_cure.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 治愈（healer-cure，heal）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_healer_guard":   {
+   "file": "components/skills/skill_healer_guard.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 守护（healer-guard，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_healer_light":   {
+   "file": "components/skills/skill_healer_light.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 光击（healer-light，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_healer_cheer":   {
+   "file": "components/skills/skill_healer_cheer.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 鼓舞（healer-cheer，strike-guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_inventor_gear":   {
+   "file": "components/skills/skill_inventor_gear.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 齿轮弹（inventor-gear，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_inventor_pad":   {
+   "file": "components/skills/skill_inventor_pad.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 减震垫（inventor-pad，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_inventor_fix":   {
+   "file": "components/skills/skill_inventor_fix.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 修理（inventor-fix，heal）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_inventor_over":   {
+   "file": "components/skills/skill_inventor_over.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 超载（inventor-over，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_explorer_staff":   {
+   "file": "components/skills/skill_explorer_staff.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 探路杖（explorer-staff，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_explorer_bandage":   {
+   "file": "components/skills/skill_explorer_bandage.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 绷带（explorer-bandage，heal）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_explorer_map":   {
+   "file": "components/skills/skill_explorer_map.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 地图光（explorer-map，guard）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_explorer_find":   {
+   "file": "components/skills/skill_explorer_find.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 发现一击（explorer-find，damage）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "skill_base":   {
+   "file": "components/skills/skill_base.png",
+   "atlas": "atlas_skills",
+   "w": 96,
+   "h": 96,
+   "nineslice": null,
+   "state": null,
+   "note": "技能图标 基础招式（各职业补位）（base，-）；96×96 @2x，卡面显示 64，列表显示 68"
+  },
+  "monster_inkling_idle":   {
+   "file": "components/monsters/monster_inkling_idle.png",
+   "atlas": "atlas_monsters",
+   "w": 512,
+   "h": 512,
+   "nineslice": null,
+   "state": null,
+   "note": "探索小怪 墨团 inkling idle；512×512 @2x，origin (0.5, 0.977)，setScale(0.45) ≈ main 0.9×256"
+  },
+  "monster_inkling_hit":   {
+   "file": "components/monsters/monster_inkling_hit.png",
+   "atlas": "atlas_monsters",
+   "w": 512,
+   "h": 512,
+   "nineslice": null,
+   "state": null,
+   "note": "探索小怪 墨团 inkling hit；512×512 @2x，origin (0.5, 0.977)，setScale(0.45) ≈ main 0.9×256"
+  },
+  "monster_page_idle":   {
+   "file": "components/monsters/monster_page_idle.png",
+   "atlas": "atlas_monsters",
+   "w": 512,
+   "h": 512,
+   "nineslice": null,
+   "state": null,
+   "note": "探索小怪 书页 page idle；512×512 @2x，origin (0.5, 0.977)，setScale(0.45) ≈ main 0.9×256"
+  },
+  "monster_page_hit":   {
+   "file": "components/monsters/monster_page_hit.png",
+   "atlas": "atlas_monsters",
+   "w": 512,
+   "h": 512,
+   "nineslice": null,
+   "state": null,
+   "note": "探索小怪 书页 page hit；512×512 @2x，origin (0.5, 0.977)，setScale(0.45) ≈ main 0.9×256"
+  },
+  "wardrobe_slot_normal":   {
+   "file": "components/wardrobe/wardrobe_slot_normal.png",
+   "atlas": "atlas_wardrobe",
+   "w": 192,
+   "h": 192,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": "normal",
+   "note": "衣柜外观槽（整块可点），NineSlice 190×104"
+  },
+  "wardrobe_slot_hover":   {
+   "file": "components/wardrobe/wardrobe_slot_hover.png",
+   "atlas": "atlas_wardrobe",
+   "w": 192,
+   "h": 192,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": "hover",
+   "note": "衣柜外观槽（整块可点），NineSlice 190×104"
+  },
+  "wardrobe_slot_pressed":   {
+   "file": "components/wardrobe/wardrobe_slot_pressed.png",
+   "atlas": "atlas_wardrobe",
+   "w": 192,
+   "h": 192,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": "pressed",
+   "note": "衣柜外观槽（整块可点），NineSlice 190×104"
+  },
+  "wardrobe_slot_disabled":   {
+   "file": "components/wardrobe/wardrobe_slot_disabled.png",
+   "atlas": "atlas_wardrobe",
+   "w": 192,
+   "h": 192,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": "disabled",
+   "note": "衣柜外观槽（整块可点），NineSlice 190×104"
+  },
+  "wardrobe_slot_selected":   {
+   "file": "components/wardrobe/wardrobe_slot_selected.png",
+   "atlas": "atlas_wardrobe",
+   "w": 192,
+   "h": 192,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": "selected",
+   "note": "衣柜外观槽（整块可点），NineSlice 190×104"
+  },
+  "wardrobe_stage":   {
+   "file": "components/wardrobe/wardrobe_stage.png",
+   "atlas": "atlas_wardrobe",
+   "w": 640,
+   "h": 240,
+   "nineslice": null,
+   "state": null,
+   "note": "角色预览台 320×120（显示 280×105）"
+  },
+  "wardrobe_arch":   {
+   "file": "components/wardrobe/wardrobe_arch.png",
+   "atlas": "atlas_wardrobe",
+   "w": 640,
+   "h": 960,
+   "nineslice": null,
+   "state": null,
+   "note": "预览拱窗 320×480（显示 280×420）"
+  },
+  "toast_bar":   {
+   "file": "components/ui_pages/toast_bar.png",
+   "atlas": "atlas_ui_pages",
+   "w": 200,
+   "h": 104,
+   "nineslice": {
+    "left": 48,
+    "right": 48,
+    "top": 40,
+    "bottom": 52
+   },
+   "state": null,
+   "note": "提示条（不可点，2.4 s 自动消失）"
+  },
+  "list_row":   {
+   "file": "components/ui_pages/list_row.png",
+   "atlas": "atlas_ui_pages",
+   "w": 160,
+   "h": 120,
+   "nineslice": {
+    "left": 40,
+    "right": 40,
+    "top": 40,
+    "bottom": 40
+   },
+   "state": null,
+   "note": "列表行底板（技能 / 复习，不可点）"
+  },
+  "village_bld_learn_normal":   {
+   "file": "components/village/village_bld_learn_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_learn_hover":   {
+   "file": "components/village/village_bld_learn_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_learn_pressed":   {
+   "file": "components/village/village_bld_learn_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_battle_normal":   {
+   "file": "components/village/village_bld_battle_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_battle_hover":   {
+   "file": "components/village/village_bld_battle_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_battle_pressed":   {
+   "file": "components/village/village_bld_battle_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_collection_normal":   {
+   "file": "components/village/village_bld_collection_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_collection_hover":   {
+   "file": "components/village/village_bld_collection_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_collection_pressed":   {
+   "file": "components/village/village_bld_collection_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_review_normal":   {
+   "file": "components/village/village_bld_review_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_review_hover":   {
+   "file": "components/village/village_bld_review_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_review_pressed":   {
+   "file": "components/village/village_bld_review_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_skills_normal":   {
+   "file": "components/village/village_bld_skills_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_skills_hover":   {
+   "file": "components/village/village_bld_skills_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_skills_pressed":   {
+   "file": "components/village/village_bld_skills_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_wardrobe_normal":   {
+   "file": "components/village/village_bld_wardrobe_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_wardrobe_hover":   {
+   "file": "components/village/village_bld_wardrobe_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_wardrobe_pressed":   {
+   "file": "components/village/village_bld_wardrobe_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_duel_normal":   {
+   "file": "components/village/village_bld_duel_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_duel_hover":   {
+   "file": "components/village/village_bld_duel_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_duel_pressed":   {
+   "file": "components/village/village_bld_duel_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_guide_normal":   {
+   "file": "components/village/village_bld_guide_normal.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "normal",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_guide_hover":   {
+   "file": "components/village/village_bld_guide_hover.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "hover",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "village_bld_guide_pressed":   {
+   "file": "components/village/village_bld_guide_pressed.png",
+   "atlas": "atlas_village",
+   "w": 272,
+   "h": 256,
+   "nineslice": null,
+   "state": "pressed",
+   "note": "Part A 村子入口建筑；整帧 = 点击区 136×128；招牌字中心 (68,113.5) 逻辑"
+  },
+  "map_node_cleared":   {
+   "file": "components/map/map_node_cleared.png",
+   "atlas": "atlas_map",
+   "w": 240,
+   "h": 240,
+   "nineslice": null,
+   "state": "cleared",
+   "note": "Part A：同名替换 v0.3（坐标不变）"
+  },
+  "map_node_current":   {
+   "file": "components/map/map_node_current.png",
+   "atlas": "atlas_map",
+   "w": 240,
+   "h": 240,
+   "nineslice": null,
+   "state": "current",
+   "note": "Part A：同名替换 v0.3（坐标不变）"
+  },
+  "map_node_locked":   {
+   "file": "components/map/map_node_locked.png",
+   "atlas": "atlas_map",
+   "w": 240,
+   "h": 240,
+   "nineslice": null,
+   "state": "locked",
+   "note": "Part A：同名替换 v0.3（坐标不变）"
+  },
+  "map_node_boss":   {
+   "file": "components/map/map_node_boss.png",
+   "atlas": "atlas_map",
+   "w": 300,
+   "h": 300,
+   "nineslice": null,
+   "state": "boss",
+   "note": "Part A：同名替换 v0.3（坐标不变）"
+  },
+  "logo_title_2x":   {
+   "file": "components/logo/logo_title_2x.webp",
+   "atlas": null,
+   "w": 1240,
+   "h": 472,
+   "nineslice": null,
+   "state": null,
+   "note": "Part A Logo（字已烘焙，不可点）"
+  },
+  "map_word_card (NineSlice use)":   {
+   "file": "atlas_map/map_word_card",
+   "atlas": "atlas_map",
+   "w": 160,
+   "h": 80,
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 20,
+    "bottom": 24
+   },
+   "state": null,
+   "note": "Part A2.1：拉成 80×48（= 点击区）"
+  },
+  "map_word_card":   {
+   "file": "components/map/map_word_card.png",
+   "w": 160,
+   "h": 80,
+   "group": "map",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 20,
+    "bottom": 24
+   },
+   "note": "A2.1 display 80x48, hit area matches"
+  },
+  "map_word_unknown":   {
+   "file": "components/map/map_word_card.png",
+   "w": 160,
+   "h": 80,
+   "group": "map",
+   "nineslice": {
+    "left": 24,
+    "right": 24,
+    "top": 20,
+    "bottom": 24
+   },
+   "note": "A2.1 display 80x48, hit area matches"
   }
  },
  "_changelog": [

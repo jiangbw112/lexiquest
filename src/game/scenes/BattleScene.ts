@@ -9,21 +9,25 @@ import {
 import { notePracticeAnswer } from "../../domain/parent";
 import { applyBattleOutcome, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
+import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey } from "../../domain/skill-card-face";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
-import { BOSS_BATTLE_POS, canopyPoses, type BossAnim } from "../art/boss-pack";
+import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
+import { cjkWrap } from "../layout";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, button, listenKeys } from "../ui";
-import { warmButton } from "../warm/kit";
-import { queueWarm } from "../warm/load";
+import { listenKeys } from "../ui";
+import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm/kit";
+import { queueWarm, warmBackground } from "../warm/load";
+import { placeSkillCard } from "../warm/skill-card";
+import { FONT_BODY, INK, MUTED } from "../warm/theme";
 
 interface BattleLaunch {
   stageId?: number;
@@ -38,6 +42,9 @@ export class BattleScene extends Phaser.Scene {
   private clearedChapter = false;
   private launch: BattleLaunch = {};
   private bossFight = false;
+  private monsterHit = false;
+  private resolving = false;
+  private monsterTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super("battle");
@@ -51,7 +58,7 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_battle"], []);
+    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages"], ["bg_forest"]);
     if (this.bossFight) queueBossAtlases(this);
   }
 
@@ -72,6 +79,8 @@ export class BattleScene extends Phaser.Scene {
     this.reported = false;
     this.bossReported = false;
     this.bossPoses = ["idle"];
+    this.monsterHit = false;
+    this.resolving = false;
     this.clearedChapter = false;
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
@@ -82,6 +91,7 @@ export class BattleScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       form?.removeEventListener("submit", submit);
       form?.classList.remove("open");
+      this.monsterTimer?.remove(false);
     });
     this.begin(stage.id);
     listenKeys(this, (event) => this.onKey(event));
@@ -118,6 +128,7 @@ export class BattleScene extends Phaser.Scene {
     });
     this.poses = ["idle"];
     this.bossPoses = ["idle"];
+    this.monsterHit = false;
     this.draw();
   }
 
@@ -126,7 +137,12 @@ export class BattleScene extends Phaser.Scene {
       this.leave();
       return;
     }
-    if (!this.state || document.getElementById("spell-form")?.classList.contains("open")) return;
+    if (!this.state || this.resolving || document.getElementById("spell-form")?.classList.contains("open")) return;
+    const slotIndex = skillSlotIndexForKey(event.code);
+    if (slotIndex !== null) {
+      this.useSkill(slotIndex, "key");
+      return;
+    }
     if (this.state.phase === "question" && this.state.question && this.state.question.kind !== "spelling") {
       const index = Number(event.code.replace("Digit", "")) - 1;
       const choice = this.state.question.choices[index];
@@ -137,9 +153,21 @@ export class BattleScene extends Phaser.Scene {
     if (event.code === "Digit1") this.act({ type: "attack" });
     if (event.code === "Digit2") this.act({ type: "block" });
     if (event.code === "Digit3") this.act({ type: "heal" });
-    if (event.code === "Digit4") this.act({ type: "skill", slotIndex: 0 });
-    if (event.code === "Digit5") this.act({ type: "skill", slotIndex: 1 });
-    if (event.code === "Digit6") this.act({ type: "skill", slotIndex: 2 });
+  }
+
+  private useSkill(slotIndex: number, via: "click" | "key"): void {
+    const slot = this.state.slots[slotIndex];
+    if (!slot) return;
+    const face = skillCardFace({
+      phase: this.state.phase,
+      energy: this.state.energy,
+      energyCost: slot.energyCost,
+      resolving: this.resolving,
+    });
+    const result = skillCardInput(face, via);
+    if (result === "ignore") return;
+    this.act({ type: "skill", slotIndex });
+    if (result === "low-energy") warmToast(this, "能量不够");
   }
 
   private choose(choiceId: string): void {
@@ -154,6 +182,7 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
+    this.holdResolution(before);
     this.finishIfNeeded();
     this.draw();
   }
@@ -185,8 +214,33 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
+    this.holdResolution(before);
     this.finishIfNeeded();
     this.draw();
+  }
+
+  /**
+   * Domain resolution is synchronous. The visible enemy window is the hit flash
+   * (200ms) or the boss hit/attack clips. Cards stay disabled until that clip ends.
+   * A turn that does not move the enemy, and a finished battle, do not add a second window.
+   */
+  private holdResolution(before: BattleState): void {
+    const enemyMoved =
+      this.state.phase !== "won" &&
+      this.state.phase !== "lost" &&
+      (this.state.enemyHits > before.enemyHits ||
+        this.state.enemyHp < before.enemyHp ||
+        this.state.phaseIndex > before.phaseIndex);
+    const ms = enemyMoved ? (this.bossFight ? bossReactionMs(this.bossPoses) : 200) : 0;
+    this.monsterHit = !this.bossFight && this.state.enemyHp < before.enemyHp;
+    this.resolving = ms > 0;
+    this.monsterTimer?.remove(false);
+    if (ms <= 0) return;
+    this.monsterTimer = this.time.delayedCall(ms, () => {
+      this.monsterHit = false;
+      this.resolving = false;
+      if (this.scene.isActive()) this.draw();
+    });
   }
 
   private syncBoss(before: BattleState): void {
@@ -219,6 +273,33 @@ export class BattleScene extends Phaser.Scene {
     this.scene.start(this.clearedChapter ? "ending" : "stages");
   }
 
+  private hpBar(x: number, y: number, ratio: number, fill: "hp_fill_teal" | "hp_fill_coral"): void {
+    const width = 270;
+    warmSlice(this, "atlas_battle", "hp_frame", width, 24).setPosition(x, y);
+    const clamped = Math.max(0, Math.min(1, ratio));
+    if (clamped <= 0) return;
+    const inner = Math.max(16, (width - 24) * clamped);
+    warmSlice(this, "atlas_battle", fill, inner, 16).setPosition(x - width / 2 + 12 + inner / 2, y);
+  }
+
+  private drawMonster(): void {
+    if (this.state.encounterId === CHAPTER_BOSS_ID && this.state.enemySprite === "canopy") {
+      if (!this.bossReported) {
+        reportBossLoad(this);
+        this.bossReported = true;
+      }
+      const boss = new BossSprite(this, BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y);
+      boss.playSequence(this.bossPoses);
+      return;
+    }
+    const kind = this.state.enemySprite === "page" ? "page" : this.state.enemySprite === "inkling" ? "inkling" : null;
+    if (!kind) return;
+    const frame = `monster_${kind}_${this.monsterHit ? "hit" : "idle"}`;
+    const monster = this.add.image(980, 520, "atlas_monsters", frame);
+    monster.setOrigin(0.5, 0.977);
+    monster.setScale(0.45);
+  }
+
   private draw(): void {
     if (!this.state) return;
     const save = getSave();
@@ -228,47 +309,65 @@ export class BattleScene extends Phaser.Scene {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
     }
-    this.add.rectangle(640, 400, 1280, 800, 0x143d2c);
-    this.add.rectangle(640, 300, 1100, 460, 0xc9e6d4);
+    warmBackground(this, "bg_forest");
     const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds);
     drawEquippedTitle(this, 300, 250, save.equippedTitleId);
     hero.playSequence(this.poses);
-    if (this.state.encounterId === CHAPTER_BOSS_ID && this.state.enemySprite === "canopy") {
-      if (!this.bossReported) {
-        reportBossLoad(this);
-        this.bossReported = true;
-      }
-      const boss = new BossSprite(this, BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y);
-      boss.playSequence(this.bossPoses);
-    } else {
-      const monster = this.add.image(980, 520, "actors", `monster/${this.state.enemySprite}`).setOrigin(0.5, 1).setFlipX(true);
-      monster.setScale(0.9);
-      if (this.state.enemySprite === "inkling" && this.state.encounterId !== "inkling") {
-        this.add.text(980, 250, "外形暂用墨团", { fontFamily: FONT, fontSize: "16px", color: "#3d5c4e" }).setOrigin(0.5);
-      }
-    }
-    this.add.text(160, 70, `${save.player.name}  ${this.state.playerHp}/${this.state.playerMaxHp}`, { fontFamily: FONT, fontSize: "22px", color: "#17352a" });
+    this.drawMonster();
+    warmPanel(this, 350, 92, 400, 104);
+    warmPanel(this, 930, 92, 400, 104);
+    this.add.text(170, 62, save.player.name, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: INK }).setOrigin(0, 0.5);
     const phaseCount = this.state.phases?.length ?? 1;
     const phaseLabel = phaseCount > 1 ? `  阶段 ${this.state.phaseIndex + 1}/${phaseCount}` : "";
-    this.add.text(760, 70, `${this.state.enemyName}  ${this.state.enemyHp}/${this.state.enemyMaxHp}${phaseLabel}`, {
-      fontFamily: FONT,
+    this.add.text(750, 62, `${this.state.enemyName}${phaseLabel}`, {
+      fontFamily: FONT_BODY,
       fontSize: "22px",
-      color: "#17352a",
-    });
-    this.add.text(160, 108, `能量 ${this.state.energy}/${this.state.maxEnergy}`, { fontFamily: FONT, fontSize: "18px", color: "#1F4E3D" });
-    // Width 640 keeps a wrapped note left of the canopy, whose top sits near y=197 at scale 0.5.
-    this.add.text(160, 146, this.state.lastNote, { fontFamily: FONT, fontSize: "20px", color: "#17352a", wordWrap: { width: 640 } });
+      fontStyle: "700",
+      color: INK,
+    }).setOrigin(0, 0.5);
+    this.hpBar(305, 104, this.state.playerHp / this.state.playerMaxHp, "hp_fill_teal");
+    this.hpBar(885, 104, this.state.enemyHp / this.state.enemyMaxHp, "hp_fill_coral");
+    const pips = Math.min(6, this.state.maxEnergy);
+    for (let i = 0; i < pips; i += 1) {
+      const on = i < this.state.energy;
+      this.add.image(226 + i * 24, 128, "atlas_battle", on ? "energy_pip_on" : "energy_pip_off").setScale(0.5);
+    }
+    warmPanel(this, 490, 182, 680, 52);
+    this.add.text(170, 182, this.state.lastNote, {
+      fontFamily: FONT_BODY,
+      fontSize: "18px",
+      color: INK,
+      wordWrap: cjkWrap(640),
+    }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
-    if (this.state.phase === "question" && this.state.question) {
+    if (battleControlOpen(this.state.phase, "action", this.resolving)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+    else {
+      // Swallow hover and clicks on the old action row. Only later answers or the leave button stay open.
+      const blocker = this.add.zone(640, 686, 1200, 240);
+      blocker.setInteractive();
+      if (blocker.input) blocker.input.cursor = "default";
+    }
+    this.state.slots.forEach((slot) => {
+      placeSkillCard(
+        this,
+        slot,
+        this.state.phase,
+        this.state.energy,
+        () => this.useSkill(slot.index, "click"),
+        () => this.useSkill(slot.index, "click"),
+        this.resolving,
+      );
+    });
+    if (battleControlOpen(this.state.phase, "answer", this.resolving) && this.state.question) {
+      warmPanel(this, 640, 696, 1100, 172);
       if (this.state.question.kind === "spelling") {
         probeQuestion(this.state.question.wordId, []);
-        this.add.rectangle(640, 690, 1100, 160, 0xfff8ee).setStrokeStyle(3, 0x17352a);
-        this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
+        this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT_BODY, fontSize: "24px", fontStyle: "700", color: INK });
         this.add.text(180, 700, spellingInstruction(this.state.question.answer), {
-          fontFamily: FONT,
+          fontFamily: FONT_BODY,
           fontSize: "18px",
-          color: "#3d5c4e",
-          wordWrap: { width: 640 },
+          color: MUTED,
+          wordWrap: cjkWrap(640),
         });
         document.getElementById("spell-form")?.classList.add("open");
         showSpellingHint(this.state.question.answer);
@@ -277,31 +376,20 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
-      this.add.rectangle(640, 690, 1100, 160, 0xfff8ee).setStrokeStyle(3, 0x17352a);
-      this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
+      this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT_BODY, fontSize: "24px", fontStyle: "700", color: INK });
       this.state.question.choices.forEach((choice, index) => {
-        button(this, 280 + index * 280, 730, `${index + 1} ${choice.label}`, () => this.choose(choice.id), { width: 250, height: 48 });
+        warmOption(this, 280 + index * 280, 738, index, choice.id, choice.label, () => this.choose(choice.id), 250);
       });
       return;
     }
-    if (this.state.phase === "choose") {
+    if (battleControlOpen(this.state.phase, "action", this.resolving)) {
       warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral" });
       warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky" });
       warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal" });
-      this.state.slots.forEach((slot) => {
-        button(
-          this,
-          740 + slot.index * 160,
-          680,
-          `${slot.index + 4} ${slot.origin === "base" ? "基础" : slot.name}`,
-          () => this.act({ type: "skill", slotIndex: slot.index }),
-          { width: 150, fill: slot.origin === "base" ? 0x8a5a12 : 0xa9432b },
-        );
-      });
     }
-    if (this.state.phase === "won" || this.state.phase === "lost") {
+    if (battleControlOpen(this.state.phase, "leave", this.resolving)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
-      button(this, 640, 680, label, () => this.leave(), { width: 240 });
+      warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
   }
 }

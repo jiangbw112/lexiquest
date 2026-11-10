@@ -10,6 +10,7 @@ import {
   skillById,
   skillMagnitude,
   skillsForClass,
+  skillsInEquipOrder,
   SKILL_CARD_RULES,
 } from "./skills";
 
@@ -54,6 +55,8 @@ describe("skill cards", () => {
     const starterPower = skillMagnitude(starter!, classById("warrior"), 1);
     expect(one[1]?.fullPower).toBeLessThan(starterPower);
     expect(one[1]?.fullPower).toBe(classBasePower("warrior"));
+    expect(one[0]?.level).toBe(1);
+    expect(one[1]?.level).toBeNull();
 
     const gentle = { ...SKILL_CARD_RULES, baseSkillPowerScale: 0.2 };
     const sturdier = { ...SKILL_CARD_RULES, baseSkillPowerScale: 0.8 };
@@ -72,6 +75,7 @@ describe("skill cards", () => {
 
   it("uses the full leveled effect when the answer is right and a reduced base effect when it is wrong", () => {
     const [slot] = fillSkillSlots("warrior", ["warrior-shout"], { "warrior-shout": 3 });
+    expect(slot?.level).toBe(3);
     expect(slot?.fullPower).toBeGreaterThan(slot?.basePower ?? 0);
     expect(castEffect(slot!, true, 0.25)).toBe(slot?.fullPower);
     expect(castEffect(slot!, false, 0.5)).toBe(Math.round((slot?.basePower ?? 0) * 0.5));
@@ -84,5 +88,15 @@ describe("skill cards", () => {
     const known = skillsForClass("warrior").map((skill) => skill.id);
     const result = equipSkillIds([], known[1]!, { unlocked: [known[0]!], known });
     expect(result).toMatchObject({ ok: false, reason: "locked", equipped: [] });
+  });
+
+  it("lists equipped skills first, in equip order", () => {
+    const ordered = skillsInEquipOrder("warrior", ["warrior-hold", "warrior-bash"]);
+    expect(ordered.map((skill) => skill.id)).toEqual([
+      "warrior-hold",
+      "warrior-bash",
+      "warrior-shout",
+      "warrior-spin",
+    ]);
   });
 });

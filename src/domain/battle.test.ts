@@ -182,10 +182,61 @@ describe("word-monster battle", () => {
     expect(correctStart.rules.wrongAnswerMultiplier).toBe(0.5);
   });
 
-  it("lets every class beat the first monster by attacking", () => {
+  it("asks before attack, block, and heal, and a full three-card loadout can still be asked", () => {
+    const trios = <T,>(items: readonly T[]): T[][] => {
+      const sets: T[][] = [];
+      for (let i = 0; i < items.length; i += 1) {
+        for (let j = i + 1; j < items.length; j += 1) {
+          for (let k = j + 1; k < items.length; k += 1) sets.push([items[i]!, items[j]!, items[k]!]);
+        }
+      }
+      return sets;
+    };
+    for (const type of ["attack", "block", "heal"] as const) {
+      const asked = takeAction(begin("warrior"), { type });
+      expect(asked.ok, type).toBe(true);
+      expect(asked.state.phase, type).toBe("question");
+      expect(asked.state.enemyHp, type).toBe(begin("warrior").enemyHp);
+      expect(asked.state.playerHp, type).toBe(begin("warrior").playerHp);
+    }
+    const unlearned = startBattle({
+      encounterId: "inkling",
+      classId: "warrior",
+      learnedIds: [],
+      equippedSkillIds: ["warrior-bash", "warrior-shout", "warrior-hold"],
+      skillLevels: { "warrior-bash": 1, "warrior-shout": 1, "warrior-hold": 1 },
+      seed: 1,
+    });
+    expect(takeAction(unlearned, { type: "attack" }).ok).toBe(false);
+    expect(unlearned.question).toBeNull();
+
     for (const hero of CLASSES) {
-      const finished = play(begin(hero.id), "attack");
-      expect(finished.phase, hero.id).toBe("won");
+      const skills = skillsForClass(hero.id);
+      expect(trios(skills).length).toBeGreaterThan(0);
+      for (const trio of trios(skills)) {
+        const state = begin(hero.id, "inkling", { equipped: trio.map((skill) => skill.id) });
+        expect(state.slots.filter((slot) => slot.origin === "equipped")).toHaveLength(3);
+        expect(state.slots.some((slot) => slot.origin === "base")).toBe(false);
+        const asked = takeAction(state, { type: "attack" });
+        expect(asked.ok, `${hero.id} ${trio.map((skill) => skill.id).join(",")}`).toBe(true);
+        expect(asked.state.phase).toBe("question");
+        expect(asked.state.question).toBeTruthy();
+      }
+      let state = begin(hero.id);
+      let questions = 0;
+      while (state.phase !== "won" && state.phase !== "lost") {
+        if (questions > 20) throw new Error(`${hero.id} did not finish`);
+        const asked = takeAction(state, { type: "attack" });
+        expect(asked.ok, hero.id).toBe(true);
+        expect(asked.state.phase, hero.id).toBe("question");
+        const question = asked.state.question;
+        if (!question) throw new Error("missing question");
+        questions += 1;
+        const choice = question.kind === "spelling" ? question.answer : question.answerId;
+        state = answerQuestion(asked.state, choice);
+      }
+      expect(state.phase, hero.id).toBe("won");
+      expect(questions, hero.id).toBeGreaterThan(0);
     }
   });
 
@@ -300,10 +351,16 @@ describe("word-monster battle", () => {
     expect(asked.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("makes a block reduce the next hit", () => {
+  it("makes a block reduce the next hit after the question is answered", () => {
     const state = begin("warrior");
-    const attacked = takeAction(state, { type: "attack" }).state;
-    const blocked = takeAction(state, { type: "block" }).state;
+    const resolve = (action: "attack" | "block") => {
+      const asked = takeAction(state, { type: action });
+      const question = asked.state.question;
+      if (!question || question.kind === "spelling") throw new Error("expected a choice question");
+      return answerQuestion(asked.state, question.answerId);
+    };
+    const attacked = resolve("attack");
+    const blocked = resolve("block");
     expect(blocked.playerHp).toBeGreaterThan(attacked.playerHp);
     expect(blocked.enemyHp).toBeGreaterThan(attacked.enemyHp);
   });

@@ -1,0 +1,496 @@
+{
+ "frames": {
+  "village_bld_learn_normal": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_learn_hover": {
+   "frame": {
+    "x": 276,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_learn_pressed": {
+   "frame": {
+    "x": 550,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_battle_normal": {
+   "frame": {
+    "x": 824,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_battle_hover": {
+   "frame": {
+    "x": 1098,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_battle_pressed": {
+   "frame": {
+    "x": 1372,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_collection_normal": {
+   "frame": {
+    "x": 1646,
+    "y": 2,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_collection_hover": {
+   "frame": {
+    "x": 2,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_collection_pressed": {
+   "frame": {
+    "x": 276,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_review_normal": {
+   "frame": {
+    "x": 550,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_review_hover": {
+   "frame": {
+    "x": 824,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_review_pressed": {
+   "frame": {
+    "x": 1098,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_skills_normal": {
+   "frame": {
+    "x": 1372,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_skills_hover": {
+   "frame": {
+    "x": 1646,
+    "y": 260,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_skills_pressed": {
+   "frame": {
+    "x": 2,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_wardrobe_normal": {
+   "frame": {
+    "x": 276,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_wardrobe_hover": {
+   "frame": {
+    "x": 550,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_wardrobe_pressed": {
+   "frame": {
+    "x": 824,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_duel_normal": {
+   "frame": {
+    "x": 1098,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_duel_hover": {
+   "frame": {
+    "x": 1372,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_duel_pressed": {
+   "frame": {
+    "x": 1646,
+    "y": 518,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_guide_normal": {
+   "frame": {
+    "x": 2,
+    "y": 776,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_guide_hover": {
+   "frame": {
+    "x": 276,
+    "y": 776,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  },
+  "village_bld_guide_pressed": {
+   "frame": {
+    "x": 550,
+    "y": 776,
+    "w": 272,
+    "h": 256
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 256
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 256
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch3 build_first3.py (code-drawn)",
+  "version": "0.4-batch3",
+  "image": "atlas_village.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 1024
+  },
+  "scale": "2",
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

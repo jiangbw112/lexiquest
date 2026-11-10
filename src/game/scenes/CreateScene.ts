@@ -5,16 +5,24 @@ import { sanitizeName } from "../../domain/appearance";
 import { classById } from "../../domain/classes";
 import type { GradeBand } from "../../domain/types";
 import { WarriorSprite } from "../art/warrior-sprite";
-import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE, WARRIOR_ART_NOTE } from "../p0";
+import { cjkWrap } from "../layout";
+import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { commit } from "../session";
-import { FONT, button, paper } from "../ui";
+import { FONT, paper } from "../ui";
+import { warmButton, warmPanel } from "../warm/kit";
+import { paintRoom, queueWarm } from "../warm/load";
+import { INK, MUTED } from "../warm/theme";
 
 export class CreateScene extends Phaser.Scene {
   private grades: GradeBand[] = [];
 
   constructor() {
     super("create");
+  }
+
+  preload(): void {
+    queueWarm(this, ["atlas_ui_core"], ["bg_room"]);
   }
 
   init(data: { grades?: readonly string[] } = {}): void {
@@ -62,25 +70,26 @@ export class CreateScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    paper(this);
+    if (!paintRoom(this)) paper(this);
+    warmPanel(this, 640, 400, 1040, 740);
     const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label ?? id).join("、");
-    this.add.text(180, 64, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: "#17352a" });
-    this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: "#3d5c4e", wordWrap: { width: 700 } });
-    this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: "#17352a", wordWrap: { width: 700 } });
-    this.add.text(180, 470, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "24px", color: "#17352a" });
+    this.add.text(180, 64, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: INK });
+    this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: MUTED, wordWrap: cjkWrap(700) });
+    this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: INK, wordWrap: cjkWrap(700) });
+    this.add.text(180, 470, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "24px", color: INK });
     this.add.text(180, 520, "名字在画面中间输入。Enter 出发。年级可以稍后在给家长里改。", {
       fontFamily: FONT,
       fontSize: "18px",
-      color: "#3d5c4e",
-      wordWrap: { width: 760 },
+      color: MUTED,
+      wordWrap: cjkWrap(760),
     });
-    this.add.text(180, 700, `${WARRIOR_ART_NOTE}。用键盘输入名字。`, {
+    this.add.text(180, 700, "用键盘输入名字。", {
       fontFamily: FONT,
       fontSize: "16px",
-      color: "#3d5c4e",
+      color: MUTED,
     });
     const hero = new WarriorSprite(this, 980, 280, 0.5);
     hero.play("idle");
-    button(this, 270, 600, "重选年级", () => this.leave("grades"), { width: 180, fill: 0x5c6b62 });
+    warmButton(this, 270, 600, "重选年级", () => this.leave("grades"), { width: 180, tone: "secondary" });
   }
 }

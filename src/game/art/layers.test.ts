@@ -40,6 +40,10 @@ describe("placeholder actor atlas", () => {
     expect(visibleFrames("top", "star-sash")[0]).toBe("top/shadow");
     expect(visibleFrames("top", "star-sash")).toContain("top/sash");
     expect(visibleFrames("top", "traveler")).not.toContain("top/cape");
+    const caped = visibleFrames("top", "forest-cape");
+    expect(caped.indexOf("top/cape")).toBeGreaterThan(caped.indexOf("top/shadow"));
+    expect(caped.indexOf("top/cape")).toBeLessThan(caped.indexOf("top/body"));
+    expect(caped.indexOf("top/hair")).toBeGreaterThan(caped.indexOf("top/body"));
   });
 
   it("keeps placeholder images inside the load budget", () => {

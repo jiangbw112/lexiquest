@@ -1,0 +1,196 @@
+{
+ "frames": {
+  "icon_outfit": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "icon_coin": {
+   "frame": {
+    "x": 100,
+    "y": 2,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
+  },
+  "wardrobe_slot_normal": {
+   "frame": {
+    "x": 1482,
+    "y": 2,
+    "w": 192,
+    "h": 192
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "sourceSize": {
+    "w": 192,
+    "h": 192
+   }
+  },
+  "wardrobe_slot_hover": {
+   "frame": {
+    "x": 1676,
+    "y": 2,
+    "w": 192,
+    "h": 192
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "sourceSize": {
+    "w": 192,
+    "h": 192
+   }
+  },
+  "wardrobe_slot_pressed": {
+   "frame": {
+    "x": 2,
+    "y": 100,
+    "w": 192,
+    "h": 192
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "sourceSize": {
+    "w": 192,
+    "h": 192
+   }
+  },
+  "wardrobe_slot_disabled": {
+   "frame": {
+    "x": 1482,
+    "y": 196,
+    "w": 192,
+    "h": 192
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "sourceSize": {
+    "w": 192,
+    "h": 192
+   }
+  },
+  "wardrobe_slot_selected": {
+   "frame": {
+    "x": 1676,
+    "y": 196,
+    "w": 192,
+    "h": 192
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 192,
+    "h": 192
+   },
+   "sourceSize": {
+    "w": 192,
+    "h": 192
+   }
+  },
+  "wardrobe_stage": {
+   "frame": {
+    "x": 840,
+    "y": 2,
+    "w": 640,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 640,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 640,
+    "h": 240
+   }
+  },
+  "wardrobe_arch": {
+   "frame": {
+    "x": 198,
+    "y": 2,
+    "w": 640,
+    "h": 960
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 640,
+    "h": 960
+   },
+   "sourceSize": {
+    "w": 640,
+    "h": 960
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch3 build_b.py (code-drawn)",
+  "version": "0.4-batch3",
+  "image": "atlas_wardrobe.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 1024
+  },
+  "scale": "2",
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

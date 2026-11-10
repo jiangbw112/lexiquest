@@ -30,6 +30,17 @@ export const BOSS_ANIMS = manifest.animations.map((anim) => ({
  * A phase change is a hit, then idle: the counterattack is skipped.
  * Defeat holds. It does not return to idle.
  */
+/** Milliseconds of the non-looping clips. Idle does not extend the lock. */
+export function bossReactionMs(poses: readonly BossAnim[]): number {
+  let ms = 0;
+  for (const pose of poses) {
+    const anim = BOSS_ANIMS.find((item) => item.key === pose);
+    if (!anim || anim.repeat < 0) continue;
+    ms += (anim.frameCount / anim.fps) * 1000;
+  }
+  return ms;
+}
+
 export function canopyPoses(input: {
   enemyHpBefore: number;
   enemyHpAfter: number;

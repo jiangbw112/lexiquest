@@ -15,7 +15,7 @@ import {
   visibilityForCosmetics,
   type ChapterRewardConfig,
 } from "./chapter-rewards";
-import { notePracticeAnswer, parentView } from "./parent";
+import { notePracticeAnswer, parentView, studyDayKey } from "./parent";
 import { applyBattleOutcome, createSave, learnWord, reviewWord } from "./progress";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { chapterWordIds, litMasteryCount } from "./stages";
@@ -236,8 +236,10 @@ describe("forest chapter rewards", () => {
       {
         ...granted,
         cosmeticTokens: 2,
+        goalCalendar: {},
+        lastGoalCompletedDayKey: null,
         dailyGoal: {
-          dayKey: "2026-03-01",
+          dayKey: studyDayKey(START),
           snapshotDue: 0,
           mode: "practice_fallback",
           targetReview: 0,

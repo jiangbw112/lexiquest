@@ -1,5 +1,6 @@
 import { createEmptyCard, fsrs, Rating, State, type Card, type Grade } from "ts-fsrs";
-import { PROVISIONAL, STUDY_TIME_ZONE } from "./provisional";
+import { deviceTimeZone, localDayKey } from "./local-day";
+import { PROVISIONAL } from "./provisional";
 import type { MemoryRecord, StoredFsrs } from "./types";
 
 const scheduler = fsrs({
@@ -7,13 +8,9 @@ const scheduler = fsrs({
   enable_short_term: true,
 });
 
-export function calendarDay(ms: number, timeZone = STUDY_TIME_ZONE): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(ms));
+/** Calendar day of an instant. FSRS due checks still compare the absolute timestamp. */
+export function calendarDay(ms: number, timeZone = deviceTimeZone()): string {
+  return localDayKey(new Date(ms), timeZone);
 }
 
 export function storedFromCard(card: Card): StoredFsrs {
@@ -106,7 +103,7 @@ export interface MasteryDecision {
 export function masteryDecision(
   memory: MemoryRecord,
   config = PROVISIONAL.mastery,
-  timeZone = STUDY_TIME_ZONE,
+  timeZone = deviceTimeZone(),
 ): MasteryDecision {
   const distinctDays = new Set(memory.reviewInstants.map((instant) => calendarDay(instant, timeZone))).size;
   const stability = memory.fsrs.stability;

@@ -5,9 +5,13 @@ import { notePracticeAnswer } from "../../domain/parent";
 import { practiceDuel, studyNow } from "../../domain/progress";
 import { quizForWord, type QuizQuestion } from "../../domain/questions";
 import { hashSeed } from "../../domain/rng";
+import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, button, paper } from "../ui";
+import { FONT, paper } from "../ui";
+import { warmButton, warmOption, warmPanel } from "../warm/kit";
+import { paintRoom, queueWarm } from "../warm/load";
+import { INK, MUTED } from "../warm/theme";
 
 type Step = { name: "cover"; round: number; player: 0 | 1 } | { name: "ask"; round: number; player: 0 | 1 } | { name: "result" };
 
@@ -22,6 +26,10 @@ export class DuelScene extends Phaser.Scene {
 
   constructor() {
     super("duel");
+  }
+
+  preload(): void {
+    queueWarm(this, ["atlas_ui_core"], ["bg_room"]);
   }
 
   create(): void {
@@ -74,43 +82,46 @@ export class DuelScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    paper(this);
-    this.add.text(160, 40, "同机练习", { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
-    this.add.text(160, 88, "两个朋友轮流用这一台电脑。答对题数多的赢；题数一样，答对用时更少的赢。答错不计分也不计时。不会写入复习记忆，也不是联网对战。", {
+    if (!paintRoom(this)) paper(this);
+    warmPanel(this, 640, 400, 1040, 740);
+    const titleY = parchmentTitleY(400, 740);
+    this.add.text(160, titleY, "同机练习", { fontFamily: FONT, fontSize: "36px", color: INK });
+    this.add.text(160, titleY + 50, "两个朋友轮流用这一台电脑。答对题数多的赢；题数一样，答对用时更少的赢。答错不计分也不计时。不会写入复习记忆，也不是联网对战。", {
       fontFamily: FONT,
       fontSize: "18px",
-      color: "#3d5c4e",
-      wordWrap: { width: 960 },
+      color: MUTED,
+      wordWrap: cjkWrap(960),
     });
     if (this.step.name === "cover") {
-      this.add.text(160, 220, `请把电脑交给 ${this.seats[this.step.player]?.name}`, { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
-      this.add.text(160, 280, `第 ${this.step.round + 1} / ${this.questions.length} 题`, { fontFamily: FONT, fontSize: "20px", color: "#3d5c4e" });
-      button(this, 360, 380, "我准备好了 Enter", () => this.reveal(), { width: 280 });
+      warmPanel(this, 420, 300, 560, 220);
+      this.add.text(160, 220, `请把电脑交给 ${this.seats[this.step.player]?.name}`, { fontFamily: FONT, fontSize: "32px", color: INK });
+      this.add.text(160, 280, `第 ${this.step.round + 1} / ${this.questions.length} 题`, { fontFamily: FONT, fontSize: "20px", color: MUTED });
+      warmButton(this, 360, 370, "我准备好了 Enter", () => this.reveal(), { width: 280 });
     }
     if (this.step.name === "ask") {
       const question = this.questions[this.step.round];
       if (!question) return;
       probeQuestion(question.answerId, question.choices.map((choice) => choice.id));
-      this.add.text(160, 200, question.prompt, { fontFamily: FONT, fontSize: "32px", color: "#17352a" });
+      this.add.text(160, 200, question.prompt, { fontFamily: FONT, fontSize: "32px", color: INK });
       question.choices.forEach((choice, index) => {
-        button(this, 640, 300 + index * 80, `${index + 1}  ${choice.label}`, () => this.answer(choice.id), { width: 520 });
+        warmOption(this, 640, 300 + index * 80, index, choice.id, choice.label, () => this.answer(choice.id), 520);
       });
     }
     if (this.step.name === "result") {
       const result = compareRounds(this.seats[0]!.answers, this.seats[1]!.answers);
       const title = result.winner === "tie" ? "这一局打平" : `${this.seats[result.winner === "a" ? 0 : 1]?.name} 赢了`;
-      this.add.text(160, 200, title, { fontFamily: FONT, fontSize: "36px", color: "#17352a" });
+      this.add.text(160, 200, title, { fontFamily: FONT, fontSize: "36px", color: INK });
       this.add.text(160, 270, `${this.seats[0]?.name}：答对 ${result.tallyA.correctCount}，用时 ${(result.tallyA.correctTimeMs / 1000).toFixed(1)} 秒`, {
         fontFamily: FONT,
         fontSize: "22px",
-        color: "#17352a",
+        color: INK,
       });
       this.add.text(160, 310, `${this.seats[1]?.name}：答对 ${result.tallyB.correctCount}，用时 ${(result.tallyB.correctTimeMs / 1000).toFixed(1)} 秒`, {
         fontFamily: FONT,
         fontSize: "22px",
-        color: "#17352a",
+        color: INK,
       });
     }
-    button(this, 250, 700, "返回 Esc", () => this.scene.start("overworld"), { width: 180, fill: 0x5c6b62 });
+    warmButton(this, 250, 700, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
   }
 }

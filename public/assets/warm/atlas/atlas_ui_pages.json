@@ -1,0 +1,56 @@
+{
+ "frames": {
+  "toast_bar": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 200,
+    "h": 104
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 200,
+    "h": 104
+   },
+   "sourceSize": {
+    "w": 200,
+    "h": 104
+   }
+  },
+  "list_row": {
+   "frame": {
+    "x": 204,
+    "y": 2,
+    "w": 160,
+    "h": 120
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 160,
+    "h": 120
+   },
+   "sourceSize": {
+    "w": 160,
+    "h": 120
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch3 build_b.py (code-drawn)",
+  "version": "0.4-batch3",
+  "image": "atlas_ui_pages.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 512,
+   "h": 256
+  },
+  "scale": "2",
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

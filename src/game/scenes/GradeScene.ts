@@ -3,12 +3,13 @@ import { GRADE_BANDS, GRADE_REQUIRED_NOTICE, canConfirmGrades, toggleGradeChoice
 import { uiLabel } from "../../domain/ui-label";
 import { needsGradeChoice, setSelectedGrades } from "../../domain/progress";
 import type { GradeBand } from "../../domain/types";
+import { cjkWrap } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmButton, warmChip, warmPanel } from "../warm/kit";
-import { warmBackground } from "../warm/load";
-import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
+import { warmBackground, warmInBackground } from "../warm/load";
+import { CREAM, ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
 export type GradeLaunchMode = "new" | "migrate" | "ask-parent";
 
@@ -51,6 +52,7 @@ export class GradeScene extends Phaser.Scene {
       if (event.code === "Escape" && this.mode === "new") this.scene.start("title");
     });
     this.draw();
+    warmInBackground(this, ["atlas_village"], ["bg_village", "bg_room"]);
   }
 
   private toggle(grade: GradeBand): void {
@@ -76,7 +78,9 @@ export class GradeScene extends Phaser.Scene {
 
   private draw(): void {
     this.children.removeAll(true);
-    warmBackground(this, "bg_forest");
+    warmBackground(this, "bg_home");
+    this.add.rectangle(640, 400, 1280, 800, Number.parseInt(CREAM.slice(1), 16), 0.24);
+    this.add.image(640, 71, "logo_title").setDisplaySize(310, 118);
     warmPanel(this, 640, 420, 980, 560);
     if (this.mode === "ask-parent") {
       this.add.text(180, 220, "请家长选年级", { fontFamily: FONT, fontSize: "40px", color: INK });
@@ -84,7 +88,7 @@ export class GradeScene extends Phaser.Scene {
         fontFamily: FONT,
         fontSize: "20px",
         color: INK,
-        wordWrap: { width: 900 },
+        wordWrap: cjkWrap(900),
       });
       warmButton(this, 360, 480, "去给家长", () => this.scene.start("guide"), { width: 220 });
       warmButton(this, 640, 480, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
@@ -102,7 +106,7 @@ export class GradeScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "20px",
       color: INK,
-      wordWrap: { width: 900 },
+      wordWrap: cjkWrap(900),
     });
     GRADE_BANDS.forEach((grade, index) => {
       const on = this.grades.includes(grade.id);
@@ -119,7 +123,7 @@ export class GradeScene extends Phaser.Scene {
       fontFamily: FONT,
       fontSize: "20px",
       color: ready ? INK : ERR_TEXT,
-      wordWrap: { width: 900 },
+      wordWrap: cjkWrap(900),
     });
     warmButton(this, 360, 560, uiLabel(migrating ? "选好了，继续" : "选好了，去起名字"), () => this.confirm(), {
       width: 280,

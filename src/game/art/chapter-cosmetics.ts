@@ -10,8 +10,6 @@ import { WARRIOR_ANIMS, type WarriorAnim } from "./warrior-pack";
 
 export const FOREST_ART = manifest;
 export const CHAPTER_ASSET_ROOT = "assets/chapter/forest/v0.1";
-export const FOREST_ART_LABEL =
-  "森林章外观 v0.1。花环戴上时藏起整顶头盔。披肩要藏的 back 层，这套战士没有画。";
 
 export const TITLE_UI_KEY = manifest.ui.textureKey;
 export const TITLE_LEAF_FRAME = "ui_title_leafIcon";
