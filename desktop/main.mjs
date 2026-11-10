@@ -1,0 +1,177 @@
+import { app, BrowserWindow, Menu, protocol, session } from "electron";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { APP_DATA_NAME, userDataDirFromArgs, userDataPath } from "./app-identity.mjs";
+import {
+  APP_HOST,
+  APP_ORIGIN,
+  appHost,
+  appPathname,
+  appResponseHeaders,
+  classifyAppPath,
+  contentType,
+  isAllowedAppUrl,
+} from "./protocol-path.mjs";
+
+app.setName(APP_DATA_NAME);
+app.setPath(
+  "userData",
+  userDataDirFromArgs(
+    process.argv,
+    userDataPath({
+      platform: process.platform,
+      home: app.getPath("home"),
+      appData: process.env.APPDATA,
+      configHome: process.env.XDG_CONFIG_HOME,
+    }),
+  ),
+);
+
+const CONTENT_WIDTH = 1280;
+const CONTENT_HEIGHT = 800;
+const MIN_WIDTH = 1024;
+const MIN_HEIGHT = 640;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "app",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+    },
+  },
+]);
+
+function webRoot() {
+  return path.join(app.getAppPath(), "dist");
+}
+
+function preloadPath() {
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.mjs");
+}
+
+function textResponse(status) {
+  const body = status === 403 ? "forbidden" : status === 400 ? "bad request" : "not found";
+  return new Response(body, { status, headers: appResponseHeaders("text/plain; charset=utf-8") });
+}
+
+function handleAppRequest(request) {
+  if (appHost(request.url) !== APP_HOST) return textResponse(403);
+  const result = classifyAppPath(webRoot(), appPathname(request.url));
+  if (result.status !== 200 || !result.file) return textResponse(result.status);
+  try {
+    const bytes = fs.readFileSync(result.file);
+    return new Response(bytes, { status: 200, headers: appResponseHeaders(contentType(result.file)) });
+  } catch {
+    return textResponse(404);
+  }
+}
+
+function navigationUrl(details, url) {
+  if (details && typeof details.url === "string") return details.url;
+  return typeof url === "string" ? url : "";
+}
+
+function blockNavigation(details, url) {
+  if (!isAllowedAppUrl(navigationUrl(details, url))) details.preventDefault();
+}
+
+function returnHome(contents, details, url) {
+  if (details && details.isMainFrame === false) return;
+  if (isAllowedAppUrl(navigationUrl(details, url))) return;
+  if (contents.isDestroyed()) return;
+  contents.loadURL(`${APP_ORIGIN}/`).catch(() => {});
+}
+
+function returnHomeIfLeft(contents) {
+  if (contents.isDestroyed()) return;
+  const url = contents.getURL();
+  if (isAllowedAppUrl(url)) return;
+  contents.loadURL(`${APP_ORIGIN}/`).catch(() => {});
+}
+
+function lockContents(contents) {
+  contents.setWindowOpenHandler(() => ({ action: "deny" }));
+  contents.on("will-navigate", (event, url) => {
+    blockNavigation(event, url);
+  });
+  contents.on("will-redirect", (event, url) => {
+    blockNavigation(event, url);
+  });
+  // about:blank and about:srcdoc do not emit will-navigate.
+  contents.on("will-frame-navigate", (event) => {
+    blockNavigation(event);
+  });
+  contents.on("did-start-navigation", (event, url) => {
+    returnHome(contents, event, url);
+  });
+  contents.on("did-navigate", (event, url) => {
+    returnHome(contents, event, url);
+  });
+  contents.on("did-finish-load", () => {
+    returnHomeIfLeft(contents);
+  });
+  contents.on("did-fail-load", () => {
+    returnHomeIfLeft(contents);
+  });
+}
+
+function denyPermissions() {
+  session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => {
+    callback(false);
+  });
+  session.defaultSession.setPermissionCheckHandler(() => false);
+}
+
+function windowIcon() {
+  if (process.platform === "darwin") return undefined;
+  const candidates = [
+    path.join(process.resourcesPath, "icon_512.png"),
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../build/sizes/icon_512.png"),
+  ];
+  return candidates.find((file) => fs.existsSync(file));
+}
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: CONTENT_WIDTH,
+    height: CONTENT_HEIGHT,
+    useContentSize: true,
+    minWidth: MIN_WIDTH,
+    minHeight: MIN_HEIGHT,
+    backgroundColor: "#143d2c",
+    autoHideMenuBar: true,
+    icon: windowIcon(),
+    webPreferences: {
+      preload: preloadPath(),
+      contextIsolation: true,
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      devTools: !app.isPackaged,
+    },
+  });
+  lockContents(win.webContents);
+  win.loadURL(`${APP_ORIGIN}/`);
+  return win;
+}
+
+app.on("web-contents-created", (_event, contents) => {
+  lockContents(contents);
+});
+
+app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
+  protocol.handle("app", handleAppRequest);
+  denyPermissions();
+  createWindow();
+});
+
+app.on("window-all-closed", () => {
+  app.quit();
+});

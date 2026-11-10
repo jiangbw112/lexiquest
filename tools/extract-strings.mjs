@@ -1,9 +1,10 @@
 import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sources = JSON.parse(readFileSync(path.join(root, "tools/font-sources.json"), "utf8"));
 const check = process.argv.includes("--check");
 const marks = ["✓", "✔", "☑", "√"];
@@ -59,7 +60,7 @@ const tsFiles = [];
 for (const dir of sources.typescript) filesUnder(path.join(root, dir), tsFiles);
 
 for (const file of tsFiles) {
-  const text = readFileSync(file, "utf8");
+  const text = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const visit = (node) => {
     if (
@@ -171,8 +172,8 @@ if (!check) {
   console.log(`charsets core=${core.size} kuaile=${kuaile.size} g3=${grades[3].size} g4=${grades[4].size} g5=${grades[5].size} g6=${grades[6].size}`);
 } else {
   for (const name of Object.keys(written)) {
-    const committed = readFileSync(path.join(root, "build/fonts", name), "utf8");
-    const fresh = readFileSync(path.join(outDir, name), "utf8");
+    const committed = readFileSync(path.join(root, "build/fonts", name), "utf8").replace(/\r\n/g, "\n");
+    const fresh = readFileSync(path.join(outDir, name), "utf8").replace(/\r\n/g, "\n");
     if (committed !== fresh) fail(`charset drift in build/fonts/${name}. Run npm run build:fonts and commit the charset files.`);
   }
   rmSync(outDir, { recursive: true, force: true });

@@ -1,0 +1,136 @@
+name: desktop
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      # windows-latest checks out with core.autocrlf=true, which turns the
+      # committed LF sources into CRLF. The charset check and the Vite bundle
+      # then diverge from the Linux web build. Force the worktree back to LF.
+      - name: Keep LF line endings
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git reset --hard HEAD
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install fonttools brotli
+      - run: npm run build:desktop:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: List installer sizes
+        shell: pwsh
+        run: Get-ChildItem dist-desktop -File | ForEach-Object { "{0}`t{1}" -f $_.Name, $_.Length }
+      - name: Print exe version info
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path dist-desktop -Recurse -Filter lexiquest.exe | Select-Object -First 1
+          if (-not $exe) { throw "lexiquest.exe was not produced" }
+          $info = $exe.VersionInfo
+          Write-Output "exe=$($exe.FullName)"
+          Write-Output "FileDescription=$($info.FileDescription)"
+          Write-Output "ProductName=$($info.ProductName)"
+          Write-Output "CompanyName=$($info.CompanyName)"
+          Write-Output "FileVersion=$($info.FileVersion)"
+          Write-Output "ProductVersion=$($info.ProductVersion)"
+          if ($info.ProductName -ne "LexiQuest") { throw "ProductName is $($info.ProductName)" }
+          if ($info.FileDescription -match "Electron") { throw "FileDescription still says Electron: $($info.FileDescription)" }
+          if ($info.CompanyName -ne "LexiQuest") { throw "CompanyName is $($info.CompanyName)" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lexiquest-windows
+          path: dist-desktop/*.exe
+          if-no-files-found: error
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install fonttools brotli
+      # Ad-hoc identity is "-". There is no certificate and no CSC_LINK.
+      # electron-builder skips signing on pull requests unless this is set.
+      - run: npm run build:desktop:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_FOR_PULL_REQUEST: "true"
+      - name: Verify ad-hoc signature
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mac-apps"
+          for zip in dist-desktop/*.zip; do
+            echo "==== $zip ===="
+            unzip -q "$zip" -d "$RUNNER_TEMP/mac-apps/$(basename "$zip" .zip)"
+          done
+          find "$RUNNER_TEMP/mac-apps" -name '*.app' -print0 | while IFS= read -r -d '' app; do
+            echo "==== codesign $app ===="
+            codesign -dv --verbose=4 "$app"
+            codesign --verify --verbose=2 "$app"
+          done
+      - name: List installer sizes
+        run: ls -l dist-desktop/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lexiquest-mac
+          path: dist-desktop/*.zip
+          if-no-files-found: error
+
+  linux-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install fonttools brotli
+      - name: Install Electron runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libnss3 libgbm1 libgtk-3-0 libasound2t64 \
+            || sudo apt-get install -y xvfb libnss3 libgbm1 libgtk-3-0t64 libasound2t64
+      - run: npm run build:desktop:linux
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Check app.asar has no node_modules
+        run: |
+          node --input-type=module <<'EOF'
+          import { statSync } from "node:fs";
+          import { createRequire } from "node:module";
+          const require = createRequire(import.meta.url);
+          const asar = require("@electron/asar");
+          const file = "dist-desktop/linux-unpacked/resources/app.asar";
+          const names = asar.listPackage(file);
+          const bundled = names.filter((name) => name.includes("node_modules"));
+          console.log(`asar ${statSync(file).size}`);
+          console.log(`entries ${names.length} node_modules ${bundled.length}`);
+          if (bundled.length > 0) process.exit(1);
+          EOF
+      - run: xvfb-run -a env LEXIQUEST_SMOKE_NO_SANDBOX=1 LEXIQUEST_SHOTS=dist-desktop/smoke npm run smoke:desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lexiquest-linux-smoke
+          path: dist-desktop/smoke/*.png
+          if-no-files-found: error

@@ -115,9 +115,9 @@ export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): n
 
 /** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */
 const LINE_START_PUNCT = new Set("，。！？；：、」』）】》".split(""));
-const UNBROKEN_WORDS = ["浏览器"];
+const UNBROKEN_WORDS = ["这台电脑", "浏览器"];
 
-/** Split text so a whole word such as 浏览器 stays together. */
+/** Split text so 这台电脑 and 浏览器 stay on one line, the canvas form of nowrap. */
 export function cjkTokens(text: string): string[] {
   const tokens: string[] = [];
   let index = 0;

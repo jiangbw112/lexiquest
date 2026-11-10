@@ -8,11 +8,11 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = json.loads((ROOT / "tools/font-sources.json").read_text())
+SOURCES = json.loads((ROOT / "tools/font-sources.json").read_text(encoding="utf-8"))
 BUDGETS = SOURCES["budgets"]
 OUT = ROOT / "public/fonts"
 CHAR = ROOT / "build/fonts"
-GLYPHS = json.loads((CHAR / "glyph-sources.json").read_text())
+GLYPHS = json.loads((CHAR / "glyph-sources.json").read_text(encoding="utf-8"))
 
 
 def fail(message: str) -> None:
@@ -21,7 +21,7 @@ def fail(message: str) -> None:
 
 
 def chars_of(name: str) -> str:
-    return "".join((CHAR / name).read_text().split("\n"))
+    return "".join((CHAR / name).read_text(encoding="utf-8").replace("\r\n", "\n").split("\n"))
 
 
 def cmap_of(path: Path) -> set[int]:

@@ -13,6 +13,30 @@ import type { SaveData } from "./types";
 
 export type StarCount = 1 | 2 | 3;
 
+export type ResultsSkipKind = "practice" | "win" | "loss" | "boss";
+
+export function resultsSkipKind(view: { won: boolean; boss: boolean; practiceOnly: boolean }): ResultsSkipKind {
+  if (!view.won) return "loss";
+  if (view.boss) return "boss";
+  if (view.practiceOnly) return "practice";
+  return "win";
+}
+
+/**
+ * The grass-corner line "点一下看全部" is not part of an open settlement.
+ * Practice, a normal win, a loss, and a boss clear all keep it hidden,
+ * and a click there must not skip the page or fall through.
+ */
+export function resultsSkipHintState(kind: ResultsSkipKind): { visible: false; interactive: false } {
+  switch (kind) {
+    case "practice":
+    case "win":
+    case "loss":
+    case "boss":
+      return { visible: false, interactive: false };
+  }
+}
+
 export interface ResultAnswer {
   wordId: string;
   correct: boolean;

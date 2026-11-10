@@ -214,6 +214,18 @@ describe("Chinese line wrap", () => {
     expect(wrapped).toContain("，");
   });
 
+  it("keeps 这台电脑 on one line", () => {
+    const wrapped = wrapCjkText("清掉这台电脑上的数据后要重新设置。", 18 * 5, measure);
+    for (const line of wrapped.split("\n")) {
+      expect(line.endsWith("这")).toBe(false);
+      expect(line.endsWith("这台")).toBe(false);
+      expect(line.endsWith("这台电")).toBe(false);
+      expect(line.startsWith("台电脑")).toBe(false);
+      expect(line.startsWith("电脑")).toBe(false);
+    }
+    expect(wrapped).toContain("这台电脑");
+  });
+
   it("keeps 浏览器 on one line", () => {
     const wrapped = wrapCjkText("进度存在这台电脑的浏览器里。", 18 * 6, measure);
     for (const line of wrapped.split("\n")) {

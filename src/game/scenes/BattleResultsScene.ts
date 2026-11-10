@@ -7,6 +7,8 @@ import {
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
   resultsLowerShift,
+  resultsSkipHintState,
+  resultsSkipKind,
   resultsStackNudge,
   practiceItemLine,
   visibleItems,
@@ -79,9 +81,10 @@ export class BattleResultsScene extends Phaser.Scene {
     probeNote(`battle:results:open:${view.won}:${view.stars ?? "none"}:${view.practiceOnly}:${view.newRecord}`);
     const dim = this.add.rectangle(640, 400, 1280, 800, 0x000000, 0.55);
     dim.setInteractive();
-    dim.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+    dim.on("pointerdown", () => {
+      // Keep the old corner from skipping the page or reaching the battle underneath.
+      if (!resultsSkipHintState(resultsSkipKind(this.view)).interactive) return;
       if (this.settled) return;
-      if (this.hitsButton(pointer.x, pointer.y)) return;
       this.finishMotion();
     });
     this.drawGlow();
@@ -97,6 +100,7 @@ export class BattleResultsScene extends Phaser.Scene {
       fontSize: "16px",
       color: CREAM,
     }).setOrigin(1, 0.5);
+    this.applySkipHint();
     if (motionOff()) this.finishMotion();
     else {
       for (const piece of this.finishing) piece.setAlpha(0);
@@ -116,17 +120,16 @@ export class BattleResultsScene extends Phaser.Scene {
     listenKeys(this, (event) => this.onKey(event));
   }
 
-  private hitsButton(x: number, y: number): boolean {
-    const spots = this.view.won
-      ? [RESULTS_LAYOUT.continueButton]
-      : [RESULTS_LAYOUT.retryButton, RESULTS_LAYOUT.mapButton];
-    return spots.some((spot) => Math.abs(x - spot.x) <= spot.w / 2 && Math.abs(y - spot.y) <= spot.h / 2);
+  private applySkipHint(): void {
+    const skip = resultsSkipHintState(resultsSkipKind(this.view));
+    this.skipHint?.setVisible(skip.visible);
+    if (!skip.interactive) this.skipHint?.disableInteractive();
   }
 
   private showContent(): void {
     this.tweens.killTweensOf(this.finishing);
     for (const piece of this.finishing) piece.setAlpha(1);
-    this.skipHint?.setVisible(false);
+    this.applySkipHint();
   }
 
   private noteFinal(): void {

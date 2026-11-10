@@ -1,0 +1,63 @@
+appId: com.lexiquest.desktop
+productName: LexiQuest
+executableName: lexiquest
+asar: true
+npmRebuild: false
+directories:
+  output: dist-desktop
+  buildResources: build
+# dist already contains Phaser and ts-fsrs. Do not copy node_modules into the asar.
+# Icons live in build/ (buildResources). They are not part of the web dist.
+files:
+  - desktop/main.mjs
+  - desktop/preload.mjs
+  - desktop/protocol-path.mjs
+  - desktop/app-identity.mjs
+  - dist/**/*
+  - package.json
+  - "!**/node_modules/**"
+extraResources:
+  - from: build/sizes/icon_512.png
+    to: icon_512.png
+extraMetadata:
+  main: desktop/main.mjs
+copyright: Copyright © 2026 LexiQuest
+electronFuses:
+  runAsNode: false
+  enableNodeCliInspectArguments: false
+  enableNodeOptionsEnvironmentVariable: false
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+win:
+  # Skip signing only. resedit still writes the product name, version, company, description, and icon.
+  signExecutable: false
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: LexiQuest-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  # Default is false. Left explicit so an uninstall keeps userData.
+  deleteAppDataOnUninstall: false
+mac:
+  icon: build/icon.icns
+  identity: "-"
+  gatekeeperAssess: false
+  hardenedRuntime: false
+  target:
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  artifactName: LexiQuest-${version}-mac-${arch}.${ext}
+linux:
+  icon: build/sizes/icon_512.png
+  category: Game
+  target:
+    - target: dir
+      arch:
+        - x64
