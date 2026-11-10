@@ -10,10 +10,11 @@ import {
   resultsLowerShift,
   resultsStackNudge,
   visibleItems,
+  xpBarSegments,
+  type XpFillSegment,
   type BattleResultsView,
   type ResultItem,
 } from "../../domain/battle-results";
-import { levelFromXp } from "../../domain/progress";
 import { skillCardFrame, skillIconFrame, skillLevelFrame } from "../../domain/skill-card-face";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
@@ -27,6 +28,7 @@ import { queueWarm } from "../warm/load";
 import { CREAM, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, TEAL_DEEP, motionOff } from "../warm/theme";
 
 const KEY_LOCK_MS = 300;
+const XP_GROW_MS = 600;
 const BROWN = 0x5d3e2b;
 const GOLD = 0xe9c46a;
 
@@ -37,6 +39,17 @@ export class BattleResultsScene extends Phaser.Scene {
   private buttons: Phaser.GameObjects.Container[] = [];
   private skipHint?: Phaser.GameObjects.Text;
   private finishing: { setAlpha: (alpha: number) => unknown }[] = [];
+  private xpFills: {
+    leaf: Phaser.GameObjects.NineSlice;
+    gold: Phaser.GameObjects.NineSlice;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private xpSegments: XpFillSegment[] = [];
+  private xpRunning: { value: number } | null = null;
+  private finalNoted = false;
 
   constructor() {
     super("battle-results");
@@ -47,6 +60,10 @@ export class BattleResultsScene extends Phaser.Scene {
     this.settled = false;
     this.buttons = [];
     this.finishing = [];
+    this.xpFills = null;
+    this.xpSegments = [];
+    this.xpRunning = null;
+    this.finalNoted = false;
   }
 
   preload(): void {
@@ -87,7 +104,11 @@ export class BattleResultsScene extends Phaser.Scene {
         alpha: 1,
         duration: 700,
         delay: 200,
-        onComplete: () => this.finishMotion(),
+        onComplete: () => {
+          if (this.settled) return;
+          this.showContent();
+          this.startXpGrow();
+        },
       });
     }
     this.time.delayedCall(KEY_LOCK_MS, () => this.enableButtons());
@@ -101,13 +122,25 @@ export class BattleResultsScene extends Phaser.Scene {
     return spots.some((spot) => Math.abs(x - spot.x) <= spot.w / 2 && Math.abs(y - spot.y) <= spot.h / 2);
   }
 
-  private finishMotion(): void {
-    if (this.settled) return;
-    this.settled = true;
+  private showContent(): void {
     this.tweens.killTweensOf(this.finishing);
     for (const piece of this.finishing) piece.setAlpha(1);
     this.skipHint?.setVisible(false);
+  }
+
+  private noteFinal(): void {
+    if (this.finalNoted) return;
+    this.finalNoted = true;
     probeNote(`battle:results:final:${this.view.won}:${this.view.stars ?? "none"}:${this.view.practiceOnly}:${this.view.newRecord}`);
+  }
+
+  /** Skip the fade and the XP grow. A click or Space shows the finished screen. */
+  private finishMotion(): void {
+    if (this.settled) return;
+    this.settled = true;
+    this.showContent();
+    this.snapXp();
+    this.noteFinal();
   }
 
   private enableButtons(): void {
@@ -198,13 +231,14 @@ export class BattleResultsScene extends Phaser.Scene {
           : uiLabel("赢啦！继续加油！");
       this.capsule(235, 300, praise, 28, BROWN, CREAM, FONT_TITLE);
       if (view.newRecord) {
-        this.add.image(185, 240, "atlas_results", "result_new_record").setOrigin(0, 0).setDisplaySize(100, 32);
-        this.add.text(235, 254, "新纪录！", {
+        const plate = this.add.image(185, 240, "atlas_results", "result_new_record").setOrigin(0, 0).setDisplaySize(100, 32);
+        const label = this.add.text(235, 254, "新纪录！", {
           fontFamily: FONT_BODY,
           fontSize: "16px",
           fontStyle: "700",
           color: INK,
         }).setOrigin(0.5);
+        this.finishing.push(plate, label);
       }
     } else {
       this.capsule(235, 300, uiLabel("没关系，再来一次！"), 26, BROWN, CREAM, FONT_TITLE);
@@ -218,6 +252,7 @@ export class BattleResultsScene extends Phaser.Scene {
       }).setOrigin(0.5);
       this.fixedCapsule(640, 103, Math.max(subtitle.width + 28, 80), 26, BROWN);
       subtitle.setDepth(12);
+      this.finishing.push(subtitle);
     }
   }
 
@@ -241,6 +276,7 @@ export class BattleResultsScene extends Phaser.Scene {
     plate.fillRoundedRect(x - width / 2, y - height / 2, width, height, height / 2);
     plate.strokeRoundedRect(x - width / 2, y - height / 2, width, height, height / 2);
     plate.setDepth(11);
+    this.finishing.push(plate);
   }
 
   private drawWords(): void {
@@ -414,25 +450,100 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   private drawXpBar(): void {
-    const before = levelFromXp(this.view.xpBefore);
-    const after = levelFromXp(this.view.xpAfter);
     const x = 540;
     const y = this.dy(416);
     const width = 470;
     const height = 28;
     warmSlice(this, "atlas_ui_core", "progress_frame", width, height).setPosition(x + width / 2, y + height / 2);
-    const crossed = after.level > before.level;
-    const gold = crossed ? 0 : before.into / before.span;
-    const leaf = after.into / after.span;
-    this.fillBar(x, y, width, height, leaf, "progress_fill_leaf");
-    this.fillBar(x, y, width, height, gold, "progress_fill_gold");
+    this.xpSegments = xpBarSegments(this.view.xpBefore, this.view.xpAfter);
+    this.xpFills = {
+      leaf: warmSlice(this, "atlas_ui_core", "progress_fill_leaf", 16, 16),
+      gold: warmSlice(this, "atlas_ui_core", "progress_fill_gold", 16, 16),
+      x,
+      y,
+      width,
+      height,
+    };
+    if (motionOff()) this.snapXp();
+    else {
+      const start = this.xpSegments[0]?.from ?? 0;
+      this.paintXp(start, start);
+    }
   }
 
-  private fillBar(x: number, y: number, width: number, height: number, ratio: number, frame: string): void {
+  /** After the 700ms fade. Reduced motion already snapped to the final fill. */
+  private startXpGrow(): void {
+    if (this.settled || !this.xpFills) {
+      this.settled = true;
+      this.noteFinal();
+      return;
+    }
+    probeNote("battle:results:xp");
+    this.growSegment(0);
+  }
+
+  private growSegment(index: number): void {
+    if (this.settled) return;
+    const segment = this.xpSegments[index];
+    if (!segment) {
+      this.settled = true;
+      this.noteFinal();
+      return;
+    }
+    const gold = this.xpSegments.length > 1 && index > 0 ? 0 : (this.xpSegments[0]?.from ?? 0);
+    const state = { value: segment.from };
+    this.xpRunning = state;
+    this.paintXp(gold, segment.from);
+    if (segment.to === segment.from) {
+      this.growSegment(index + 1);
+      return;
+    }
+    const duration = this.xpSegments.length === 1 ? XP_GROW_MS : index === 0 ? 360 : XP_GROW_MS - 360;
+    this.tweens.add({
+      targets: state,
+      value: segment.to,
+      duration,
+      ease: "Linear",
+      onUpdate: () => {
+        if (!this.settled) this.paintXp(gold, state.value);
+      },
+      onComplete: () => {
+        if (this.settled) return;
+        this.paintXp(gold, segment.to);
+        this.growSegment(index + 1);
+      },
+    });
+  }
+
+  private snapXp(): void {
+    if (this.xpRunning) this.tweens.killTweensOf(this.xpRunning);
+    const last = this.xpSegments[this.xpSegments.length - 1];
+    if (!last) return;
+    const gold = this.xpSegments.length > 1 ? 0 : (this.xpSegments[0]?.from ?? 0);
+    this.paintXp(gold, last.to);
+  }
+
+  private paintXp(gold: number, leaf: number): void {
+    const bar = this.xpFills;
+    if (!bar) return;
+    this.resizeFill(bar.leaf, bar, leaf);
+    this.resizeFill(bar.gold, bar, gold);
+  }
+
+  private resizeFill(
+    slice: Phaser.GameObjects.NineSlice,
+    bar: { x: number; y: number; width: number; height: number },
+    ratio: number,
+  ): void {
     const clamped = Math.max(0, Math.min(1, ratio));
-    if (clamped <= 0) return;
-    const inner = Math.max(16, (width - 8) * clamped);
-    warmSlice(this, "atlas_ui_core", frame, inner, 16).setPosition(x + 4 + inner / 2, y + height / 2);
+    if (clamped <= 0) {
+      slice.setVisible(false);
+      return;
+    }
+    const inner = Math.max(16, (bar.width - 8) * clamped);
+    slice.setVisible(true);
+    slice.setSize(inner * 2, 32);
+    slice.setPosition(bar.x + 4 + inner / 2, bar.y + bar.height / 2);
   }
 
   private goldCapsule(x: number, y: number, label: string): void {
@@ -443,6 +554,7 @@ export class BattleResultsScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.fixedCapsule(x, y, text.width + 36, 40, GOLD);
     text.setDepth(12);
+    this.finishing.push(text);
   }
 
   private drawCard(): void {
@@ -528,7 +640,7 @@ export class BattleResultsScene extends Phaser.Scene {
     this.add.image(x, y, item.atlas, item.frame).setOrigin(0, 0).setDisplaySize(48, 48);
   }
 
-  /** Count only. The badge is not a button, and it does not explain where the rest went. */
+  /** "+N 件". The badge is not a button, and it does not explain where the rest went. */
   private moreBadge(right: number, y: number, extra: number): void {
     const label = moreBadgeLabel(extra);
     const text = this.add.text(0, 0, label, {
@@ -537,11 +649,13 @@ export class BattleResultsScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     }).setOrigin(0.5);
-    const width = Math.max(56, text.width + 28);
+    const width = Math.max(84, text.width + 28);
     const badge = this.add
       .nineslice(right - width / 2, y, "atlas_results", "result_more_badge", width * 2, 52, 26, 26, 0, 0)
-      .setScale(0.5);
-    text.setPosition(badge.x, badge.y);
+      .setScale(0.5)
+      .setDepth(20);
+    text.setPosition(badge.x, badge.y).setDepth(21);
+    this.finishing.push(badge, text);
   }
 
   private topLeftRow(x: number, y: number, width: number, height: number): void {

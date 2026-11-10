@@ -6,6 +6,7 @@ import { wordById } from "./catalog";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
 import { COSMETIC_LABEL } from "./cosmetic-label";
 import { deviceTimeZone, localDayKey } from "./local-day";
+import { levelFromXp } from "./progress";
 import { skillIconFrame } from "./skill-card-face";
 import { skillById } from "./skills";
 import type { SaveData } from "./types";
@@ -220,16 +221,35 @@ export function buildResultsView(input: {
   };
 }
 
-/** Listed rows stay as rows. Anything past the cap is only a number on the badge. */
+/** Listed rows stay as rows. Anything past the cap is a "+N 件" badge, not a button. */
 export function visibleItems(items: readonly ResultItem[], practice: boolean): { shown: ResultItem[]; extra: number } {
   const limit = practice ? 2 : 3;
   if (items.length <= limit) return { shown: [...items], extra: 0 };
   return { shown: items.slice(0, limit), extra: items.length - limit };
 }
 
-/** Digits only. The badge is not a button and does not say where the rest went. */
+/** Art README v1.0. The badge is not a button and does not say where the rest went. */
 export function moreBadgeLabel(extra: number): string {
-  return String(extra);
+  return `+${extra} 件`;
+}
+
+export interface XpFillSegment {
+  from: number;
+  to: number;
+}
+
+/**
+ * One segment stays inside the current level.
+ * Crossing a level fills the bar, then starts again from empty up to the final remainder.
+ * 220 → 240 is the boss first-clear case: half full, then full, then empty.
+ */
+export function xpBarSegments(beforeXp: number, afterXp: number): XpFillSegment[] {
+  const before = levelFromXp(Math.max(0, beforeXp));
+  const after = levelFromXp(Math.max(0, afterXp));
+  const start = before.into / before.span;
+  const end = after.into / after.span;
+  if (after.level > before.level) return [{ from: start, to: 1 }, { from: 0, to: end }];
+  return [{ from: start, to: end }];
 }
 
 /**

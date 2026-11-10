@@ -401,7 +401,8 @@ function nextForestStage(save: SaveData) {
  * that clears the chapter, grant rewards and do not spend the daily quota. Every later
  * win, including a boss replay and another win on a stage that is still open, spends
  * that shared quota. Only the first three of those wins each local day grant experience
- * and a card level.
+ * and a card level. A one-time outfit such as the forest cape still drops on a later
+ * practice win, as long as it has not been owned yet.
  */
 export function applyBattleOutcome(
   save: SaveData,
@@ -437,7 +438,7 @@ export function applyBattleOutcome(
   }
   let owned = save.ownedOutfitIds;
   let equippedOutfitId = save.equippedOutfitId;
-  if (grantRewards && !owned.includes("forest-cape")) {
+  if (!owned.includes("forest-cape")) {
     owned = [...owned, "forest-cape"];
     equippedOutfitId = "forest-cape";
   }

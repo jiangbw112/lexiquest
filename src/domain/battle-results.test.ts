@@ -16,6 +16,7 @@ import {
   starsFor,
   visibleItems,
   wordsForResults,
+  xpBarSegments,
 } from "./battle-results";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { mapPanel } from "./map-panel";
@@ -164,8 +165,9 @@ describe("battle results stars and words", () => {
     const overflow = visibleItems([...view.items, ...view.items], false);
     expect(overflow.shown).toHaveLength(3);
     expect(overflow.extra).toBe(1);
-    expect(moreBadgeLabel(overflow.extra)).toBe("1");
-    expect(moreBadgeLabel(overflow.extra)).not.toMatch(/件|衣柜|卡册/);
+    expect(moreBadgeLabel(overflow.extra)).toBe("+1 件");
+    expect(moreBadgeLabel(2)).toBe("+2 件");
+    expect(moreBadgeLabel(overflow.extra)).not.toMatch(/衣柜|卡册/);
     expect(PRACTICE_LINE_1).toContain("再战");
     expect(PRACTICE_LINE_2).toBe("练习也很棒！");
     expect(LOSS_ENCOURAGEMENT).toContain("不会丢东西");
@@ -174,6 +176,71 @@ describe("battle results stars and words", () => {
   it("BR-A20 uses the real level progress for the bar", () => {
     const progress = levelFromXp(55);
     expect(progress.into / progress.span).toBe(15 / 40);
+  });
+
+  it("grows the XP bar in one segment, and fills then resets when a level is crossed", () => {
+    expect(xpBarSegments(55, 70)).toEqual([{ from: 15 / 40, to: 30 / 40 }]);
+    expect(xpBarSegments(0, 0)).toEqual([{ from: 0, to: 0 }]);
+    expect(xpBarSegments(220, 240)).toEqual([{ from: 20 / 40, to: 1 }, { from: 0, to: 0 }]);
+    expect(xpBarSegments(10, 90)).toEqual([{ from: 10 / 40, to: 1 }, { from: 0, to: 10 / 40 }]);
+  });
+
+  it("grants the forest cape on a practice win after the daily quota is full", () => {
+    const day = localDayKey(new Date(NOW), deviceTimeZone());
+    const before: SaveData = {
+      ...fresh(),
+      stageWins: { "1": 1 },
+      xp: 80,
+      battlesWon: 2,
+      skillLevels: { "warrior-bash": 3 },
+      replayWinsByDay: { [day]: 3 },
+      ownedOutfitIds: ["traveler"],
+      equippedOutfitId: "traveler",
+    };
+    const after = applyBattleOutcome(before, "win", NOW, stageEncounterId(1), 2, 1);
+    expect(after.xp).toBe(80);
+    expect(after.skillLevels["warrior-bash"]).toBe(3);
+    expect(after.ownedOutfitIds).toContain("forest-cape");
+    expect(after.equippedOutfitId).toBe("forest-cape");
+    const view = buildResultsView({
+      before,
+      after,
+      answers: [{ wordId: "tree", correct: true, kind: "meaning" }],
+      stageId: 1,
+      boss: false,
+      now: NOW,
+    });
+    expect(view.practiceOnly).toBe(true);
+    expect(view.card).toBeNull();
+    expect(view.items.map((item) => item.id)).toContain("forest-cape");
+    expect(view.items.find((item) => item.id === "forest-cape")?.heading).toContain("林间斗篷");
+  });
+
+  it("does not grant the forest cape again once it is owned", () => {
+    const day = localDayKey(new Date(NOW), deviceTimeZone());
+    const before: SaveData = {
+      ...fresh(),
+      stageWins: { "1": 1 },
+      xp: 80,
+      battlesWon: 3,
+      skillLevels: { "warrior-bash": 3 },
+      replayWinsByDay: { [day]: 4 },
+      ownedOutfitIds: ["traveler", "forest-cape"],
+      equippedOutfitId: "forest-cape",
+    };
+    const after = applyBattleOutcome(before, "win", NOW, stageEncounterId(1), 2, 1);
+    expect(after.xp).toBe(80);
+    expect(after.ownedOutfitIds.filter((id) => id === "forest-cape")).toHaveLength(1);
+    const view = buildResultsView({
+      before,
+      after,
+      answers: [{ wordId: "tree", correct: true, kind: "meaning" }],
+      stageId: 1,
+      boss: false,
+      now: NOW,
+    });
+    expect(view.practiceOnly).toBe(true);
+    expect(view.items.some((item) => item.id === "forest-cape")).toBe(false);
   });
 
   it("BR-A26 reads an old save and drops a bad star", () => {
@@ -250,6 +317,9 @@ describe("battle results stars and words", () => {
     expect(mapStarCenter(4)).toEqual({ x: 690, y: 512 });
     expect(scene).not.toContain("还有 ${extra} 样");
     expect(scene).toContain("moreBadgeLabel");
+    expect(scene).toContain("xpBarSegments");
+    expect(scene).toContain("this.finishing.push(plate)");
+    expect(scene.indexOf("this.finishing.push(plate, label)")).toBeGreaterThan(scene.indexOf("新纪录！"));
     expect(scene).toContain("skillIconFrame");
     expect(scene).toContain("resultsLowerShift");
     expect(scene).toContain("resultsStackNudge");
