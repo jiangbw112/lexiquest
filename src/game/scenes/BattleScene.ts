@@ -51,6 +51,9 @@ export class BattleScene extends Phaser.Scene {
   private toastedHints = 0;
   private presenting = false;
   private resultsOpened = false;
+  private battleHero?: Phaser.GameObjects.Container;
+  private battleTitle: Phaser.GameObjects.GameObject[] = [];
+  private battleHud: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super("battle");
@@ -338,8 +341,17 @@ export class BattleScene extends Phaser.Scene {
   private openResults(view: ReturnType<typeof buildResultsView>): void {
     if (this.resultsOpened || !this.scene.isActive()) return;
     this.resultsOpened = true;
+    this.concealBattleActors();
     this.scene.pause();
     this.scene.launch("battle-results", view);
+  }
+
+  /** The results hero replaces this one. Hide the battle body, title, bars, and log before the overlay opens. */
+  private concealBattleActors(): void {
+    this.battleHero?.setVisible(false);
+    for (const node of [...this.battleTitle, ...this.battleHud]) {
+      (node as { setVisible?: (shown: boolean) => void }).setVisible?.(false);
+    }
   }
 
   private leave(): void {
@@ -388,9 +400,13 @@ export class BattleScene extends Phaser.Scene {
     }
     warmBackground(this, "bg_forest");
     const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds);
+    this.battleHero = hero.root;
+    const titleAt = this.children.length;
     drawEquippedTitle(this, 300, 250, save.equippedTitleId);
+    this.battleTitle = this.children.list.slice(titleAt);
     hero.playSequence(this.poses);
     this.drawMonster();
+    const hudAt = this.children.length;
     warmPanel(this, 350, 92, 400, 104);
     warmPanel(this, 930, 92, 400, 104);
     this.add.text(170, 62, save.player.name, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: INK }).setOrigin(0, 0.5);
@@ -511,5 +527,6 @@ export class BattleScene extends Phaser.Scene {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
+    this.battleHud = this.children.list.slice(hudAt);
   }
 }

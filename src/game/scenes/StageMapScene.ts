@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
-import { mapStarCenter } from "../../domain/battle-results";
+import { mapResultsFramesReady, mapStarCenter } from "../../domain/battle-results";
 import { mapPanel } from "../../domain/map-panel";
 import { studyNow } from "../../domain/progress";
 import { browserSpeaker, speakWord } from "../../domain/speech";
@@ -43,6 +43,7 @@ export class StageMapScene extends Phaser.Scene {
   private fontSample = "";
   private restPrompt = false;
   private retryStageId: number | null = null;
+  private waitingForMapArt = false;
 
   init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
@@ -81,6 +82,26 @@ export class StageMapScene extends Phaser.Scene {
     this.draw();
   }
 
+  /** atlas_map_results loads with this scene. Nodes and stars wait until its frames exist. */
+  private mapArtReady(): boolean {
+    if (!this.textures.exists("atlas_map_results")) return false;
+    const atlas = this.textures.get("atlas_map_results");
+    return mapResultsFramesReady((frame) => atlas.has(frame));
+  }
+
+  private waitForMapArt(): void {
+    if (this.waitingForMapArt) return;
+    this.waitingForMapArt = true;
+    this.load.once("complete", () => {
+      this.waitingForMapArt = false;
+      if (this.scene.isActive()) this.draw();
+    });
+    if (this.load.isLoading()) return;
+    queueWarm(this, ["atlas_map_results"], []);
+    if (this.load.totalToLoad > 0) this.load.start();
+    else this.waitingForMapArt = false;
+  }
+
   private fight(stageId: number): void {
     const save = getSave();
     const stage = stageById(stageId);
@@ -92,6 +113,10 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   private draw(): void {
+    if (!this.mapArtReady()) {
+      this.waitForMapArt();
+      return;
+    }
     const save = getSave();
     if (!save) return;
     this.tweens.killAll();

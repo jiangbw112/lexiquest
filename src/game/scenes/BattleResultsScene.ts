@@ -7,12 +7,14 @@ import {
   PRACTICE_LINE_2,
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
+  resultsLowerShift,
+  resultsStackNudge,
   visibleItems,
   type BattleResultsView,
   type ResultItem,
 } from "../../domain/battle-results";
 import { levelFromXp } from "../../domain/progress";
-import { skillCardFrame, skillLevelFrame } from "../../domain/skill-card-face";
+import { skillCardFrame, skillIconFrame, skillLevelFrame } from "../../domain/skill-card-face";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -244,21 +246,21 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawWords(): void {
     const view = this.view;
     if (!(view.won === false && view.correct === 0)) {
-      this.add.image(480, 130, "atlas_ui_core", "icon_check").setOrigin(0, 0).setDisplaySize(40, 40);
-      this.add.text(530, 150, `答对 ${view.correct} 题`, {
+      this.add.image(480, this.wy(130), "atlas_ui_core", "icon_check").setOrigin(0, 0).setDisplaySize(40, 40);
+      this.add.text(530, this.wy(150), `答对 ${view.correct} 题`, {
         fontFamily: FONT_BODY,
         fontSize: "32px",
         fontStyle: "700",
         color: INK,
       }).setOrigin(0, 0.5);
       if (view.won) {
-        this.add.text(700, 154, `一共 ${view.total} 题`, {
+        this.add.text(700, this.wy(154), `一共 ${view.total} 题`, {
           fontFamily: FONT_BODY,
           fontSize: "18px",
           color: MUTED,
         }).setOrigin(0, 0.5);
       } else if (view.correct > 0) {
-        this.add.text(700, 154, "这些词你答对了！", {
+        this.add.text(700, this.wy(154), "这些词你答对了！", {
           fontFamily: FONT_BODY,
           fontSize: "18px",
           fontStyle: "700",
@@ -266,7 +268,7 @@ export class BattleResultsScene extends Phaser.Scene {
         }).setOrigin(0, 0.5);
       }
     } else {
-      this.add.text(530, 150, "这次的词有点难，下次一起再试试。", {
+      this.add.text(530, this.wy(150), "这次的词有点难，下次一起再试试。", {
         fontFamily: FONT_BODY,
         fontSize: "22px",
         fontStyle: "700",
@@ -274,7 +276,7 @@ export class BattleResultsScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
     }
     if (view.words.length > 0) {
-      this.add.text(480, 186, "本场单词", {
+      this.add.text(480, this.wy(186), "本场单词", {
         fontFamily: FONT_BODY,
         fontSize: "16px",
         fontStyle: "700",
@@ -283,7 +285,7 @@ export class BattleResultsScene extends Phaser.Scene {
     }
     view.words.forEach((word, index) => {
       const x = 477 + (index % 4) * 182;
-      const y = 220 + Math.floor(index / 4) * 76;
+      const y = this.wy(220 + Math.floor(index / 4) * 76);
       const frame = word.correct ? "word_chip_correct" : "word_chip_plain";
       const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(170, 64);
       chip.setInteractive({ useHandCursor: true });
@@ -310,13 +312,31 @@ export class BattleResultsScene extends Phaser.Scene {
         }).setOrigin(1, 0);
       }
     });
-    if (view.extraWords > 0) {
-      this.add.text(480, 372, `还有 ${view.extraWords} 个词也练到了`, {
+    if (view.extraWords > 0 && view.words.length > 0) {
+      const rows = Math.ceil(view.words.length / 4);
+      const chipBottom = 220 + (rows - 1) * 76 + 64;
+      this.add.text(480, this.wy(chipBottom + 16), `还有 ${view.extraWords} 个词也练到了`, {
         fontFamily: FONT_BODY,
         fontSize: "16px",
         color: INK,
       }).setOrigin(0, 0.5);
     }
+  }
+
+  /** Reward and encouragement blocks sit one gap under the words, even when the list is a single row. */
+  private dy(y: number): number {
+    return y - resultsLowerShift(this.view.words.length, this.view.extraWords) + this.stackNudge();
+  }
+
+  /** Word rows share the same nudge, so a short stack stays together while it centers. */
+  private wy(y: number): number {
+    return y + this.stackNudge();
+  }
+
+  private stackNudge(): number {
+    const view = this.view;
+    const mode = !view.won || view.card || view.items.length > 0 ? "tall" : view.practiceOnly ? "practice" : "xp";
+    return resultsStackNudge(view.words.length, view.extraWords, mode);
   }
 
   private drawWinBody(): void {
@@ -326,35 +346,35 @@ export class BattleResultsScene extends Phaser.Scene {
       if (view.items.length > 0) this.drawPracticeItems();
       return;
     }
-    this.add.text(480, 430, "经验", {
+    this.add.text(480, this.dy(430), "经验", {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0.5);
     this.drawXpBar();
-    this.goldCapsule(1080, 430, uiLabel("+经验"));
+    this.goldCapsule(1080, this.dy(430), uiLabel("+经验"));
     if (view.thirdReplayReward) {
-      this.add.text(540, 460, PRACTICE_NOTICE, {
+      this.add.text(540, this.dy(460), PRACTICE_NOTICE, {
         fontFamily: FONT_BODY,
         fontSize: "16px",
         color: NOTE,
       }).setOrigin(0, 0.5);
     }
     if (view.card) this.drawCard();
-    if (view.items.length > 0) this.drawItemBox(845, 476, 348, 200, false);
+    if (view.items.length > 0) this.drawItemBox(845, this.dy(476), 348, 200, false);
   }
 
   private practiceCard(height: number): void {
-    this.topLeftRow(495, 420, 680, height);
-    this.add.image(523, 452, "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(56, 56);
-    this.add.text(597, 450, PRACTICE_LINE_1, {
+    this.topLeftRow(495, this.dy(420), 680, height);
+    this.add.image(523, this.dy(452), "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(56, 56);
+    this.add.text(597, this.dy(450), PRACTICE_LINE_1, {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(597, 486, PRACTICE_LINE_2, {
+    this.add.text(597, this.dy(486), PRACTICE_LINE_2, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       color: INK,
@@ -362,30 +382,30 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   private drawPracticeItems(): void {
-    this.topLeftRow(495, 546, 680, 140);
-    this.add.text(517, 556, "获得物品", {
+    this.topLeftRow(495, this.dy(546), 680, 140);
+    this.add.text(517, this.dy(556), "获得物品", {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(617, 560, MASTERY_ITEM_LINE, {
+    this.add.text(617, this.dy(560), MASTERY_ITEM_LINE, {
       fontFamily: FONT_BODY,
       fontSize: "16px",
       color: TEAL_DEEP,
     }).setOrigin(0, 0);
     const { shown, extra } = visibleItems(this.view.items, true);
-    if (extra > 0) this.moreBadge(1159, 568, extra);
+    if (extra > 0) this.moreBadge(1159, this.dy(568), extra);
     shown.forEach((item, index) => {
       const left = index === 0 ? 505 : 840;
-      this.thumb(item, left + 8, 604);
-      this.add.text(left + 68, 606, item.heading, {
+      this.thumb(item, left + 8, this.dy(604));
+      this.add.text(left + 68, this.dy(606), item.heading, {
         fontFamily: FONT_BODY,
         fontSize: "18px",
         fontStyle: "700",
         color: INK,
       }).setOrigin(0, 0);
-      this.add.text(left + 68, 631, item.line, {
+      this.add.text(left + 68, this.dy(631), item.line, {
         fontFamily: FONT_BODY,
         fontSize: "14px",
         color: MUTED,
@@ -397,7 +417,7 @@ export class BattleResultsScene extends Phaser.Scene {
     const before = levelFromXp(this.view.xpBefore);
     const after = levelFromXp(this.view.xpAfter);
     const x = 540;
-    const y = 416;
+    const y = this.dy(416);
     const width = 470;
     const height = 28;
     warmSlice(this, "atlas_ui_core", "progress_frame", width, height).setPosition(x + width / 2, y + height / 2);
@@ -428,35 +448,39 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawCard(): void {
     const card = this.view.card;
     if (!card) return;
-    this.topLeftRow(477, 476, 360, 200);
+    this.topLeftRow(477, this.dy(476), 360, 200);
     const frame = skillCardFrame("ready", "equipped", card.to);
     if (this.textures.exists("atlas_battle") && this.textures.get("atlas_battle").has(frame)) {
-      this.add.image(491, 488, "atlas_battle", frame).setOrigin(0, 0).setDisplaySize(140, 176);
+      this.add.image(491, this.dy(488), "atlas_battle", frame).setOrigin(0, 0).setDisplaySize(140, 176);
     }
-    this.add.text(649, 490, "卡牌升级", {
+    const icon = skillIconFrame(card.id);
+    if (this.textures.exists("atlas_skills") && this.textures.get("atlas_skills").has(icon)) {
+      this.add.image(561, this.dy(564), "atlas_skills", icon).setDisplaySize(64, 64);
+    }
+    this.add.text(649, this.dy(490), "卡牌升级", {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(649, 528, card.name, {
+    this.add.text(649, this.dy(528), card.name, {
       fontFamily: FONT_BODY,
       fontSize: "26px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(649, 566, "升级了！", {
+    this.add.text(649, this.dy(566), "升级了！", {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       color: TEAL_DEEP,
     }).setOrigin(0, 0);
-    this.levelBadge(653, 608, card.from);
-    this.levelBadge(733, 608, card.to);
+    this.levelBadge(653, this.dy(608), card.from);
+    this.levelBadge(733, this.dy(608), card.to);
     const arrow = this.add.graphics();
     arrow.lineStyle(3, 0x3b2a20, 1);
     arrow.beginPath();
-    arrow.moveTo(705, 630);
-    arrow.lineTo(725, 630);
+    arrow.moveTo(705, this.dy(630));
+    arrow.lineTo(725, this.dy(630));
     arrow.strokePath();
   }
 
@@ -468,16 +492,16 @@ export class BattleResultsScene extends Phaser.Scene {
 
   private drawItemBox(x: number, y: number, width: number, height: number, practice: boolean): void {
     this.topLeftRow(x, y, width, height);
-    this.add.text(863, 488, "获得物品", {
+    this.add.text(863, this.dy(488), "获得物品", {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
     const { shown, extra } = visibleItems(this.view.items, practice);
-    if (extra > 0) this.moreBadge(1177, 500, extra);
+    if (extra > 0) this.moreBadge(1177, this.dy(500), extra);
     shown.forEach((item, index) => {
-      const row = 520 + index * 50;
+      const row = this.dy(520 + index * 50);
       this.thumb(item, 863, row);
       this.add.text(923, row + 2, item.heading, {
         fontFamily: FONT_BODY,
@@ -526,21 +550,21 @@ export class BattleResultsScene extends Phaser.Scene {
 
   private drawLossBody(): void {
     const view = this.view;
-    this.add.image(480, 414, "atlas_battle", "icon_heart").setOrigin(0, 0).setDisplaySize(32, 32);
-    this.add.text(522, 430, LOSS_ENCOURAGEMENT, {
+    this.add.image(480, this.dy(414), "atlas_battle", "icon_heart").setOrigin(0, 0).setDisplaySize(32, 32);
+    this.add.text(522, this.dy(430), LOSS_ENCOURAGEMENT, {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0.5);
-    this.topLeftRow(477, 476, 716, 200);
-    this.add.image(509, 540, "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(64, 64);
+    this.topLeftRow(477, this.dy(476), 716, 200);
+    this.add.image(509, this.dy(540), "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(64, 64);
     const lines = ["词灵这次赢了一点点。"];
     if (view.anyUncorrected) lines.push("没打勾的词，去复习桌看一看，下次就能答对。");
     lines.push("每答对一个词，你都在变强。");
     const tops = view.anyUncorrected ? [506, 550, 600] : [506, 600];
     lines.forEach((line, index) => {
-      this.add.text(597, tops[index] ?? 600, line, {
+      this.add.text(597, this.dy(tops[index] ?? 600), line, {
         fontFamily: FONT_BODY,
         fontSize: "18px",
         color: INK,

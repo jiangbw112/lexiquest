@@ -232,6 +232,49 @@ export function moreBadgeLabel(extra: number): string {
   return String(extra);
 }
 
+/**
+ * Two word rows end at y=360, and the reward block is laid out under that.
+ * A shorter list moves that block up by the unused height so the gap stays put.
+ */
+export function resultsLowerShift(wordCount: number, extraWords: number): number {
+  const rows = wordCount <= 0 ? 0 : Math.ceil(wordCount / 4);
+  const chipBottom = rows === 0 ? 186 : 220 + (rows - 1) * 76 + 64;
+  const blockBottom = extraWords > 0 ? chipBottom + 28 : chipBottom;
+  return Math.max(0, 360 - blockBottom);
+}
+
+const RESULTS_PANEL_TOP = 116;
+const RESULTS_PANEL_BOTTOM = 704;
+const RESULTS_HEADER_TOP = 130;
+
+/**
+ * A card, item list, or the loss box already fills the parchment.
+ * Practice-only and XP-only stacks are short, so they move down together
+ * and sit in the middle instead of leaving the lower half empty.
+ */
+export function resultsStackNudge(
+  wordCount: number,
+  extraWords: number,
+  mode: "tall" | "practice" | "xp",
+): number {
+  if (mode === "tall") return 0;
+  const shift = resultsLowerShift(wordCount, extraWords);
+  const bottom = (mode === "practice" ? 540 : 480) - shift;
+  const pad = 36;
+  const slack = RESULTS_PANEL_BOTTOM - pad - bottom;
+  if (slack < 72) return 0;
+  const block = bottom - RESULTS_HEADER_TOP;
+  const inner = RESULTS_PANEL_BOTTOM - pad - RESULTS_PANEL_TOP;
+  return Math.max(0, Math.round((inner - block) / 2 - (RESULTS_HEADER_TOP - RESULTS_PANEL_TOP)));
+}
+
+export const MAP_RESULT_FRAMES = ["map_star_on", "map_star_off", "map_node_boss_cleared"] as const;
+
+/** Nodes and stars share one paint. Missing any of these frames means the map atlas is not ready. */
+export function mapResultsFramesReady(hasFrame: (frame: string) => boolean): boolean {
+  return MAP_RESULT_FRAMES.every((frame) => hasFrame(frame));
+}
+
 const MAP_NODES = [
   { x: 230, y: 620 },
   { x: 430, y: 490 },

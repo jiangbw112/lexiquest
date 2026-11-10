@@ -7,8 +7,11 @@ import {
   MAP_PRACTICE_NOTE,
   PRACTICE_LINE_1,
   PRACTICE_LINE_2,
+  mapResultsFramesReady,
   mapStarCenter,
   moreBadgeLabel,
+  resultsLowerShift,
+  resultsStackNudge,
   RESULTS_LAYOUT,
   starsFor,
   visibleItems,
@@ -247,5 +250,47 @@ describe("battle results stars and words", () => {
     expect(mapStarCenter(4)).toEqual({ x: 690, y: 512 });
     expect(scene).not.toContain("还有 ${extra} 样");
     expect(scene).toContain("moreBadgeLabel");
+    expect(scene).toContain("skillIconFrame");
+    expect(scene).toContain("resultsLowerShift");
+    expect(scene).toContain("resultsStackNudge");
+    expect(battle.indexOf("this.concealBattleActors()")).toBeLessThan(battle.indexOf('scene.launch("battle-results"'));
+  });
+
+  it("moves the reward block up for a one-row word list and leaves two rows in place", () => {
+    expect(resultsLowerShift(1, 0)).toBe(76);
+    expect(resultsLowerShift(4, 0)).toBe(76);
+    expect(resultsLowerShift(5, 0)).toBe(0);
+    expect(resultsLowerShift(8, 2)).toBe(0);
+    expect(resultsLowerShift(0, 0)).toBe(174);
+  });
+
+  it("centers a short practice or XP stack and leaves a filled reward block where it is", () => {
+    expect(resultsStackNudge(1, 0, "tall")).toBe(0);
+    expect(resultsStackNudge(5, 0, "tall")).toBe(0);
+    expect(resultsStackNudge(5, 0, "practice")).toBe(57);
+    expect(resultsStackNudge(1, 0, "xp")).toBe(125);
+    expect(resultsStackNudge(4, 0, "xp")).toBe(125);
+    const shift = resultsLowerShift(1, 0);
+    const nudge = resultsStackNudge(1, 0, "xp");
+    const wordBottom = 220 + 64 + nudge;
+    const xp = 430 - shift + nudge;
+    expect(xp - wordBottom).toBe(70);
+  });
+
+  it("refuses to paint map nodes until the results atlas frames are loaded", () => {
+    expect(mapResultsFramesReady(() => false)).toBe(false);
+    expect(mapResultsFramesReady((frame) => frame !== "map_star_on")).toBe(false);
+    expect(mapResultsFramesReady((frame) => frame !== "map_star_off")).toBe(false);
+    expect(mapResultsFramesReady((frame) => frame !== "map_node_boss_cleared")).toBe(false);
+    expect(mapResultsFramesReady(() => true)).toBe(true);
+    const map = source("../game/scenes/StageMapScene.ts");
+    const boot = source("../game/scenes/BootScene.ts");
+    const guard = map.indexOf("if (!this.mapArtReady())");
+    const paint = map.indexOf('warmBackground(this, "bg_map")');
+    expect(boot).not.toContain("atlas_map_results");
+    expect(map).toContain('queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results"');
+    expect(map).toContain("mapResultsFramesReady");
+    expect(guard).toBeGreaterThan(0);
+    expect(paint).toBeGreaterThan(guard);
   });
 });
