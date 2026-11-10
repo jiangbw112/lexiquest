@@ -18,6 +18,7 @@ import { isDesktopShell, shellCopy } from "../../domain/host-copy";
 import { commit, getSave, mutate, saveCacheNotice } from "../session";
 import { STRUGGLE_LIST, cjkWrap, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
+import { paintShellDom } from "../shell-dom";
 import { FONT } from "../ui";
 import { warmButton, warmChip, warmPanel, warmTab } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
@@ -106,6 +107,7 @@ export class GuideScene extends Phaser.Scene {
       form?.classList.remove("open");
       return;
     }
+    paintShellDom(document, isDesktopShell());
     form?.classList.add("open");
     if (title) title.textContent = pinFormTitle(this.pinSession.phase);
     confirmLabel?.classList.toggle("hidden", this.pinSession.phase !== "setup");

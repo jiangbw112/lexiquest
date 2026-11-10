@@ -219,6 +219,7 @@ await shot(first.page, "elec2-about-srcdoc.png");
 const desktopCopy = await first.page.evaluate(() => ({
   label: document.documentElement.dataset.clearCacheLabel ?? "",
   notice: document.documentElement.dataset.saveCacheNotice ?? "",
+  pinNote: document.getElementById("pin-note")?.textContent ?? "",
 }));
 await first.page.evaluate((copy) => {
   const panel = document.createElement("div");
@@ -263,11 +264,16 @@ const report = {
   aboutSrcdocHref: afterSrcdoc?.href ?? null,
   desktopLabel: desktopCopy.label,
   desktopNotice: desktopCopy.notice,
+  pinNote: desktopCopy.pinNote,
 };
 console.log(JSON.stringify(report, null, 2));
 const desktopWording =
   report.desktopLabel === "清除这台电脑的缓存" &&
   report.desktopNotice.includes("这台电脑") &&
+  report.desktopNotice.includes("游戏数据") &&
+  !report.desktopNotice.includes("站点数据") &&
+  report.pinNote.includes("这台电脑") &&
+  !report.pinNote.includes("浏览器") &&
   !report.desktopLabel.includes("浏览器") &&
   !report.desktopNotice.includes("浏览器");
 const ok =
