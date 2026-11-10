@@ -1,0 +1,96 @@
+{
+ "frames": {
+  "monster_inkling_idle": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_inkling_hit": {
+   "frame": {
+    "x": 516,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_page_idle": {
+   "frame": {
+    "x": 1030,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_page_hit": {
+   "frame": {
+    "x": 2,
+    "y": 516,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest batch3 build_b.py (code-drawn)",
+  "version": "0.4-batch3",
+  "image": "atlas_monsters.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 2048
+  },
+  "scale": "2",
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -104,11 +104,11 @@ describe("warm text contrast", () => {
     expect(contrastRows().length).toBeGreaterThan(40);
     expect(contrastRows().filter((row) => !row.pass)).toEqual([]);
     const approved = [
-      ["徽章", "变灰", "#5B4B6B", "#FFF8EE"],
-      ["名称", "未解锁", "#5B4B6B", "#FFF8EE"],
+      ["徽章", "变灰", "#5B4B6B", "#FFF4DC"],
+      ["名称", "未解锁", "#5B4B6B", "#FFF4DC"],
       ["确认", "悬停", "#FFF4DC", "#1F6F64"],
       ["技能", "常态", "#FFF4DC", "#A9432B"],
-      ["能量", "常态", "#1F4E3D", "#C9E6D4"],
+      ["奖励标题", "常态", "#FFF4DC", "#775036"],
       ["招牌", "常态", "#3B2A20", "#FFF4DC"],
       ["确认", "禁用", "#3F2E25", "#CFC4B2"],
     ] as const;

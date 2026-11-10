@@ -3,6 +3,8 @@ export const CREAM = "#FFF4DC";
 export const MUTED = "#46363A";
 export const DIS_TEXT = "#3F2E25";
 export const ERR_TEXT = "#834735";
+/** Palette NOTE. Replaces the old amber #8A5A12 on cream. */
+export const NOTE = "#61402D";
 
 /** Text-carrying faces from style_warm v0.3 batch2 (b2.2). */
 export const TERRA = "#A9432B";

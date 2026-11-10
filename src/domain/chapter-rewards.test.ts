@@ -15,7 +15,7 @@ import {
   visibilityForCosmetics,
   type ChapterRewardConfig,
 } from "./chapter-rewards";
-import { notePracticeAnswer, parentView } from "./parent";
+import { notePracticeAnswer, parentView, studyDayKey } from "./parent";
 import { applyBattleOutcome, createSave, learnWord, reviewWord } from "./progress";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { chapterWordIds, litMasteryCount } from "./stages";
@@ -232,12 +232,15 @@ describe("forest chapter rewards", () => {
     expect(granted.cosmeticTokens).toBe(save.cosmeticTokens);
     expect(granted.battlesWon).toBe(save.battlesWon);
     expect(granted.unlockedCosmeticIds).toEqual(["forest_leaf_cape", "acorn_pin", "forest_wreath"]);
+    const zone = "UTC";
     const practiced = notePracticeAnswer(
       {
         ...granted,
         cosmeticTokens: 2,
+        goalCalendar: {},
+        lastGoalCompletedDayKey: null,
         dailyGoal: {
-          dayKey: "2026-03-01",
+          dayKey: studyDayKey(START, zone),
           snapshotDue: 0,
           mode: "practice_fallback",
           targetReview: 0,
@@ -252,6 +255,7 @@ describe("forest chapter rewards", () => {
       },
       "tree",
       START,
+      zone,
     );
     expect(practiced.cosmeticTokens).toBe(3);
     expect(practiced.unlockedCosmeticIds).toEqual(granted.unlockedCosmeticIds);

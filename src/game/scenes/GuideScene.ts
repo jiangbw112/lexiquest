@@ -54,6 +54,7 @@ export class GuideScene extends Phaser.Scene {
     probeEnter("guide");
     this.pinSession = createParentPinSession({ gate: pbkdf2PinGate, vault: browserParentPinVault() });
     this.pinBusy = false;
+    this.notice = "";
     this.gradeDraft = normalizeGrades(getSave()?.selectedGrades);
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {

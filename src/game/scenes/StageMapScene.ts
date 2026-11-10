@@ -16,12 +16,12 @@ import {
   wordsUntilBoss,
 } from "../../domain/stages";
 import { uiLabel } from "../../domain/ui-label";
-import { MAP_WORD_CARD_HIT } from "../hit";
+import { MAP_WORD_CARD_HIT, mapWordCardCenter } from "../hit";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmBar, warmButton, warmPanel, warmTitlePlank } from "../warm/kit";
+import { warmBar, warmButton, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
 import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
@@ -196,11 +196,10 @@ export class StageMapScene extends Phaser.Scene {
       cursor += 56;
     }
     panel.words.forEach((face, index) => {
-      const column = index % 3;
-      const row = Math.floor(index / 3);
-      const x = panelX - 84 + column * 86;
-      const y = cursor + 20 + row * 48;
-      const card = this.add.image(x, y, "atlas_map", face.english ? "map_word_card" : "map_word_unknown").setScale(0.5);
+      const { x, y } = mapWordCardCenter(panelX, cursor, index);
+      const frame = face.english ? "map_word_card" : "map_word_unknown";
+      const card = warmSlice(this, "atlas_map", frame, 80, 48);
+      card.setPosition(x, y);
       const text = this.add.text(x, y - 2, face.english ?? "?", {
         fontFamily: FONT_LATIN,
         fontSize: face.english ? "14px" : "18px",
@@ -224,7 +223,7 @@ export class StageMapScene extends Phaser.Scene {
         });
       }
     });
-    if (panel.words.length > 0) cursor += panel.words.length > 3 ? 108 : 56;
+    if (panel.words.length > 0) cursor += panel.words.length > 3 ? 120 : 60;
     if (panel.unlockLine) {
       this.add.text(panelX, cursor + 8, panel.unlockLine, {
         fontFamily: FONT,

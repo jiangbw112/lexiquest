@@ -43,18 +43,42 @@ export function villageSignLocal(): { x: number; y: number } {
   };
 }
 
-/**
- * `map_word_card` is 160×80. At scale 0.5 the picture is 80×40.
- * The rectangle starts 8 texture pixels above the frame, so the click
- * area is 80×48: 4 logical pixels past the art on the top and the bottom.
- * Phaser adds the image origin before testing this rectangle.
- */
-export const MAP_WORD_CARD_HIT: HitRect = { x: 0, y: -8, width: 160, height: 96 };
+/** SPEC A5 / A2.1: the stretched card and its hit area are the same 80×48. */
+export const MAP_WORD_CARD_WIDTH = 80;
+export const MAP_WORD_CARD_HEIGHT = 48;
+export const MAP_WORD_CARD_ROW = 56;
+export const MAP_WORD_CARD_COL = 86;
 
-/** World offset from a word card's center. Scale is 0.5 and the origin is the frame center. */
+/**
+ * NineSlice is created at 160×96 and scaled by 0.5.
+ * Phaser adds the display origin before the contains test, so the rect starts at 0,0.
+ */
+export const MAP_WORD_CARD_HIT: HitRect = { x: 0, y: 0, width: 160, height: 96 };
+
+export function mapWordCardCenter(panelX: number, cursor: number, index: number): { x: number; y: number } {
+  const column = index % 3;
+  const row = Math.floor(index / 3);
+  return {
+    x: panelX - 84 + column * MAP_WORD_CARD_COL,
+    y: cursor + 24 + row * MAP_WORD_CARD_ROW,
+  };
+}
+
+/** Positive means clear space between the two 80×48 hit boxes on that axis. */
+export function mapWordCardSeparation(a: { x: number; y: number }, b: { x: number; y: number }): { x: number; y: number } {
+  return {
+    x: Math.abs(a.x - b.x) - MAP_WORD_CARD_WIDTH,
+    y: Math.abs(a.y - b.y) - MAP_WORD_CARD_HEIGHT,
+  };
+}
+
+export function mapWordCardsOverlap(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
+  return Math.abs(a.x - b.x) < MAP_WORD_CARD_WIDTH && Math.abs(a.y - b.y) < MAP_WORD_CARD_HEIGHT;
+}
+
+/** Offset from a word card's center. The box is the visible 80×48, edges included. */
 export function pointerHitsMapWordCard(dx: number, dy: number): boolean {
-  const scale = 0.5;
-  const x = dx / scale + 80;
-  const y = dy / scale + 40;
-  return rectContains(MAP_WORD_CARD_HIT, x, y);
+  const x = dx + MAP_WORD_CARD_WIDTH / 2;
+  const y = dy + MAP_WORD_CARD_HEIGHT / 2;
+  return rectContains({ x: 0, y: 0, width: MAP_WORD_CARD_WIDTH, height: MAP_WORD_CARD_HEIGHT }, x, y);
 }

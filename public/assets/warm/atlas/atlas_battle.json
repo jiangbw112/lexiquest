@@ -579,18 +579,258 @@
     "w": 48,
     "h": 48
    }
+  },
+  "card_lv_badge_bronze": {
+   "frame": {
+    "x": 1964,
+    "y": 2,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   }
+  },
+  "card_lv_badge_silver": {
+   "frame": {
+    "x": 1964,
+    "y": 84,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   }
+  },
+  "card_lv_badge_gold": {
+   "frame": {
+    "x": 1694,
+    "y": 92,
+    "w": 80,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 80
+   }
+  },
+  "equip_order_1": {
+   "frame": {
+    "x": 1694,
+    "y": 2,
+    "w": 88,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 88,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 88,
+    "h": 88
+   }
+  },
+  "equip_order_2": {
+   "frame": {
+    "x": 1784,
+    "y": 2,
+    "w": 88,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 88,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 88,
+    "h": 88
+   }
+  },
+  "equip_order_3": {
+   "frame": {
+    "x": 1874,
+    "y": 2,
+    "w": 88,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 88,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 88,
+    "h": 88
+   }
+  },
+  "card_frame_base": {
+   "frame": {
+    "x": 848,
+    "y": 2,
+    "w": 280,
+    "h": 352
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 280,
+    "h": 352
+   },
+   "sourceSize": {
+    "w": 280,
+    "h": 352
+   }
+  },
+  "card_frame_disabled": {
+   "frame": {
+    "x": 1130,
+    "y": 2,
+    "w": 280,
+    "h": 352
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 280,
+    "h": 352
+   },
+   "sourceSize": {
+    "w": 280,
+    "h": 352
+   }
+  },
+  "card_hover_ring": {
+   "frame": {
+    "x": 1412,
+    "y": 2,
+    "w": 280,
+    "h": 352
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 280,
+    "h": 352
+   },
+   "sourceSize": {
+    "w": 280,
+    "h": 352
+   }
+  },
+  "energy_pip_on": {
+   "frame": {
+    "x": 1776,
+    "y": 92,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   }
+  },
+  "energy_pip_off": {
+   "frame": {
+    "x": 1818,
+    "y": 92,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   }
+  },
+  "energy_pip_cost": {
+   "frame": {
+    "x": 1860,
+    "y": 92,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   }
   }
  },
  "meta": {
-  "app": "LexiQuest batch2 export.py (code-drawn)",
-  "version": "0.3-batch2",
+  "app": "LexiQuest batch3 build_b.py (code-drawn)",
+  "version": "0.4-batch3",
   "image": "atlas_battle.png",
   "format": "RGBA8888",
   "size": {
-   "w": 1024,
+   "w": 2048,
    "h": 1024
   },
   "scale": "2",
-  "status": "暂定 provisional"
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 batch3 · code-drawn (Pillow/NumPy, no AI)"
  }
 }

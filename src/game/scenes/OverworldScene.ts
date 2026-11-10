@@ -9,8 +9,8 @@ import { containerHitArea, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, vill
 import { listenKeys } from "../ui";
 import { LayeredActor } from "../actors";
 import { PLACES, SAFE, type Place } from "../layout";
-import { warmButton, warmPanel } from "../warm/kit";
-import { warmBackground } from "../warm/load";
+import { warmButton, warmPanel, warmSlice } from "../warm/kit";
+import { queueWarm, warmBackground } from "../warm/load";
 import { CREAM, FONT_BODY, FONT_TITLE, INK, TEAL_DEEP } from "../warm/theme";
 
 export class OverworldScene extends Phaser.Scene {
@@ -20,6 +20,10 @@ export class OverworldScene extends Phaser.Scene {
 
   constructor() {
     super("overworld");
+  }
+
+  preload(): void {
+    queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_village"]);
   }
 
   create(): void {
@@ -128,16 +132,25 @@ export class OverworldScene extends Phaser.Scene {
     }
     if (this.toast || save.rewardQueue[0]) {
       const notice = save.rewardQueue[0];
-      const text = notice ? `${notice.title}。${notice.detail}` : this.toast;
-      const banner = this.add.rectangle(640, 188, 860, 128, 0x17352a, 0.92);
-      banner.setInteractive({ useHandCursor: true });
-      banner.on("pointerdown", () => {
+      const mask = this.add.rectangle(640, 400, 1280, 800, 0x3b2a20, 0.65);
+      mask.setInteractive();
+      const dialog = warmSlice(this, "atlas_ui_core", "dialog", 860, 220);
+      dialog.setPosition(640, 230);
+      const title = notice?.title ?? "";
+      const detail = notice?.detail ?? this.toast;
+      this.add.text(640, 172, title, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: CREAM }).setOrigin(0.5);
+      this.add.text(640, 248, detail, { fontFamily: FONT_BODY, fontSize: "18px", color: INK, wordWrap: { width: 760 }, align: "center" }).setOrigin(0.5);
+      this.add.text(640, 308, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: INK }).setOrigin(0.5);
+      const hit = this.add.container(640, 230);
+      hit.setSize(860, 220);
+      const area = containerHitArea(860, 220);
+      hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
+      if (hit.input) hit.input.cursor = "pointer";
+      hit.on("pointerdown", () => {
         if (getSave()?.rewardQueue[0]) mutate((current) => dismissReward(current));
         this.toast = "";
         this.draw();
       });
-      this.add.text(640, 168, text, { fontFamily: FONT_BODY, fontSize: "18px", color: "#fffaf3", wordWrap: { width: 800 } }).setOrigin(0.5);
-      this.add.text(640, 224, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: "#d7ecdf" }).setOrigin(0.5);
     }
   }
 

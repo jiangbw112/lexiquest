@@ -7,7 +7,7 @@ import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmButton, warmChip, warmPanel } from "../warm/kit";
-import { warmBackground } from "../warm/load";
+import { warmBackground, warmInBackground } from "../warm/load";
 import { CREAM, ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
 
 export type GradeLaunchMode = "new" | "migrate" | "ask-parent";
@@ -51,6 +51,7 @@ export class GradeScene extends Phaser.Scene {
       if (event.code === "Escape" && this.mode === "new") this.scene.start("title");
     });
     this.draw();
+    warmInBackground(this, ["atlas_village"], ["bg_village", "bg_room"]);
   }
 
   private toggle(grade: GradeBand): void {

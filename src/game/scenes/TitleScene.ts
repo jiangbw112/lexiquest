@@ -7,7 +7,7 @@ import { getSave } from "../session";
 import { listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
 import { warmButton } from "../warm/kit";
-import { warmBackground } from "../warm/load";
+import { warmBackground, warmInBackground } from "../warm/load";
 import { CREAM, FONT_BODY, INK, MUTED } from "../warm/theme";
 
 export class TitleScene extends Phaser.Scene {
@@ -17,6 +17,7 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     probeEnter("title");
+    warmInBackground(this, ["atlas_village"], ["bg_village"]);
     warmBackground(this, "bg_home");
     this.add.image(640, 196, "logo_title").setDisplaySize(620, 236);
     this.creamLine(640, 365, "认识单词，收集词卡，和词灵比试。", {

@@ -16,6 +16,7 @@
     "kuaileBytes": 102400,
     "gradeBytes": 40960,
     "bootBytes": 4194304,
+    "bootWarnBytes": 3800000,
     "kuaileMaxChars": 24
   }
 }

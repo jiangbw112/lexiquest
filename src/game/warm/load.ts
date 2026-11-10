@@ -6,6 +6,10 @@ const ATLASES = {
   atlas_battle: ["assets/warm/atlas/atlas_battle.png", "assets/warm/atlas/atlas_battle.json"],
   atlas_parent: ["assets/warm/atlas/atlas_parent.png", "assets/warm/atlas/atlas_parent.json"],
   atlas_village: ["assets/warm/atlas/atlas_village.png", "assets/warm/atlas/atlas_village.json"],
+  atlas_skills: ["assets/warm/atlas/atlas_skills.png", "assets/warm/atlas/atlas_skills.json"],
+  atlas_monsters: ["assets/warm/atlas/atlas_monsters.png", "assets/warm/atlas/atlas_monsters.json"],
+  atlas_wardrobe: ["assets/warm/atlas/atlas_wardrobe.png", "assets/warm/atlas/atlas_wardrobe.json"],
+  atlas_ui_pages: ["assets/warm/atlas/atlas_ui_pages.png", "assets/warm/atlas/atlas_ui_pages.json"],
 } as const;
 
 const IMAGES = {
@@ -15,6 +19,8 @@ const IMAGES = {
   bg_map: "assets/warm/backgrounds/bg_map_forest_2x.webp",
   bg_parent: "assets/warm/backgrounds/bg_parent_paper_2x.webp",
   bg_village: "assets/warm/backgrounds/bg_village_2x.webp",
+  bg_room: "assets/warm/backgrounds/bg_room_2x.webp",
+  bg_ending: "assets/warm/backgrounds/bg_ending_2x.webp",
 } as const;
 
 export function queueWarm(
@@ -35,4 +41,20 @@ export function queueWarm(
 
 export function warmBackground(scene: Phaser.Scene, key: keyof typeof IMAGES): Phaser.GameObjects.Image {
   return scene.add.image(640, 400, key).setDisplaySize(1280, 800);
+}
+
+/** Start a load without waiting. Skips files the texture cache already has. */
+export function warmInBackground(
+  scene: Phaser.Scene,
+  atlases: readonly (keyof typeof ATLASES)[],
+  images: readonly (keyof typeof IMAGES)[],
+): void {
+  queueWarm(scene, atlases, images);
+  if (scene.load.totalToLoad > 0) scene.load.start();
+}
+
+export function paintRoom(scene: Phaser.Scene): boolean {
+  if (!scene.textures.exists("bg_room")) return false;
+  warmBackground(scene, "bg_room");
+  return true;
 }

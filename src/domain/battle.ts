@@ -342,6 +342,7 @@ function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
     fullPower: effect,
     basePower: effect,
     energyCost: 0,
+    level: null,
   };
 }
 

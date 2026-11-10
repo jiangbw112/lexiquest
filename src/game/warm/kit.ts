@@ -4,7 +4,7 @@ import { blip } from "../audio";
 import { containerHitArea } from "../hit";
 import { OPTION_BADGE_CENTER } from "../layout";
 import { tabFrame, tabLabelY } from "./frames";
-import { CREAM, DIS_TEXT, FONT_LATIN, FONT_TITLE, INK, motionOff } from "./theme";
+import { CREAM, DIS_TEXT, ERR_TEXT, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, NOTE, motionOff } from "./theme";
 
 interface SlicePart {
   nineslice?: { left: number; right: number; top: number; bottom: number };
@@ -210,8 +210,8 @@ export function warmOption(
   id: string,
   label: string,
   onClick: () => void,
+  width = 640,
 ): WarmOption {
-  const width = 640;
   const height = 56;
   const frames = ["normal", "hover", "pressed", "disabled", "correct", "wrong"] as const;
   const slices = {} as Record<(typeof frames)[number], Phaser.GameObjects.NineSlice>;
@@ -332,8 +332,8 @@ export function warmTab(
       fontFamily: FONT_TITLE,
       fontSize: "22px",
       color: INK,
-      stroke: INK,
-      strokeThickness: selected ? 3 : 0,
+      stroke: NOTE,
+      strokeThickness: selected ? 1 : 0,
     })
     .setOrigin(0.5);
   const root = scene.add.container(x, y, [...states.map((state) => slices[state]), text]);
@@ -367,6 +367,29 @@ export function warmTab(
     text.setY(tabLabelY(true, "released"));
     blip();
     onClick();
+  });
+  return root;
+}
+
+/** Non-interactive bar. Error copy uses ERR, other copy uses ink. Fades after 2.4s. */
+export function warmToast(scene: Phaser.Scene, message: string, tone: "ink" | "err" = "ink"): Phaser.GameObjects.Container {
+  const text = scene.add
+    .text(0, 0, message, {
+      fontFamily: FONT_BODY,
+      fontSize: "18px",
+      color: tone === "err" ? ERR_TEXT : INK,
+    })
+    .setOrigin(0.5);
+  const width = Math.max(160, Math.ceil(text.width + 96));
+  const bar = warmSlice(scene, "atlas_ui_pages", "toast_bar", width, 52);
+  const root = scene.add.container(640, 420, [bar, text]);
+  scene.time.delayedCall(2400, () => {
+    if (!root.scene) return;
+    if (motionOff()) {
+      root.destroy();
+      return;
+    }
+    scene.tweens.add({ targets: root, alpha: 0, duration: 200, onComplete: () => root.destroy() });
   });
   return root;
 }

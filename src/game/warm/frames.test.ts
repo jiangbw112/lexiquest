@@ -76,7 +76,7 @@ describe("warm batch b2.2 faces", () => {
   it("keeps frame names and rectangles while the text-carrying faces use the new palette", () => {
     const battle = atlas("atlas_battle");
     const core = atlas("atlas_ui_core");
-    expect(battle.meta.size).toEqual({ w: 1024, h: 1024 });
+    expect(battle.meta.size).toEqual({ w: 2048, h: 1024 });
     expect(core.meta.size).toEqual({ w: 1024, h: 2048 });
     expect(battle.frames.btn_action_coral_normal?.frame).toEqual({ x: 2, y: 356, w: 176, h: 112 });
     expect(battle.frames.btn_action_coral_hover?.frame).toEqual({ x: 180, y: 356, w: 176, h: 112 });

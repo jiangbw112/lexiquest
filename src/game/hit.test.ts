@@ -1,6 +1,15 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { pointerHitsContainer, pointerHitsMapWordCard, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "./hit";
+import {
+  mapWordCardCenter,
+  mapWordCardSeparation,
+  mapWordCardsOverlap,
+  pointerHitsContainer,
+  pointerHitsMapWordCard,
+  VILLAGE_BUILDING_HEIGHT,
+  VILLAGE_BUILDING_WIDTH,
+  villageSignLocal,
+} from "./hit";
 import { PLACES } from "./layout";
 
 function hits(centerX: number, centerY: number, width: number, height: number, worldX: number, worldY: number): boolean {
@@ -119,12 +128,24 @@ describe("control hit areas", () => {
   it("grows the map word card hit area to 80 by 48 without reaching the next card", () => {
     expect(pointerHitsMapWordCard(0, 0)).toBe(true);
     expect(pointerHitsMapWordCard(39, 0)).toBe(true);
+    expect(pointerHitsMapWordCard(40, 0)).toBe(true);
     expect(pointerHitsMapWordCard(41, 0)).toBe(false);
+    expect(pointerHitsMapWordCard(0, -24)).toBe(true);
+    expect(pointerHitsMapWordCard(0, 24)).toBe(true);
     expect(pointerHitsMapWordCard(0, -23)).toBe(true);
     expect(pointerHitsMapWordCard(0, 23)).toBe(true);
     expect(pointerHitsMapWordCard(0, -20)).toBe(true);
     expect(pointerHitsMapWordCard(0, 25)).toBe(false);
     expect(pointerHitsMapWordCard(0, -25)).toBe(false);
+    const first = mapWordCardCenter(1024, 400, 0);
+    const beside = mapWordCardCenter(1024, 400, 1);
+    const below = mapWordCardCenter(1024, 400, 3);
+    expect(first.y).toBe(424);
+    expect(below.y - first.y).toBe(56);
+    expect(mapWordCardSeparation(first, beside)).toEqual({ x: 6, y: -48 });
+    expect(mapWordCardSeparation(first, below)).toEqual({ x: -80, y: 8 });
+    expect(mapWordCardsOverlap(first, beside)).toBe(false);
+    expect(mapWordCardsOverlap(first, below)).toBe(false);
   });
 
   it("wires the containers and the house through the aligned hit helpers", () => {
@@ -144,6 +165,9 @@ describe("control hit areas", () => {
     expect(map).toContain("cursor + 40");
     expect(map).toContain("cursor += 64");
     expect(map).toContain("MAP_WORD_CARD_HIT");
+    expect(map).toContain("mapWordCardCenter");
+    expect(map).toContain("120 : 60");
+    expect(map).toContain("warmSlice");
     expect(map).not.toContain("cursor + 28");
     expect(ui).toContain("if (!down) return");
     expect(ui).toContain("down = false");
