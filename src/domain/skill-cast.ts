@@ -27,14 +27,33 @@ export function emptySkillDeck(): SkillQuestionDeck {
 export function skillQuestionPool(
   dueIds: readonly string[],
   learnedIds: readonly string[],
-  options?: { allowedIds?: readonly string[] },
+  options?: { allowedIds?: readonly string[]; padOrder?: readonly string[]; target?: number },
 ): string[] {
   const learned = new Set(learnedIds);
   const allowed = options?.allowedIds ? new Set(options.allowedIds) : null;
   const inPool = (id: string) => learned.has(id) && Boolean(wordById(id)) && (!allowed || allowed.has(id));
   const due = unique(dueIds.filter(inPool));
-  if (due.length > 0) return due;
-  return unique(learnedIds.filter(inPool));
+  if (due.length === 0) return unique(learnedIds.filter(inPool));
+  const target = options?.target ?? 4;
+  if (due.length >= target) return due;
+  const pad = unique((options?.padOrder ?? learnedIds).filter((id) => inPool(id) && !due.includes(id)));
+  return [...due, ...pad].slice(0, target);
+}
+
+/** Earliest FSRS due first. Words with the same due time are shuffled by `seed`. */
+export function orderReviewWords(words: readonly { id: string; due: number }[], seed: number): string[] {
+  const groups = new Map<number, string[]>();
+  for (const word of words) {
+    const list = groups.get(word.due) ?? [];
+    list.push(word.id);
+    groups.set(word.due, list);
+  }
+  const dueTimes = [...groups.keys()].sort((a, b) => a - b);
+  const ordered: string[] = [];
+  dueTimes.forEach((due, index) => {
+    ordered.push(...shuffle(groups.get(due) ?? [], seed + index + 1));
+  });
+  return ordered;
 }
 
 /**

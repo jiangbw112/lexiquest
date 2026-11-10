@@ -142,7 +142,7 @@ export class WardrobeScene extends Phaser.Scene {
     this.add.image(1000, 492, "atlas_wardrobe", "wardrobe_stage").setDisplaySize(280, 105);
     const hero = new WarriorSprite(this, 1000, 500, 0.48, save.equippedCosmeticIds);
     hero.play("idle");
-    drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId);
+    drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId, 440);
     const worn = save.equippedCosmeticIds.join(",") || "none";
     const helmet = hero.isSlotVisible("outfit_head") ? "shown" : "hidden";
     const back = hero.isSlotDrawn("back") ? "drawn" : "absent";

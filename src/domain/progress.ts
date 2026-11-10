@@ -22,8 +22,9 @@ import { classById } from "./classes";
 import { isChapterExtra, normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
-import { deviceTimeZone, ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
-import { applyReview, badgeTone, introduceMemory, isDue, masteryDecision } from "./review";
+import { deviceTimeZone, localDayKey } from "./local-day";
+import { canLearnNewWord, ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
+import { applyReview, badgeTone, calendarDay, introduceMemory, isDue, masteryDecision } from "./review";
 import {
   equipSkillIds,
   MAX_EQUIPPED_SKILLS,
@@ -33,7 +34,7 @@ import {
   starterSkillId,
 } from "./skills";
 import type { Appearance, ClassId, MemoryRecord, RewardNotice, SaveData, WordCardRecord } from "./types";
-import type { Grade } from "ts-fsrs";
+import { Rating, State, type Grade } from "ts-fsrs";
 
 export const XP_PER_LEVEL = 40;
 export const LEARN_XP = 8;
@@ -146,6 +147,7 @@ export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = 
   if (!word) return save;
   if (!gradeIsOpen(save, wordId)) return save;
   if (save.wordCards[wordId]) return save;
+  if (!canLearnNewWord(save, now, timeZone)) return save;
   const wordCards = grantWordCard(save.wordCards, wordId, now.getTime());
   const memory: Record<string, MemoryRecord> = {
     ...save.memory,
@@ -187,6 +189,19 @@ export function gradePauseNotice(gradeLabel: string, learnedCount: number): stri
   return `取消${gradeLabel}后，已学的${learnedCount}个单词卡会保留，但战斗里不会再考这些词，到期复习也会暂停；重新勾选即可恢复。`;
 }
 
+function stampRealReviewDays(
+  before: MemoryRecord,
+  updated: MemoryRecord,
+  offsetMs: number,
+  now: Date,
+  timeZone: string,
+): MemoryRecord {
+  const prior = before.realReviewDays ?? [...new Set(before.reviewInstants.map((instant) => calendarDay(instant, timeZone)))];
+  if (offsetMs !== 0) return { ...updated, realReviewDays: prior };
+  const today = localDayKey(now, timeZone);
+  return { ...updated, realReviewDays: prior.includes(today) ? prior : [...prior, today] };
+}
+
 export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: Date, timeZone = deviceTimeZone()): SaveData {
   const existing = save.memory[wordId];
   const card = save.wordCards[wordId];
@@ -198,8 +213,13 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
     return notePracticeAnswer(ready, wordId, now, timeZone);
   }
   const beforeTone = badgeTone(card, existing, now);
-  const updated = applyReview(existing, rating, now);
-  const decision = masteryDecision(updated, PROVISIONAL.mastery, timeZone);
+  const learning = existing.fsrs.state === State.Learning || existing.fsrs.state === State.Relearning;
+  const fsrsRating = rating === Rating.Hard && learning ? Rating.Good : rating;
+  const reviewed = applyReview(existing, fsrsRating, now);
+  const updated = stampRealReviewDays(existing, reviewed, save.clockOffsetMs, now, timeZone);
+  const decision = save.clockOffsetMs === 0
+    ? masteryDecision(updated, PROVISIONAL.mastery, timeZone)
+    : { award: false as const, distinctDays: 0, stability: updated.fsrs.stability, reason: "single-day" as const };
   let wordCards: Record<string, WordCardRecord> = ready.wordCards;
   let rewardQueue = ready.rewardQueue;
   if (decision.award && !card.masteryBadge) {
@@ -221,7 +241,7 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
         wordCards,
         rewardQueue,
       },
-      { wordId, rating, at: now, dueFirst: wasDue, beforeTone, track: "meaning", timeZone },
+      { wordId, rating, fsrsRating, at: now, dueFirst: wasDue, beforeTone, track: "meaning", timeZone },
     ),
     now,
   );
@@ -229,6 +249,35 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
 
 function settleChapterRewards(save: SaveData, now: Date): SaveData {
   return applyChapterRewards(save, litMasteryCount(save, now), chapterWordIds().length);
+}
+
+export function meaningLoggedToday(save: SaveData, wordId: string, now: Date, timeZone = deviceTimeZone()): boolean {
+  const day = localDayKey(now, timeZone);
+  return save.dueAnswers.some(
+    (answer) => answer.wordId === wordId && answer.track === "meaning" && localDayKey(new Date(answer.at), timeZone) === day,
+  );
+}
+
+/** Scheme B. A due first meaning answer in battle writes FSRS. Everything else is practice. */
+export function noteBattleAnswer(
+  save: SaveData,
+  input: {
+    wordId: string;
+    correct: boolean;
+    now: Date;
+    dueAtStart: readonly string[];
+    spelling: boolean;
+    timeZone?: string;
+  },
+): SaveData {
+  const zone = input.timeZone ?? deviceTimeZone();
+  const memory = save.memory[input.wordId];
+  const write = input.dueAtStart.includes(input.wordId)
+    && Boolean(memory && isDue(memory, input.now))
+    && !input.spelling
+    && !meaningLoggedToday(save, input.wordId, input.now, zone);
+  if (!write) return notePracticeAnswer(save, input.wordId, input.now, zone);
+  return reviewWord(save, input.wordId, input.correct ? Rating.Good : Rating.Again, input.now, zone);
 }
 
 /**
@@ -347,8 +396,9 @@ function nextForestStage(save: SaveData) {
 }
 
 /**
- * Records a win or loss. Word cards and memory are reused unchanged:
- * a battle never grants, removes, or reschedules a word.
+ * Records a win or loss. The outcome itself does not grant, remove, or reschedule a word.
+ * Individual answers use `noteBattleAnswer`. A cleared exploration stage's first three
+ * wins each local day still grant experience and a card level; later wins are practice.
  */
 export function applyBattleOutcome(
   save: SaveData,
@@ -360,11 +410,19 @@ export function applyBattleOutcome(
     return { ...save, battlesLost: save.battlesLost + 1, memory: save.memory, wordCards: save.wordCards };
   }
   const hero = classById(save.player.classId);
-  const xpGain = Math.round(20 * hero.xpBonus);
+  const stage = explorationStageByEncounter(encounterId);
+  const replay = Boolean(stage && stageCleared(save, stage));
+  const dayKey = localDayKey(new Date(now), deviceTimeZone());
+  const replayCount = replay ? (save.replayWinsByDay?.[dayKey] ?? 0) : 0;
+  const grantRewards = !replay || replayCount < 3;
+  const replayWinsByDay = replay
+    ? { ...save.replayWinsByDay, [dayKey]: replayCount + 1 }
+    : save.replayWinsByDay;
+  const xpGain = grantRewards ? Math.round(20 * hero.xpBonus) : 0;
   const skillLevels = { ...save.skillLevels };
   const first = save.equippedSkillIds[0];
   let skillNote = "";
-  if (first) {
+  if (grantRewards && first) {
     const level = skillLevels[first] ?? 1;
     if (level < MAX_SKILL_LEVEL) {
       skillLevels[first] = level + 1;
@@ -379,12 +437,11 @@ export function applyBattleOutcome(
     equippedOutfitId = "forest-cape";
     outfitNote = "得到林间斗篷。";
   }
-  const detail = ["这场战斗没有改动任何词卡，也没有改动复习记忆。", skillNote, outfitNote, `经验 +${xpGain}。`]
-    .filter(Boolean)
-    .join("");
+  const detail = grantRewards
+    ? ["这场战斗没有改动任何词卡。", skillNote, outfitNote, `经验 +${xpGain}。`].filter(Boolean).join("")
+    : "今天的复习战奖励领完啦，明天再来。还可以继续练习。";
   const rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
   let chapterCleared = save.chapterCleared;
-  const stage = explorationStageByEncounter(encounterId);
   const stageWins = stage
     ? { ...save.stageWins, [String(stage.id)]: (save.stageWins[String(stage.id)] ?? 0) + 1 }
     : save.stageWins;
@@ -403,6 +460,7 @@ export function applyBattleOutcome(
     memory: save.memory,
     wordCards: save.wordCards,
     rewardQueue,
+    replayWinsByDay,
   };
   return settleChapterRewards(refreshUnlocks(next), new Date(now));
 }

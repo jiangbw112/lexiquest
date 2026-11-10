@@ -158,7 +158,9 @@ describe("control hit areas", () => {
     expect(kit).not.toContain("Rectangle(-width / 2");
     expect(village).toContain("village_bld_");
     expect(village).toContain("new LayeredActor(this, 640, 520, \"top\")");
-    expect(village).toContain("y: 508");
+    expect(village).toContain("y: 508 - 520");
+    expect(village).toContain("hero.floatingLayers()");
+    expect(village).not.toContain("targets: hero.root");
     expect(village).toContain("containerHitArea");
     expect(village).not.toContain("polygon");
     const map = readFileSync(new URL("./scenes/StageMapScene.ts", import.meta.url), "utf8");

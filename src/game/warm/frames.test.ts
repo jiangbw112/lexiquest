@@ -42,7 +42,15 @@ function newSave(grades: string[]) {
 
 function learnRequired(save: ReturnType<typeof newSave>) {
   let next = save;
-  for (const id of requiredWordIds(save)) next = learnWord(next, id, START);
+  let at = START.getTime();
+  for (const id of requiredWordIds(save)) {
+    let learned = learnWord(next, id, new Date(at));
+    if (!learned.wordCards[id]) {
+      at += 86_400_000;
+      learned = learnWord(next, id, new Date(at));
+    }
+    next = learned;
+  }
   return { ...next, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
 }
 

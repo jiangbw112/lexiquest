@@ -6,12 +6,12 @@ import {
   CHAPTER_BOSS_ID,
   type BattleState,
 } from "../../domain/battle";
-import { notePracticeAnswer } from "../../domain/parent";
-import { applyBattleOutcome, studyNow } from "../../domain/progress";
+import { applyBattleOutcome, noteBattleAnswer, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey } from "../../domain/skill-card-face";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
+import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
@@ -20,7 +20,8 @@ import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
-import { cjkWrap } from "../layout";
+import { ATTACK_HINT_TOAST, cjkWrap } from "../layout";
+import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { listenKeys } from "../ui";
@@ -45,6 +46,8 @@ export class BattleScene extends Phaser.Scene {
   private monsterHit = false;
   private resolving = false;
   private monsterTimer?: Phaser.Time.TimerEvent;
+  private openingDue: string[] = [];
+  private toastedHints = 0;
 
   constructor() {
     super("battle");
@@ -106,7 +109,15 @@ export class BattleScene extends Phaser.Scene {
     const litWordIds = Object.keys(save.wordCards).filter(
       (id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright",
     );
-    const combat = stageCombat(stage);
+    const combat = stageCombat(stage, save.player.classId);
+    this.openingDue = dueWordIds;
+    this.toastedHints = 0;
+    const padOrder = orderReviewWords(
+      Object.values(save.memory)
+        .filter((memory) => save.wordCards[memory.wordId])
+        .map((memory) => ({ id: memory.wordId, due: Date.parse(memory.fsrs.due) })),
+      Date.now() % 100000,
+    );
     this.state = startBattle({
       encounterId: combat.encounterId,
       classId: save.player.classId,
@@ -125,6 +136,7 @@ export class BattleScene extends Phaser.Scene {
       phases: combat.phases,
       spellingCap: combat.spellingCap,
       litWordIds,
+      padOrder,
     });
     this.poses = ["idle"];
     this.bossPoses = ["idle"];
@@ -171,8 +183,20 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
-    const wordId = this.state.question?.wordId;
-    if (wordId) mutate((save) => notePracticeAnswer(save, wordId, studyNow(save)));
+    const question = this.state.question;
+    if (question) {
+      const correct = question.kind === "spelling"
+        ? checkSpelling(question.answer, choiceId)
+        : choiceId === question.answerId;
+      mutate((save) => noteBattleAnswer(save, {
+        wordId: question.wordId,
+        correct,
+        now: studyNow(save),
+        dueAtStart: this.openingDue,
+        spelling: question.kind === "spelling",
+      }));
+      recordPlayAnswer();
+    }
     const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
     this.poses = battlePoses({
@@ -235,11 +259,19 @@ export class BattleScene extends Phaser.Scene {
     this.monsterHit = !this.bossFight && this.state.enemyHp < before.enemyHp;
     this.resolving = ms > 0;
     this.monsterTimer?.remove(false);
-    if (ms <= 0) return;
+    const ready = () => {
+      if (this.state.phase === "choose") probeNote("battle:ready");
+    };
+    if (ms <= 0) {
+      ready();
+      return;
+    }
     this.monsterTimer = this.time.delayedCall(ms, () => {
       this.monsterHit = false;
       this.resolving = false;
-      if (this.scene.isActive()) this.draw();
+      if (!this.scene.isActive()) return;
+      ready();
+      this.draw();
     });
   }
 
@@ -265,12 +297,12 @@ export class BattleScene extends Phaser.Scene {
     this.reported = true;
     const outcome = this.state.phase === "won" ? "win" : "loss";
     const before = getSave()?.chapterCleared === true;
-    mutate((save) => applyBattleOutcome(save, outcome, Date.now(), this.state.encounterId));
+    mutate((save) => applyBattleOutcome(save, outcome, studyNow(save).getTime(), this.state.encounterId));
     this.clearedChapter = !before && getSave()?.chapterCleared === true;
   }
 
   private leave(): void {
-    this.scene.start(this.clearedChapter ? "ending" : "stages");
+    this.scene.start(this.clearedChapter ? "ending" : "stages", { fromBattleEnd: this.reported });
   }
 
   private hpBar(x: number, y: number, ratio: number, fill: "hp_fill_teal" | "hp_fill_coral"): void {
@@ -300,6 +332,10 @@ export class BattleScene extends Phaser.Scene {
     monster.setScale(0.45);
   }
 
+  private flash(target: Phaser.GameObjects.Container): void {
+    this.tweens.add({ targets: target, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
+  }
+
   private draw(): void {
     if (!this.state) return;
     const save = getSave();
@@ -325,6 +361,17 @@ export class BattleScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0.5);
+    if (this.state.shaken && this.state.phases) {
+      const shakenCopy = this.state.phaseIndex === 0
+        ? "林心守护者动摇了！答对并出手攻击，就能突破！"
+        : "林心守护者动摇了！答对并出手攻击，就能赢！";
+      this.add.text(750, 148, shakenCopy, {
+        fontFamily: FONT_BODY,
+        fontSize: "16px",
+        color: INK,
+        wordWrap: cjkWrap(360),
+      }).setOrigin(0, 0);
+    }
     this.hpBar(305, 104, this.state.playerHp / this.state.playerMaxHp, "hp_fill_teal");
     this.hpBar(885, 104, this.state.enemyHp / this.state.enemyMaxHp, "hp_fill_coral");
     const pips = Math.min(6, this.state.maxEnergy);
@@ -347,8 +394,9 @@ export class BattleScene extends Phaser.Scene {
       blocker.setInteractive();
       if (blocker.input) blocker.input.cursor = "default";
     }
-    this.state.slots.forEach((slot) => {
-      placeSkillCard(
+    const cards = this.state.slots.map((slot) => ({
+      slot,
+      card: placeSkillCard(
         this,
         slot,
         this.state.phase,
@@ -356,8 +404,8 @@ export class BattleScene extends Phaser.Scene {
         () => this.useSkill(slot.index, "click"),
         () => this.useSkill(slot.index, "click"),
         this.resolving,
-      );
-    });
+      ),
+    }));
     if (battleControlOpen(this.state.phase, "answer", this.resolving) && this.state.question) {
       warmPanel(this, 640, 696, 1100, 172);
       if (this.state.question.kind === "spelling") {
@@ -382,10 +430,41 @@ export class BattleScene extends Phaser.Scene {
       });
       return;
     }
-    if (battleControlOpen(this.state.phase, "action", this.resolving)) {
-      warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral" });
-      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky" });
-      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal" });
+    const choosing = this.state.phase === "choose";
+    if (battleControlOpen(this.state.phase, "action", this.resolving) || (choosing && this.resolving)) {
+      if (!battleControlOpen(this.state.phase, "action", this.resolving)) {
+        warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+      }
+      const locked = this.resolving;
+      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: locked });
+      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: locked });
+      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: locked });
+      if (this.state.supportStreak >= 2) {
+        this.add.text(360, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
+        this.add.text(520, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
+      }
+      if (locked) {
+        const blocker = this.add.zone(640, 686, 1200, 240);
+        blocker.setInteractive();
+        if (blocker.input) blocker.input.cursor = "default";
+      } else if (this.state.attackHint) {
+        this.flash(attack);
+        for (const { slot, card } of cards) {
+          const face = skillCardFace({
+            phase: this.state.phase,
+            energy: this.state.energy,
+            energyCost: slot.energyCost,
+            resolving: false,
+          });
+          if (face === "ready" && (slot.kind === "damage" || slot.kind === "strike-guard")) this.flash(card);
+        }
+        if (this.state.attackHintShown <= 2 && this.toastedHints < this.state.attackHintShown) {
+          this.toastedHints = this.state.attackHintShown;
+          const toast = warmToast(this, "效果变弱了，试试攻击吧！").setPosition(ATTACK_HINT_TOAST.x, ATTACK_HINT_TOAST.y);
+          const bounds = toast.getBounds();
+          probeNote(`toast:bounds:${Math.round(bounds.x)},${Math.round(bounds.y)},${Math.round(bounds.width)},${Math.round(bounds.height)}`);
+        }
+      }
     }
     if (battleControlOpen(this.state.phase, "leave", this.resolving)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";

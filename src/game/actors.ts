@@ -19,4 +19,15 @@ export class LayeredActor {
     const show = new Set(visibleFrames(this.view, outfitId));
     for (const [name, image] of this.images) image.setVisible(show.has(name));
   }
+
+  /** Body, hair, cape, and sash. The shadow stays on the ground. */
+  floatingLayers(): Phaser.GameObjects.Image[] {
+    const names = this.view === "top"
+      ? ["top/body", "top/hair", "top/cape", "top/sash"]
+      : ["side/body", "side/hair", "side/cape", "side/sash"];
+    return names.flatMap((name) => {
+      const image = this.images.get(name);
+      return image ? [image] : [];
+    });
+  }
 }

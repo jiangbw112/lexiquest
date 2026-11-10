@@ -49,6 +49,8 @@ export interface MemoryRecord {
   wordId: string;
   fsrs: StoredFsrs;
   reviewInstants: number[];
+  /** Distinct local days of reviews taken on the real clock. Missing on older saves. */
+  realReviewDays?: string[];
 }
 
 export interface RewardNotice {
@@ -74,6 +76,8 @@ export interface DueAnswerLog {
   wordId: string;
   track: MemoryTrack;
   rating: DueRating;
+  /** Grade actually sent to FSRS. Learning and Relearning Hard are stored as Good. */
+  fsrsRating?: DueRating;
 }
 
 export interface DailyStat {
@@ -150,4 +154,6 @@ export interface SaveData {
   gradesConfirmed: boolean;
   clockOffsetMs: number;
   rewardQueue: RewardNotice[];
+  /** Wins of an already-cleared exploration stage, keyed by the local day. */
+  replayWinsByDay?: Record<string, number>;
 }

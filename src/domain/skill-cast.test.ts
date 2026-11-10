@@ -23,13 +23,14 @@ function deal(pool: readonly string[], count: number, seed = 11): string[] {
 }
 
 describe("skill card questions", () => {
-  it("asks a due learned word before the rest of the learned set, and never an unlearned word", () => {
-    expect(skillQuestionPool(["fish", "not-a-word", "tree"], ["river", "map", "fish"])).toEqual(["fish"]);
+  it("asks due learned words first, pads a short list to 4, and never an unlearned word", () => {
+    expect(skillQuestionPool(["fish", "not-a-word", "tree"], ["river", "map", "fish"])).toEqual(["fish", "river", "map"]);
     expect(skillQuestionPool(["not-a-word", "mountain"], LEARNED)).toEqual(LEARNED);
-    const dueOnly = skillQuestionPool(["map", "red"], LEARNED);
-    const drawn = deal(dueOnly, 6, 3);
-    expect(new Set(drawn)).toEqual(new Set(["map", "red"]));
-    expect(drawn).not.toContain("tree");
+    const dueFirst = skillQuestionPool(["map", "red"], LEARNED);
+    expect(dueFirst.slice(0, 2)).toEqual(["map", "red"]);
+    expect(dueFirst).toHaveLength(4);
+    expect(dueFirst.every((id) => LEARNED.includes(id))).toBe(true);
+    expect(dueFirst).not.toContain("not-a-word");
   });
 
   it("does not ask a due word from a deselected grade", () => {

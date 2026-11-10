@@ -126,6 +126,23 @@ function writeStat(save: SaveData, dayKey: string, stat: DailyStat): SaveData {
   return { ...save, dailyStats: { ...save.dailyStats, [dayKey]: stat } };
 }
 
+export const NEW_WORD_CAP_NOTICE = "今天的新词够啦，明天再来认识新朋友。可以去复习或战斗。";
+export const REVIEW_FIRST_NOTICE = "今天先复习更划算";
+
+export function newWordsLearnedToday(save: SaveData, now: Date, timeZone = deviceTimeZone()): number {
+  return statFor(save, localDayKey(now, timeZone)).learnedWordIds.length;
+}
+
+export function canLearnNewWord(save: SaveData, now: Date, timeZone = deviceTimeZone()): boolean {
+  return newWordsLearnedToday(save, now, timeZone) < PROPOSALS.dailyGoal.newWordCap[save.parentGoalPreset];
+}
+
+export function reviewFirstNotice(save: SaveData, now: Date): string | null {
+  const due = dueWordIds(save, now).length;
+  if (due > PROPOSALS.dailyGoal.goalMax[save.parentGoalPreset]) return REVIEW_FIRST_NOTICE;
+  return null;
+}
+
 export function dueWordIds(save: SaveData, now: Date): string[] {
   const ids = new Set<string>();
   for (const [wordId, memory] of Object.entries(save.memory)) {
@@ -262,6 +279,7 @@ export function noteDueAnswer(
     dueFirst: boolean;
     beforeTone?: BadgeTone;
     timeZone?: string;
+    fsrsRating?: DueRating;
   },
 ): SaveData {
   if (!input.dueFirst) return save;
@@ -278,6 +296,7 @@ export function noteDueAnswer(
       wordId: input.wordId,
       track: input.track,
       rating: input.rating,
+      fsrsRating: input.fsrsRating ?? input.rating,
     };
     next = { ...next, dueAnswers: [...next.dueAnswers, answer] };
     const stat = statFor(next, dayKey);
@@ -324,9 +343,14 @@ export function noteDueReview(
     beforeTone: BadgeTone;
     track: MemoryTrack;
     timeZone?: string;
+    fsrsRating?: Grade;
   },
 ): SaveData {
-  return noteDueAnswer(save, { ...input, rating: dueRatingFromGrade(input.rating) });
+  return noteDueAnswer(save, {
+    ...input,
+    rating: dueRatingFromGrade(input.rating),
+    fsrsRating: dueRatingFromGrade(input.fsrsRating ?? input.rating),
+  });
 }
 
 /**

@@ -144,6 +144,18 @@ export interface BattleState {
   spellingCap: number | null;
   phases: BossPhase[] | null;
   phaseIndex: number;
+  /** Block and heal actions in a row. A damaging action sets this back to 0. */
+  supportStreak: number;
+  /** Boss only. After enough answers, a correct damaging action ends the current phase. */
+  shaken: boolean;
+  /** True on the action that makes the support streak 3, until the next action. */
+  attackHint: boolean;
+  /** How many times this fight has raised `attackHint`. The scene toasts only the first two. */
+  attackHintShown: number;
+  /** Times each word has been asked in this fight. */
+  askedCount: Record<string, number>;
+  /** Learned words ordered by FSRS due, used to fill a short due list up to 4. */
+  padOrder: string[];
 }
 
 export function canStartBattle(learnedCount: number): boolean {
@@ -172,6 +184,8 @@ export function startBattle(input: {
   phases?: readonly BossPhase[] | null;
   spellingCap?: number | null;
   litWordIds?: readonly string[];
+  /** Learned words, earliest review first. Ties should already be shuffled. */
+  padOrder?: readonly string[];
 }): BattleState {
   const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
   const enemy = input.enemy ?? (known
@@ -179,9 +193,10 @@ export function startBattle(input: {
     : null);
   if (!enemy) throw new Error(`Unknown encounter ${input.encounterId}`);
   const boss = input.encounterId === CHAPTER_BOSS_ID;
+  const classHp = PROVISIONAL.chapterEnding.bossPhaseHpByClass[input.classId];
   const phases = input.phases === undefined
     ? boss
-      ? PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp: phase.hp, note: phase.note }))
+      ? PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp: classHp, note: phase.note }))
       : null
     : input.phases;
   const opening = phases?.[0];
@@ -227,6 +242,12 @@ export function startBattle(input: {
     spellingCap: input.spellingCap === undefined ? (boss ? FOREST_CHAPTER.boss_v1.spelling_ratio_cap : null) : input.spellingCap,
     phases: phases ? phases.map((phase) => ({ ...phase })) : null,
     phaseIndex: 0,
+    supportStreak: 0,
+    shaken: false,
+    attackHint: false,
+    attackHintShown: 0,
+    askedCount: {},
+    padOrder: [...(input.padOrder ?? [])],
   };
 }
 
@@ -246,8 +267,9 @@ function applySlotEffect(
     return { ...current, guard: amount, note: `${slot.name}挡下下一次 ${amount} 点伤害。` };
   }
   if (slot.kind === "heal") {
-    const healed = Math.min(amount, current.playerMaxHp - current.playerHp);
-    const note = healed > 0 ? `${slot.name}恢复 ${healed} 点体力。` : "体力已经满了。";
+    const room = current.playerMaxHp - current.playerHp;
+    const healed = Math.min(amount, Math.max(0, room));
+    const note = room <= 0 ? "体力已经满了。" : `${slot.name}恢复 ${healed} 点体力。`;
     return { ...current, playerHp: current.playerHp + healed, note };
   }
   const guard = Math.round(amount * 0.45);
@@ -259,9 +281,19 @@ function applySlotEffect(
   };
 }
 
-function enemyDamage(state: BattleState): number {
-  const base = state.enemyAttack + Math.floor(state.enemyHits / 2);
-  return Math.max(0, base - state.guard);
+export function enemyDamage(state: Pick<BattleState, "enemyAttack" | "enemyHits" | "guard">): number {
+  return Math.max(0, state.enemyAttack - state.guard);
+}
+
+function supportAmount(amount: number, streak: number): number {
+  const free = PROVISIONAL.chapterBattle.supportStreakFree;
+  if (streak <= free) return amount;
+  const steps = Math.min(streak, 8) - free;
+  return Math.floor(amount / 2 ** steps);
+}
+
+function damagingKind(kind: SkillSlot["kind"]): boolean {
+  return kind === "damage" || kind === "strike-guard";
 }
 
 function afterEnemyHit(state: BattleState, note: string): BattleState {
@@ -357,7 +389,16 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const correct = state.question.kind === "spelling"
     ? checkSpelling(state.question.answer, choiceId)
     : choiceId === state.question.answerId;
-  const amount = castEffect(slot, correct, state.rules.wrongAnswerMultiplier);
+  let amount = castEffect(slot, correct, state.rules.wrongAnswerMultiplier);
+  const supportive = slot.kind === "heal" || slot.kind === "guard";
+  const damaging = damagingKind(slot.kind);
+  let supportStreak = state.supportStreak;
+  if (supportive) {
+    supportStreak += 1;
+    amount = supportAmount(amount, supportStreak);
+  } else if (damaging) {
+    supportStreak = 0;
+  }
   const hero = classById(state.classId);
   const energy = Math.min(state.maxEnergy, state.energy + (correct ? hero.energyGain : 0));
   const applied = applySlotEffect(slot, amount, {
@@ -366,48 +407,65 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
     playerMaxHp: state.playerMaxHp,
     guard: state.guard,
   });
+  const phaseEnd = Boolean(state.shaken && correct && damaging && state.phases);
   const quality = correct ? "答对了，全力发动。" : "答错了，只有减弱的基础效果。";
   const note = `${quality}${applied.note}`;
-  return finishPlayerTurn(
+  let finished = finishPlayerTurn(
     {
       ...state,
-      enemyHp: applied.enemyHp,
+      enemyHp: phaseEnd ? 0 : applied.enemyHp,
       playerHp: applied.playerHp,
       energy,
       guard: applied.guard,
+      supportStreak,
       pendingSlot: null,
       pendingBasic: null,
       lastNote: note,
     },
     note,
   );
+  if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= PROVISIONAL.chapterEnding.shakenAfterQuestions) {
+    finished = { ...finished, shaken: true };
+  }
+  const hintNow = supportive && supportStreak === 3 && finished.phase !== "won" && finished.phase !== "lost";
+  return {
+    ...finished,
+    attackHint: hintNow,
+    attackHintShown: finished.attackHintShown + (hintNow ? 1 : 0),
+  };
 }
 
-function drawBattleWord(
-  pool: readonly string[],
-  deck: SkillQuestionDeck,
-  recent: readonly string[],
-  seed: number,
-): { wordId: string; deck: SkillQuestionDeck; recent: string[] } {
+function learnedPool(state: BattleState): string[] {
+  return skillQuestionPool([], state.learnedIds, { allowedIds: state.allowedWordIds ?? undefined });
+}
+
+function drawBattleWord(state: BattleState, pool: readonly string[]): {
+  wordId: string;
+  deck: SkillQuestionDeck;
+  recent: string[];
+  askedCount: Record<string, number>;
+} {
   const window = PROVISIONAL.chapterBattle.recentQuestionWindow;
-  const avoid = new Set(window > 0 ? recent.slice(-window) : []);
-  let working = deck;
-  let picked = "";
-  const skipped: string[] = [];
-  for (let attempt = 0; attempt < pool.length; attempt += 1) {
-    const drawn = drawSkillQuestionWord(pool, working, seed + attempt);
-    working = drawn.deck;
-    if (!avoid.has(drawn.wordId) || attempt === pool.length - 1) {
-      picked = drawn.wordId;
-      break;
-    }
-    skipped.push(drawn.wordId);
+  const cap = 2;
+  const asked = state.askedCount;
+  const avoid = new Set(window > 0 ? state.recentQuestionIds.slice(-window) : []);
+  const learned = learnedPool(state);
+  let candidates = pool.filter((id) => (asked[id] ?? 0) < cap);
+  if (candidates.length === 0) candidates = learned.filter((id) => (asked[id] ?? 0) < cap);
+  if (candidates.length === 0) {
+    const source = learned.length > 0 ? learned : [...pool];
+    const least = Math.min(...source.map((id) => asked[id] ?? 0));
+    candidates = source.filter((id) => (asked[id] ?? 0) === least);
   }
-  if (!picked) throw new Error("No learned words to ask");
+  const fresh = candidates.filter((id) => !avoid.has(id));
+  const choicePool = fresh.length > 0 ? fresh : candidates;
+  if (choicePool.length === 0) throw new Error("No learned words to ask");
+  const drawn = drawSkillQuestionWord(choicePool, emptySkillDeck(), state.seed + state.casts * 17 + 1);
   return {
-    wordId: picked,
-    deck: { queue: [...working.queue, ...skipped] },
-    recent: [...recent, picked].slice(-12),
+    wordId: drawn.wordId,
+    deck: drawn.deck,
+    recent: [...state.recentQuestionIds, drawn.wordId].slice(-12),
+    askedCount: { ...asked, [drawn.wordId]: (asked[drawn.wordId] ?? 0) + 1 },
   };
 }
 
@@ -418,13 +476,14 @@ function askQuestion(
 ): { ok: boolean; reason?: string; state: BattleState } {
   const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
     allowedIds: state.allowedWordIds ?? undefined,
+    padOrder: state.padOrder,
   });
   if (pool.length === 0) {
     return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。", state };
   }
-  let drawn: { wordId: string; deck: SkillQuestionDeck; recent: string[] };
+  let drawn: ReturnType<typeof drawBattleWord>;
   try {
-    drawn = drawBattleWord(pool, state.deck, state.recentQuestionIds, state.seed + state.casts * 17 + 1);
+    drawn = drawBattleWord(state, pool);
   } catch {
     return { ok: false, reason: "还没有学过的词", state };
   }
@@ -435,6 +494,7 @@ function askQuestion(
     word &&
       state.spellingCap !== null &&
       spellingAllowed(word, lit) &&
+      state.spellingAsked < PROVISIONAL.chapterEnding.bossSpellingMax &&
       nextShare <= state.spellingCap + 1e-9,
   );
   const question = spell
@@ -452,6 +512,7 @@ function askQuestion(
       question,
       deck: drawn.deck,
       recentQuestionIds: drawn.recent,
+      askedCount: drawn.askedCount,
       casts: state.casts + 1,
       questionsAsked: state.questionsAsked + 1,
       spellingAsked: state.spellingAsked + (question.kind === "spelling" ? 1 : 0),

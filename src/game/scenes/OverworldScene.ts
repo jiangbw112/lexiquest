@@ -119,8 +119,8 @@ export class OverworldScene extends Phaser.Scene {
     hero.root.setScale(0.85);
     this.heroRoot = hero.root;
     this.tweens.add({
-      targets: hero.root,
-      y: 508,
+      targets: hero.floatingLayers(),
+      y: 508 - 520,
       duration: 900,
       yoyo: true,
       repeat: -1,

@@ -28,6 +28,20 @@ import { masteryDecision } from "./review";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
+function learnSample(save: ReturnType<typeof newSave>) {
+  let next = save;
+  let at = START.getTime();
+  for (const word of sampleWords()) {
+    let learned = learnWord(next, word.id, new Date(at));
+    if (!learned.wordCards[word.id]) {
+      at += 86_400_000;
+      learned = learnWord(next, word.id, new Date(at));
+    }
+    next = learned;
+  }
+  return next;
+}
+
 function newSave() {
   return createSave({
     name: "小林",
@@ -130,7 +144,7 @@ describe("saved progress", () => {
 
   it("grants the earned sash when every sample card is collected", () => {
     let save = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
-    for (const word of sampleWords()) save = learnWord(save, word.id, START);
+    save = learnSample(save);
     expect(Object.keys(save.wordCards)).toHaveLength(sampleWords().length);
     expect(save.ownedOutfitIds).toContain("star-sash");
     expect(Object.values(save.wordCards).every((card) => card.masteryBadge === false)).toBe(true);
@@ -182,7 +196,7 @@ describe("saved progress", () => {
     expect(earlyBoss.memory).toBe(save.memory);
     expect(earlyBoss.wordCards).toBe(save.wordCards);
 
-    for (const word of sampleWords()) save = learnWord(save, word.id, START);
+    save = learnSample(save);
     expect(questLine(save)).toContain("林缘小径");
     save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     const memory = save.memory;
