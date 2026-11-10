@@ -292,6 +292,18 @@ export class LearnScene extends Phaser.Scene {
       });
       return;
     }
+    if (!canLearnNewWord(save, studyNow(save))) {
+      this.capNote = NEW_WORD_CAP_NOTICE;
+      warmPanel(this, 640, 400, 900, 280);
+      this.add.text(640, 400, NEW_WORD_CAP_NOTICE, {
+        fontFamily: FONT,
+        fontSize: "22px",
+        color: NOTE,
+        wordWrap: cjkWrap(760),
+        align: "center",
+      }).setOrigin(0.5);
+      return;
+    }
     if (this.phase === "study") {
       warmPanel(this, 640, 400, 900, 460);
       if (this.missed) {

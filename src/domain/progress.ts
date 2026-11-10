@@ -397,8 +397,11 @@ function nextForestStage(save: SaveData) {
 
 /**
  * Records a win or loss. The outcome itself does not grant, remove, or reschedule a word.
- * Individual answers use `noteBattleAnswer`. A cleared exploration stage's first three
- * wins each local day still grant experience and a card level; later wins are practice.
+ * Individual answers use `noteBattleAnswer`. The first win on a stage, and the boss win
+ * that clears the chapter, grant rewards and do not spend the daily quota. Every later
+ * win, including a boss replay and another win on a stage that is still open, spends
+ * that shared quota. Only the first three of those wins each local day grant experience
+ * and a card level.
  */
 export function applyBattleOutcome(
   save: SaveData,
@@ -411,11 +414,16 @@ export function applyBattleOutcome(
   }
   const hero = classById(save.player.classId);
   const stage = explorationStageByEncounter(encounterId);
-  const replay = Boolean(stage && stageCleared(save, stage));
+  const boss = encounterId === CHAPTER_BOSS_ID;
+  const alreadyCleared = stage
+    ? (save.stageWins[String(stage.id)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
+    : boss
+      ? save.chapterCleared
+      : false;
   const dayKey = localDayKey(new Date(now), deviceTimeZone());
-  const replayCount = replay ? (save.replayWinsByDay?.[dayKey] ?? 0) : 0;
-  const grantRewards = !replay || replayCount < 3;
-  const replayWinsByDay = replay
+  const replayCount = alreadyCleared ? (save.replayWinsByDay?.[dayKey] ?? 0) : 0;
+  const grantRewards = !alreadyCleared || replayCount < 3;
+  const replayWinsByDay = alreadyCleared
     ? { ...save.replayWinsByDay, [dayKey]: replayCount + 1 }
     : save.replayWinsByDay;
   const xpGain = grantRewards ? Math.round(20 * hero.xpBonus) : 0;

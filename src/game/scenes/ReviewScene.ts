@@ -181,7 +181,7 @@ export class ReviewScene extends Phaser.Scene {
       warmSlice(this, "atlas_ui_pages", "list_row", 980, 86).setPosition(640, y + 29);
       this.add.text(170, y, shown ? `${word.english}  ${formatMeaning(word)}` : word.english, { fontFamily: FONT, fontSize: "22px", color: INK });
       if (due && !shown) {
-        warmButton(this, 430, y + 4, "翻看释义", () => {
+        warmButton(this, 430, y + 12, "翻看释义", () => {
           this.revealed.add(memory.wordId);
           this.draw();
         }, { width: 140, height: 40, tone: "secondary" });

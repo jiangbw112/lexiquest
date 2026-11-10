@@ -28,6 +28,7 @@ import {
   deckChangedFromDefault,
   hasDamageCard,
   showNoDamageHint,
+  MAX_SKILL_LEVEL,
   starterSkillId,
 } from "./skills";
 import {
@@ -613,6 +614,105 @@ describe("round 3 new words, hints, and replay", () => {
     const boss = applyBattleOutcome(save, "win", now.getTime(), CHAPTER_BOSS_ID);
     expect(boss.replayWinsByDay).toEqual(save.replayWinsByDay);
     expect(explorationStageByEncounter(CHAPTER_BOSS_ID)).toBeNull();
+  });
+
+  it("RP6 a first clear does not spend the daily quota, and the fourth win after it pays nothing", () => {
+    const now = atLocal("2026-08-06", "11:00");
+    const stage = stageById(1)!;
+    let save = setGoalPreset(fresh(now), "more");
+    for (const id of stageWordIds(save, stage)) save = learnWord(save, id, now, ZONE);
+    expect(stageCleared(save, stage)).toBe(false);
+    const encounter = stageEncounterId(1);
+    const xpBefore = save.xp;
+    const skill = starterSkillId("warrior");
+    save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+    expect(stageCleared(save, stage)).toBe(true);
+    expect(save.replayWinsByDay).toBeUndefined();
+    expect(save.xp).toBe(xpBefore + 20);
+    expect(save.skillLevels[skill]).toBe(2);
+    const afterClear = save.xp;
+    const details: string[] = [];
+    for (let win = 0; win < 4; win += 1) {
+      save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+      details.push(save.rewardQueue.at(-1)?.detail ?? "");
+    }
+    expect(save.replayWinsByDay?.[localDayKey(now, ZONE)]).toBe(4);
+    expect(save.xp).toBe(afterClear + 60);
+    expect(details[0]).toContain("经验 +20");
+    expect(details[3]).toContain("今天的复习战奖励领完啦");
+    expect(save.skillLevels[skill]).toBe(MAX_SKILL_LEVEL);
+  });
+
+  it("RP7 a boss replay spends the same daily quota", () => {
+    const now = atLocal("2026-08-07", "11:00");
+    const cards = Object.fromEntries(sampleWords().map((word) => [word.id, { wordId: word.id, collectedAt: now.getTime(), masteryBadge: false }]));
+    let save: SaveData = {
+      ...fresh(now),
+      wordCards: cards,
+      stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 },
+    };
+    const before = save.xp;
+    save = applyBattleOutcome(save, "win", now.getTime(), CHAPTER_BOSS_ID);
+    expect(save.chapterCleared).toBe(true);
+    expect(save.replayWinsByDay).toBeUndefined();
+    expect(save.xp).toBe(before + 20);
+    const day = localDayKey(now, ZONE);
+    for (let win = 0; win < 2; win += 1) save = applyBattleOutcome(save, "win", now.getTime(), CHAPTER_BOSS_ID);
+    save = applyBattleOutcome(save, "win", now.getTime(), stageEncounterId(1));
+    expect(save.replayWinsByDay?.[day]).toBe(3);
+    expect(save.xp).toBe(before + 80);
+    const blocked = applyBattleOutcome(save, "win", now.getTime(), CHAPTER_BOSS_ID);
+    expect(blocked.replayWinsByDay?.[day]).toBe(4);
+    expect(blocked.xp).toBe(save.xp);
+    expect(blocked.skillLevels).toEqual(save.skillLevels);
+    expect(blocked.rewardQueue.at(-1)?.detail).toContain("今天的复习战奖励领完啦");
+  });
+
+  it("RP8 an open stage cannot farm experience or card levels after the first win", () => {
+    const now = atLocal("2026-08-08", "11:00");
+    const stage = stageById(1)!;
+    let save = setGoalPreset(fresh(now), "more");
+    const ids = stageWordIds(save, stage);
+    for (const id of ids.slice(0, -1)) save = learnWord(save, id, now, ZONE);
+    const encounter = stageEncounterId(1);
+    const skill = starterSkillId("warrior");
+    save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+    expect(stageCleared(save, stage)).toBe(false);
+    expect(save.stageWins["1"]).toBe(1);
+    expect(save.replayWinsByDay).toBeUndefined();
+    expect(save.xp).toBeGreaterThan(0);
+    expect(save.skillLevels[skill]).toBe(2);
+    for (let win = 0; win < 3; win += 1) save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+    expect(stageCleared(save, stage)).toBe(false);
+    expect(save.replayWinsByDay?.[localDayKey(now, ZONE)]).toBe(3);
+    expect(save.skillLevels[skill]).toBe(MAX_SKILL_LEVEL);
+    const cappedXp = save.xp;
+    const cappedLevel = save.skillLevels[skill];
+    save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+    expect(save.xp).toBe(cappedXp);
+    expect(save.skillLevels[skill]).toBe(cappedLevel);
+    save = applyBattleOutcome(save, "win", now.getTime(), encounter);
+    expect(save.xp).toBe(cappedXp);
+    expect(save.skillLevels[skill]).toBe(cappedLevel);
+    expect(save.rewardQueue.at(-1)?.detail).toContain("今天的复习战奖励领完啦");
+  });
+
+  it("N8 shows the cap notice and skips the next word card once the daily cap is reached", () => {
+    const now = atLocal("2026-08-09", "10:00");
+    let save = setGoalPreset(fresh(now), "normal");
+    for (const id of ["tree", "bird", "fish", "sun", "map"]) save = learnWord(save, id, now, ZONE);
+    expect(newWordsLearnedToday(save, now, ZONE)).toBe(5);
+    expect(canLearnNewWord(save, now, ZONE)).toBe(false);
+    const nextDay = atLocal("2026-08-10", "00:05");
+    expect(canLearnNewWord(save, nextDay, ZONE)).toBe(true);
+    const learn = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
+    const capAt = learn.indexOf("if (!canLearnNewWord(save, studyNow(save)))");
+    const cardAt = learn.indexOf("this.meaningRow(640, studyRowY");
+    expect(capAt).toBeGreaterThan(-1);
+    expect(cardAt).toBeGreaterThan(capAt);
+    const between = learn.slice(capAt, cardAt);
+    expect(between).toContain("NEW_WORD_CAP_NOTICE");
+    expect(between).toContain("return;");
   });
 
   it("G1 does not store the play timer on a save", () => {
