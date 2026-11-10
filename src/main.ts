@@ -3,6 +3,7 @@ import { isDesktopShell } from "./domain/host-copy";
 import { paintShellDom } from "./game/shell-dom";
 import { installRuntime } from "./game/audio";
 import { BattleScene } from "./game/scenes/BattleScene";
+import { BattleResultsScene } from "./game/scenes/BattleResultsScene";
 import { BootScene } from "./game/scenes/BootScene";
 import { CollectionScene } from "./game/scenes/CollectionScene";
 import { CreateScene } from "./game/scenes/CreateScene";
@@ -62,6 +63,7 @@ if (!webglAvailable()) {
       LearnScene,
       StageMapScene,
       BattleScene,
+      BattleResultsScene,
       CollectionScene,
       ReviewScene,
       SkillsScene,

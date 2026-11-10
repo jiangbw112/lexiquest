@@ -175,6 +175,6 @@ describe("warm batch b2.1 frames", () => {
     expect(requiredWordIds(ready)).toHaveLength(28);
     expect(bossReady(ready)).toBe(true);
     expect(bossMapFrame(stageStatuses(ready)[4]!)).toBe("map_node_boss_ready");
-    expect(bossMapFrame("cleared")).toBe("map_node_boss_ready");
+    expect(bossMapFrame("cleared")).toBe("map_node_boss_cleared");
   });
 });

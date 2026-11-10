@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { displayTitle, FOREST_REWARDS } from "../../domain/chapter-rewards";
+import { COSMETIC_LABEL } from "../../domain/cosmetic-label";
 import { studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../domain/stages";
@@ -13,12 +14,6 @@ import { FONT, paper } from "../ui";
 import { warmButton, warmPanel } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { INK, MUTED, NOTE, TEAL_DEEP } from "../warm/theme";
-
-const COSMETIC_LABEL: Record<string, string> = {
-  forest_leaf_cape: "林叶披肩",
-  acorn_pin: "橡实别针",
-  forest_wreath: "森语花环",
-};
 
 /** Settlement after the first clear. Cosmetics and titles come from the reward config. */
 export class EndingScene extends Phaser.Scene {
