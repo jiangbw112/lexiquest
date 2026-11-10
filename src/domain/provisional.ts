@@ -11,11 +11,10 @@ export const PROVISIONAL = {
   label: "v1",
   mastery: {
     label: "v1",
-    /** A correct review on at least this many different Asia/Shanghai days. */
+    /** A correct review on at least this many different local calendar days. */
     minDistinctCalendarDays: 2,
     /** FSRS stability, in days, required once the day rule is met. */
     minStability: 7,
-    timeZone: "Asia/Shanghai",
   },
   /**
    * Turning a grade off keeps its cards. Battle questions and due reviews pause
@@ -66,5 +65,3 @@ export const PROVISIONAL = {
     wrongAnswerMultiplier: 0.5,
   },
 } as const;
-
-export const STUDY_TIME_ZONE = PROVISIONAL.mastery.timeZone;

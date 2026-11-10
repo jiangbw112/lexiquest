@@ -41,7 +41,7 @@ export class SkillsScene extends Phaser.Scene {
     const hero = classById(save.player.classId);
     const rules = PROVISIONAL.skillCards;
     this.add.text(160, 48, "技能卡", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(160, 96, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上更弱的基础招式，比例 ${rules.baseSkillPowerScale}，能量 ${rules.baseSkillEnergyCost}。答错效果 ×${rules.wrongAnswerMultiplier}。这是这一版定下的数字。`, {
+    this.add.text(160, 96, `技能卡不绑定单词。最多带 ${MAX_EQUIPPED_SKILLS} 张。空位会补上更弱的基础招式，比例 ${rules.baseSkillPowerScale}，能量 ${rules.baseSkillEnergyCost}。答错效果 ×${rules.wrongAnswerMultiplier}。`, {
       fontFamily: FONT,
       fontSize: "16px",
       color: MUTED,

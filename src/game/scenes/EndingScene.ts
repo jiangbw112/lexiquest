@@ -1,9 +1,9 @@
 import Phaser from "phaser";
-import { CHAPTER_ART_LIMITS, displayTitle, FOREST_REWARDS } from "../../domain/chapter-rewards";
+import { displayTitle, FOREST_REWARDS } from "../../domain/chapter-rewards";
 import { studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../domain/stages";
-import { FOREST_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { probeEnter } from "../probe";
@@ -47,7 +47,7 @@ export class EndingScene extends Phaser.Scene {
     const title = save.equippedTitleId ? displayTitle(FOREST_REWARDS, save.equippedTitleId) : null;
     const granted = chapterCosmeticLayers()
       .filter((layer) => save.unlockedCosmeticIds.includes(layer.id))
-      .map((layer) => `${COSMETIC_LABEL[layer.id] ?? layer.id}（${layer.slot}）`);
+      .map((layer) => COSMETIC_LABEL[layer.id] ?? "");
     this.add.text(150, 48, "已通关森林", { fontFamily: FONT, fontSize: "42px", color: INK });
     this.add.text(150, 110, `${save.player.name} 打败了${ending.bossName}。这一章走完了。`, {
       fontFamily: FONT,
@@ -73,19 +73,10 @@ export class EndingScene extends Phaser.Scene {
       fontSize: "22px",
       color: TEAL_DEEP,
     });
-    this.add.text(150, 440, FOREST_ART_LABEL, {
+    this.add.text(150, 440, "戴上花环，头盔会藏起来。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
-      wordWrap: { width: 700 },
-    });
-    CHAPTER_ART_LIMITS.forEach((line, index) => {
-      this.add.text(150, 500 + index * 48, line, {
-        fontFamily: FONT,
-        fontSize: "15px",
-        color: MUTED,
-        wordWrap: { width: 700 },
-      });
     });
     const hero = new WarriorSprite(this, 1040, 560, 0.55, save.equippedCosmeticIds);
     hero.play("victory");

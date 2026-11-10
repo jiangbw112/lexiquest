@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import { ensureDailyGoal, goalProgress, goalStatusLine, goalTarget, openingReminder } from "../../domain/parent";
 import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
-import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -126,7 +125,6 @@ export class OverworldScene extends Phaser.Scene {
       repeat: -1,
       ease: "Sine.easeInOut",
     });
-    this.footer(`地图小人是${PLACEHOLDER_NOTE} · ${DESKTOP_NOTE}`);
     if (save.chapterCleared) {
       warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }
@@ -190,18 +188,6 @@ export class OverworldScene extends Phaser.Scene {
       label.setY(sign.y);
       this.go(place.scene);
     });
-  }
-
-  private footer(text: string): void {
-    const label = this.add.text(142, 762, text, { fontFamily: FONT_BODY, fontSize: "14px", color: INK }).setOrigin(0, 0.5);
-    const fill = Number.parseInt(CREAM.slice(1), 16);
-    const ink = Number.parseInt(INK.slice(1), 16);
-    const plate = this.add.graphics();
-    plate.fillStyle(fill, 1);
-    plate.lineStyle(2, ink, 1);
-    plate.fillRoundedRect(130, 750, label.width + 24, 24, 12);
-    plate.strokeRoundedRect(130, 750, label.width + 24, 24, 12);
-    this.children.moveBelow(plate, label);
   }
 
   private measureFps(): void {

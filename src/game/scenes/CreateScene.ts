@@ -5,7 +5,7 @@ import { sanitizeName } from "../../domain/appearance";
 import { classById } from "../../domain/classes";
 import type { GradeBand } from "../../domain/types";
 import { WarriorSprite } from "../art/warrior-sprite";
-import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE, WARRIOR_ART_NOTE } from "../p0";
+import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { commit } from "../session";
 import { FONT, paper } from "../ui";
@@ -82,7 +82,7 @@ export class CreateScene extends Phaser.Scene {
       color: MUTED,
       wordWrap: { width: 760 },
     });
-    this.add.text(180, 700, `${WARRIOR_ART_NOTE}。用键盘输入名字。`, {
+    this.add.text(180, 700, "用键盘输入名字。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: MUTED,

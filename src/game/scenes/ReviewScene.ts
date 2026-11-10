@@ -137,7 +137,7 @@ export class ReviewScene extends Phaser.Scene {
         wordWrap: { width: 860 },
       });
     } else if (!desk.keyTargetId) {
-      this.add.text(170, 190, "现在没有到复习时间的词。按 T 拨快 10 分钟，按 Y 拨快一天。", {
+      this.add.text(170, 190, "现在没有到复习时间的词。", {
         fontFamily: FONT,
         fontSize: "18px",
         color: MUTED,

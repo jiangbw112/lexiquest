@@ -109,9 +109,9 @@ describe("DES-05 parent progress and daily goal", () => {
     expect(PROPOSALS.dailyGoal.goalMax).toEqual({ easy: 8, normal: 15, more: 25 });
     expect(PROPOSALS.dailyGoal.learnFallback).toEqual({ easy: 2, normal: 3, more: 5 });
     expect(PROPOSALS.dailyGoal.practiceQuestions).toBe(3);
-    expect(PROPOSALS.dailyGoal.dayBoundaryHour).toBe(4);
+    expect(PROPOSALS.dailyGoal).not.toHaveProperty("dayBoundaryHour");
     expect(PROPOSALS.dailyGoal).not.toHaveProperty("timeZone");
-    expect(PROVISIONAL.mastery.timeZone).toBe("Asia/Shanghai");
+    expect(PROVISIONAL.mastery).not.toHaveProperty("timeZone");
     expect(PROVISIONAL.skillCards.baseSkillPowerScale).toBe(0.45);
     expect(PROVISIONAL.skillCards.baseSkillEnergyCost).toBe(0);
     expect(PROVISIONAL.skillCards.wrongAnswerMultiplier).toBe(0.5);

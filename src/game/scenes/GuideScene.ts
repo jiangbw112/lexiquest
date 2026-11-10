@@ -15,7 +15,6 @@ import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } fr
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
-import { DESKTOP_NOTE } from "../p0";
 import { STRUGGLE_LIST, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { FONT } from "../ui";
@@ -310,19 +309,17 @@ export class GuideScene extends Phaser.Scene {
 
   private drawNotes(): void {
     const mastery = PROVISIONAL.mastery;
-    const skills = PROVISIONAL.skillCards;
     const lines = [
-      DESKTOP_NOTE + "。这一版不做平板触摸。",
       "没有自由聊天，也没有真实货币购买。",
       SAVE_CACHE_NOTICE,
-      "学会一个词立刻得到词卡。熟练徽章后来才亮，到了复习时间或答错 lapse 会变灰，答对后再亮。词卡不会被删掉。",
+      "学会一个词立刻得到词卡。熟练徽章后来才亮。到了复习时间，或者答错，徽章会变灰，答对后再亮。词卡不会被删掉。",
       `熟练徽章：至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ≥ ${mastery.minStability} 天。同一天反复练习不会点亮。日子按这台电脑的当地日期算。`,
       "技能卡不绑定单词，最多带 3 张。空位补基础招式。打出技能卡时，只从现在选中的年级里抽题：先抽到期的，没有到期再从学过的词里抽。",
-      `基础招式强度比例 ${skills.baseSkillPowerScale}，能量 ${skills.baseSkillEnergyCost}。PvE 答错只给基础效果 × ${skills.wrongAnswerMultiplier}。这是这一版定下的数字。`,
-      "好友 1v1：答对题数多的赢；题数相同，答对用时更少的赢。答错没有速度收益。同机练习不更新 FSRS。真正的联网对战要由服务器判房间、对错、时间和奖励。",
+      "基础招式更弱，不花能量。答错时，效果只有答对的一半。",
+      "两个朋友轮流用这一台电脑。答对的题更多就赢；题一样多，用时更少的赢。答错不算。这次练习不记进复习。",
       "森林冒险分五关。每关学完新词并赢一场小战斗才算通过。第五关是林心守护者，打败才通关。亮着的熟练徽章单独显示，不够 28 也不挡住通关。",
       "每天的学习目标按这台电脑的当地日期换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级共用一个家长密码，只为避免孩子不小心修改。清掉浏览器数据后要重新设置。这不是安全登录。忘记密码时答一道算术题即可重设，学习记录不会被清掉。",
-      "森林这一章有 28 个词。其中 20 个来自 PEP 三到六年级词表，另外 8 个只在这一章里，不进年级词池。发音用浏览器朗读，这是这一版定下的做法。",
+      "森林这一章有 28 个词。其中 20 个在三到六年级课本里，另外 8 个只在这一章。电脑会读出单词。",
     ];
     const selected = this.gradeDraft;
     const canSave = canConfirmGrades(selected);

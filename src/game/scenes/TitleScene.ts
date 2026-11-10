@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { WarriorSprite } from "../art/warrior-sprite";
-import { DESKTOP_NOTE, WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { redirectUngraded } from "../grade-route";
 import { getSave } from "../session";
@@ -8,7 +7,7 @@ import { listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
 import { warmButton } from "../warm/kit";
 import { warmBackground, warmInBackground } from "../warm/load";
-import { CREAM, FONT_BODY, INK, MUTED } from "../warm/theme";
+import { CREAM, FONT_BODY, INK } from "../warm/theme";
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -25,22 +24,12 @@ export class TitleScene extends Phaser.Scene {
       fontSize: "22px",
       color: INK,
     }, { height: 46, padX: 28, radius: 23 });
-    this.creamLine(640, 414, `${WARRIOR_ART_NOTE} · SAMPLE DATA`, {
-      fontFamily: FONT_BODY,
-      fontSize: "14px",
-      color: MUTED,
-    });
     const hero = new WarriorSprite(this, 250, 640, 0.5);
     hero.play("idle");
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
     warmButton(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
     if (save) warmButton(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, height: 56, tone: "secondary" });
-    this.creamLine(640, 700, DESKTOP_NOTE, {
-      fontFamily: FONT_BODY,
-      fontSize: "15px",
-      color: INK,
-    });
     listenKeys(this, (event) => {
       if (event.code === "Enter") this.go(Boolean(getSave()));
       if (event.code === "KeyN" && getSave()) this.scene.start("grades", { mode: "new" });

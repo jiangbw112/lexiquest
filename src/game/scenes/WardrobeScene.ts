@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import {
-  CHAPTER_ART_LIMITS,
   displayTitle,
   equipCosmetic,
   equipTitle,
@@ -9,10 +8,9 @@ import {
 } from "../../domain/chapter-rewards";
 import { OUTFITS } from "../../domain/outfits";
 import { equipOutfit } from "../../domain/progress";
-import { FOREST_ART_LABEL, chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
 import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
-import { WARRIOR_ART_NOTE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -56,11 +54,10 @@ export class WardrobeScene extends Phaser.Scene {
     if (!paintRoom(this)) paper(this);
     warmSlice(this, "atlas_ui_core", "panel_parchment", 1040, 740).setPosition(640, 400);
     this.add.text(150, 36, "衣柜", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(150, 84, `${WARRIOR_ART_NOTE}。${FOREST_ART_LABEL}`, {
+    this.add.text(150, 84, "戴上花环，头盔会藏起来。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
-      wordWrap: { width: 680 },
     });
     OUTFITS.forEach((outfit, index) => {
       const owned = save.ownedOutfitIds.includes(outfit.id);
@@ -88,9 +85,8 @@ export class WardrobeScene extends Phaser.Scene {
       slot.setPosition(left + 95, top + 52);
       const color = owned ? INK : DIS_TEXT;
       const status = !owned ? "未得到" : on ? "摘下" : "戴上";
-      this.add.text(left + 95, top + 28, COSMETIC_LABEL[layer.id] ?? layer.id, { fontFamily: FONT, fontSize: "18px", color }).setOrigin(0.5);
-      this.add.text(left + 95, top + 52, layer.slot, { fontFamily: FONT, fontSize: "14px", color: owned ? MUTED : DIS_TEXT }).setOrigin(0.5);
-      this.add.text(left + 95, top + 76, status, { fontFamily: FONT, fontSize: "16px", color }).setOrigin(0.5);
+      this.add.text(left + 95, top + 36, COSMETIC_LABEL[layer.id] ?? "", { fontFamily: FONT, fontSize: "18px", color }).setOrigin(0.5);
+      this.add.text(left + 95, top + 64, status, { fontFamily: FONT, fontSize: "16px", color }).setOrigin(0.5);
       if (!owned) return;
       const hit = this.add.container(left + 95, top + 52);
       hit.setSize(190, 104);
@@ -140,14 +136,6 @@ export class WardrobeScene extends Phaser.Scene {
       }, { width: 150, height: 56, tone: "secondary" });
     }
 
-    CHAPTER_ART_LIMITS.forEach((line, index) => {
-      this.add.text(150, 652 + index * 36, line, {
-        fontFamily: FONT,
-        fontSize: "14px",
-        color: MUTED,
-        wordWrap: { width: 660 },
-      });
-    });
     this.add.image(1000, 294, "atlas_wardrobe", "wardrobe_arch").setDisplaySize(280, 420);
     this.add.image(1000, 492, "atlas_wardrobe", "wardrobe_stage").setDisplaySize(280, 105);
     const hero = new WarriorSprite(this, 1000, 500, 0.48, save.equippedCosmeticIds);

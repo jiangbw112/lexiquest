@@ -64,7 +64,6 @@ export const GRADE_BANDS: { id: GradeBand; label: string }[] = [
 ];
 
 export const SAMPLE_THEME = "Forest Adventure" as const;
-export const SAMPLE_DATA_LABEL = "SAMPLE DATA";
 
 const GRADE_OF: Record<GradeEstimate, GradeBand> = { 3: "G3", 4: "G4", 5: "G5", 6: "G6" };
 
