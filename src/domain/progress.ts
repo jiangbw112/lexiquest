@@ -199,7 +199,7 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
   }
   const beforeTone = badgeTone(card, existing, now);
   const updated = applyReview(existing, rating, now);
-  const decision = masteryDecision(updated);
+  const decision = masteryDecision(updated, PROVISIONAL.mastery, timeZone);
   let wordCards: Record<string, WordCardRecord> = ready.wordCards;
   let rewardQueue = ready.rewardQueue;
   if (decision.award && !card.masteryBadge) {

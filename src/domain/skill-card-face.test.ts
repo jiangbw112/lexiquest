@@ -8,6 +8,7 @@ import {
   skillCardInteractive,
   skillIconFrame,
   skillLevelFrame,
+  skillListFace,
   skillOrderFrame,
   skillSlotIndexForKey,
 } from "./skill-card-face";
@@ -41,6 +42,24 @@ describe("skill card faces", () => {
     const ready = skillCardFace({ phase: "choose", energy: 2, energyCost: 2 });
     expect(skillCardInput(ready, "key")).toBe("cast");
     expect(skillCardInput(ready, "click")).toBe("cast");
+    const resolving = skillCardFace({ phase: "choose", energy: 6, energyCost: 1, resolving: true });
+    expect(resolving).toBe("disabled");
+    expect(skillCardFrame(resolving, "equipped", 2)).toBe("card_frame_disabled");
+    expect(skillCardInteractive(resolving)).toBe(false);
+    expect(skillCardInput(resolving, "click")).toBe("ignore");
+    expect(skillCardInput(resolving, "key")).toBe("ignore");
+    expect(battleControlOpen("choose", "skill", true)).toBe(false);
+    expect(battleControlOpen("choose", "action", true)).toBe(false);
+    expect(battleControlOpen("lost", "leave", false)).toBe(true);
+    expect(battleControlOpen("won", "skill")).toBe(false);
+  });
+
+  it("shows a lock and no level until a card is owned, then the saved level", () => {
+    expect(skillListFace({ unlocked: false, level: 1 })).toEqual({ showLevel: false, showLock: true, level: null });
+    expect(skillListFace({ unlocked: false, level: undefined })).toEqual({ showLevel: false, showLock: true, level: null });
+    expect(skillListFace({ unlocked: true, level: 3 })).toEqual({ showLevel: true, showLock: false, level: 3 });
+    expect(skillListFace({ unlocked: true, level: 2 })).toEqual({ showLevel: true, showLock: false, level: 2 });
+    expect(skillListFace({ unlocked: true, level: undefined })).toEqual({ showLevel: true, showLock: false, level: 1 });
   });
 
   it("maps level frames, dot badges and icon names", () => {
@@ -71,8 +90,10 @@ describe("skill card faces", () => {
     const scene = readBattle();
     expect(scene).toContain("blocker.setInteractive()");
     expect(scene).toContain('blocker.input.cursor = "default"');
-    expect(scene).toContain('battleControlOpen(this.state.phase, "answer")');
-    expect(scene).toContain('battleControlOpen(this.state.phase, "action")');
+    expect(scene).toContain('battleControlOpen(this.state.phase, "answer", this.resolving)');
+    expect(scene).toContain('battleControlOpen(this.state.phase, "action", this.resolving)');
+    expect(scene).toContain("this.resolving");
+    expect(scene).not.toContain("外形暂用墨团");
   });
 });
 

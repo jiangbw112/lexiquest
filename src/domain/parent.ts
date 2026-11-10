@@ -3,6 +3,7 @@ import { formatMeaning, GRADE_BANDS, normalizeGrades, wordById, wordsForGrades }
 import { chapterWordIds, litMasteryCount } from "./stages";
 import { PROPOSALS } from "./proposals";
 import { withRewardDefaults } from "./chapter-rewards";
+import { deviceTimeZone, localDayKey } from "./local-day";
 import { badgeTone, isDue, type BadgeTone } from "./review";
 import type {
   DailyGoal,
@@ -28,29 +29,11 @@ function shiftDay(dayKey: string, delta: number): string {
   return shifted.toISOString().slice(0, 10);
 }
 
-function zonedPart(now: Date, timeZone: string, type: "year" | "month" | "day" | "hour"): string {
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hourCycle: "h23",
-  });
-  return formatted.formatToParts(now).find((part) => part.type === type)?.value ?? "";
-}
+export { deviceTimeZone, localDayKey };
 
-/** The device zone. Tests pass an explicit zone instead of changing the machine. */
-export function deviceTimeZone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-}
-
-/** Study day in `timeZone`: the local calendar date, rolling at the confirmed 04:00 wall clock. */
+/** Same instant as `localDayKey`. Older call sites keep this name. */
 export function studyDayKey(now: Date, timeZone = deviceTimeZone()): string {
-  const hour = Number(zonedPart(now, timeZone, "hour"));
-  const day = `${zonedPart(now, timeZone, "year")}-${zonedPart(now, timeZone, "month")}-${zonedPart(now, timeZone, "day")}`;
-  if (Number.isNaN(hour) || hour >= PROPOSALS.dailyGoal.dayBoundaryHour) return day;
-  return shiftDay(day, -1);
+  return localDayKey(now, timeZone);
 }
 
 function keysEnding(dayKey: string, count: number): string[] {

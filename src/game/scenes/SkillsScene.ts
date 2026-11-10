@@ -3,7 +3,7 @@ import { classById } from "../../domain/classes";
 import { PROVISIONAL } from "../../domain/provisional";
 import { equipSkill, unequipSkill } from "../../domain/progress";
 import { MAX_EQUIPPED_SKILLS, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
-import { skillIconFrame, skillLevelFrame, skillOrderFrame } from "../../domain/skill-card-face";
+import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame } from "../../domain/skill-card-face";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -54,14 +54,20 @@ export class SkillsScene extends Phaser.Scene {
       const unlocked = save.unlockedSkillIds.includes(skill.id);
       const equippedIndex = save.equippedSkillIds.indexOf(skill.id);
       const equipped = equippedIndex >= 0;
-      const level = Math.min(3, Math.max(1, save.skillLevels[skill.id] ?? 1));
+      const mark = skillListFace({ unlocked, level: save.skillLevels[skill.id] });
       const icon = skillIconFrame(skill.id);
       if (this.textures.get("atlas_skills").has(icon)) {
         this.add.image(174 + 34, top + 14 + 34, "atlas_skills", icon).setScale(68 / 96);
       }
-      this.add.image(224 + 16, top + 62 + 16, "atlas_battle", skillLevelFrame(level)).setScale(32 / 80);
+      if (mark.showLock) {
+        this.add.image(224 + 16, top + 62 + 16, "atlas_ui_core", "icon_lock").setScale(32 / 96);
+      } else if (mark.showLevel && mark.level != null) {
+        this.add.image(224 + 16, top + 62 + 16, "atlas_battle", skillLevelFrame(mark.level)).setScale(32 / 80);
+      }
       const nameText = this.add.text(270, top + 16, skill.name, { fontFamily: FONT, fontSize: "24px", fontStyle: "700", color: unlocked ? INK : PLUM });
-      this.add.text(nameText.x + nameText.width + 10, top + 22, `Lv ${level}`, { fontFamily: FONT, fontSize: "18px", color: NOTE });
+      if (mark.showLevel && mark.level != null) {
+        this.add.text(nameText.x + nameText.width + 10, top + 22, `Lv ${mark.level}`, { fontFamily: FONT, fontSize: "18px", color: NOTE });
+      }
       const cost = skillEnergyCost(skill, hero);
       for (let i = 0; i < cost; i += 1) {
         this.add.image(280 + i * 22, top + 78, "atlas_battle", "energy_pip_cost").setScale(0.5);

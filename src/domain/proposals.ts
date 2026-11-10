@@ -24,7 +24,7 @@ export const PROPOSALS = {
     recentWindowDays: 7,
   },
   dailyGoal: {
-    /** Local wall-clock hour when the study day rolls, in the device time zone. */
+    /** Kept from the old 04:00 study-day note. The live day is localDayKey, local midnight. */
     dayBoundaryHour: 4,
     goalMax: { easy: 8, normal: 15, more: 25 },
     /** New words to learn when nothing is due. */

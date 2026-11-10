@@ -7,8 +7,14 @@ export type SkillCardFace = "ready" | "low_energy" | "disabled";
 
 export type SkillCardPress = "cast" | "low-energy" | "ignore";
 
-export function skillCardFace(input: { phase: SkillCardPhase; energy: number; energyCost: number }): SkillCardFace {
-  if (input.phase !== "choose") return "disabled";
+export function skillCardFace(input: {
+  phase: SkillCardPhase;
+  energy: number;
+  energyCost: number;
+  /** True while the enemy's hit or counterattack animation is still playing. */
+  resolving?: boolean;
+}): SkillCardFace {
+  if (input.resolving || input.phase !== "choose") return "disabled";
   if (input.energy < input.energyCost) return "low_energy";
   return "ready";
 }
@@ -28,10 +34,24 @@ export function skillCardInteractive(face: SkillCardFace): boolean {
 export type BattleControl = "action" | "skill" | "answer" | "leave";
 
 /** During a question only the answers take the pointer. Action slots stay closed. */
-export function battleControlOpen(phase: SkillCardPhase, control: BattleControl): boolean {
+export function battleControlOpen(phase: SkillCardPhase, control: BattleControl, resolving = false): boolean {
+  if (resolving) return false;
   if (phase === "question") return control === "answer";
   if (phase === "won" || phase === "lost") return control === "leave";
   return control === "action" || control === "skill";
+}
+
+export interface SkillListFace {
+  showLevel: boolean;
+  showLock: boolean;
+  level: number | null;
+}
+
+/** Unowned cards show a lock and no level. Owned cards show the saved level, equipped or not. */
+export function skillListFace(input: { unlocked: boolean; level: number | undefined }): SkillListFace {
+  if (!input.unlocked) return { showLevel: false, showLock: true, level: null };
+  const level = Math.min(3, Math.max(1, input.level ?? 1));
+  return { showLevel: true, showLock: false, level };
 }
 
 export function skillSlotIndexForKey(code: string): number | null {

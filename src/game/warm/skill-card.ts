@@ -27,8 +27,9 @@ export function placeSkillCard(
   energy: number,
   onCast: () => void,
   onLowEnergy: () => void,
+  resolving = false,
 ): Phaser.GameObjects.Container {
-  const face = skillCardFace({ phase, energy, energyCost: slot.energyCost });
+  const face = skillCardFace({ phase, energy, energyCost: slot.energyCost, resolving });
   const muted = face !== "ready";
   const left = 670 + slot.index * 160;
   const top = 592;

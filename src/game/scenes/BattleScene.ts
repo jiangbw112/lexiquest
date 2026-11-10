@@ -13,7 +13,7 @@ import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey 
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
-import { BOSS_BATTLE_POS, canopyPoses, type BossAnim } from "../art/boss-pack";
+import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -22,11 +22,11 @@ import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
-import { FONT, listenKeys } from "../ui";
+import { listenKeys } from "../ui";
 import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
-import { CREAM, FONT_BODY, INK, MUTED } from "../warm/theme";
+import { FONT_BODY, INK, MUTED } from "../warm/theme";
 
 interface BattleLaunch {
   stageId?: number;
@@ -42,6 +42,7 @@ export class BattleScene extends Phaser.Scene {
   private launch: BattleLaunch = {};
   private bossFight = false;
   private monsterHit = false;
+  private resolving = false;
   private monsterTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
@@ -78,6 +79,7 @@ export class BattleScene extends Phaser.Scene {
     this.bossReported = false;
     this.bossPoses = ["idle"];
     this.monsterHit = false;
+    this.resolving = false;
     this.clearedChapter = false;
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
@@ -134,7 +136,7 @@ export class BattleScene extends Phaser.Scene {
       this.leave();
       return;
     }
-    if (!this.state || document.getElementById("spell-form")?.classList.contains("open")) return;
+    if (!this.state || this.resolving || document.getElementById("spell-form")?.classList.contains("open")) return;
     const slotIndex = skillSlotIndexForKey(event.code);
     if (slotIndex !== null) {
       this.useSkill(slotIndex, "key");
@@ -155,7 +157,12 @@ export class BattleScene extends Phaser.Scene {
   private useSkill(slotIndex: number, via: "click" | "key"): void {
     const slot = this.state.slots[slotIndex];
     if (!slot) return;
-    const face = skillCardFace({ phase: this.state.phase, energy: this.state.energy, energyCost: slot.energyCost });
+    const face = skillCardFace({
+      phase: this.state.phase,
+      energy: this.state.energy,
+      energyCost: slot.energyCost,
+      resolving: this.resolving,
+    });
     const result = skillCardInput(face, via);
     if (result === "ignore") return;
     this.act({ type: "skill", slotIndex });
@@ -174,7 +181,7 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
-    this.noteMonsterHit(before);
+    this.holdResolution(before);
     this.finishIfNeeded();
     this.draw();
   }
@@ -206,17 +213,31 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
-    this.noteMonsterHit(before);
+    this.holdResolution(before);
     this.finishIfNeeded();
     this.draw();
   }
 
-  private noteMonsterHit(before: BattleState): void {
-    if (this.bossFight || this.state.enemyHp >= before.enemyHp) return;
-    this.monsterHit = true;
+  /**
+   * Domain resolution is synchronous. The visible enemy window is the hit flash
+   * (200ms) or the boss hit/attack clips. Cards stay disabled until that clip ends.
+   * A turn that does not move the enemy, and a finished battle, do not add a second window.
+   */
+  private holdResolution(before: BattleState): void {
+    const enemyMoved =
+      this.state.phase !== "won" &&
+      this.state.phase !== "lost" &&
+      (this.state.enemyHits > before.enemyHits ||
+        this.state.enemyHp < before.enemyHp ||
+        this.state.phaseIndex > before.phaseIndex);
+    const ms = enemyMoved ? (this.bossFight ? bossReactionMs(this.bossPoses) : 200) : 0;
+    this.monsterHit = !this.bossFight && this.state.enemyHp < before.enemyHp;
+    this.resolving = ms > 0;
     this.monsterTimer?.remove(false);
-    this.monsterTimer = this.time.delayedCall(200, () => {
+    if (ms <= 0) return;
+    this.monsterTimer = this.time.delayedCall(ms, () => {
       this.monsterHit = false;
+      this.resolving = false;
       if (this.scene.isActive()) this.draw();
     });
   }
@@ -276,14 +297,6 @@ export class BattleScene extends Phaser.Scene {
     const monster = this.add.image(980, 520, "atlas_monsters", frame);
     monster.setOrigin(0.5, 0.977);
     monster.setScale(0.45);
-    if (kind === "inkling" && this.state.encounterId !== "inkling") {
-      const label = "外形暂用墨团";
-      const plate = this.add.graphics();
-      const text = this.add.text(980, 260, label, { fontFamily: FONT, fontSize: "16px", color: INK }).setOrigin(0.5);
-      plate.fillStyle(Number.parseInt(CREAM.slice(1), 16), 1);
-      plate.fillRoundedRect(text.x - text.width / 2 - 12, text.y - 14, text.width + 24, 28, 14);
-      this.children.bringToTop(text);
-    }
   }
 
   private draw(): void {
@@ -326,7 +339,7 @@ export class BattleScene extends Phaser.Scene {
       wordWrap: { width: 640 },
     }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
-    if (battleControlOpen(this.state.phase, "action")) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+    if (battleControlOpen(this.state.phase, "action", this.resolving)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
     else {
       // Swallow hover and clicks on the old action row. Only later answers or the leave button stay open.
       const blocker = this.add.zone(640, 686, 1200, 240);
@@ -341,9 +354,10 @@ export class BattleScene extends Phaser.Scene {
         this.state.energy,
         () => this.useSkill(slot.index, "click"),
         () => this.useSkill(slot.index, "click"),
+        this.resolving,
       );
     });
-    if (battleControlOpen(this.state.phase, "answer") && this.state.question) {
+    if (battleControlOpen(this.state.phase, "answer", this.resolving) && this.state.question) {
       warmPanel(this, 640, 696, 1100, 172);
       if (this.state.question.kind === "spelling") {
         probeQuestion(this.state.question.wordId, []);
@@ -367,12 +381,12 @@ export class BattleScene extends Phaser.Scene {
       });
       return;
     }
-    if (battleControlOpen(this.state.phase, "action")) {
+    if (battleControlOpen(this.state.phase, "action", this.resolving)) {
       warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral" });
       warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky" });
       warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal" });
     }
-    if (battleControlOpen(this.state.phase, "leave")) {
+    if (battleControlOpen(this.state.phase, "leave", this.resolving)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }

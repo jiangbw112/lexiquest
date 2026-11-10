@@ -232,7 +232,6 @@ describe("forest chapter rewards", () => {
     expect(granted.cosmeticTokens).toBe(save.cosmeticTokens);
     expect(granted.battlesWon).toBe(save.battlesWon);
     expect(granted.unlockedCosmeticIds).toEqual(["forest_leaf_cape", "acorn_pin", "forest_wreath"]);
-    const zone = "UTC";
     const practiced = notePracticeAnswer(
       {
         ...granted,
@@ -240,7 +239,7 @@ describe("forest chapter rewards", () => {
         goalCalendar: {},
         lastGoalCompletedDayKey: null,
         dailyGoal: {
-          dayKey: studyDayKey(START, zone),
+          dayKey: studyDayKey(START),
           snapshotDue: 0,
           mode: "practice_fallback",
           targetReview: 0,
@@ -255,7 +254,6 @@ describe("forest chapter rewards", () => {
       },
       "tree",
       START,
-      zone,
     );
     expect(practiced.cosmeticTokens).toBe(3);
     expect(practiced.unlockedCosmeticIds).toEqual(granted.unlockedCosmeticIds);

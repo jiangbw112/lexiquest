@@ -212,7 +212,6 @@ const TEXT_CONTRAST: TextContrast[] = [
   row("旧按钮", "技能", "按下", CREAM, "#A04433", 22, 400),
   row("战斗", "名字与血量", "常态", INK, CREAM, 22, 700),
   row("战斗", "备注", "常态", INK, CREAM, 18, 400),
-  row("战斗", "外形说明", "常态", INK, CREAM, 16, 400),
   row("战斗", "题目", "常态", INK, CREAM, 24, 700),
   row("战斗", "拼写说明", "常态", MUTED, CREAM, 18, 400),
   row("村子", "任务", "常态", INK, CREAM, 20, 400),
