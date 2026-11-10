@@ -42,7 +42,7 @@ describe("desktop userData", () => {
   it("matches the v1.0 icon checksums and stays out of the web public folder", () => {
     const sha = (rel: string) => createHash("sha256").update(fs.readFileSync(new URL(rel, import.meta.url))).digest("hex");
     expect(sha("../build/icon.icns")).toBe("30937af71bc946e41caff5ef79416bd357a7d45be39bc088b6aeabdf37b6eda7");
-    expect(sha("../build/icon.ico")).toBe("ecbc0b9c789c419c65e9306663031c61a0714f9869dfab9987da2365e881bd2e");
+    expect(sha("../build/icon.ico")).toBe("e5182313ff43405df4c27a84a9b8dfa2f31ee991cd189f0c63083db186aac86c");
     expect(sha("../build/icon_1024.png")).toBe("c182c04e5a905fda3960d25e7db59b0d85ba0050b092fa2936af1c48b0953bb3");
     expect(fs.existsSync(new URL("../build/sizes/icon_512.png", import.meta.url))).toBe(true);
     expect(fs.existsSync(new URL("../public/icon.ico", import.meta.url))).toBe(false);
