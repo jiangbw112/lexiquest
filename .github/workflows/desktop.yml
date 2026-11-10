@@ -32,6 +32,21 @@ jobs:
       - name: List installer sizes
         shell: pwsh
         run: Get-ChildItem dist-desktop -File | ForEach-Object { "{0}`t{1}" -f $_.Name, $_.Length }
+      - name: Print exe version info
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path dist-desktop -Recurse -Filter lexiquest.exe | Select-Object -First 1
+          if (-not $exe) { throw "lexiquest.exe was not produced" }
+          $info = $exe.VersionInfo
+          Write-Output "exe=$($exe.FullName)"
+          Write-Output "FileDescription=$($info.FileDescription)"
+          Write-Output "ProductName=$($info.ProductName)"
+          Write-Output "CompanyName=$($info.CompanyName)"
+          Write-Output "FileVersion=$($info.FileVersion)"
+          Write-Output "ProductVersion=$($info.ProductVersion)"
+          if ($info.ProductName -ne "LexiQuest") { throw "ProductName is $($info.ProductName)" }
+          if ($info.FileDescription -match "Electron") { throw "FileDescription still says Electron: $($info.FileDescription)" }
+          if ($info.CompanyName -ne "LexiQuest") { throw "CompanyName is $($info.CompanyName)" }
       - uses: actions/upload-artifact@v4
         with:
           name: lexiquest-windows
@@ -99,6 +114,20 @@ jobs:
       - run: npm run build:desktop:linux
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Check app.asar has no node_modules
+        run: |
+          node --input-type=module <<'EOF'
+          import { statSync } from "node:fs";
+          import { createRequire } from "node:module";
+          const require = createRequire(import.meta.url);
+          const asar = require("@electron/asar");
+          const file = "dist-desktop/linux-unpacked/resources/app.asar";
+          const names = asar.listPackage(file);
+          const bundled = names.filter((name) => name.includes("node_modules"));
+          console.log(`asar ${statSync(file).size}`);
+          console.log(`entries ${names.length} node_modules ${bundled.length}`);
+          if (bundled.length > 0) process.exit(1);
+          EOF
       - run: xvfb-run -a env LEXIQUEST_SMOKE_NO_SANDBOX=1 LEXIQUEST_SHOTS=dist-desktop/smoke npm run smoke:desktop
       - uses: actions/upload-artifact@v4
         with:

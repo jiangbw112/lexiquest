@@ -2,6 +2,10 @@
   "name": "lexiquest",
   "private": true,
   "version": "0.1.0",
+  "description": "词境冒险 LexiQuest",
+  "author": {
+    "name": "LexiQuest"
+  },
   "type": "module",
   "main": "desktop/main.mjs",
   "scripts": {
@@ -17,10 +21,6 @@
     "test": "vitest run",
     "lint": "eslint ."
   },
-  "dependencies": {
-    "phaser": "3.90.0",
-    "ts-fsrs": "5.4.2"
-  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.0",
@@ -29,7 +29,9 @@
     "electron-builder": "26.18.1",
     "eslint": "10.14.0",
     "globals": "17.14.0",
+    "phaser": "3.90.0",
     "pngjs": "7.0.0",
+    "ts-fsrs": "5.4.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
     "vite": "8.3.6",

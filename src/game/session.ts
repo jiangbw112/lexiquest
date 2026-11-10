@@ -1,3 +1,4 @@
+import { isDesktopShell, shellCopy } from "../domain/host-copy";
 import { syncUnlocks } from "../domain/progress";
 import { loadSave, writeSave } from "../domain/storage";
 import type { SaveData } from "../domain/types";
@@ -5,8 +6,9 @@ import { probeNote, setProbeProvider } from "./probe";
 
 let current: SaveData | null = null;
 
-export const SAVE_CACHE_NOTICE =
-  "进度只缓存在这台浏览器里，清掉站点数据就会消失。它不是服务器上的正式存档。";
+export function saveCacheNotice(): string {
+  return shellCopy(isDesktopShell()).saveCacheNotice;
+}
 
 export function bootSave(): SaveData | null {
   const loaded = loadSave();

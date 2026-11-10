@@ -44,11 +44,11 @@ npm run build:desktop:linux
 - Mac is a zip of the `.app`, one x64 and one arm64. `dist-desktop/LexiQuest-<version>-mac-x64.zip` and `dist-desktop/LexiQuest-<version>-mac-arm64.zip`. The app is ad-hoc signed (`identity: "-"`). It is not notarized.
 - Linux `build:desktop:linux` writes an unpacked directory used to smoke-test the shell. It is not a release installer.
 
-Windows SmartScreen will say “Windows protected your PC” because the installer is unsigned. Choose **More info**, then **Run anyway**.
+Windows SmartScreen will say “Windows protected your PC” because the installer is unsigned. Choose **More info**, then **Run anyway**. If Windows 11 Smart App Control blocks the file and offers no run option, that is also because the app is unsigned. Do not turn Smart App Control off. Turning it off is permanent. Use the web version instead.
 
-macOS Gatekeeper will say the app is from an unidentified developer, or that it cannot be opened. In Finder, Control-click the app and choose **Open**, then **Open** again. If that is still blocked, open **System Settings → Privacy & Security** and use the **Open Anyway** button for LexiQuest. Do not disable Gatekeeper.
+On macOS 15 and later, Gatekeeper blocks the first open because the app is only ad-hoc signed. Double-click LexiQuest once and let it be blocked. Then open **System Settings → Privacy & Security**, scroll down, choose **Open Anyway** for LexiQuest, and enter the login password. That button stays available for about an hour. Do not disable Gatekeeper. A Mac with an Apple M chip uses the arm64 zip. A Mac whose processor is Intel uses the x64 zip. After unzipping, drag LexiQuest into the Applications folder. Parents can follow `docs/家长安装说明.md`.
 
-The save stays in Electron’s `userData` directory (`localStorage` for `app://lexiquest`). On Windows that is `%APPDATA%\LexiQuest`. On macOS it is `~/Library/Application Support/LexiQuest`. The NSIS uninstaller leaves that folder in place (`deleteAppDataOnUninstall` is false, which is electron-builder’s default). Uninstalling the app does not delete the save.
+The save stays in Electron’s `userData` directory (`localStorage` for `app://lexiquest`). The directory name is the lowercase `lexiquest`, pinned with `app.setName`, so a `productName` of LexiQuest does not move it. On Windows that is `%APPDATA%\lexiquest`. On macOS it is `~/Library/Application Support/lexiquest`. On Linux it is `~/.config/lexiquest` unless `XDG_CONFIG_HOME` is set. The NSIS uninstaller leaves that folder in place (`deleteAppDataOnUninstall` is false, which is electron-builder’s default). Uninstalling the app does not delete the save.
 
 A desktop save and a browser save do not see each other. The browser copy is the site’s `localStorage`. The desktop copy is this app’s `userData`. Clearing one does not clear the other. There is no import and no export.
 
@@ -118,7 +118,7 @@ Spelling comparison is trim, lower case, and collapsed whitespace, then an exact
 
 ## Save data
 
-The key is `lexiquest.save.v1` in the browser’s `localStorage`. It is an MVP cache, not authoritative progress. Clearing site data, or 给家长 → 清除这台浏览器的缓存, deletes it. Rewards stored here must be checked again before any future server grant.
+The key is `lexiquest.save.v1` in `localStorage`. It is an MVP cache, not authoritative progress. On the web, clearing site data, or 给家长 → 清除这台浏览器的缓存, deletes it. The desktop app uses the same key inside its own `userData` folder and the button says 清除这台电脑的缓存. Rewards stored here must be checked again before any future server grant.
 
 ## What is left
 

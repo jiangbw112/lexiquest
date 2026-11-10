@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, protocol, session } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { APP_DATA_NAME, userDataDirFromArgs, userDataPath } from "./app-identity.mjs";
 import {
   APP_HOST,
   APP_ORIGIN,
@@ -12,6 +13,20 @@ import {
   contentType,
   isAllowedAppUrl,
 } from "./protocol-path.mjs";
+
+app.setName(APP_DATA_NAME);
+app.setPath(
+  "userData",
+  userDataDirFromArgs(
+    process.argv,
+    userDataPath({
+      platform: process.platform,
+      home: app.getPath("home"),
+      appData: process.env.APPDATA,
+      configHome: process.env.XDG_CONFIG_HOME,
+    }),
+  ),
+);
 
 const CONTENT_WIDTH = 1280;
 const CONTENT_HEIGHT = 800;
@@ -54,13 +69,52 @@ function handleAppRequest(request) {
   }
 }
 
+function navigationUrl(details, url) {
+  if (details && typeof details.url === "string") return details.url;
+  return typeof url === "string" ? url : "";
+}
+
+function blockNavigation(details, url) {
+  if (!isAllowedAppUrl(navigationUrl(details, url))) details.preventDefault();
+}
+
+function returnHome(contents, details, url) {
+  if (details && details.isMainFrame === false) return;
+  if (isAllowedAppUrl(navigationUrl(details, url))) return;
+  if (contents.isDestroyed()) return;
+  contents.loadURL(`${APP_ORIGIN}/`).catch(() => {});
+}
+
+function returnHomeIfLeft(contents) {
+  if (contents.isDestroyed()) return;
+  const url = contents.getURL();
+  if (isAllowedAppUrl(url)) return;
+  contents.loadURL(`${APP_ORIGIN}/`).catch(() => {});
+}
+
 function lockContents(contents) {
   contents.setWindowOpenHandler(() => ({ action: "deny" }));
   contents.on("will-navigate", (event, url) => {
-    if (!isAllowedAppUrl(url)) event.preventDefault();
+    blockNavigation(event, url);
   });
   contents.on("will-redirect", (event, url) => {
-    if (!isAllowedAppUrl(url)) event.preventDefault();
+    blockNavigation(event, url);
+  });
+  // about:blank and about:srcdoc do not emit will-navigate.
+  contents.on("will-frame-navigate", (event) => {
+    blockNavigation(event);
+  });
+  contents.on("did-start-navigation", (event, url) => {
+    returnHome(contents, event, url);
+  });
+  contents.on("did-navigate", (event, url) => {
+    returnHome(contents, event, url);
+  });
+  contents.on("did-finish-load", () => {
+    returnHomeIfLeft(contents);
+  });
+  contents.on("did-fail-load", () => {
+    returnHomeIfLeft(contents);
   });
 }
 

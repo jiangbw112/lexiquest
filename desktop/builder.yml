@@ -5,14 +5,20 @@ asar: true
 npmRebuild: false
 directories:
   output: dist-desktop
+# dist already contains Phaser and ts-fsrs. Do not copy node_modules into the asar.
+# Icon stays the Electron default until art lands. Then set win.icon and mac.icon,
+# for example win.icon: desktop/icon.ico and mac.icon: desktop/icon.icns.
 files:
   - desktop/main.mjs
   - desktop/preload.mjs
   - desktop/protocol-path.mjs
+  - desktop/app-identity.mjs
   - dist/**/*
   - package.json
+  - "!**/node_modules/**"
 extraMetadata:
   main: desktop/main.mjs
+copyright: Copyright © 2026 LexiQuest
 electronFuses:
   runAsNode: false
   enableNodeCliInspectArguments: false
@@ -20,7 +26,8 @@ electronFuses:
   onlyLoadAppFromAsar: true
   grantFileProtocolExtraPrivileges: false
 win:
-  signAndEditExecutable: false
+  # Skip signing only. resedit still writes the product name, version, company, and description.
+  signExecutable: false
   target:
     - target: nsis
       arch:

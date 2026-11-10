@@ -122,7 +122,7 @@ if (!fs.existsSync(exe)) {
 
 const first = await launch();
 const origin = await first.page.evaluate(() => location.origin);
-await shot(first.page, "elec-boot.png");
+await shot(first.page, "elec2-boot.png");
 const written = await first.page.evaluate(
   ({ probe, saveKey, save }) => {
     localStorage.setItem(probe, "kept");
@@ -168,7 +168,66 @@ await first.page.evaluate(
   },
   { origin, written, csp, opened },
 );
-await shot(first.page, "elec-checks.png");
+await shot(first.page, "elec2-checks.png");
+
+async function poke(page, target) {
+  await page.evaluate((next) => {
+    location.href = next;
+  }, target).catch((error) => {
+    console.log("navigate threw", target, error.message);
+  });
+  await page.waitForTimeout(1200);
+  try {
+    await page.waitForSelector("#game", { timeout: 20000 });
+  } catch (error) {
+    const href = await page.evaluate(() => location.href).catch((failure) => failure.message);
+    console.log("left the game", target, href);
+    throw error;
+  }
+  return page.evaluate(() => ({
+    href: location.href,
+    game: Boolean(document.querySelector("#game")),
+    label: document.documentElement.dataset.clearCacheLabel ?? "",
+    notice: document.documentElement.dataset.saveCacheNotice ?? "",
+  }));
+}
+
+function stayedHome(state) {
+  return Boolean(state && state.game && typeof state.href === "string" && state.href.startsWith("app://lexiquest/"));
+}
+
+const afterBlank = await poke(first.page, "about:blank");
+await first.page.evaluate((state) => {
+  const panel = document.createElement("div");
+  panel.textContent = `about:blank ${state.href}`;
+  panel.style.cssText =
+    "position:fixed;left:24px;right:24px;bottom:24px;z-index:9;padding:16px 20px;background:#fff4dc;color:#3b2a20;border:3px solid #3b2a20;border-radius:16px;font:24px/1.4 sans-serif;";
+  document.body.append(panel);
+}, afterBlank);
+await shot(first.page, "elec2-about-blank.png");
+
+const afterSrcdoc = await poke(first.page, "about:srcdoc");
+await first.page.evaluate((state) => {
+  const panel = document.createElement("div");
+  panel.textContent = `about:srcdoc ${state.href}`;
+  panel.style.cssText =
+    "position:fixed;left:24px;right:24px;bottom:24px;z-index:9;padding:16px 20px;background:#fff4dc;color:#3b2a20;border:3px solid #3b2a20;border-radius:16px;font:24px/1.4 sans-serif;";
+  document.body.append(panel);
+}, afterSrcdoc);
+await shot(first.page, "elec2-about-srcdoc.png");
+
+const desktopCopy = await first.page.evaluate(() => ({
+  label: document.documentElement.dataset.clearCacheLabel ?? "",
+  notice: document.documentElement.dataset.saveCacheNotice ?? "",
+}));
+await first.page.evaluate((copy) => {
+  const panel = document.createElement("div");
+  panel.textContent = `${copy.label} · ${copy.notice}`;
+  panel.style.cssText =
+    "position:fixed;left:24px;right:24px;bottom:24px;z-index:9;padding:16px 20px;background:#fff4dc;color:#3b2a20;border:3px solid #3b2a20;border-radius:16px;font:24px/1.4 sans-serif;";
+  document.body.append(panel);
+}, desktopCopy);
+await shot(first.page, "elec2-copy.png");
 await closeApp(first);
 
 const second = await launch();
@@ -186,7 +245,7 @@ await second.page.evaluate((name) => {
     "position:fixed;left:24px;right:24px;bottom:24px;z-index:9;padding:16px 20px;background:#fff4dc;color:#3b2a20;border:3px solid #3b2a20;border-radius:16px;font:24px/1.4 sans-serif;";
   document.body.append(panel);
 }, restored.name);
-await shot(second.page, "elec-restart.png");
+await shot(second.page, "elec2-restart.png");
 await closeApp(second);
 
 const report = {
@@ -198,13 +257,27 @@ const report = {
   windowOpenDenied: opened === false,
   probeRestored: restored.probe === "kept",
   saveNameRestored: restored.name === "小林",
+  aboutBlankStayed: stayedHome(afterBlank),
+  aboutSrcdocStayed: stayedHome(afterSrcdoc),
+  aboutBlankHref: afterBlank?.href ?? null,
+  aboutSrcdocHref: afterSrcdoc?.href ?? null,
+  desktopLabel: desktopCopy.label,
+  desktopNotice: desktopCopy.notice,
 };
 console.log(JSON.stringify(report, null, 2));
+const desktopWording =
+  report.desktopLabel === "清除这台电脑的缓存" &&
+  report.desktopNotice.includes("这台电脑") &&
+  !report.desktopLabel.includes("浏览器") &&
+  !report.desktopNotice.includes("浏览器");
 const ok =
   report.origin === "app://lexiquest" &&
   report.storageWritten &&
   report.inlineBlocked &&
   report.windowOpenDenied &&
   report.probeRestored &&
-  report.saveNameRestored;
+  report.saveNameRestored &&
+  report.aboutBlankStayed &&
+  report.aboutSrcdocStayed &&
+  desktopWording;
 if (!ok) process.exit(1);

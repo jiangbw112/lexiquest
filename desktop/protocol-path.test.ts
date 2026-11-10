@@ -104,6 +104,11 @@ describe("app protocol paths", () => {
     expect(main).toContain('action: "deny"');
     expect(main).toContain("will-navigate");
     expect(main).toContain("will-redirect");
+    expect(main).toContain("will-frame-navigate");
+    expect(main).toContain("did-start-navigation");
+    expect(main).toContain("did-navigate");
+    expect(main).toContain("did-finish-load");
+    expect(main).toContain("about:blank");
     expect(main).toContain("setPermissionRequestHandler");
     expect(main).toContain("setPermissionCheckHandler");
     expect(main).toContain("Menu.setApplicationMenu(null)");
@@ -117,7 +122,9 @@ describe("app protocol paths", () => {
     expect(main).not.toContain("openDevTools");
     expect(builder).toContain('identity: "-"');
     expect(builder).toContain("deleteAppDataOnUninstall: false");
-    expect(builder).toContain("signAndEditExecutable: false");
+    expect(builder).toContain("signExecutable: false");
+    expect(builder).not.toContain("signAndEditExecutable");
+    expect(builder).toContain("!**/node_modules/**");
     expect(builder).toContain("runAsNode: false");
     expect(builder).toContain("enableNodeCliInspectArguments: false");
     expect(builder).toContain("enableNodeOptionsEnvironmentVariable: false");

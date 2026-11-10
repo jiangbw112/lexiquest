@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { isDesktopShell, shellCopy } from "./domain/host-copy";
 import { installRuntime } from "./game/audio";
 import { BattleScene } from "./game/scenes/BattleScene";
 import { BootScene } from "./game/scenes/BootScene";
@@ -16,6 +17,10 @@ import { StageMapScene } from "./game/scenes/StageMapScene";
 import { TitleScene } from "./game/scenes/TitleScene";
 import { WardrobeScene } from "./game/scenes/WardrobeScene";
 import { WEBGL_REQUIRED_MESSAGE, webglAvailable } from "./game/webgl";
+
+const shell = shellCopy(isDesktopShell());
+document.documentElement.dataset.clearCacheLabel = shell.clearCacheLabel;
+document.documentElement.dataset.saveCacheNotice = shell.saveCacheNotice;
 
 function showWebglRequired(): void {
   const host = document.getElementById("game");

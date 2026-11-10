@@ -14,7 +14,8 @@ import {
 import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } from "../../domain/progress";
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
-import { SAVE_CACHE_NOTICE, commit, getSave, mutate } from "../session";
+import { isDesktopShell, shellCopy } from "../../domain/host-copy";
+import { commit, getSave, mutate, saveCacheNotice } from "../session";
 import { STRUGGLE_LIST, cjkWrap, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { FONT } from "../ui";
@@ -203,7 +204,7 @@ export class GuideScene extends Phaser.Scene {
     this.add.text(140, 28, uiLabel("给家长"), { fontFamily: FONT_TITLE, fontSize: "36px", color: INK });
     if (!this.pinSession.unlocked) {
       warmPanel(this, 640, 280, 960, 220);
-      this.add.text(200, 210, "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉浏览器数据后要重新设置。这不是安全登录。", {
+      this.add.text(200, 210, shellCopy(isDesktopShell()).gradeGateNote, {
         fontFamily: FONT,
         fontSize: "20px",
         color: INK,
@@ -311,14 +312,14 @@ export class GuideScene extends Phaser.Scene {
     const mastery = PROVISIONAL.mastery;
     const lines = [
       "没有自由聊天，也没有真实货币购买。",
-      SAVE_CACHE_NOTICE,
+      saveCacheNotice(),
       "学会一个词立刻得到词卡。熟练徽章后来才亮。到了复习时间，或者答错，徽章会变灰，答对后再亮。词卡不会被删掉。",
       `熟练徽章：至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ≥ ${mastery.minStability} 天。同一天反复练习不会点亮。日子按这台电脑的当地日期算。`,
       "技能卡不绑定单词，最多带 3 张。空位补基础招式。打出技能卡时，只从现在选中的年级里抽题：先抽到期的，没有到期再从学过的词里抽。",
       "基础招式更弱，不花能量。答错时，效果只有答对的一半。",
       "两个朋友轮流用这一台电脑。答对的题更多就赢；题一样多，用时更少的赢。答错不算。这次练习不记进复习。",
       "森林冒险分五关。每关学完新词并赢一场小战斗才算通过。第五关是林心守护者，打败才通关。亮着的熟练徽章单独显示，不够 28 也不挡住通关。",
-      "每天的学习目标按这台电脑的当地日期换一天。完成目标只加一枚外观代币，不改战斗数值。改档和改年级共用一个家长密码，只为避免孩子不小心修改。清掉浏览器数据后要重新设置。这不是安全登录。忘记密码时答一道算术题即可重设，学习记录不会被清掉。",
+      shellCopy(isDesktopShell()).dailyGoalNote,
       "森林这一章有 28 个词。其中 20 个在三到六年级课本里，另外 8 个只在这一章。电脑会读出单词。",
     ];
     const selected = this.gradeDraft;
@@ -345,7 +346,7 @@ export class GuideScene extends Phaser.Scene {
       wordWrap: cjkWrap(1000),
       lineSpacing: 4,
     });
-    warmButton(this, 360, 730, uiLabel(this.confirming ? "再按一次清除 Y" : "清除这台浏览器的缓存"), () => {
+    warmButton(this, 360, 730, uiLabel(this.confirming ? "再按一次清除 Y" : (isDesktopShell() ? "清除这台电脑的缓存" : "清除这台浏览器的缓存")), () => {
       if (!this.confirming) {
         this.confirming = true;
         this.draw();
