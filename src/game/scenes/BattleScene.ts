@@ -6,6 +6,7 @@ import {
   CHAPTER_BOSS_ID,
   type BattleState,
 } from "../../domain/battle";
+import { buildResultsView, starsFor } from "../../domain/battle-results";
 import { applyBattleOutcome, noteBattleAnswer, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey } from "../../domain/skill-card-face";
@@ -48,6 +49,8 @@ export class BattleScene extends Phaser.Scene {
   private monsterTimer?: Phaser.Time.TimerEvent;
   private openingDue: string[] = [];
   private toastedHints = 0;
+  private presenting = false;
+  private resultsOpened = false;
 
   constructor() {
     super("battle");
@@ -61,7 +64,7 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages"], ["bg_forest"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"], ["bg_forest"]);
     if (this.bossFight) queueBossAtlases(this);
   }
 
@@ -85,6 +88,8 @@ export class BattleScene extends Phaser.Scene {
     this.monsterHit = false;
     this.resolving = false;
     this.clearedChapter = false;
+    this.presenting = false;
+    this.resultsOpened = false;
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();
@@ -145,6 +150,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private onKey(event: KeyboardEvent): void {
+    if (this.presenting || this.scene.isPaused()) return;
     if (event.code === "Escape") {
       this.leave();
       return;
@@ -295,10 +301,45 @@ export class BattleScene extends Phaser.Scene {
     if (this.reported) return;
     if (this.state.phase !== "won" && this.state.phase !== "lost") return;
     this.reported = true;
-    const outcome = this.state.phase === "won" ? "win" : "loss";
-    const before = getSave()?.chapterCleared === true;
-    mutate((save) => applyBattleOutcome(save, outcome, studyNow(save).getTime(), this.state.encounterId));
-    this.clearedChapter = !before && getSave()?.chapterCleared === true;
+    this.presenting = true;
+    const before = getSave();
+    if (!before) return;
+    const won = this.state.phase === "won";
+    const answers = this.state.answers ?? [];
+    const correct = answers.filter((answer) => answer.correct).length;
+    const stars = starsFor(correct, answers.length, won);
+    const stageId = this.launch.stageId ?? 0;
+    const now = studyNow(before).getTime();
+    mutate((save) => applyBattleOutcome(
+      save,
+      won ? "win" : "loss",
+      now,
+      this.state.encounterId,
+      stars ?? undefined,
+      stageId,
+    ));
+    const after = getSave();
+    if (!after) return;
+    this.clearedChapter = won && !before.chapterCleared && after.chapterCleared;
+    const view = buildResultsView({
+      before,
+      after,
+      answers,
+      stageId,
+      boss: this.bossFight,
+      now,
+    });
+    const delay = won && this.bossFight ? 750 : 500;
+    this.time.delayedCall(delay, () => this.openResults(view));
+    this.input.once("pointerdown", () => this.openResults(view));
+    this.input.keyboard?.once("keydown-SPACE", () => this.openResults(view));
+  }
+
+  private openResults(view: ReturnType<typeof buildResultsView>): void {
+    if (this.resultsOpened || !this.scene.isActive()) return;
+    this.resultsOpened = true;
+    this.scene.pause();
+    this.scene.launch("battle-results", view);
   }
 
   private leave(): void {
@@ -466,7 +507,7 @@ export class BattleScene extends Phaser.Scene {
         }
       }
     }
-    if (battleControlOpen(this.state.phase, "leave", this.resolving)) {
+    if (!this.presenting && battleControlOpen(this.state.phase, "leave", this.resolving)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }

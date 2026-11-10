@@ -374,17 +374,20 @@ describe("word-monster battle", () => {
     const blocked = resolve("block");
     expect(blocked.playerHp).toBeGreaterThan(attacked.playerHp);
     expect(blocked.enemyHp).toBeGreaterThan(attacked.enemyHp);
-    let streak = { ...state, playerHp: 20, enemyAttack: 0, enemyHp: 400, enemyMaxHp: 400 };
+    let streak = { ...state, playerHp: 20, enemyAttack: 6, enemyHp: 400, enemyMaxHp: 400 };
     for (let turn = 0; turn < 2; turn += 1) {
       const asked = takeAction(streak, { type: "block" });
       const question = asked.state.question;
       if (!question || question.kind === "spelling") throw new Error("expected a choice question");
       streak = answerQuestion(asked.state, question.answerId);
     }
+    expect(streak.playerHp).toBe(20);
     const third = takeAction(streak, { type: "block" });
     const thirdQuestion = third.state.question;
     if (!thirdQuestion || thirdQuestion.kind === "spelling") throw new Error("expected a choice question");
     streak = answerQuestion(third.state, thirdQuestion.answerId);
-    expect(streak.lastNote).toContain("3");
+    expect(streak.playerHp).toBe(17);
+    expect(streak.lastNote).toContain("挡下了下一次伤害");
+    expect(streak.lastNote).not.toMatch(/[0-9]/);
   });
 });

@@ -1,5 +1,5 @@
 import { sanitizeName } from "./appearance";
-import { applyChapterRewards } from "./chapter-rewards";
+import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
 import { PROVISIONAL } from "./provisional";
@@ -29,7 +29,6 @@ import {
   equipSkillIds,
   MAX_EQUIPPED_SKILLS,
   MAX_SKILL_LEVEL,
-  skillById,
   skillsForClass,
   starterSkillId,
 } from "./skills";
@@ -126,6 +125,7 @@ export function createSave(input: {
     gradesConfirmed: selectedGrades.length > 0,
     clockOffsetMs: 0,
     rewardQueue: [],
+    bestStars: {},
   };
   return refreshUnlocks(save);
 }
@@ -247,8 +247,8 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
   );
 }
 
-function settleChapterRewards(save: SaveData, now: Date): SaveData {
-  return applyChapterRewards(save, litMasteryCount(save, now), chapterWordIds().length);
+function settleChapterRewards(save: SaveData, now: Date, notify = true): SaveData {
+  return applyChapterRewards(save, litMasteryCount(save, now), chapterWordIds().length, FOREST_REWARDS, notify);
 }
 
 export function meaningLoggedToday(save: SaveData, wordId: string, now: Date, timeZone = deviceTimeZone()): boolean {
@@ -408,6 +408,8 @@ export function applyBattleOutcome(
   outcome: "win" | "loss",
   now: number,
   encounterId?: string,
+  stars?: 1 | 2 | 3,
+  stageId?: number,
 ): SaveData {
   if (outcome === "loss") {
     return { ...save, battlesLost: save.battlesLost + 1, memory: save.memory, wordCards: save.wordCards };
@@ -429,26 +431,22 @@ export function applyBattleOutcome(
   const xpGain = grantRewards ? Math.round(20 * hero.xpBonus) : 0;
   const skillLevels = { ...save.skillLevels };
   const first = save.equippedSkillIds[0];
-  let skillNote = "";
   if (grantRewards && first) {
     const level = skillLevels[first] ?? 1;
-    if (level < MAX_SKILL_LEVEL) {
-      skillLevels[first] = level + 1;
-      skillNote = `${skillById(first)?.name ?? "技能"} 升到 Lv.${level + 1}。`;
-    }
+    if (level < MAX_SKILL_LEVEL) skillLevels[first] = level + 1;
   }
   let owned = save.ownedOutfitIds;
   let equippedOutfitId = save.equippedOutfitId;
-  let outfitNote = "";
-  if (!owned.includes("forest-cape")) {
+  if (grantRewards && !owned.includes("forest-cape")) {
     owned = [...owned, "forest-cape"];
     equippedOutfitId = "forest-cape";
-    outfitNote = "得到林间斗篷。";
   }
-  const detail = grantRewards
-    ? ["这场战斗没有改动任何词卡。", skillNote, outfitNote, `经验 +${xpGain}。`].filter(Boolean).join("")
-    : "今天的复习战奖励领完啦，明天再来。还可以继续练习。";
-  const rewardQueue = pushReward(save.rewardQueue, reward("对战胜利", detail, String(now)));
+  let bestStars = save.bestStars;
+  if ((stars === 1 || stars === 2 || stars === 3) && typeof stageId === "number") {
+    const key = String(stageId);
+    const previous = bestStars?.[key] ?? 0;
+    if (stars > previous) bestStars = { ...bestStars, [key]: stars };
+  }
   let chapterCleared = save.chapterCleared;
   const stageWins = stage
     ? { ...save.stageWins, [String(stage.id)]: (save.stageWins[String(stage.id)] ?? 0) + 1 }
@@ -467,8 +465,9 @@ export function applyBattleOutcome(
     stageWins,
     memory: save.memory,
     wordCards: save.wordCards,
-    rewardQueue,
+    rewardQueue: save.rewardQueue,
     replayWinsByDay,
+    bestStars,
   };
-  return settleChapterRewards(refreshUnlocks(next), new Date(now));
+  return settleChapterRewards(refreshUnlocks(next), new Date(now), false);
 }

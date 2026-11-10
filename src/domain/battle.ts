@@ -129,6 +129,8 @@ export interface BattleState {
   turn: number;
   lastNote: string;
   log: string[];
+  /** Memory only. Each answered question in this fight. Not written to the save. */
+  answers: { wordId: string; correct: boolean; kind: string }[];
   learnedIds: string[];
   /** Selected-grade chapter words. Omitted means the fallback pool is every learned word. */
   allowedWordIds: string[] | null;
@@ -230,6 +232,7 @@ export function startBattle(input: {
     turn: 0,
     lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会抽一道已学的词。",
     log: [`${enemy.name}出现了。`],
+    answers: [],
     learnedIds,
     allowedWordIds: input.allowedWordIds ? [...input.allowedWordIds] : null,
     classId: input.classId,
@@ -261,15 +264,15 @@ function applySlotEffect(
   current: { enemyHp: number; playerHp: number; playerMaxHp: number; guard: number },
 ): { enemyHp: number; playerHp: number; guard: number; note: string } {
   if (slot.kind === "damage") {
-    return { ...current, enemyHp: current.enemyHp - amount, note: `${slot.name}造成 ${amount} 点伤害。` };
+    return { ...current, enemyHp: current.enemyHp - amount, note: `${slot.name}造成了伤害。` };
   }
   if (slot.kind === "guard") {
-    return { ...current, guard: amount, note: `${slot.name}挡下下一次 ${amount} 点伤害。` };
+    return { ...current, guard: amount, note: `${slot.name}挡下了下一次伤害。` };
   }
   if (slot.kind === "heal") {
     const room = current.playerMaxHp - current.playerHp;
     const healed = Math.min(amount, Math.max(0, room));
-    const note = room <= 0 ? "体力已经满了。" : `${slot.name}恢复 ${healed} 点体力。`;
+    const note = room <= 0 ? "体力已经满了。" : `${slot.name}恢复了体力。`;
     return { ...current, playerHp: current.playerHp + healed, note };
   }
   const guard = Math.round(amount * 0.45);
@@ -277,7 +280,7 @@ function applySlotEffect(
     ...current,
     enemyHp: current.enemyHp - amount,
     guard,
-    note: `${slot.name}造成 ${amount} 点伤害，并格挡 ${guard} 点。`,
+    note: `${slot.name}造成了伤害，并格挡。`,
   };
 }
 
@@ -299,7 +302,7 @@ function damagingKind(kind: SkillSlot["kind"]): boolean {
 function afterEnemyHit(state: BattleState, note: string): BattleState {
   const dealt = enemyDamage(state);
   const playerHp = state.playerHp - dealt;
-  const hitText = dealt > 0 ? `受到 ${dealt} 点伤害。` : "这次没有受到伤害。";
+  const hitText = dealt > 0 ? "受到了伤害。" : "这次没有受到伤害。";
   const log = pushLog(state.log, `${state.enemyName}：${hitText}`);
   if (playerHp <= 0) {
     return {
@@ -430,6 +433,7 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const hintNow = supportive && supportStreak === 3 && finished.phase !== "won" && finished.phase !== "lost";
   return {
     ...finished,
+    answers: [...(state.answers ?? []), { wordId: state.question.wordId, correct, kind: state.question.kind }],
     attackHint: hintNow,
     attackHintShown: finished.attackHintShown + (hintNow ? 1 : 0),
   };
