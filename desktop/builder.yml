@@ -1,0 +1,50 @@
+appId: com.lexiquest.desktop
+productName: LexiQuest
+executableName: lexiquest
+asar: true
+npmRebuild: false
+directories:
+  output: dist-desktop
+files:
+  - desktop/main.mjs
+  - desktop/preload.mjs
+  - desktop/protocol-path.mjs
+  - dist/**/*
+  - package.json
+extraMetadata:
+  main: desktop/main.mjs
+electronFuses:
+  runAsNode: false
+  enableNodeCliInspectArguments: false
+  enableNodeOptionsEnvironmentVariable: false
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+win:
+  signAndEditExecutable: false
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: LexiQuest-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  # Default is false. Left explicit so an uninstall keeps userData.
+  deleteAppDataOnUninstall: false
+mac:
+  identity: "-"
+  gatekeeperAssess: false
+  hardenedRuntime: false
+  target:
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  artifactName: LexiQuest-${version}-mac-${arch}.${ext}
+linux:
+  category: Game
+  target:
+    - target: dir
+      arch:
+        - x64

@@ -22,6 +22,36 @@ npm run build
 npm run preview
 ```
 
+## Desktop app
+
+The browser build is unchanged. `npm run build` still produces the web `dist/` and the same boot-budget check. The desktop shell is a separate package that loads that `dist/` through a custom `app://lexiquest/` origin. It does not add save import or export.
+
+Pack the app for the machine you are on:
+
+```bash
+npm run build:desktop
+```
+
+Platform-specific installers, still unsigned except for the Mac ad-hoc signature:
+
+```bash
+npm run build:desktop:win
+npm run build:desktop:mac
+npm run build:desktop:linux
+```
+
+- Windows is an NSIS installer, x64 only, with no code signature. `dist-desktop/LexiQuest-<version>-win-x64.exe`.
+- Mac is a zip of the `.app`, one x64 and one arm64. `dist-desktop/LexiQuest-<version>-mac-x64.zip` and `dist-desktop/LexiQuest-<version>-mac-arm64.zip`. The app is ad-hoc signed (`identity: "-"`). It is not notarized.
+- Linux `build:desktop:linux` writes an unpacked directory used to smoke-test the shell. It is not a release installer.
+
+Windows SmartScreen will say “Windows protected your PC” because the installer is unsigned. Choose **More info**, then **Run anyway**.
+
+macOS Gatekeeper will say the app is from an unidentified developer, or that it cannot be opened. In Finder, Control-click the app and choose **Open**, then **Open** again. If that is still blocked, open **System Settings → Privacy & Security** and use the **Open Anyway** button for LexiQuest. Do not disable Gatekeeper.
+
+The save stays in Electron’s `userData` directory (`localStorage` for `app://lexiquest`). On Windows that is `%APPDATA%\LexiQuest`. On macOS it is `~/Library/Application Support/LexiQuest`. The NSIS uninstaller leaves that folder in place (`deleteAppDataOnUninstall` is false, which is electron-builder’s default). Uninstalling the app does not delete the save.
+
+A desktop save and a browser save do not see each other. The browser copy is the site’s `localStorage`. The desktop copy is this app’s `userData`. Clearing one does not clear the other. There is no import and no export.
+
 Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or PingFang SC.
 
 ## How to play
