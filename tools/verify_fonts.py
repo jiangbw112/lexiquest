@@ -21,7 +21,7 @@ def fail(message: str) -> None:
 
 
 def chars_of(name: str) -> str:
-    return "".join((CHAR / name).read_text().split("\n"))
+    return "".join((CHAR / name).read_text().replace("\r\n", "\n").split("\n"))
 
 
 def cmap_of(path: Path) -> set[int]:

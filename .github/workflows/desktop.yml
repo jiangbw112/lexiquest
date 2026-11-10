@@ -9,6 +9,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      # windows-latest checks out with core.autocrlf=true, which turns the
+      # committed LF sources into CRLF. The charset check and the Vite bundle
+      # then diverge from the Linux web build. Force the worktree back to LF.
+      - name: Keep LF line endings
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git reset --hard HEAD
       - uses: actions/setup-node@v4
         with:
           node-version: 22
