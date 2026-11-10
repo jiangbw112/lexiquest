@@ -125,6 +125,15 @@ function denyPermissions() {
   session.defaultSession.setPermissionCheckHandler(() => false);
 }
 
+function windowIcon() {
+  if (process.platform === "darwin") return undefined;
+  const candidates = [
+    path.join(process.resourcesPath, "icon_512.png"),
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../build/sizes/icon_512.png"),
+  ];
+  return candidates.find((file) => fs.existsSync(file));
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: CONTENT_WIDTH,
@@ -134,6 +143,7 @@ function createWindow() {
     minHeight: MIN_HEIGHT,
     backgroundColor: "#143d2c",
     autoHideMenuBar: true,
+    icon: windowIcon(),
     webPreferences: {
       preload: preloadPath(),
       contextIsolation: true,

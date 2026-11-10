@@ -122,6 +122,8 @@ describe("app protocol paths", () => {
     expect(main).not.toContain("openDevTools");
     expect(builder).toContain('identity: "-"');
     expect(builder).toContain("deleteAppDataOnUninstall: false");
+    expect(builder).toContain("icon: build/icon.ico");
+    expect(builder).toContain("icon: build/icon.icns");
     expect(builder).toContain("signExecutable: false");
     expect(builder).not.toContain("signAndEditExecutable");
     expect(builder).toContain("!**/node_modules/**");
