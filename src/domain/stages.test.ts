@@ -3,9 +3,7 @@ import { State } from "ts-fsrs";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades } from "./progress";
 import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
-import { classById } from "./classes";
 import { PROVISIONAL } from "./provisional";
-import { skillById, skillMagnitude } from "./skills";
 import { startBattle } from "./battle";
 import { badgeTone } from "./review";
 import {
@@ -21,7 +19,9 @@ import {
   initialMapStageId,
   learnedRequiredCount,
   requiredWordIds,
+  stageById,
   stageCleared,
+  stageCombat,
   stageStatuses,
   stageWordIds,
   wordsUntilBoss,
@@ -42,15 +42,22 @@ function newSave(grades: string[] = ["G3", "G4", "G5", "G6"]) {
 }
 
 function learnAll(save: ReturnType<typeof newSave>) {
-  let next = save;
-  for (const word of sampleWords()) next = learnWord(next, word.id, START);
-  return next;
+  return learnIds(save, sampleWords().map((word) => word.id));
 }
 
-function hits(skillId: string, hp: number): number {
-  const skill = skillById(skillId);
-  if (!skill) throw new Error(skillId);
-  return Math.ceil(hp / skillMagnitude(skill, classById("warrior"), 1));
+/** The daily new-word cap is real, so a fixture walks forward a local day when it fills. */
+function learnIds(save: ReturnType<typeof newSave>, ids: readonly string[], start = START) {
+  let next = save;
+  let at = start.getTime();
+  for (const id of ids) {
+    let learned = learnWord(next, id, new Date(at));
+    if (!learned.wordCards[id]) {
+      at += 86_400_000;
+      learned = learnWord(next, id, new Date(at));
+    }
+    next = learned;
+  }
+  return next;
 }
 
 describe("forest chapter", () => {
@@ -90,7 +97,7 @@ describe("forest chapter", () => {
     save = applyBattleOutcome(save, "win", START.getTime(), "forest-stage-1");
     expect(stageCleared(save, first)).toBe(false);
     expect(stageStatuses(save)[1]).toBe("locked");
-    save = learnWord(save, first.new_words[5]!, START);
+    save = learnWord(save, first.new_words[5]!, new Date(START.getTime() + 86_400_000));
     expect(stageCleared(save, first)).toBe(true);
     expect(stageStatuses(save)[0]).toBe("cleared");
     expect(stageStatuses(save)[1]).toBe("open");
@@ -132,7 +139,7 @@ describe("forest chapter", () => {
     expect(bossReady(grade3)).toBe(false);
 
     let ready = grade3;
-    for (const id of required3) ready = learnWord(ready, id, START);
+    ready = learnIds(ready, required3);
     ready = { ...ready, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     expect(chapterLearnedCount(ready)).toBe(16);
     expect(wordsUntilBoss(ready)).toBe(0);
@@ -165,7 +172,7 @@ describe("forest chapter", () => {
     expect(stageStatuses(wonFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
     const second = FOREST_CHAPTER.stages[1]!;
     let opened = wonFirst;
-    for (const id of stageWordIds(grade5, second)) opened = learnWord(opened, id, START);
+    opened = learnIds(opened, stageWordIds(grade5, second));
     opened = { ...opened, stageWins: { ...opened.stageWins, "2": 1 } };
     expect(stageStatuses(opened)[2]).toBe("open");
     expect(learnedRequiredCount(opened)).toBe(stageWordIds(grade5, second).length);
@@ -200,9 +207,7 @@ describe("forest chapter", () => {
 
   it("drops a cancelled grade from the boss count and can open the boss", () => {
     let save = newSave();
-    for (const id of requiredWordIds(save)) {
-      if (id !== "weather") save = learnWord(save, id, START);
-    }
+    save = learnIds(save, requiredWordIds(save).filter((id) => id !== "weather"));
     save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     expect(requiredWordIds(save)).toHaveLength(28);
     expect(wordsUntilBoss(save)).toBe(1);
@@ -245,21 +250,28 @@ describe("forest chapter", () => {
     expect(stageStatuses(save)[4]).toBe("locked");
   });
 
-  it("tunes exploration fights to 3–5 warrior damage casts and the boss near 8–12", () => {
-    const small = PROVISIONAL.chapterBattle.explorationEnemyHp;
-    expect(hits("warrior-bash", small)).toBeGreaterThanOrEqual(3);
-    expect(hits("warrior-bash", small)).toBeLessThanOrEqual(5);
-    expect(hits("warrior-shout", small)).toBeGreaterThanOrEqual(3);
-    expect(hits("warrior-shout", small)).toBeLessThanOrEqual(5);
-    expect(hits("warrior-spin", small)).toBeGreaterThanOrEqual(3);
-    expect(hits("warrior-spin", small)).toBeLessThanOrEqual(5);
-    const boss = PROVISIONAL.chapterEnding.phases.reduce((sum, phase) => sum + phase.hp, 0);
-    expect(PROVISIONAL.chapterEnding.phases).toHaveLength(2);
-    expect(hits("warrior-bash", boss)).toBeGreaterThanOrEqual(8);
-    expect(hits("warrior-bash", boss)).toBeLessThanOrEqual(12);
-    expect(hits("warrior-shout", boss)).toBeGreaterThanOrEqual(8);
-    expect(hits("warrior-shout", boss)).toBeLessThanOrEqual(12);
-    expect(hits("warrior-spin", boss)).toBe(7);
+  it("uses the round-3 exploration and boss tables", () => {
+    expect(PROVISIONAL.chapterBattle.explorationEnemyHpByStage).toEqual([40, 42, 44, 46]);
+    expect(PROVISIONAL.chapterBattle.explorationEnemyHpByStageHealer).toEqual([26, 28, 28, 30]);
+    expect(PROVISIONAL.chapterBattle.explorationEnemyAttack).toBe(5);
+    expect(PROVISIONAL.chapterEnding.bossAttack).toBe(4);
+    expect(PROVISIONAL.chapterEnding.bossSpellingMax).toBe(4);
+    expect(PROVISIONAL.chapterEnding.shakenAfterQuestions).toBe(11);
+    expect(PROVISIONAL.chapterEnding.bossPhaseHpByClass).toEqual({
+      warrior: 75,
+      mage: 90,
+      ranger: 75,
+      healer: 30,
+      inventor: 65,
+      explorer: 65,
+    });
+    expect(stageCombat(stageById(1)!, "warrior").enemyHp).toBe(40);
+    expect(stageCombat(stageById(1)!, "healer").enemyHp).toBe(26);
+    expect(stageCombat(stageById(4)!, "warrior").enemyAttack).toBe(5);
+    const mage = stageCombat(stageById(5)!, "mage");
+    expect(mage.enemyHp).toBe(90);
+    expect(mage.phases?.map((phase) => phase.hp)).toEqual([90, 90]);
+    expect(mage.enemyAttack).toBe(4);
   });
 
   it("leaves cards, badges, and FSRS untouched when the boss is lost, and the fight can start again", () => {
@@ -338,7 +350,7 @@ describe("forest chapter", () => {
       }),
       ["G3"],
     );
-    for (const id of ["tree", "bird", "fish", "sun", "map", "big", "red", "flower"]) save = learnWord(save, id, START);
+    save = learnIds(save, ["tree", "bird", "fish", "sun", "map", "big", "red", "flower"]);
     save = { ...save, stageWins: { "1": 1, "2": 1 } };
     expect(requiredWordIds(save)).toHaveLength(16);
     expect(wordsUntilBoss(save)).toBe(8);

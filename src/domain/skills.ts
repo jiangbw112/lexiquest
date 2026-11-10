@@ -184,6 +184,31 @@ export function castEffect(slot: SkillSlot, correct: boolean, multiplier: number
   return Math.max(0, Math.round(slot.basePower * safe));
 }
 
+function sameSkillSet(left: readonly string[], right: readonly string[]): boolean {
+  if (left.length !== right.length) return false;
+  const sortedLeft = [...left].sort();
+  const sortedRight = [...right].sort();
+  return sortedLeft.every((id, index) => id === sortedRight[index]);
+}
+
+/** True when an equipped card deals damage or strikes and guards. */
+export function hasDamageCard(equippedSkillIds: readonly string[]): boolean {
+  return equippedSkillIds.some((id) => {
+    const kind = skillById(id)?.kind;
+    return kind === "damage" || kind === "strike-guard";
+  });
+}
+
+/** True when the equipped set is not the class's one starter card. Order does not matter. */
+export function deckChangedFromDefault(classId: ClassId, equippedSkillIds: readonly string[]): boolean {
+  return !sameSkillSet(equippedSkillIds, [starterSkillId(classId)]);
+}
+
+/** A gentle reminder, only after the child has changed the starter deck and left no damage card. */
+export function showNoDamageHint(classId: ClassId, equippedSkillIds: readonly string[]): boolean {
+  return deckChangedFromDefault(classId, equippedSkillIds) && !hasDamageCard(equippedSkillIds);
+}
+
 export function skillCostFor(classId: ClassId, skillId: string): number {
   const skill = skillById(skillId);
   if (!skill) throw new Error(`Unknown skill ${skillId}`);

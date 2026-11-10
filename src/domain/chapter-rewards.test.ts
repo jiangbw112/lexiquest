@@ -36,8 +36,25 @@ function newSave(): SaveData {
 
 function learnAll(save: SaveData): SaveData {
   let next = save;
-  for (const word of sampleWords()) next = learnWord(next, word.id, START);
-  return next;
+  let at = START.getTime();
+  for (const word of sampleWords()) {
+    let learned = learnWord(next, word.id, new Date(at));
+    if (!learned.wordCards[word.id]) {
+      at += 86_400_000;
+      learned = learnWord(next, word.id, new Date(at));
+    }
+    next = learned;
+  }
+  // The daily cap spreads learning over later days. Park every card just before START
+  // so a review at START is after last_review and the card is not due yet.
+  const due = new Date(START.getTime() + 60_000).toISOString();
+  const last = new Date(START.getTime() - 60_000).toISOString();
+  const memory = Object.fromEntries(Object.entries(next.memory).map(([id, record]) => [id, {
+    ...record,
+    reviewInstants: [START.getTime() - 60_000],
+    fsrs: { ...record.fsrs, due, last_review: last },
+  }]));
+  return { ...next, memory };
 }
 
 function bright(save: SaveData, ids: readonly string[]): SaveData {

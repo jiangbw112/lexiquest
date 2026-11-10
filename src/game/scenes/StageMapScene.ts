@@ -19,6 +19,7 @@ import { uiLabel } from "../../domain/ui-label";
 import { MAP_WORD_CARD_HIT, mapWordCardCenter } from "../hit";
 import { cjkWrap } from "../layout";
 import { redirectUngraded } from "../grade-route";
+import { resetPlayTimer, restPromptDue, snoozeRest } from "../play-timer";
 import { probeEnter, probeNote } from "../probe";
 import { getSave } from "../session";
 import { FONT, listenKeys } from "../ui";
@@ -39,6 +40,11 @@ export class StageMapScene extends Phaser.Scene {
   private selected = 0;
   private lookedAt: string | null = null;
   private fontSample = "";
+  private restPrompt = false;
+
+  init(data: { fromBattleEnd?: boolean } = {}): void {
+    this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
+  }
 
   constructor() {
     super("stages");
@@ -59,6 +65,7 @@ export class StageMapScene extends Phaser.Scene {
     this.selected = initialMapStageId(stageStatuses(save));
     this.lookedAt = null;
     listenKeys(this, (event) => {
+      if (this.restPrompt) return;
       if (event.code === "Escape") this.scene.start("overworld");
       const index = Number(event.code.replace("Digit", "")) - 1;
       const stage = FOREST_CHAPTER.stages[index];
@@ -74,7 +81,7 @@ export class StageMapScene extends Phaser.Scene {
   private fight(stageId: number): void {
     const save = getSave();
     const stage = stageById(stageId);
-    if (!save || !stage) return;
+    if (!save || !stage || this.restPrompt) return;
     const status = stageStatuses(save)[stage.id - 1];
     if (status !== "open" && status !== "cleared") return;
     probeNote(`stage:fight:${stage.id}`);
@@ -256,5 +263,30 @@ export class StageMapScene extends Phaser.Scene {
     });
     warmButton(this, 160, 748, uiLabel("回村子"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
     probeNote("stages:ready");
+    if (this.restPrompt) this.drawRest();
+  }
+
+  private drawRest(): void {
+    const zone = this.add.zone(640, 400, 1280, 800);
+    zone.setInteractive();
+    if (zone.input) zone.input.cursor = "default";
+    warmPanel(this, 640, 400, 760, 280);
+    this.add.text(640, 330, "已经玩了一会儿啦，起来喝口水、看看远处吧。", {
+      fontFamily: FONT,
+      fontSize: "22px",
+      color: INK,
+      wordWrap: cjkWrap(640),
+      align: "center",
+    }).setOrigin(0.5);
+    warmButton(this, 500, 460, "休息一下", () => {
+      resetPlayTimer();
+      this.restPrompt = false;
+      this.scene.start("title");
+    }, { width: 200 });
+    warmButton(this, 780, 460, "再玩一会儿", () => {
+      snoozeRest();
+      this.restPrompt = false;
+      this.draw();
+    }, { width: 200, tone: "secondary" });
   }
 }

@@ -25,6 +25,8 @@ export const PROPOSALS = {
   },
   dailyGoal: {
     goalMax: { easy: 8, normal: 15, more: 25 },
+    /** New words that can be learned on one local day. */
+    newWordCap: { easy: 3, normal: 5, more: 8 },
     /** New words to learn when nothing is due. */
     learnFallback: { easy: 2, normal: 3, more: 5 },
     /** Answered questions on learned words when nothing is due and no new words are left. */

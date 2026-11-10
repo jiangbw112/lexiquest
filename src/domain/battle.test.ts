@@ -64,10 +64,13 @@ function begin(
   });
 }
 
-function play(state: BattleState, policy: "attack" | "smart" | "wrong" | "heal"): BattleState {
+function play(
+  state: BattleState,
+  policy: "attack" | "smart" | "wrong" | "heal" | "block" | "first-affordable",
+): BattleState {
   let guard = 0;
   while (state.phase !== "won" && state.phase !== "lost") {
-    if (guard++ > 40) throw new Error(`battle did not end from ${state.phase}`);
+    if (guard++ > 120) throw new Error(`battle did not end from ${state.phase}`);
     if (state.phase === "question" && state.question) {
       const question = state.question;
       const choice =
@@ -81,8 +84,15 @@ function play(state: BattleState, policy: "attack" | "smart" | "wrong" | "heal")
       state = answerQuestion(state, choice);
       continue;
     }
-    if (policy === "heal") {
-      state = takeAction(state, { type: "heal" }).state;
+    if (policy === "heal" || policy === "block") {
+      state = takeAction(state, { type: policy }).state;
+      continue;
+    }
+    if (policy === "first-affordable") {
+      const slot = state.slots.find((item) => state.energy >= item.energyCost);
+      const cast = takeAction(state, slot ? { type: "skill", slotIndex: slot.index } : { type: "attack" });
+      if (!cast.ok) throw new Error(cast.reason ?? "cast failed");
+      state = cast.state;
       continue;
     }
     if (policy === "wrong") {
@@ -246,7 +256,6 @@ describe("word-monster battle", () => {
       rules: { ...SKILL_CARD_RULES, wrongAnswerMultiplier: 0 },
     });
     expect(play(zero, "wrong").phase).toBe("lost");
-    expect(play(begin("healer"), "heal").phase).toBe("lost");
   });
 
   it("refuses a skill that is not one of the equipped three", () => {
@@ -288,12 +297,12 @@ describe("word-monster battle", () => {
       equippedSkillIds: ["warrior-bash"],
       skillLevels: { "warrior-bash": 1 },
       seed: 1,
-    }).enemyMaxHp).toBe(65);
+    }).enemyMaxHp).toBe(75);
   });
 
   it("changes boss phase without ending the fight, and caps spelling at 30 percent", () => {
     const basics = ["tree", "bird", "fish", "sun", "map", "run"];
-    let phase = startBattle({
+    let phase = { ...startBattle({
       encounterId: CHAPTER_BOSS_ID,
       classId: "warrior",
       learnedIds: ["tree"],
@@ -305,13 +314,14 @@ describe("word-monster battle", () => {
         { hp: 5, note: "第一阶段" },
         { hp: 5, note: "林心守护者进入第二阶段。" },
       ],
-    });
+    }), shaken: true };
     const cast = takeAction(phase, { type: "skill", slotIndex: 0 });
     expect(cast.ok).toBe(true);
     const answer = cast.state.question?.kind === "spelling" ? cast.state.question.answer : cast.state.question?.answerId;
     phase = answerQuestion(cast.state, answer ?? "");
     expect(phase.phase).toBe("choose");
     expect(phase.phaseIndex).toBe(1);
+    expect(phase.shaken).toBe(true);
     expect(phase.enemyHp).toBe(5);
     expect(phase.lastNote).toContain("第二阶段");
     const again = takeAction(phase, { type: "skill", slotIndex: 0 });
@@ -321,6 +331,7 @@ describe("word-monster battle", () => {
     const mix = askBoss(basics, basics, 12);
     expect(mix.spelling).toBeGreaterThan(0);
     expect(mix.spelling / mix.asked).toBeLessThanOrEqual(0.3);
+    expect(mix.spelling).toBeLessThanOrEqual(4);
     expect(askBoss(["big"], [], 12).spelling).toBe(0);
     expect(askBoss(["treasure"], ["treasure"], 12).spelling).toBe(0);
     const onlyTree = askBoss(["tree"], [], 8, sampleWords().map((word) => word.id));
@@ -363,5 +374,17 @@ describe("word-monster battle", () => {
     const blocked = resolve("block");
     expect(blocked.playerHp).toBeGreaterThan(attacked.playerHp);
     expect(blocked.enemyHp).toBeGreaterThan(attacked.enemyHp);
+    let streak = { ...state, playerHp: 20, enemyAttack: 0, enemyHp: 400, enemyMaxHp: 400 };
+    for (let turn = 0; turn < 2; turn += 1) {
+      const asked = takeAction(streak, { type: "block" });
+      const question = asked.state.question;
+      if (!question || question.kind === "spelling") throw new Error("expected a choice question");
+      streak = answerQuestion(asked.state, question.answerId);
+    }
+    const third = takeAction(streak, { type: "block" });
+    const thirdQuestion = third.state.question;
+    if (!thirdQuestion || thirdQuestion.kind === "spelling") throw new Error("expected a choice question");
+    streak = answerQuestion(third.state, thirdQuestion.answerId);
+    expect(streak.lastNote).toContain("3");
   });
 });

@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { formatMeaning, wordById, wordsForGrades } from "../../domain/catalog";
-import { PROVISIONAL } from "../../domain/provisional";
 import { notePracticeAnswer } from "../../domain/parent";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
@@ -8,6 +7,7 @@ import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/q
 import { showSpellingHint } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
 import { cjkWrap } from "../layout";
+import { recordPlayAnswer } from "../play-timer";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, paper } from "../ui";
@@ -27,6 +27,7 @@ export class ReviewScene extends Phaser.Scene {
   private spellId: string | null = null;
   private spellNote = "";
   private dev = false;
+  private revealed = new Set<string>();
 
   constructor() {
     super("review");
@@ -59,6 +60,12 @@ export class ReviewScene extends Phaser.Scene {
       if (clock === "reset") this.resetPracticeClock();
       else if (clock) this.shift(reviewClockDelta(clock));
       const spelling = document.getElementById("spell-form")?.classList.contains("open");
+      if (event.code === "Space" && !spelling) {
+        const due = this.firstDue();
+        if (due) this.revealed.add(due);
+        this.draw();
+        return;
+      }
       const rating = RATINGS.find((item) => item.code === event.code);
       const due = this.firstDue();
       if (rating && due && !spelling) this.rate(due, rating.rating);
@@ -93,7 +100,10 @@ export class ReviewScene extends Phaser.Scene {
   }
 
   private rate(wordId: string, rating: Grade): void {
+    if (!this.revealed.has(wordId)) return;
+    recordPlayAnswer();
     mutate((save) => reviewWord(save, wordId, rating, studyNow(save)));
+    this.revealed.delete(wordId);
     this.draw();
   }
 
@@ -103,6 +113,7 @@ export class ReviewScene extends Phaser.Scene {
     if (!save || !this.spellId || !(input instanceof HTMLInputElement)) return;
     const prompt = spellingQuestion(this.spellId, this.badgeLit(this.spellId));
     const wordId = this.spellId;
+    recordPlayAnswer();
     mutate((current) => notePracticeAnswer(current, wordId, studyNow(current)));
     this.spellNote = prompt && checkSpelling(prompt.answer, input.value) ? "拼对了。这不改变复习时间。" : "还不对。复习时间没有变。";
     input.value = "";
@@ -117,11 +128,10 @@ export class ReviewScene extends Phaser.Scene {
     showSpellingHint(null);
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
-    const mastery = PROVISIONAL.mastery;
     const now = studyNow(save);
     const layout = reviewDeskLayout(this.dev);
     this.add.text(160, layout.titleY, "复习桌", { fontFamily: FONT, fontSize: "34px", color: INK });
-    this.add.text(160, layout.subtitleY, `至少 ${mastery.minDistinctCalendarDays} 个不同的日子，稳定度 ${mastery.minStability} 天。同一天反复练习不会点亮徽章。`, {
+    this.add.text(160, layout.subtitleY, "在不同的两天都记住它，就能点亮徽章。同一天反复练习不会点亮徽章。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
@@ -167,11 +177,18 @@ export class ReviewScene extends Phaser.Scene {
       const y = layout.bodyY + 38 + index * 100;
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
+      const shown = !due || this.revealed.has(memory.wordId);
       warmSlice(this, "atlas_ui_pages", "list_row", 980, 86).setPosition(640, y + 29);
-      this.add.text(170, y, `${word.english}  ${formatMeaning(word)}`, { fontFamily: FONT, fontSize: "22px", color: INK });
-      this.add.text(520, y + 10, tone === "none" ? "未熟练" : tone === "bright" ? "熟练" : "熟练·待复习", { fontFamily: FONT, fontSize: "18px", color: NOTE });
-      this.add.text(170, y + 32, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: MUTED });
-      if (due) {
+      this.add.text(170, y, shown ? `${word.english}  ${formatMeaning(word)}` : word.english, { fontFamily: FONT, fontSize: "22px", color: INK });
+      if (due && !shown) {
+        warmButton(this, 430, y + 12, "翻看释义", () => {
+          this.revealed.add(memory.wordId);
+          this.draw();
+        }, { width: 140, height: 40, tone: "secondary" });
+      }
+      this.add.text(400, y + 36, tone === "none" ? "未熟练" : tone === "bright" ? "熟练" : "熟练·待复习", { fontFamily: FONT, fontSize: "18px", color: NOTE });
+      this.add.text(170, y + 36, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: MUTED });
+      if (due && shown) {
         RATINGS.forEach((item, ratingIndex) => {
           warmButton(this, 706 + ratingIndex * 120, y + 40, item.label, () => this.rate(memory.wordId, item.rating), {
             width: 112,
@@ -182,7 +199,7 @@ export class ReviewScene extends Phaser.Scene {
       }
       const lit = tone === "bright";
       if (spellingAllowed(word, lit)) {
-        warmButton(this, 590, y + 48, "拼写", () => {
+        warmButton(this, 560, y + 36, "拼写", () => {
           this.spellId = memory.wordId;
           this.draw();
           document.getElementById("spell-form")?.classList.add("open");

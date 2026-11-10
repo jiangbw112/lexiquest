@@ -3,7 +3,7 @@ import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
-import type { SaveData } from "./types";
+import type { ClassId, SaveData } from "./types";
 
 export type StageUnlock =
   | { after_stage: number }
@@ -348,23 +348,28 @@ export interface StageCombat {
   spellingCap: number | null;
 }
 
-export function stageCombat(stage: ForestStage): StageCombat {
+export function stageCombat(stage: ForestStage, classId: ClassId = "warrior"): StageCombat {
   if (stage.type === "boss") {
-    const phases = PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp: phase.hp, note: phase.note }));
+    const hp = PROVISIONAL.chapterEnding.bossPhaseHpByClass[classId];
+    const phases = PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp, note: phase.note }));
     return {
       encounterId: PROVISIONAL.chapterEnding.bossId,
       enemyName: PROVISIONAL.chapterEnding.bossName,
-      enemyHp: phases[0]?.hp ?? PROVISIONAL.chapterEnding.bossHp,
+      enemyHp: phases[0]?.hp ?? hp,
       enemyAttack: PROVISIONAL.chapterEnding.bossAttack,
       sprite: PROVISIONAL.chapterEnding.bossSprite,
       phases,
       spellingCap: FOREST_CHAPTER.boss_v1.spelling_ratio_cap,
     };
   }
+  const table = classId === "healer"
+    ? PROVISIONAL.chapterBattle.explorationEnemyHpByStageHealer
+    : PROVISIONAL.chapterBattle.explorationEnemyHpByStage;
+  const index = Math.min(table.length - 1, Math.max(0, stage.id - 1));
   return {
     encounterId: stageEncounterId(stage.id),
     enemyName: stage.name_zh,
-    enemyHp: PROVISIONAL.chapterBattle.explorationEnemyHp,
+    enemyHp: table[index] ?? table[0],
     enemyAttack: PROVISIONAL.chapterBattle.explorationEnemyAttack,
     sprite: "inkling",
     phases: null,

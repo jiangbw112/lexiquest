@@ -4,8 +4,8 @@
  * grade pause, and browser speech are decided. Friend 1v1 comparison is a
  * confirmed rule and is not configured here. Combat HP is separate MVP tuning.
  * `bossSprite` is `canopy`: the provisional v0.1 林冠 pack, not an actors-atlas frame.
- * `chapterBattle` holds numbers that are not decided yet. Boss phase health is v1 tuning
- * so a clear lands near the confirmed 8–12 successful damage casts.
+ * `chapterBattle` holds the round-3 exploration numbers. Boss phase health differs by class.
+ * A clear is meant to land in about 10–14 questions, with the boss shaken after 11 answers.
  */
 export const PROVISIONAL = {
   label: "v1",
@@ -32,14 +32,26 @@ export const PROVISIONAL = {
     label: "v1",
     bossId: "canopy",
     bossName: "林心守护者",
-    bossHp: 65,
-    bossAttack: 5,
+    bossHp: 75,
+    bossAttack: 4,
     bossSprite: "canopy",
-    /** Two phases. 65 + 65 is about 12 盾击, 9 战吼, and 7 旋风斩 at level 1. */
+    /** Two phases. Each phase uses `bossPhaseHpByClass`, not one shared total. */
     phases: [
-      { hp: 65, note: "林心守护者挡住了去路。" },
-      { hp: 65, note: "林心守护者进入第二阶段。" },
+      { hp: 75, note: "林心守护者挡住了去路。" },
+      { hp: 75, note: "林心守护者进入第二阶段。" },
     ],
+    bossPhaseHpByClass: {
+      warrior: 75,
+      mage: 90,
+      ranger: 75,
+      healer: 30,
+      inventor: 65,
+      explorer: 65,
+    },
+    /** Boss spelling is also capped by this many questions, on top of the 30% share. */
+    bossSpellingMax: 4,
+    /** After this many answers in the whole fight, only a correct damaging action ends the phase. */
+    shakenAfterQuestions: 11,
   },
   /**
    * Not decided. Change these after playtesting.
@@ -49,8 +61,11 @@ export const PROVISIONAL = {
    */
   chapterBattle: {
     label: "PROVISIONAL",
-    explorationEnemyHp: 44,
-    explorationEnemyAttack: 6,
+    explorationEnemyHpByStage: [40, 42, 44, 46],
+    explorationEnemyHpByStageHealer: [26, 28, 28, 30],
+    explorationEnemyAttack: 5,
+    /** The first this many block or heal actions keep their full amount. */
+    supportStreakFree: 2,
     recentQuestionWindow: 3,
   },
   skillCards: {

@@ -249,9 +249,27 @@ describe("DES-05 parent progress and daily goal", () => {
     expect(ensureDailyGoal(setGoalPreset(newSave(), "more"), START, ZONE).dailyGoal?.targetLearn).toBe(5);
 
     let save = newSave();
-    for (const word of wordsForGrades(["G3"])) save = learn(save, word.id, START);
+    const gradeWords = wordsForGrades(["G3"]);
+    for (const word of gradeWords.slice(0, 5)) save = learn(save, word.id, START);
     expect(save.cosmeticTokens).toBe(1);
     expect(save.dailyGoal?.mode).toBe("learn_fallback");
+    let at = START.getTime();
+    for (const word of gradeWords.slice(5)) {
+      const learned = learn(save, word.id, new Date(at));
+      if (!learned.wordCards[word.id]) {
+        at += 86_400_000;
+        save = learn(save, word.id, new Date(at));
+      } else save = learned;
+    }
+    expect(Object.keys(save.wordCards)).toHaveLength(gradeWords.length);
+    save = {
+      ...save,
+      cosmeticTokens: 1,
+      goalDaysTotal: 1,
+      goalCalendar: {},
+      lastGoalCompletedDayKey: null,
+      dailyGoal: null,
+    };
     const next = day(1);
     save = withDue(save, Object.keys(save.memory), next, false);
     save = { ...save, dailyGoal: null };
@@ -402,7 +420,9 @@ describe("DES-05 parent progress and daily goal", () => {
 
     let crowd = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
     const words = sampleWords().slice(0, 12);
-    for (const word of words) crowd = learn(crowd, word.id, START);
+    words.forEach((word, index) => {
+      crowd = learn(crowd, word.id, new Date(START.getTime() - (Math.floor(index / 5) + 1) * 86_400_000));
+    });
     words.forEach((word, index) => {
       const agains = index + 3;
       for (let time = 0; time < agains; time += 1) {

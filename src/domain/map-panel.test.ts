@@ -53,7 +53,14 @@ describe("forest map panel", () => {
   it("shows every english word after the stage is cleared", () => {
     let save = saveWith();
     const stage = FOREST_CHAPTER.stages[0]!;
-    for (const id of stage.new_words) save = learnWord(save, id, START);
+    let at = START.getTime();
+    for (const id of stage.new_words) {
+      const learned = learnWord(save, id, new Date(at));
+      if (!learned.wordCards[id]) {
+        at += 86_400_000;
+        save = learnWord(save, id, new Date(at));
+      } else save = learned;
+    }
     save = { ...save, stageWins: { "1": 2 } };
     const panel = mapPanel(save, stage, "cleared");
     expect(panel.statusLabel).toBe("已通过");

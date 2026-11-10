@@ -4,9 +4,14 @@ import { PROVISIONAL } from "./provisional";
 import type { MemoryRecord, StoredFsrs } from "./types";
 
 const scheduler = fsrs({
+  request_retention: 0.9,
   enable_fuzz: false,
   enable_short_term: true,
 });
+
+export function fsrsScheduler(): ReturnType<typeof fsrs> {
+  return scheduler;
+}
 
 /** Calendar day of an instant. FSRS due checks still compare the absolute timestamp. */
 export function calendarDay(ms: number, timeZone = deviceTimeZone()): string {
@@ -105,7 +110,9 @@ export function masteryDecision(
   config = PROVISIONAL.mastery,
   timeZone = deviceTimeZone(),
 ): MasteryDecision {
-  const distinctDays = new Set(memory.reviewInstants.map((instant) => calendarDay(instant, timeZone))).size;
+  const distinctDays = memory.realReviewDays
+    ? new Set(memory.realReviewDays).size
+    : new Set(memory.reviewInstants.map((instant) => calendarDay(instant, timeZone))).size;
   const stability = memory.fsrs.stability;
   if (distinctDays < config.minDistinctCalendarDays) {
     return { award: false, distinctDays, stability, reason: "single-day" };

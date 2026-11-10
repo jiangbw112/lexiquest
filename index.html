@@ -77,6 +77,7 @@
       #spell-hint { margin: 0; color: #61402d; min-height: 1.2em; }
       #pin-title { margin: 0; color: #fff4dc; background: #3b2a20; border-radius: 12px; padding: 8px 12px; text-align: center; font-size: 22px; }
       #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #46363a; font-size: 14px; }
+      #pin-note .keep-word { white-space: nowrap; }
       #name-form button, #spell-form button, #pin-form button[type="submit"] {
         height: 56px;
         background: #e9c46a;
@@ -123,7 +124,7 @@
     </form>
     <form id="pin-form">
       <p id="pin-title">家长密码</p>
-      <p id="pin-note">用来避免孩子不小心改掉年级和每日目标。清掉这台浏览器的数据后要重新设置。这不是安全登录。</p>
+      <p id="pin-note">用来避免孩子不小心改掉年级和每日目标。清掉这台<span class="keep-word">浏览器</span>的数据后要重新设置。这不是安全登录。</p>
       <p id="pin-cooldown"></p>
       <div id="pin-entry">
         <label>密码<input id="pin-input" type="password" inputmode="numeric" maxlength="6" autocomplete="off" /></label>

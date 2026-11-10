@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { classById } from "../../domain/classes";
 import { equipSkill, unequipSkill } from "../../domain/progress";
-import { MAX_EQUIPPED_SKILLS, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
+import { MAX_EQUIPPED_SKILLS, showNoDamageHint, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
 import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame } from "../../domain/skill-card-face";
 import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
@@ -47,6 +47,9 @@ export class SkillsScene extends Phaser.Scene {
       color: MUTED,
       wordWrap: cjkWrap(960),
     });
+    if (showNoDamageHint(save.player.classId, save.equippedSkillIds)) {
+      this.add.text(160, 158, "带一张攻击卡会更好打哦", { fontFamily: FONT, fontSize: "18px", color: NOTE });
+    }
     skillsInEquipOrder(save.player.classId, save.equippedSkillIds).forEach((skill, index) => {
       const top = 196 + index * 116;
       const y = top + 52;

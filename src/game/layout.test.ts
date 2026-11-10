@@ -5,7 +5,7 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkWrap, meaningScale, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap } from "./layout";
+import { OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkWrap, meaningScale, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap, wrapCjkText } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -178,7 +178,8 @@ describe("reward dialog header", () => {
     expect(chrome.titleY + half).toBeLessThanOrEqual(chrome.fillBottom);
     expect(chrome.fillBottom).toBeLessThanOrEqual(chrome.headerBottom);
     expect(chrome.titleY + half).toBeLessThan(chrome.headerBottom);
-    expect(chrome.fillWidth).toBeLessThan(860);
+    expect(chrome.fillWidth).toBeGreaterThanOrEqual(860 - 16);
+    expect(chrome.fillWidth).toBeLessThanOrEqual(860);
   });
 });
 
@@ -186,12 +187,39 @@ describe("wardrobe title chip", () => {
   it("ends above the wreath on the preview", () => {
     expect(WARDROBE_TITLE_Y + 18).toBeLessThan(330);
     const wardrobe = readFileSync(new URL("./scenes/WardrobeScene.ts", import.meta.url), "utf8");
-    expect(wardrobe).toContain("drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId)");
+    expect(wardrobe).toContain("drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId, 440)");
   });
 });
 
 describe("Chinese line wrap", () => {
+  const measure = (sample: string) => {
+    let pixels = 0;
+    for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? 10 : 18;
+    return pixels;
+  };
+
   it("asks Phaser to break CJK at the given width", () => {
-    expect(cjkWrap(960)).toEqual({ width: 960, useAdvancedWrap: true });
+    const wrap = cjkWrap(960);
+    expect(wrap.width).toBe(960);
+    expect(wrap.useAdvancedWrap).toBe(true);
+    expect(wrap.callback("浏览器会记住进度，明天还能继续。", { style: { fontSize: "18px" } })).toContain("浏览器");
+  });
+
+  it("does not start a line with fullwidth punctuation", () => {
+    const wrapped = wrapCjkText("同机练习，两个人轮流答。", 18 * 4, measure);
+    for (const line of wrapped.split("\n")) {
+      expect(line.startsWith("，")).toBe(false);
+      expect(line.startsWith("。")).toBe(false);
+    }
+    expect(wrapped).toContain("，");
+  });
+
+  it("keeps 浏览器 on one line", () => {
+    const wrapped = wrapCjkText("进度存在这台电脑的浏览器里。", 18 * 6, measure);
+    for (const line of wrapped.split("\n")) {
+      expect(line.endsWith("浏")).toBe(false);
+      expect(line.startsWith("览器")).toBe(false);
+    }
+    expect(wrapped).toContain("浏览器");
   });
 });

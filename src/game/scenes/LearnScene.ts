@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, lessonUnits, posGloss, wordById } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
+import { NEW_WORD_CAP_NOTICE, canLearnNewWord, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
@@ -17,13 +18,14 @@ import { browserSpeaker, speakWord } from "../../domain/speech";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
 import { STUDY_CARD, cjkWrap, meaningScale, studyNoticeGap, studyRowY } from "../layout";
+import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
-import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
+import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, whenGlyphsReady } from "../warm/theme";
 
 type Phase = "study" | "quiz" | "listen" | "spell" | "got";
 
@@ -38,6 +40,7 @@ export class LearnScene extends Phaser.Scene {
   private busy = false;
   private fontSample = "";
   private answerTimer = 0;
+  private capNote = "";
 
   constructor() {
     super("learn");
@@ -130,9 +133,19 @@ export class LearnScene extends Phaser.Scene {
     this.draw();
   }
 
+  private atNewWordCap(): boolean {
+    const save = getSave();
+    if (!save || canLearnNewWord(save, studyNow(save))) return false;
+    this.capNote = NEW_WORD_CAP_NOTICE;
+    this.phase = "study";
+    this.question = null;
+    this.draw();
+    return true;
+  }
+
   private startMeaning(): void {
     const id = this.currentId();
-    if (!id) return;
+    if (!id || this.atNewWordCap()) return;
     this.question = quizForWord(id, hashSeed(`${id}:${this.retry}`), "zh-to-en");
     this.phase = "quiz";
     this.draw();
@@ -140,7 +153,7 @@ export class LearnScene extends Phaser.Scene {
 
   private startListening(): void {
     const id = this.currentId();
-    if (!id) return;
+    if (!id || this.atNewWordCap()) return;
     this.question = listeningQuestion(id, hashSeed(`listen:${id}:${this.retry}`));
     this.phase = "listen";
     if (this.question.speakText) speakWord(this.question.speakText, browserSpeaker());
@@ -151,7 +164,7 @@ export class LearnScene extends Phaser.Scene {
     const id = this.currentId();
     const save = getSave();
     const word = id ? wordById(id) : undefined;
-    if (!id || !word || !save || !spellingAllowed(word, this.badgeLit(id))) return;
+    if (!id || !word || !save || this.atNewWordCap() || !spellingAllowed(word, this.badgeLit(id))) return;
     this.phase = "spell";
     this.question = null;
     this.draw();
@@ -164,6 +177,7 @@ export class LearnScene extends Phaser.Scene {
     const error = document.getElementById("spell-error");
     if (!id || !save || !(input instanceof HTMLInputElement)) return;
     const prompt = spellingQuestion(id, this.badgeLit(id));
+    recordPlayAnswer();
     if (!prompt || !checkSpelling(prompt.answer, input.value)) {
       if (error) error.textContent = "再试一次。词卡还没收下。";
       this.missed = true;
@@ -177,6 +191,7 @@ export class LearnScene extends Phaser.Scene {
     const id = this.currentId();
     if (!id || !this.question || this.busy) return;
     const correct = choiceId === this.question.answerId;
+    recordPlayAnswer();
     this.busy = true;
     this.options.forEach((option) => {
       if (option.id === choiceId) option.setResult(correct ? "correct" : "wrong");
@@ -197,7 +212,7 @@ export class LearnScene extends Phaser.Scene {
 
   private grant(id: string): void {
     const save = getSave();
-    if (!save) return;
+    if (!save || this.atNewWordCap()) return;
     mutate((current) => learnWord(current, id, studyNow(current)));
     this.justId = id;
     this.missed = false;
@@ -277,6 +292,18 @@ export class LearnScene extends Phaser.Scene {
       });
       return;
     }
+    if (!canLearnNewWord(save, studyNow(save))) {
+      this.capNote = NEW_WORD_CAP_NOTICE;
+      warmPanel(this, 640, 400, 900, 280);
+      this.add.text(640, 400, NEW_WORD_CAP_NOTICE, {
+        fontFamily: FONT,
+        fontSize: "22px",
+        color: NOTE,
+        wordWrap: cjkWrap(760),
+        align: "center",
+      }).setOrigin(0.5);
+      return;
+    }
     if (this.phase === "study") {
       warmPanel(this, 640, 400, 900, 460);
       if (this.missed) {
@@ -286,6 +313,17 @@ export class LearnScene extends Phaser.Scene {
           color: ERR_TEXT,
         }).setOrigin(0.5);
         probeNote(`learn:notice-gap:${studyNoticeGap()}`);
+      }
+      const now = studyNow(save);
+      const reviewNote = reviewFirstNotice(save, now);
+      if (this.capNote || reviewNote) {
+        this.add.text(640, 210, [this.capNote, reviewNote].filter(Boolean).join(" "), {
+          fontFamily: FONT,
+          fontSize: "18px",
+          color: NOTE,
+          wordWrap: cjkWrap(760),
+          align: "center",
+        }).setOrigin(0.5);
       }
       this.meaningRow(640, studyRowY(this.missed), word.english, word.pos, word.chinese, STUDY_CARD.englishSize);
       const gloss = posGloss(word.pos);

@@ -114,8 +114,84 @@ export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): n
 }
 
 /** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */
-export function cjkWrap(width: number): { width: number; useAdvancedWrap: true } {
-  return { width, useAdvancedWrap: true };
+const LINE_START_PUNCT = new Set("，。！？；：、」』）】》".split(""));
+const UNBROKEN_WORDS = ["浏览器"];
+
+/** Split text so a whole word such as 浏览器 stays together. */
+export function cjkTokens(text: string): string[] {
+  const tokens: string[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const kept = UNBROKEN_WORDS.find((word) => text.startsWith(word, index));
+    if (kept) {
+      tokens.push(kept);
+      index += kept.length;
+      continue;
+    }
+    const char = text[index] ?? "";
+    if (/[A-Za-z0-9]/.test(char)) {
+      let word = char;
+      index += 1;
+      while (index < text.length && /[A-Za-z0-9]/.test(text[index] ?? "")) {
+        word += text[index];
+        index += 1;
+      }
+      tokens.push(word);
+      continue;
+    }
+    tokens.push(char);
+    index += 1;
+  }
+  return tokens;
+}
+
+/**
+ * Wrap Chinese so a line never starts with a fullwidth punctuation mark.
+ * A punctuation token that would start a line is pulled onto the previous line.
+ */
+export function wrapCjkText(text: string, maxWidth: number, measure: (sample: string) => number): string {
+  const lines: string[] = [];
+  let line = "";
+  for (const token of cjkTokens(text)) {
+    if (token === "\n") {
+      lines.push(line);
+      line = "";
+      continue;
+    }
+    const next = line + token;
+    if (line && measure(next) > maxWidth && !LINE_START_PUNCT.has(token)) {
+      lines.push(line);
+      line = token;
+    } else {
+      line = next;
+    }
+  }
+  if (line || lines.length === 0) lines.push(line);
+  return lines.join("\n");
+}
+
+export function cjkWrap(width: number): {
+  width: number;
+  useAdvancedWrap: true;
+  callback: (
+    text: string,
+    gameObject?: { context?: { measureText(sample: string): { width: number } }; style?: { fontSize?: string | number } },
+  ) => string;
+} {
+  return {
+    width,
+    useAdvancedWrap: true,
+    callback(text, gameObject) {
+      const fontSize = Number.parseFloat(String(gameObject?.style?.fontSize ?? "18")) || 18;
+      const measure = (sample: string) => {
+        if (gameObject?.context) return gameObject.context.measureText(sample).width;
+        let pixels = 0;
+        for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;
+        return pixels;
+      };
+      return wrapCjkText(text, width, measure);
+    },
+  };
 }
 
 /**
@@ -126,6 +202,9 @@ export const WARDROBE_TITLE_Y = 200;
 
 /** Village reward dialog. The slice is drawn at this size, centered on x/y. */
 export const REWARD_DIALOG = { x: 640, y: 230, width: 860, height: 220 } as const;
+
+/** Left of the default toast so the bar stays clear of the boss and both health bars. */
+export const ATTACK_HINT_TOAST = { x: 560, y: 420 } as const;
 
 /**
  * Opaque header behind the dialog art. The wood grain has transparent stripes,
@@ -155,7 +234,7 @@ export function rewardDialogChrome(): RewardDialogChrome {
     titleY: top + 26,
     fillX: REWARD_DIALOG.x,
     fillY: fillTop + fillHeight / 2,
-    fillWidth: REWARD_DIALOG.width - 80,
+    fillWidth: REWARD_DIALOG.width - 16,
     fillHeight,
     fillTop,
     fillBottom: fillTop + fillHeight,
