@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { blip } from "./audio";
+import { containerHitArea } from "./hit";
 import { CREAM, CHIP_ON, CONFIRM_REST, FONT_BODY, TEAL_DEEP, TERRA, TERRA_HOVER, TERRA_PRESSED } from "./warm/theme";
 
 export const FONT = FONT_BODY;
@@ -58,7 +59,8 @@ export function button(
     labelText.setColor(color);
   };
   let down = false;
-  root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
+  const area = containerHitArea(width, height);
+  root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => {
     if (!down) paint(faces.hover, faces.hotLabel);

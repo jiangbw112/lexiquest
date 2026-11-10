@@ -5,6 +5,7 @@ import { DESKTOP_NOTE, PLACEHOLDER_NOTE } from "../p0";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
+import { polygonContainsAtVisual, VILLAGE_HOUSE_POINTS } from "../hit";
 import { FONT, button, listenKeys } from "../ui";
 import { LayeredActor } from "../actors";
 import { PLACES, SAFE } from "../layout";
@@ -104,7 +105,7 @@ export class OverworldScene extends Phaser.Scene {
       color: "#17352a",
       wordWrap: { width: 700 },
     });
-    const housePoints = [0, -28, 54, -8, 54, 34, 0, 54, -54, 34, -54, -8];
+    const housePoints = VILLAGE_HOUSE_POINTS;
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -118,7 +119,12 @@ export class OverworldScene extends Phaser.Scene {
     for (const place of PLACES) {
       const house = this.add.polygon(place.x, place.y, housePoints, place.color, 1);
       house.setStrokeStyle(3, 0x17352a);
-      house.setInteractive({ useHandCursor: true });
+      house.setInteractive({
+        hitArea: house.geom,
+        hitAreaCallback: (area: Phaser.Geom.Polygon, x: number, y: number, target: Phaser.GameObjects.Polygon) =>
+          polygonContainsAtVisual(area, x, y, target),
+        useHandCursor: true,
+      });
       house.on("pointerdown", () => this.go(place.scene));
       const onFill = place.id === "learn" || place.id === "wardrobe";
       const labelX = onFill ? place.x - (maxX - minX) / 2 + (minX + maxX) / 2 : place.x;

@@ -92,8 +92,10 @@ export function openEncounters(learnedIds: readonly string[], sampleIds: readonl
 export type BattlePhase = "question" | "choose" | "won" | "lost";
 export type BattleQuestion = QuizQuestion | SpellingQuestion;
 
+export type BasicAction = "attack" | "block" | "heal";
+
 export interface BattleAction {
-  type: "attack" | "block" | "heal" | "skill";
+  type: BasicAction | "skill";
   skillId?: string;
   /** Use this when two filler slots share one id. */
   slotIndex?: number;
@@ -117,6 +119,8 @@ export interface BattleState {
   question: BattleQuestion | null;
   /** Set while a skill card is waiting for its word question. */
   pendingSlot: number | null;
+  /** Set while attack, block, or heal is waiting for its word question. */
+  pendingBasic: BasicAction | null;
   slots: SkillSlot[];
   deck: SkillQuestionDeck;
   dueWordIds: string[];
@@ -202,6 +206,7 @@ export function startBattle(input: {
     phase: "choose",
     question: null,
     pendingSlot: null,
+    pendingBasic: null,
     slots,
     deck: emptySkillDeck(),
     dueWordIds: [...(input.dueWordIds ?? [])],
@@ -272,6 +277,7 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
       enemyHits: state.enemyHits + 1,
       phase: "lost",
       pendingSlot: null,
+      pendingBasic: null,
       question: null,
       log,
       lastNote: `${note}${hitText}你先退下来。词卡都还在。`,
@@ -285,6 +291,7 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
     phase: "choose",
     turn: state.turn + 1,
     pendingSlot: null,
+    pendingBasic: null,
     question: null,
     log,
     lastNote: `${note}${hitText}`,
@@ -302,6 +309,7 @@ function finishPlayerTurn(state: BattleState, note: string): BattleState {
       enemyMaxHp: next.hp,
       phase: "choose",
       pendingSlot: null,
+      pendingBasic: null,
       question: null,
       guard: 0,
       log: pushLog(state.log, next.note),
@@ -313,15 +321,37 @@ function finishPlayerTurn(state: BattleState, note: string): BattleState {
     enemyHp: 0,
     phase: "won",
     pendingSlot: null,
+    pendingBasic: null,
     question: null,
     log: pushLog(state.log, "词灵散开了。"),
     lastNote: `${note}你赢了。`,
   };
 }
 
+function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
+  const hero = classById(state.classId);
+  const effect = action === "attack" ? hero.attack : action === "block" ? hero.block : hero.heal;
+  const name = action === "attack" ? "攻击" : action === "block" ? "格挡" : "治疗";
+  const kind = action === "attack" ? "damage" : action === "block" ? "guard" : "heal";
+  return {
+    index: -1,
+    skillId: `basic-${action}`,
+    name,
+    kind,
+    origin: "base",
+    fullPower: effect,
+    basePower: effect,
+    energyCost: 0,
+  };
+}
+
 export function answerQuestion(state: BattleState, choiceId: string): BattleState {
-  if (state.phase !== "question" || !state.question || state.pendingSlot === null) return state;
-  const slot = state.slots[state.pendingSlot];
+  if (state.phase !== "question" || !state.question) return state;
+  const slot = state.pendingBasic
+    ? basicEffectSlot(state, state.pendingBasic)
+    : state.pendingSlot === null
+      ? undefined
+      : state.slots[state.pendingSlot];
   if (!slot) return state;
   const correct = state.question.kind === "spelling"
     ? checkSpelling(state.question.answer, choiceId)
@@ -338,7 +368,16 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const quality = correct ? "答对了，全力发动。" : "答错了，只有减弱的基础效果。";
   const note = `${quality}${applied.note}`;
   return finishPlayerTurn(
-    { ...state, enemyHp: applied.enemyHp, playerHp: applied.playerHp, energy, guard: applied.guard, lastNote: note },
+    {
+      ...state,
+      enemyHp: applied.enemyHp,
+      playerHp: applied.playerHp,
+      energy,
+      guard: applied.guard,
+      pendingSlot: null,
+      pendingBasic: null,
+      lastNote: note,
+    },
     note,
   );
 }
@@ -371,7 +410,11 @@ function drawBattleWord(
   };
 }
 
-function askQuestion(state: BattleState, slot: SkillSlot): { ok: boolean; reason?: string; state: BattleState } {
+function askQuestion(
+  state: BattleState,
+  slot: SkillSlot,
+  basic: BasicAction | null = null,
+): { ok: boolean; reason?: string; state: BattleState } {
   const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
     allowedIds: state.allowedWordIds ?? undefined,
   });
@@ -403,14 +446,17 @@ function askQuestion(state: BattleState, slot: SkillSlot): { ok: boolean; reason
       ...state,
       energy: state.energy - slot.energyCost,
       phase: "question",
-      pendingSlot: slot.index,
+      pendingSlot: basic ? null : slot.index,
+      pendingBasic: basic,
       question,
       deck: drawn.deck,
       recentQuestionIds: drawn.recent,
       casts: state.casts + 1,
       questionsAsked: state.questionsAsked + 1,
       spellingAsked: state.spellingAsked + (question.kind === "spelling" ? 1 : 0),
-      lastNote: `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
+      lastNote: basic
+        ? `${slot.name}之前先答题：答对是完整效果，答错只有减弱的基础效果。`
+        : `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
     },
   };
 }
@@ -420,34 +466,14 @@ export function takeAction(
   action: BattleAction,
 ): { ok: boolean; reason?: string; state: BattleState } {
   if (state.phase !== "choose") return { ok: false, reason: "现在不能行动", state };
-  const hero = classById(state.classId);
-  let enemyHp = state.enemyHp;
-  let playerHp = state.playerHp;
-  let guard = state.guard;
-  const energy = state.energy;
-  let note: string;
-
-  if (action.type === "attack") {
-    enemyHp -= hero.attack;
-    note = `攻击造成 ${hero.attack} 点伤害。`;
-  } else if (action.type === "block") {
-    guard = hero.block;
-    note = `你格挡住下一次 ${hero.block} 点伤害。`;
-  } else if (action.type === "heal") {
-    const healed = Math.min(hero.heal, state.playerMaxHp - playerHp);
-    playerHp += healed;
-    note = healed > 0 ? `治疗恢复 ${healed} 点体力。` : "体力已经满了。";
-  } else {
-    const slot =
-      action.slotIndex !== undefined
-        ? state.slots[action.slotIndex]
-        : state.slots.find((item) => item.origin === "equipped" && item.skillId === action.skillId);
-    if (!slot) return { ok: false, reason: "这张技能卡没有装备", state };
-    if (energy < slot.energyCost) return { ok: false, reason: "能量不够", state };
-    return askQuestion(state, slot);
+  if (action.type === "attack" || action.type === "block" || action.type === "heal") {
+    return askQuestion(state, basicEffectSlot(state, action.type), action.type);
   }
-  return {
-    ok: true,
-    state: finishPlayerTurn({ ...state, enemyHp, playerHp, energy, guard, lastNote: note }, note),
-  };
+  const slot =
+    action.slotIndex !== undefined
+      ? state.slots[action.slotIndex]
+      : state.slots.find((item) => item.origin === "equipped" && item.skillId === action.skillId);
+  if (!slot) return { ok: false, reason: "这张技能卡没有装备", state };
+  if (state.energy < slot.energyCost) return { ok: false, reason: "能量不够", state };
+  return askQuestion(state, slot);
 }

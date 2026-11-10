@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import sliceFile from "./slices.json";
 import { blip } from "../audio";
+import { containerHitArea } from "../hit";
 import { OPTION_BADGE_CENTER } from "../layout";
 import { tabFrame, tabLabelY } from "./frames";
 import { CREAM, DIS_TEXT, FONT_LATIN, FONT_TITLE, INK, motionOff } from "./theme";
@@ -98,7 +99,8 @@ export function warmButton(
     }
     scene.tweens.add({ targets: root, scale: value, duration, ease: duration === 70 ? "Quad.easeOut" : "Sine.easeOut" });
   };
-  root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
+  const area = containerHitArea(width, height);
+  root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => {
     if (down) return;
@@ -169,7 +171,8 @@ export function warmChip(
   }
   if (disabled) return root;
   let down = false;
-  root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
+  const area = containerHitArea(width, height);
+  root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => {
     if (!down) showState(slices, "hover");
@@ -237,7 +240,8 @@ export function warmOption(
   root.setSize(width, height);
   let down = false;
   let locked = false;
-  root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
+  const area = containerHitArea(width, height);
+  root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => {
     if (!locked && !down) show("hover");
@@ -336,7 +340,8 @@ export function warmTab(
   showState(slices, "normal");
   root.setSize(width, height);
   let down = false;
-  root.setInteractive(new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), Phaser.Geom.Rectangle.Contains);
+  const area = containerHitArea(width, height);
+  root.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
   if (root.input) root.input.cursor = "pointer";
   root.on("pointerover", () => {
     if (!selected && !down) showState(slices, "hover");
