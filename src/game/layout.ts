@@ -108,6 +108,56 @@ export function studyNoticeGap(): number {
 /** Logical inset of the option index. The yellow badge center is texture x=44, shown at half scale. */
 export const OPTION_BADGE_CENTER = 22;
 
+/** Label inset inside an option button, clear of the index badge and the right rim. */
+export const OPTION_TEXT_LEFT = 78;
+export const OPTION_TEXT_RIGHT = 16;
+export const OPTION_TEXT_PAD_Y = 10;
+
+export function optionTextBounds(width: number, height: number): { maxWidth: number; maxHeight: number } {
+  return {
+    maxWidth: Math.max(48, width - OPTION_TEXT_LEFT - OPTION_TEXT_RIGHT),
+    maxHeight: Math.max(24, height - OPTION_TEXT_PAD_Y * 2),
+  };
+}
+
+/**
+ * 「词卡入手」 sits above the English word. meaningRow draws that word at rowY - 70.
+ * The boxes below use the font size as the line box, which is the tight case.
+ */
+export const CARD_GOT = {
+  titleY: 224,
+  titleFont: 36,
+  rowY: 392,
+  englishSize: 64,
+  noteY: 488,
+  buttonY: 558,
+} as const;
+
+export function cardGotTitleGap(): number {
+  const titleBottom = CARD_GOT.titleY + CARD_GOT.titleFont / 2;
+  const englishTop = CARD_GOT.rowY - 70 - CARD_GOT.englishSize / 2;
+  return englishTop - titleBottom;
+}
+
+export function cardGotEnglishMeaningGap(): number {
+  const englishBottom = CARD_GOT.rowY - 70 + CARD_GOT.englishSize / 2;
+  const meaningTop = CARD_GOT.rowY + 20 - 46 / 2;
+  return meaningTop - englishBottom;
+}
+
+/** Collection card. The badge sits on the top-right, so the English line stops before it. */
+export const COLLECTION_CARD = {
+  width: 132,
+  height: 96,
+  padX: 10,
+  /** Past the panel's top-left leaf, and still clear of the badge on the right. */
+  englishInset: 28,
+  englishWidth: 70,
+  englishHeight: 24,
+  meaningWidth: 112,
+  meaningHeight: 30,
+} as const;
+
 export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): number {
   if (width <= max) return 1;
   return max / width;
@@ -116,9 +166,17 @@ export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): n
 /** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */
 const LINE_START_PUNCT = new Set("，。！？；：、」』）】》".split(""));
 const UNBROKEN_WORDS = ["这台电脑", "浏览器"];
+const HAN = /\p{Script=Han}/u;
 
-/** Split text so 这台电脑 and 浏览器 stay on one line, the canvas form of nowrap. */
-export function cjkTokens(text: string): string[] {
+function isHan(char: string): boolean {
+  return HAN.test(char);
+}
+
+/**
+ * Split at Latin words and the phrases that must stay whole.
+ * Every other character, including each Han character, is its own token.
+ */
+function breakTokens(text: string): string[] {
   const tokens: string[] = [];
   let index = 0;
   while (index < text.length) {
@@ -146,22 +204,89 @@ export function cjkTokens(text: string): string[] {
 }
 
 /**
- * Wrap Chinese so a line never starts with a fullwidth punctuation mark.
- * A punctuation token that would start a line is pulled onto the previous line.
+ * Same as {@link breakTokens}, except a run of Han characters is one word.
+ * A run stops before 这台电脑 or 浏览器 so those phrases stay intact.
+ * Wrap breaks at punctuation and at these word boundaries. A word wider than
+ * the line is the only case that falls back to characters.
+ */
+export function cjkTokens(text: string): string[] {
+  const tokens: string[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const kept = UNBROKEN_WORDS.find((word) => text.startsWith(word, index));
+    if (kept) {
+      tokens.push(kept);
+      index += kept.length;
+      continue;
+    }
+    const char = text[index] ?? "";
+    if (/[A-Za-z0-9]/.test(char)) {
+      let word = char;
+      index += 1;
+      while (index < text.length && /[A-Za-z0-9]/.test(text[index] ?? "")) {
+        word += text[index];
+        index += 1;
+      }
+      tokens.push(word);
+      continue;
+    }
+    if (isHan(char)) {
+      let word = char;
+      index += 1;
+      while (index < text.length && isHan(text[index] ?? "") && !UNBROKEN_WORDS.some((kept) => text.startsWith(kept, index))) {
+        word += text[index];
+        index += 1;
+      }
+      tokens.push(word);
+      continue;
+    }
+    tokens.push(char);
+    index += 1;
+  }
+  return tokens;
+}
+
+/**
+ * Wrap Chinese so a line never starts with a fullwidth punctuation mark,
+ * and a Han word is not cut unless that word alone is wider than the line.
+ * Punctuation stays with the previous word. If that would spill past the width,
+ * the whole previous word moves down with the punctuation.
  */
 export function wrapCjkText(text: string, maxWidth: number, measure: (sample: string) => number): string {
   const lines: string[] = [];
   let line = "";
-  for (const token of cjkTokens(text)) {
+  const pending = cjkTokens(text);
+  while (pending.length > 0) {
+    const token = pending.shift() ?? "";
     if (token === "\n") {
       lines.push(line);
       line = "";
       continue;
     }
+    if (measure(token) > maxWidth && token.length > 1 && !UNBROKEN_WORDS.includes(token)) {
+      const pieces = breakTokens(token);
+      if (pieces.length > 1) {
+        pending.unshift(...pieces);
+        continue;
+      }
+    }
     const next = line + token;
-    if (line && measure(next) > maxWidth && !LINE_START_PUNCT.has(token)) {
+    if (!(line && measure(next) > maxWidth)) {
+      line = next;
+      continue;
+    }
+    if (!LINE_START_PUNCT.has(token)) {
       lines.push(line);
       line = token;
+      continue;
+    }
+    const parts = cjkTokens(line);
+    const last = parts.length > 1 ? parts[parts.length - 1] ?? "" : "";
+    const rest = last ? parts.slice(0, -1).join("") : "";
+    const moved = last + token;
+    if (rest && last && !LINE_START_PUNCT.has(last) && measure(rest) <= maxWidth && measure(moved) <= maxWidth) {
+      lines.push(rest);
+      line = moved;
     } else {
       line = next;
     }

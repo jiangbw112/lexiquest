@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import sliceFile from "./slices.json";
 import { blip } from "../audio";
 import { containerHitArea } from "../hit";
-import { OPTION_BADGE_CENTER } from "../layout";
+import { OPTION_BADGE_CENTER, OPTION_TEXT_LEFT, cjkWrap, optionTextBounds } from "../layout";
 import { tabFrame, tabLabelY } from "./frames";
 import { CREAM, DIS_TEXT, ERR_TEXT, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, NOTE, motionOff } from "./theme";
 
@@ -211,8 +211,8 @@ export function warmOption(
   label: string,
   onClick: () => void,
   width = 640,
+  height = 56,
 ): WarmOption {
-  const height = 56;
   const frames = ["normal", "hover", "pressed", "disabled", "correct", "wrong"] as const;
   const slices = {} as Record<(typeof frames)[number], Phaser.GameObjects.NineSlice>;
   for (const frame of frames) slices[frame] = warmSlice(scene, "atlas_ui_core", `option_${frame}`, width, height);
@@ -228,14 +228,18 @@ export function warmOption(
       color: INK,
     })
     .setOrigin(0.5);
+  const bounds = optionTextBounds(width, height);
   const text = scene.add
-    .text(-width / 2 + 78, -2, label, {
+    .text(-width / 2 + OPTION_TEXT_LEFT, -2, label, {
       fontFamily: /^[\u0020-\u007e]*$/.test(label) ? FONT_LATIN : '"Noto Sans SC", "Nunito", sans-serif',
       fontSize: "24px",
       fontStyle: "700",
       color: INK,
+      wordWrap: cjkWrap(bounds.maxWidth),
     })
     .setOrigin(0, 0.5);
+  const fit = Math.min(1, bounds.maxWidth / Math.max(text.width, 1), bounds.maxHeight / Math.max(text.height, 1));
+  if (fit < 1) text.setScale(fit);
   const root = scene.add.container(x, y, [...frames.map((frame) => slices[frame]), number, text]);
   root.setSize(width, height);
   let down = false;

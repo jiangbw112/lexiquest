@@ -1,4 +1,5 @@
 import { Rating, type Grade } from "ts-fsrs";
+import { isMastered } from "./cards";
 import { formatMeaning, GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
 import { chapterWordIds, litMasteryCount } from "./stages";
 import { PROPOSALS } from "./proposals";
@@ -538,7 +539,12 @@ export function parentView(
   const reviewedToday = todayStat.reviewedDueWordIds.length;
   const dueNow = dueWordIds(save, now).length;
   const cards = Object.keys(save.wordCards);
-  const masteredNow = cards.filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length;
+  const masteredNow = cards.filter((id) => isMastered(save.wordCards[id])).length;
+  const brightNow = cards.filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length;
+  const spelledFirst = cards.filter((id) => {
+    const at = save.wordCards[id]?.spelledAloneAt;
+    return typeof at === "number" && week.includes(localDayKey(new Date(at), timeZone));
+  }).length;
   const gradesLabel = normalizeGrades(save.selectedGrades)
     .map((id) => GRADE_BANDS.find((band) => band.id === id)?.label ?? id)
     .join("、");
@@ -553,16 +559,14 @@ export function parentView(
     todayLine = "这几天休息了一下。单词卡都还在，想捡起来时从待复习开始即可。";
   }
   const struggleLine = struggle.length === 0 ? "最近没有特别吃力的词，继续保持就好。" : "这些词最近复习时容易错，一起再练练：";
-  const first = uniqueAcross(save, week, "badgeFirstOnWordIds");
-  const restored = uniqueAcross(save, week, "badgeRestoredWordIds");
   return {
     learnedToday,
     learned7d: uniqueAcross(save, week, "learnedWordIds"),
     reviewedToday,
     reviewed7d: uniqueAcross(save, week, "reviewedDueWordIds"),
     masteredNow,
-    masteredFirst7d: first,
-    masteredRestored7d: restored,
+    masteredFirst7d: spelledFirst,
+    masteredRestored7d: 0,
     dueNow,
     gradesLabel,
     goal: save.dailyGoal,
@@ -576,9 +580,9 @@ export function parentView(
     goalLine: goalStatusLine(save.dailyGoal),
     daysLine: `累计完成 ${save.goalDaysTotal} 天`,
     weekLine: `近 7 天：新学 ${uniqueAcross(save, week, "learnedWordIds")} 个 · 复习过 ${uniqueAcross(save, week, "reviewedDueWordIds")} 个词`,
-    firstMasteredLine: `首次掌握：${first} 个`,
-    restoredMasteredLine: `重新掌握：${restored} 个`,
-    masteredLine: `${save.chapterCleared ? "已通关森林。" : ""}徽章亮起 ${litMasteryCount(save, now)} / ${chapterWordIds().length}。目前亮着徽章的词：${masteredNow} 个`,
+    firstMasteredLine: `首次掌握：${spelledFirst} 个`,
+    restoredMasteredLine: "重新掌握：0 个",
+    masteredLine: `${save.chapterCleared ? "已通关森林。" : ""}已认识 ${cards.length} 个，已掌握 ${masteredNow} 个。徽章亮起 ${litMasteryCount(save, now)} / ${chapterWordIds().length}。目前亮着徽章的词：${brightNow} 个`,
     masteredNote: "徽章变灰只是提醒该复习了，单词卡还在。",
     gradesLine: `正在学：${gradesLabel}`,
     struggleLine,

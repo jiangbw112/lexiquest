@@ -1,7 +1,8 @@
 import Phaser from "phaser";
-import { formatMeaning, wordById, wordsForGrades } from "../../domain/catalog";
+import { formatMeaning, wordById } from "../../domain/catalog";
 import { notePracticeAnswer } from "../../domain/parent";
 import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progress";
+import { battleWordIds } from "../../domain/stages";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
@@ -82,7 +83,7 @@ export class ReviewScene extends Phaser.Scene {
   private firstDue(): string | undefined {
     const save = getSave();
     if (!save) return undefined;
-    const allowed = new Set(wordsForGrades(save.selectedGrades).map((word) => word.id));
+    const allowed = new Set(battleWordIds(save));
     const open = Object.values(save.memory).filter((memory) => allowed.has(memory.wordId));
     return reviewDesk(open, studyNow(save)).keyTargetId;
   }
@@ -142,7 +143,7 @@ export class ReviewScene extends Phaser.Scene {
       warmButton(this, 500, layout.clockY, "沙漏 +1 天 Y", () => this.shift(reviewClockDelta("advance-1d")), { width: 200, height: 56, tone: "secondary" });
       warmButton(this, 735, layout.clockY, "回到真实时间 R", () => this.resetPracticeClock(), { width: 220, height: 56, tone: "secondary" });
     }
-    const allowed = new Set(wordsForGrades(save.selectedGrades).map((word) => word.id));
+    const allowed = new Set(battleWordIds(save));
     const open = Object.values(save.memory).filter((memory) => allowed.has(memory.wordId));
     const desk = reviewDesk(open, now);
     if (Object.keys(save.wordCards).length === 0) {

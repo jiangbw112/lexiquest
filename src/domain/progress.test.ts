@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Rating } from "ts-fsrs";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
+import { isMastered } from "./cards";
 import { GRADE_REQUIRED_NOTICE, canConfirmGrades, sampleWords, toggleGradeChoice, wordsForGrades } from "./catalog";
 import {
   applyBattleOutcome,
@@ -13,6 +14,8 @@ import {
   learnedCountInGrade,
   learnWord,
   needsGradeChoice,
+  noteBattleAnswer,
+  noteIndependentSpelling,
   practiceDuel,
   questLine,
   reviewWord,
@@ -189,7 +192,7 @@ describe("saved progress", () => {
   it("states the forest quest and clears the chapter only after the boss", () => {
     let save = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
     expect(questLine(save)).toContain("林缘小径");
-    expect(questLine(save)).toContain("掌握 0/28");
+    expect(questLine(save)).toContain("熟练 0/28");
     for (const word of sampleWords().slice(0, 4)) save = learnWord(save, word.id, START);
     const earlyBoss = applyBattleOutcome(save, "win", START.getTime() + 1, "canopy");
     expect(earlyBoss.chapterCleared).toBe(false);
@@ -211,7 +214,7 @@ describe("saved progress", () => {
     expect(cleared.titles).toContain(displayTitle(FOREST_REWARDS, FOREST_REWARDS.clear_reward.title_id).shownZh);
     expect(cleared.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
     expect(cleared.rewardQueue.filter((notice) => notice.title === "对战胜利")).toHaveLength(0);
-    expect(questLine(cleared)).toContain("掌握 0/28");
+    expect(questLine(cleared)).toContain("熟练 0/28");
     expect(questLine(cleared)).toContain("通关");
     const again = applyBattleOutcome(cleared, "win", START.getTime() + 3, "canopy");
     expect(again.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
@@ -346,5 +349,26 @@ describe("saved progress", () => {
     expect(save.wordCards.village).toBeTruthy();
     expect(save.wordCards.tree).toBeTruthy();
     expect(selectedCollected(save)).toBe(false);
+  });
+
+  it("keeps a correct meaning choice as recognized and marks mastery only after a hidden spelling", () => {
+    let save = setSelectedGrades(newSave(), ["G3"]);
+    save = learnWord(save, "about", START);
+    expect(save.wordCards.about?.wordId).toBe("about");
+    expect(isMastered(save.wordCards.about)).toBe(false);
+    save = reviewWord(save, "about", Rating.Good, new Date(save.memory.about!.fsrs.due));
+    expect(isMastered(save.wordCards.about)).toBe(false);
+    const spelled = noteIndependentSpelling(save, "about", START);
+    expect(isMastered(spelled.wordCards.about)).toBe(true);
+    expect(spelled.memory.about).toBe(save.memory.about);
+    const fromBattle = noteBattleAnswer(save, {
+      wordId: "about",
+      correct: true,
+      now: START,
+      dueAtStart: [],
+      spelling: true,
+    });
+    expect(isMastered(fromBattle.wordCards.about)).toBe(true);
+    expect(fromBattle.memory.about?.fsrs.due).toBe(save.memory.about?.fsrs.due);
   });
 });

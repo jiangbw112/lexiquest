@@ -5,8 +5,10 @@ import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades
 import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
 import { PROVISIONAL } from "./provisional";
 import { startBattle } from "./battle";
+import { skillQuestionPool } from "./skill-cast";
 import { badgeTone } from "./review";
 import {
+  battleWordIds,
   bossReady,
   bossUnlockLine,
   chapterLearnedCount,
@@ -365,6 +367,19 @@ describe("forest chapter", () => {
     expect(statuses[4]).toBe("locked");
     expect(initialMapStageId(statuses)).toBe(3);
     expect(FOREST_CHAPTER.boss_unlock.stages_1_to_4_cleared).toBe(true);
+  });
+
+  it("lets a learned official word into battle without asking it before it is learned", () => {
+    const grade3 = newSave(["G3"]);
+    const allowed = battleWordIds(grade3);
+    expect(allowed).toContain("about");
+    expect(allowed).toContain("tree");
+    expect(allowed).not.toContain("explore");
+    expect(skillQuestionPool([], ["tree"], { allowedIds: allowed })).toEqual(["tree"]);
+    expect(skillQuestionPool([], ["tree", "about"], { allowedIds: allowed })).toEqual(["tree", "about"]);
+    const allGrades = battleWordIds(newSave());
+    expect(allGrades).toContain("about");
+    expect(allGrades).toContain("explore");
   });
 
   it("selects the next open stage after stage 1 is cleared", () => {

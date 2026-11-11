@@ -17,7 +17,7 @@ import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
-import { STUDY_CARD, cjkWrap, meaningScale, studyNoticeGap, studyRowY } from "../layout";
+import { CARD_GOT, STUDY_CARD, cjkWrap, meaningScale, studyNoticeGap, studyRowY } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
@@ -271,14 +271,18 @@ export class LearnScene extends Phaser.Scene {
     if (this.phase === "got") {
       const got = wordById(this.justId ?? "");
       warmPanel(this, 640, 400, 860, 420);
-      this.add.text(640, 250, uiLabel("词卡入手"), { fontFamily: FONT_TITLE, fontSize: "36px", color: INK }).setOrigin(0.5);
-      if (got) this.meaningRow(640, 340, got.english, got.pos, got.chinese, 64);
-      this.add.text(640, 430, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", {
+      this.add.text(640, CARD_GOT.titleY, uiLabel("词卡入手"), {
+        fontFamily: FONT_TITLE,
+        fontSize: `${CARD_GOT.titleFont}px`,
+        color: INK,
+      }).setOrigin(0.5);
+      if (got) this.meaningRow(640, CARD_GOT.rowY, got.english, got.pos, got.chinese, CARD_GOT.englishSize);
+      this.add.text(640, CARD_GOT.noteY, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", {
         fontFamily: FONT,
         fontSize: "20px",
         color: MUTED,
       }).setOrigin(0.5);
-      warmButton(this, 640, 520, uiLabel("继续"), () => this.showStudy(), { width: 200 });
+      warmButton(this, 640, CARD_GOT.buttonY, uiLabel("继续"), () => this.showStudy(), { width: 200 });
       return;
     }
     if (!word) {

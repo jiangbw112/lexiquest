@@ -4,6 +4,7 @@ import {
   CATALOG_WORDS,
   chapterExtraWords,
   chapterWords,
+  continuationWordIds,
   forestLearnUnits,
   lessonUnits,
   mergeWordFiles,
@@ -39,12 +40,35 @@ describe("Forest chapter words", () => {
     expect(only3).toHaveLength(1);
     const extras = chapterExtraWords().map((word) => word.id);
     expect(extras.every((id) => only3[0]?.wordIds.includes(id))).toBe(true);
-    expect(only3[0]?.wordIds).toHaveLength(16);
+    const forestG3 = chapterWords().filter((word) => word.grade === "G3").map((word) => word.id);
+    expect(only3[0]?.wordIds.slice(0, forestG3.length)).toEqual(forestG3);
+    expect(only3[0]?.wordIds.slice(forestG3.length, forestG3.length + extras.length)).toEqual(extras);
+    expect(only3[0]?.wordIds.slice(forestG3.length + extras.length)).toEqual(continuationWordIds("G3"));
     const all = lessonUnits(["G3", "G4", "G5", "G6"]);
     const seen = all.flatMap((unit) => unit.wordIds);
     expect(new Set(seen).size).toBe(seen.length);
+    expect(seen).toHaveLength(CATALOG_WORDS.length + extras.length);
     expect(extras.every((id) => seen.includes(id))).toBe(true);
     expect(sampleUnits()).toEqual([]);
+  });
+
+  it("offers an official word that is not one of the forest 28", () => {
+    const grades = ["G3", "G4", "G5", "G6"] as const;
+    const forest = new Set(chapterWords().map((word) => word.id));
+    const units = lessonUnits(grades);
+    let next: string | undefined;
+    for (const unit of units) {
+      next = unit.wordIds.find((id) => !forest.has(id));
+      if (next) break;
+    }
+    const firstOutside = CATALOG_WORDS.find((word) => word.grade === "G3" && !forest.has(word.id));
+    expect(next).toBe(firstOutside?.id);
+    expect(next).toBeTruthy();
+    expect(forest.has(next ?? "")).toBe(false);
+    expect(wordById(next ?? "")?.theme).toBe("PEP Grades 3-6");
+    for (const id of chapterWords().filter((word) => word.grade === "G3").map((word) => word.id)) {
+      expect(continuationWordIds("G3")).not.toContain(id);
+    }
   });
 
   it("loads one file or one file per grade from the same schema", () => {

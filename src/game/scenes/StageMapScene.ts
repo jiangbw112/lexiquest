@@ -150,7 +150,7 @@ export class StageMapScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     });
-    this.add.text(860, 26, `掌握 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
+    this.add.text(860, 26, `熟练 ${masteryLabel(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(1040, 26, `到期 ${chapterDueCount(save, now)}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(680, 52, `距林心守护还差 ${wordsUntilBoss(save)} 个词`, {
       fontFamily: FONT,

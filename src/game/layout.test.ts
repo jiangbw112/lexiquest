@@ -5,7 +5,8 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkWrap, meaningScale, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap, wrapCjkText } from "./layout";
+import { formatMeaning, wordById } from "../domain/catalog";
+import { CARD_GOT, COLLECTION_CARD, OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, meaningScale, optionTextBounds, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap, wrapCjkText } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -39,6 +40,69 @@ describe("parent struggle list", () => {
 describe("study card and option alignment", () => {
   it("leaves a gap between the miss notice and the English word", () => {
     expect(studyNoticeGap()).toBeGreaterThanOrEqual(24);
+  });
+
+  it("keeps 词卡入手 clear of the English word on the collected card", () => {
+    expect(cardGotTitleGap()).toBeGreaterThanOrEqual(24);
+    expect(cardGotEnglishMeaningGap()).toBeGreaterThanOrEqual(16);
+    const learn = readFileSync(new URL("./scenes/LearnScene.ts", import.meta.url), "utf8");
+    expect(learn).toContain("CARD_GOT.titleY");
+    expect(learn).toContain("CARD_GOT.rowY");
+    expect(CARD_GOT.noteY).toBeGreaterThan(CARD_GOT.rowY + 20 + 23);
+    expect(CARD_GOT.buttonY - 28).toBeGreaterThan(CARD_GOT.noteY + 10);
+  });
+
+  it("wraps a long part-of-speech gloss inside a battle option and a collection card", () => {
+    const measure = (fontSize: number) => (sample: string) => {
+      let pixels = 0;
+      for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;
+      return pixels;
+    };
+    const about = formatMeaning(wordById("about")!);
+    const when = formatMeaning(wordById("when")!);
+    const flower = formatMeaning(wordById("flower")!);
+    const labels = [about, when, flower];
+    const hanRuns = (label: string) => label.match(/\p{Script=Han}{2,}/gu) ?? [];
+    const keepsHanTogether = (wrapped: string, label: string) => {
+      const lines = wrapped.split("\n");
+      return hanRuns(label).every((word) =>
+        lines.every((line, index) => {
+          const next = lines[index + 1];
+          if (!next) return true;
+          return !Array.from(word, (_, cut) => cut + 1)
+            .slice(0, -1)
+            .some((cut) => line.endsWith(word.slice(0, cut)) && next.startsWith(word.slice(cut)));
+        }),
+      );
+    };
+    const battle = optionTextBounds(250, 76);
+    for (const label of labels) {
+      const wrapped = wrapCjkText(label, battle.maxWidth, measure(24));
+      expect(wrapped.replaceAll("\n", "")).toBe(label);
+      expect(keepsHanTogether(wrapped, label)).toBe(true);
+      for (const line of wrapped.split("\n")) expect(measure(24)(line)).toBeLessThanOrEqual(battle.maxWidth);
+    }
+    expect(hanRuns(about).length).toBeGreaterThan(0);
+    const aboutBattle = wrapCjkText(about, battle.maxWidth, measure(24));
+    expect(aboutBattle.includes("\n")).toBe(true);
+    expect(keepsHanTogether(aboutBattle, about)).toBe(true);
+    expect(COLLECTION_CARD.englishInset).toBeGreaterThanOrEqual(24);
+    expect(COLLECTION_CARD.englishInset + COLLECTION_CARD.englishWidth).toBeLessThanOrEqual(COLLECTION_CARD.width - 30);
+    const card = wrapCjkText(about, COLLECTION_CARD.meaningWidth, measure(13));
+    expect(card.replaceAll("\n", "")).toBe(about);
+    expect(card.includes("\n")).toBe(true);
+    expect(keepsHanTogether(card, about)).toBe(true);
+    for (const line of card.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
+    const whenCard = wrapCjkText(when, COLLECTION_CARD.meaningWidth, measure(13));
+    expect(whenCard.replaceAll("\n", "")).toBe(when);
+    expect(keepsHanTogether(whenCard, when)).toBe(true);
+    for (const line of whenCard.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
+    const kit = readFileSync(new URL("./warm/kit.ts", import.meta.url), "utf8");
+    expect(kit).toContain("OPTION_TEXT_LEFT");
+    expect(kit).toContain("optionTextBounds");
+    expect(kit).toContain("cjkWrap(bounds.maxWidth)");
+    const battleScene = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");
+    expect(battleScene).toContain("250, 76");
   });
 
   it("scales a long Chinese line down to the card width", () => {

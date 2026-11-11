@@ -262,10 +262,22 @@ export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
   if (units.length === 0) return [];
   const shown = new Set(units.flatMap((unit) => unit.wordIds));
   const missing = CHAPTER_EXTRAS.map((word) => word.id).filter((id) => !shown.has(id));
-  if (missing.length === 0) return units;
-  const [first, ...rest] = units;
-  if (!first) return units;
-  return [{ ...first, wordIds: [...first.wordIds, ...missing] }, ...rest];
+  const withExtras = missing.length === 0 || !units[0]
+    ? units
+    : [{ ...units[0], wordIds: [...units[0].wordIds, ...missing] }, ...units.slice(1)];
+  return withExtras.map((unit) => {
+    const more = continuationWordIds(unit.grade).filter((id) => !unit.wordIds.includes(id));
+    return more.length === 0 ? unit : { ...unit, wordIds: [...unit.wordIds, ...more] };
+  });
+}
+
+/**
+ * Official library words of this grade that the forest chapter does not already teach.
+ * File order. These are the words after the 28, not a second copy of that chapter.
+ */
+export function continuationWordIds(grade: GradeBand): string[] {
+  const forest = new Set(chapterWords().map((word) => word.id));
+  return CATALOG_WORDS.filter((word) => word.grade === grade && !forest.has(word.id)).map((word) => word.id);
 }
 
 export function listUnits(): UnitDef[] {
