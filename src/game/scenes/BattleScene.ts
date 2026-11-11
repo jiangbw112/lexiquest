@@ -483,7 +483,7 @@ export class BattleScene extends Phaser.Scene {
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
       this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT_BODY, fontSize: "24px", fontStyle: "700", color: INK });
       this.state.question.choices.forEach((choice, index) => {
-        warmOption(this, 280 + index * 280, 738, index, choice.id, choice.label, () => this.choose(choice.id), 250);
+        warmOption(this, 280 + index * 280, 738, index, choice.id, choice.label, () => this.choose(choice.id), 250, 76);
       });
       return;
     }

@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { formatMeaning, sampleWords, wordById } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
-import { cjkWrap, parchmentTitleY } from "../layout";
+import { COLLECTION_CARD, cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
 import { FONT, paper } from "../ui";
@@ -58,10 +58,38 @@ export class CollectionScene extends Phaser.Scene {
       const row = Math.floor(index / 7);
       const x = 200 + column * 145;
       const y = 150 + row * 110;
-      warmPanel(this, x, y, 132, 96);
-      this.add.text(x - 56, y - 34, word.english, { fontFamily: FONT, fontSize: "18px", color: INK });
-      this.add.text(x - 56, y - 6, formatMeaning(word), { fontFamily: FONT, fontSize: "16px", color: MUTED });
-      this.add.text(x - 56, y + 18, TONE_LABEL[tone], { fontFamily: FONT, fontSize: "14px", color: tone === "grey" ? PLUM : NOTE });
+      warmPanel(this, x, y, COLLECTION_CARD.width, COLLECTION_CARD.height);
+      const left = x - COLLECTION_CARD.width / 2 + COLLECTION_CARD.padX;
+      const english = this.add.text(left, y - 44, word.english, {
+        fontFamily: FONT,
+        fontSize: "15px",
+        color: INK,
+        wordWrap: cjkWrap(COLLECTION_CARD.englishWidth),
+      }).setOrigin(0, 0);
+      const englishFit = Math.min(
+        1,
+        COLLECTION_CARD.englishWidth / Math.max(english.width, 1),
+        COLLECTION_CARD.englishHeight / Math.max(english.height, 1),
+      );
+      if (englishFit < 1) english.setScale(englishFit);
+      const meaning = this.add.text(left, y - 16, formatMeaning(word), {
+        fontFamily: FONT,
+        fontSize: "13px",
+        color: MUTED,
+        wordWrap: cjkWrap(COLLECTION_CARD.meaningWidth),
+      }).setOrigin(0, 0);
+      const meaningFit = Math.min(
+        1,
+        COLLECTION_CARD.meaningWidth / Math.max(meaning.width, 1),
+        COLLECTION_CARD.meaningHeight / Math.max(meaning.height, 1),
+      );
+      if (meaningFit < 1) meaning.setScale(meaningFit);
+      const toneLabel = this.add.text(left, y + 28, TONE_LABEL[tone], {
+        fontFamily: FONT,
+        fontSize: "14px",
+        color: tone === "grey" ? PLUM : NOTE,
+      }).setOrigin(0, 0.5);
+      if (toneLabel.width > COLLECTION_CARD.meaningWidth) toneLabel.setScale(COLLECTION_CARD.meaningWidth / toneLabel.width);
       this.add.image(x + 51, y - 33, "atlas_ui_core", TONE_BADGE[tone]).setDisplaySize(30, 30);
     });
     warmButton(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });

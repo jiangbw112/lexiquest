@@ -108,6 +108,54 @@ export function studyNoticeGap(): number {
 /** Logical inset of the option index. The yellow badge center is texture x=44, shown at half scale. */
 export const OPTION_BADGE_CENTER = 22;
 
+/** Label inset inside an option button, clear of the index badge and the right rim. */
+export const OPTION_TEXT_LEFT = 78;
+export const OPTION_TEXT_RIGHT = 16;
+export const OPTION_TEXT_PAD_Y = 10;
+
+export function optionTextBounds(width: number, height: number): { maxWidth: number; maxHeight: number } {
+  return {
+    maxWidth: Math.max(48, width - OPTION_TEXT_LEFT - OPTION_TEXT_RIGHT),
+    maxHeight: Math.max(24, height - OPTION_TEXT_PAD_Y * 2),
+  };
+}
+
+/**
+ * 「词卡入手」 sits above the English word. meaningRow draws that word at rowY - 70.
+ * The boxes below use the font size as the line box, which is the tight case.
+ */
+export const CARD_GOT = {
+  titleY: 224,
+  titleFont: 36,
+  rowY: 392,
+  englishSize: 64,
+  noteY: 488,
+  buttonY: 558,
+} as const;
+
+export function cardGotTitleGap(): number {
+  const titleBottom = CARD_GOT.titleY + CARD_GOT.titleFont / 2;
+  const englishTop = CARD_GOT.rowY - 70 - CARD_GOT.englishSize / 2;
+  return englishTop - titleBottom;
+}
+
+export function cardGotEnglishMeaningGap(): number {
+  const englishBottom = CARD_GOT.rowY - 70 + CARD_GOT.englishSize / 2;
+  const meaningTop = CARD_GOT.rowY + 20 - 46 / 2;
+  return meaningTop - englishBottom;
+}
+
+/** Collection card. The badge sits on the top-right, so the English line stops before it. */
+export const COLLECTION_CARD = {
+  width: 132,
+  height: 96,
+  padX: 10,
+  englishWidth: 88,
+  englishHeight: 24,
+  meaningWidth: 112,
+  meaningHeight: 30,
+} as const;
+
 export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): number {
   if (width <= max) return 1;
   return max / width;
