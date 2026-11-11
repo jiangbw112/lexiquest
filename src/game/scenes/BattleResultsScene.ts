@@ -194,8 +194,8 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   private drawHero(): void {
-    // Feet on the art mark. The forest-cape layer is not in this character pack yet.
-    const hero = new WarriorSprite(this, 235, 646, 0.7, this.view.equippedCosmeticIds);
+    // Feet on the art mark. Outfit pieces come from the actor sheet; cosmetics stay on this pack.
+    const hero = new WarriorSprite(this, 235, 646, 0.7, this.view.equippedCosmeticIds, this.view.equippedOutfitId);
     hero.play(this.view.won ? "victory" : "idle");
     this.finishing.push(hero.root);
   }

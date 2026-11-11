@@ -7,6 +7,7 @@ import {
   ensureCosmeticAnims,
   slotDepth,
 } from "./chapter-cosmetics";
+import { outfitExtraFrames, WARRIOR_SASH_DROP } from "./worn";
 import {
   WARRIOR_ANIMS,
   WARRIOR_ASSET_ROOT,
@@ -61,6 +62,8 @@ export class WarriorSprite {
   private readonly cosmeticById = new Map<string, Phaser.GameObjects.Sprite>();
   private anim: WarriorAnim = "idle";
   private equipped: readonly string[] = [];
+  private outfitId = "traveler";
+  private readonly outfitImages = new Map<string, Phaser.GameObjects.Image>();
 
   constructor(
     scene: Phaser.Scene,
@@ -68,12 +71,14 @@ export class WarriorSprite {
     y: number,
     scale = WARRIOR_LOGICAL_SCALE,
     equipped: readonly string[] = [],
+    outfitId = "traveler",
   ) {
     ensureWarriorAnims(scene);
     ensureCosmeticAnims(scene);
     this.root = scene.add.container(x, y);
     this.root.setScale(scale);
     this.equipped = equipped;
+    this.outfitId = outfitId;
     for (const layer of WARRIOR_LAYERS) {
       const sprite = scene.add.sprite(0, 0, warriorTextureKey(layer.slot)).setOrigin(WARRIOR_ORIGIN.x, WARRIOR_ORIGIN.y);
       sprite.setDepth(slotDepth(layer.slot));
@@ -87,6 +92,20 @@ export class WarriorSprite {
       sprite.setDepth(layer.z);
       this.root.add(sprite);
       this.cosmeticById.set(layer.id, sprite);
+    }
+    if (scene.textures.exists("actors")) {
+      // Actor sheet feet sit on y=320. Warrior feet sit 306px above the body top, so this scale matches heights.
+      const pieceScale = 306 / 264;
+      for (const name of ["side/cape", "side/sash", "side/hat-leaf", "side/hat-star"]) {
+        // Cape stays behind the body. The sash has to clear the tunic (z 75) and still sit under the shield (z 80).
+        const depth = name === "side/cape" ? 15 : name === "side/sash" ? 78 : 62;
+        const drop = name === "side/sash" ? WARRIOR_SASH_DROP : 0;
+        const image = scene.add.image(0, drop, "actors", name).setOrigin(0.5, 1).setScale(pieceScale);
+        image.setDepth(depth);
+        image.setVisible(false);
+        this.root.add(image);
+        this.outfitImages.set(name, image);
+      }
     }
     this.root.sort("depth");
     this.applyHideRules();
@@ -102,7 +121,13 @@ export class WarriorSprite {
   }
 
   setEquippedCosmetics(ids: readonly string[]): void {
-    this.equipped = ids;
+    this.setAppearance(this.outfitId, ids);
+  }
+
+  /** Class body stays. The outfit pieces and chapter cosmetics follow the save. */
+  setAppearance(outfitId: string, cosmeticIds: readonly string[]): void {
+    this.outfitId = outfitId;
+    this.equipped = cosmeticIds;
     this.applyHideRules();
     this.play(this.anim);
   }
@@ -133,6 +158,8 @@ export class WarriorSprite {
     });
     for (const [slot, sprite] of this.bySlot) sprite.setVisible(!visibility.hiddenSlots.includes(slot));
     for (const [id, sprite] of this.cosmeticById) sprite.setVisible(this.equipped.includes(id));
+    const extras = new Set(outfitExtraFrames(this.outfitId));
+    for (const [name, image] of this.outfitImages) image.setVisible(extras.has(name));
   }
 
   /** Plays each one-shot, then leaves a looping pose (idle or victory) on screen. */

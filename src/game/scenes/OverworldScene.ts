@@ -115,7 +115,7 @@ export class OverworldScene extends Phaser.Scene {
     for (const place of PLACES) this.building(place);
     // SPEC Part A puts the hero on the plaza. Buildings stay where layout.ts placed them.
     const hero = new LayeredActor(this, 640, 520, "top");
-    hero.applyOutfit(save.equippedOutfitId);
+    hero.applyAppearance(save.equippedOutfitId, save.equippedCosmeticIds);
     hero.root.setScale(0.85);
     this.heroRoot = hero.root;
     this.tweens.add({
