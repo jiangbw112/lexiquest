@@ -84,6 +84,7 @@ export interface BattleResultsView {
   card: CardUpgrade | null;
   items: ResultItem[];
   equippedCosmeticIds: string[];
+  equippedOutfitId: string;
   praise: string;
 }
 
@@ -241,6 +242,7 @@ export function buildResultsView(input: {
     card,
     items,
     equippedCosmeticIds: input.after.equippedCosmeticIds,
+    equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
   };
 }

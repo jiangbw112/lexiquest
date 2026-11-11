@@ -399,7 +399,7 @@ export class BattleScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     warmBackground(this, "bg_forest");
-    const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds);
+    const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
     this.battleHero = hero.root;
     const titleAt = this.children.length;
     drawEquippedTitle(this, 300, 250, save.equippedTitleId);

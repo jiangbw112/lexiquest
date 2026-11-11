@@ -75,7 +75,7 @@ export class EndingScene extends Phaser.Scene {
       fontSize: "16px",
       color: NOTE,
     });
-    const hero = new WarriorSprite(this, 1040, 560, 0.55, save.equippedCosmeticIds);
+    const hero = new WarriorSprite(this, 1040, 560, 0.55, save.equippedCosmeticIds, save.equippedOutfitId);
     hero.play("victory");
     drawEquippedTitle(this, 1040, 200, save.equippedTitleId);
     warmButton(this, 280, 720, "回村子", () => this.scene.start("overworld"), { width: 220 });
