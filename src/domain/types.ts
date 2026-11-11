@@ -30,6 +30,12 @@ export interface WordCardRecord {
   /** True after the badge has been bright at least once. Grey does not clear it. */
   badgeEverOn?: boolean;
   badgeLastChangedAt?: number;
+  /**
+   * Set when the child spelled the word without the answer on screen.
+   * A quiz, or a spelling attempt that showed the word, does not set this.
+   * No spelling review interval is stored here.
+   */
+  spelledAloneAt?: number;
 }
 
 export interface StoredFsrs {

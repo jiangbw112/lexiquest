@@ -276,8 +276,28 @@ export function noteBattleAnswer(
     && Boolean(memory && isDue(memory, input.now))
     && !input.spelling
     && !meaningLoggedToday(save, input.wordId, input.now, zone);
-  if (!write) return notePracticeAnswer(save, input.wordId, input.now, zone);
-  return reviewWord(save, input.wordId, input.correct ? Rating.Good : Rating.Again, input.now, zone);
+  const next = write
+    ? reviewWord(save, input.wordId, input.correct ? Rating.Good : Rating.Again, input.now, zone)
+    : notePracticeAnswer(save, input.wordId, input.now, zone);
+  if (input.spelling && input.correct) return noteIndependentSpelling(next, input.wordId, input.now);
+  return next;
+}
+
+/**
+ * Marks 已掌握. The caller has to hide the spelling answer.
+ * Meaning reviews and the FSRS due time stay as they are. This does not invent a spelling interval.
+ */
+export function noteIndependentSpelling(save: SaveData, wordId: string, now: Date): SaveData {
+  const card = save.wordCards[wordId];
+  if (!card || typeof card.spelledAloneAt === "number") return save;
+  if (!gradeIsOpen(save, wordId)) return save;
+  return {
+    ...save,
+    wordCards: {
+      ...save.wordCards,
+      [wordId]: { ...card, spelledAloneAt: now.getTime() },
+    },
+  };
 }
 
 /**
@@ -368,7 +388,7 @@ export function questLine(save: SaveData): string {
   const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
   if (tooSmall) return tooSmall;
   const now = studyNow(save);
-  const progress = `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}，已清关 ${clearedStageCount(save)}/5，掌握 ${masteryLabel(save, now)}。`;
+  const progress = `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}，已清关 ${clearedStageCount(save)}/5，熟练 ${masteryLabel(save, now)}。`;
   if (save.chapterCleared) {
     return `森林冒险通关了。${progress}复习会让灰掉的徽章再亮。`;
   }

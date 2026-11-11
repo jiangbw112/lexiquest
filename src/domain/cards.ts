@@ -1,5 +1,15 @@
 import type { WordCardRecord } from "./types";
 
+/** A collected card. Choosing the right meaning is this, and is not mastery. */
+export function isRecognized(card: { wordId: string } | undefined): boolean {
+  return Boolean(card);
+}
+
+/** Recognized, and spelled once with the answer hidden. The meaning badge is separate. */
+export function isMastered(card: { spelledAloneAt?: number } | undefined): boolean {
+  return typeof card?.spelledAloneAt === "number";
+}
+
 export function grantWordCard(
   cards: Record<string, WordCardRecord>,
   wordId: string,

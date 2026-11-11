@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { formatMeaning, sampleWords } from "../../domain/catalog";
+import { formatMeaning, sampleWords, wordById } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import { cjkWrap, parchmentTitleY } from "../layout";
@@ -32,10 +32,17 @@ export class CollectionScene extends Phaser.Scene {
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
     const now = studyNow(save);
-    const owned = sampleWords().filter((word) => save.wordCards[word.id]);
+    const forestOwned = sampleWords().filter((word) => save.wordCards[word.id]);
+    const forestIds = new Set(forestOwned.map((word) => word.id));
+    const later = Object.keys(save.wordCards)
+      .filter((id) => !forestIds.has(id))
+      .map((id) => wordById(id))
+      .filter((word): word is NonNullable<ReturnType<typeof wordById>> => Boolean(word));
+    const owned = [...forestOwned, ...later];
+    const shown = owned.slice(0, 35);
     const titleY = parchmentTitleY(400, 740);
     this.add.text(160, titleY, "词卡册", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(340, titleY + 12, `森林冒险 · 已收集 ${owned.length}/${sampleWords().length} · 词卡不会因为徽章变灰而消失`, {
+    this.add.text(340, titleY + 12, `已收集 ${owned.length} 个 · 词卡不会因为徽章变灰而消失`, {
       fontFamily: FONT,
       fontSize: "18px",
       color: NOTE,
@@ -44,7 +51,7 @@ export class CollectionScene extends Phaser.Scene {
     if (owned.length === 0) {
       this.add.text(160, 160, "册子还是空的。去学堂认识一个词。", { fontFamily: FONT, fontSize: "22px", color: MUTED });
     }
-    owned.forEach((word, index) => {
+    shown.forEach((word, index) => {
       const card = save.wordCards[word.id];
       const tone = badgeTone(card, save.memory[word.id], now);
       const column = index % 7;

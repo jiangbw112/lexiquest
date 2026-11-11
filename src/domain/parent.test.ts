@@ -358,19 +358,21 @@ describe("DES-05 parent progress and daily goal", () => {
     save = bright(save, "tree", START, false);
     save = answer(save, "tree", "good", START, "meaning", true, "none");
     expect(save.wordCards.tree?.badgeEverOn).toBe(true);
-    expect(view(save, START).masteredFirst7d).toBe(1);
-    expect(view(save, START).masteredRestored7d).toBe(0);
+    expect(view(save, START).masteredFirst7d).toBe(0);
+    expect(view(save, START).masteredNow).toBe(0);
+    expect(view(save, START).masteredLine).toContain("已认识 1 个，已掌握 0 个");
 
     const next = day(1);
     save = bright(save, "tree", next, true);
     save = answer(save, "tree", "good", next, "meaning", true, "grey");
-    expect(view(save, next).masteredFirst7d).toBe(1);
-    expect(view(save, next).masteredRestored7d).toBe(1);
+    expect(view(save, next).masteredFirst7d).toBe(0);
+    expect(view(save, next).masteredRestored7d).toBe(0);
     const again = answer(bright(save, "tree", day(2), true), "tree", "good", day(2), "meaning", true, "grey");
     const seen = view(again, day(2));
-    expect(seen.masteredRestored7d).toBe(1);
-    expect(seen.firstMasteredLine).toBe("首次掌握：1 个");
-    expect(seen.restoredMasteredLine).toBe("重新掌握：1 个");
+    expect(seen.masteredRestored7d).toBe(0);
+    expect(seen.firstMasteredLine).toBe("首次掌握：0 个");
+    expect(seen.restoredMasteredLine).toBe("重新掌握：0 个");
+    expect(seen.masteredLine).toContain("已掌握 0 个");
     expect(seen.weekLine).not.toContain("新掌握");
   });
 

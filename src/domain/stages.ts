@@ -1,4 +1,4 @@
-import { chapterExtraWords, isChapterExtra, wordById } from "./catalog";
+import { CATALOG_WORDS, chapterExtraWords, isChapterExtra, wordById } from "./catalog";
 import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
 import { PROVISIONAL } from "./provisional";
@@ -242,8 +242,25 @@ export function bossUnlockLine(save: SaveData): string {
   return `通过前 ${prior} 关并学完 ${requiredWordIds(save).length} 个词`;
 }
 
+/**
+ * Words a fight may draw once the child has learned them.
+ * The forest set stays first. The rest are the official list for the selected grades.
+ * Unlearned ids stay out of the dealt questions; the question pool still requires a card.
+ */
 export function battleWordIds(save: SaveData): string[] {
-  return requiredWordIds(save);
+  const grades = new Set(save.selectedGrades);
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  const push = (id: string) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    ids.push(id);
+  };
+  for (const id of requiredWordIds(save)) push(id);
+  for (const word of CATALOG_WORDS) {
+    if (grades.has(word.grade)) push(word.id);
+  }
+  return ids;
 }
 
 export function chapterLearnedCount(save: SaveData): number {
