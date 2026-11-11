@@ -5,6 +5,7 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
+import { formatMeaning, wordById } from "../domain/catalog";
 import { CARD_GOT, COLLECTION_CARD, OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, meaningScale, optionTextBounds, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap, wrapCjkText } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -57,19 +58,27 @@ describe("study card and option alignment", () => {
       for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;
       return pixels;
     };
-    const labels = ["adv./prep. 大约；关于", "conj./adv. 当…的时候；什么时候", "n. 花"];
+    const about = formatMeaning(wordById("about")!);
+    const when = formatMeaning(wordById("when")!);
+    const flower = formatMeaning(wordById("flower")!);
+    const labels = [about, when, flower];
     const battle = optionTextBounds(250, 76);
     for (const label of labels) {
       const wrapped = wrapCjkText(label, battle.maxWidth, measure(24));
       expect(wrapped.replaceAll("\n", "")).toBe(label);
-      for (const line of wrapped.split("\n")) expect(measure(24)(line)).toBeLessThanOrEqual(battle.maxWidth + 1);
+      for (const line of wrapped.split("\n")) expect(measure(24)(line)).toBeLessThanOrEqual(battle.maxWidth);
     }
-    expect(wrapCjkText(labels[0]!, battle.maxWidth, measure(24)).includes("\n")).toBe(true);
-    const card = wrapCjkText(labels[0]!, COLLECTION_CARD.meaningWidth, measure(13));
-    expect(card.replaceAll("\n", "")).toBe(labels[0]);
+    expect(COLLECTION_CARD.englishInset).toBeGreaterThanOrEqual(24);
+    expect(COLLECTION_CARD.englishInset + COLLECTION_CARD.englishWidth).toBeLessThanOrEqual(COLLECTION_CARD.width - 30);
+    const card = wrapCjkText(about, COLLECTION_CARD.meaningWidth, measure(13));
+    expect(card.replaceAll("\n", "")).toBe(about);
     expect(card.includes("\n")).toBe(true);
-    for (const line of card.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth + 1);
+    for (const line of card.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
+    const whenCard = wrapCjkText(when, COLLECTION_CARD.meaningWidth, measure(13));
+    expect(whenCard.replaceAll("\n", "")).toBe(when);
+    for (const line of whenCard.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
     const kit = readFileSync(new URL("./warm/kit.ts", import.meta.url), "utf8");
+    expect(kit).toContain("OPTION_TEXT_LEFT");
     expect(kit).toContain("optionTextBounds");
     expect(kit).toContain("cjkWrap(bounds.maxWidth)");
     const battleScene = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");

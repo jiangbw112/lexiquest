@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import sliceFile from "./slices.json";
 import { blip } from "../audio";
 import { containerHitArea } from "../hit";
-import { OPTION_BADGE_CENTER, cjkWrap, optionTextBounds } from "../layout";
+import { OPTION_BADGE_CENTER, OPTION_TEXT_LEFT, cjkWrap, optionTextBounds } from "../layout";
 import { tabFrame, tabLabelY } from "./frames";
 import { CREAM, DIS_TEXT, ERR_TEXT, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, NOTE, motionOff } from "./theme";
 

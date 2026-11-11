@@ -150,7 +150,9 @@ export const COLLECTION_CARD = {
   width: 132,
   height: 96,
   padX: 10,
-  englishWidth: 88,
+  /** Past the panel's top-left leaf, and still clear of the badge on the right. */
+  englishInset: 28,
+  englishWidth: 70,
   englishHeight: 24,
   meaningWidth: 112,
   meaningHeight: 30,
@@ -195,7 +197,8 @@ export function cjkTokens(text: string): string[] {
 
 /**
  * Wrap Chinese so a line never starts with a fullwidth punctuation mark.
- * A punctuation token that would start a line is pulled onto the previous line.
+ * Punctuation stays with the previous word. If that would spill past the width,
+ * the previous word moves down with the punctuation.
  */
 export function wrapCjkText(text: string, maxWidth: number, measure: (sample: string) => number): string {
   const lines: string[] = [];
@@ -207,9 +210,23 @@ export function wrapCjkText(text: string, maxWidth: number, measure: (sample: st
       continue;
     }
     const next = line + token;
-    if (line && measure(next) > maxWidth && !LINE_START_PUNCT.has(token)) {
+    if (!(line && measure(next) > maxWidth)) {
+      line = next;
+      continue;
+    }
+    if (!LINE_START_PUNCT.has(token)) {
       lines.push(line);
       line = token;
+      continue;
+    }
+    // Keep the punctuation off the start of a line, and keep the previous line inside the box.
+    const tokens = cjkTokens(line);
+    const last = tokens.length > 1 ? tokens[tokens.length - 1] ?? "" : "";
+    const rest = last ? tokens.slice(0, -1).join("") : "";
+    const moved = last + token;
+    if (rest && last && !LINE_START_PUNCT.has(last) && measure(rest) <= maxWidth && measure(moved) <= maxWidth) {
+      lines.push(rest);
+      line = moved;
     } else {
       line = next;
     }

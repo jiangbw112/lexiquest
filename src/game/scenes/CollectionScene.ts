@@ -60,7 +60,7 @@ export class CollectionScene extends Phaser.Scene {
       const y = 150 + row * 110;
       warmPanel(this, x, y, COLLECTION_CARD.width, COLLECTION_CARD.height);
       const left = x - COLLECTION_CARD.width / 2 + COLLECTION_CARD.padX;
-      const english = this.add.text(left, y - 44, word.english, {
+      const english = this.add.text(x - COLLECTION_CARD.width / 2 + COLLECTION_CARD.englishInset, y - 44, word.english, {
         fontFamily: FONT,
         fontSize: "15px",
         color: INK,
