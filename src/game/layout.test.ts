@@ -62,20 +62,40 @@ describe("study card and option alignment", () => {
     const when = formatMeaning(wordById("when")!);
     const flower = formatMeaning(wordById("flower")!);
     const labels = [about, when, flower];
+    const hanRuns = (label: string) => label.match(/\p{Script=Han}{2,}/gu) ?? [];
+    const keepsHanTogether = (wrapped: string, label: string) => {
+      const lines = wrapped.split("\n");
+      return hanRuns(label).every((word) =>
+        lines.every((line, index) => {
+          const next = lines[index + 1];
+          if (!next) return true;
+          return !Array.from(word, (_, cut) => cut + 1)
+            .slice(0, -1)
+            .some((cut) => line.endsWith(word.slice(0, cut)) && next.startsWith(word.slice(cut)));
+        }),
+      );
+    };
     const battle = optionTextBounds(250, 76);
     for (const label of labels) {
       const wrapped = wrapCjkText(label, battle.maxWidth, measure(24));
       expect(wrapped.replaceAll("\n", "")).toBe(label);
+      expect(keepsHanTogether(wrapped, label)).toBe(true);
       for (const line of wrapped.split("\n")) expect(measure(24)(line)).toBeLessThanOrEqual(battle.maxWidth);
     }
+    expect(hanRuns(about).length).toBeGreaterThan(0);
+    const aboutBattle = wrapCjkText(about, battle.maxWidth, measure(24));
+    expect(aboutBattle.includes("\n")).toBe(true);
+    expect(keepsHanTogether(aboutBattle, about)).toBe(true);
     expect(COLLECTION_CARD.englishInset).toBeGreaterThanOrEqual(24);
     expect(COLLECTION_CARD.englishInset + COLLECTION_CARD.englishWidth).toBeLessThanOrEqual(COLLECTION_CARD.width - 30);
     const card = wrapCjkText(about, COLLECTION_CARD.meaningWidth, measure(13));
     expect(card.replaceAll("\n", "")).toBe(about);
     expect(card.includes("\n")).toBe(true);
+    expect(keepsHanTogether(card, about)).toBe(true);
     for (const line of card.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
     const whenCard = wrapCjkText(when, COLLECTION_CARD.meaningWidth, measure(13));
     expect(whenCard.replaceAll("\n", "")).toBe(when);
+    expect(keepsHanTogether(whenCard, when)).toBe(true);
     for (const line of whenCard.split("\n")) expect(measure(13)(line)).toBeLessThanOrEqual(COLLECTION_CARD.meaningWidth);
     const kit = readFileSync(new URL("./warm/kit.ts", import.meta.url), "utf8");
     expect(kit).toContain("OPTION_TEXT_LEFT");

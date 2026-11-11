@@ -166,9 +166,17 @@ export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): n
 /** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */
 const LINE_START_PUNCT = new Set("，。！？；：、」』）】》".split(""));
 const UNBROKEN_WORDS = ["这台电脑", "浏览器"];
+const HAN = /\p{Script=Han}/u;
 
-/** Split text so 这台电脑 and 浏览器 stay on one line, the canvas form of nowrap. */
-export function cjkTokens(text: string): string[] {
+function isHan(char: string): boolean {
+  return HAN.test(char);
+}
+
+/**
+ * Split at Latin words and the phrases that must stay whole.
+ * Every other character, including each Han character, is its own token.
+ */
+function breakTokens(text: string): string[] {
   const tokens: string[] = [];
   let index = 0;
   while (index < text.length) {
@@ -196,18 +204,71 @@ export function cjkTokens(text: string): string[] {
 }
 
 /**
- * Wrap Chinese so a line never starts with a fullwidth punctuation mark.
+ * Same as {@link breakTokens}, except a run of Han characters is one word.
+ * A run stops before 这台电脑 or 浏览器 so those phrases stay intact.
+ * Wrap breaks at punctuation and at these word boundaries. A word wider than
+ * the line is the only case that falls back to characters.
+ */
+export function cjkTokens(text: string): string[] {
+  const tokens: string[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const kept = UNBROKEN_WORDS.find((word) => text.startsWith(word, index));
+    if (kept) {
+      tokens.push(kept);
+      index += kept.length;
+      continue;
+    }
+    const char = text[index] ?? "";
+    if (/[A-Za-z0-9]/.test(char)) {
+      let word = char;
+      index += 1;
+      while (index < text.length && /[A-Za-z0-9]/.test(text[index] ?? "")) {
+        word += text[index];
+        index += 1;
+      }
+      tokens.push(word);
+      continue;
+    }
+    if (isHan(char)) {
+      let word = char;
+      index += 1;
+      while (index < text.length && isHan(text[index] ?? "") && !UNBROKEN_WORDS.some((kept) => text.startsWith(kept, index))) {
+        word += text[index];
+        index += 1;
+      }
+      tokens.push(word);
+      continue;
+    }
+    tokens.push(char);
+    index += 1;
+  }
+  return tokens;
+}
+
+/**
+ * Wrap Chinese so a line never starts with a fullwidth punctuation mark,
+ * and a Han word is not cut unless that word alone is wider than the line.
  * Punctuation stays with the previous word. If that would spill past the width,
- * the previous word moves down with the punctuation.
+ * the whole previous word moves down with the punctuation.
  */
 export function wrapCjkText(text: string, maxWidth: number, measure: (sample: string) => number): string {
   const lines: string[] = [];
   let line = "";
-  for (const token of cjkTokens(text)) {
+  const pending = cjkTokens(text);
+  while (pending.length > 0) {
+    const token = pending.shift() ?? "";
     if (token === "\n") {
       lines.push(line);
       line = "";
       continue;
+    }
+    if (measure(token) > maxWidth && token.length > 1 && !UNBROKEN_WORDS.includes(token)) {
+      const pieces = breakTokens(token);
+      if (pieces.length > 1) {
+        pending.unshift(...pieces);
+        continue;
+      }
     }
     const next = line + token;
     if (!(line && measure(next) > maxWidth)) {
@@ -219,10 +280,9 @@ export function wrapCjkText(text: string, maxWidth: number, measure: (sample: st
       line = token;
       continue;
     }
-    // Keep the punctuation off the start of a line, and keep the previous line inside the box.
-    const tokens = cjkTokens(line);
-    const last = tokens.length > 1 ? tokens[tokens.length - 1] ?? "" : "";
-    const rest = last ? tokens.slice(0, -1).join("") : "";
+    const parts = cjkTokens(line);
+    const last = parts.length > 1 ? parts[parts.length - 1] ?? "" : "";
+    const rest = last ? parts.slice(0, -1).join("") : "";
     const moved = last + token;
     if (rest && last && !LINE_START_PUNCT.has(last) && measure(rest) <= maxWidth && measure(moved) <= maxWidth) {
       lines.push(rest);
