@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
 import { mapResultsFramesReady, mapStarCenter } from "../../domain/battle-results";
+import { chapterBackdrop, type ChapterBackdrop } from "../../domain/chapter-scenes";
 import { activeChapter, mapCounts, playStatuses, starKey, visibleChapters } from "../../domain/chapter-plan";
 import { mapPanel } from "../../domain/map-panel";
 import { studyNow } from "../../domain/progress";
@@ -22,6 +23,7 @@ import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
+import { paintSceneImage, queueMissingChapterMap, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
 import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
@@ -41,6 +43,8 @@ export class StageMapScene extends Phaser.Scene {
   private restPrompt = false;
   private retryStageId: number | null = null;
   private waitingForMapArt = false;
+  private chapterMapToken = 0;
+  private mapLoadFailedKey = "";
 
   init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
@@ -52,7 +56,14 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], ["bg_map"]);
+    const save = getSave();
+    const backdrop = chapterBackdrop(save ? activeChapter(save).id : "forest_adventure");
+    if (backdrop.groupId === "forest") {
+      queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], ["bg_map"]);
+      return;
+    }
+    queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], []);
+    queueSceneImage(this, backdrop.mapKey, backdrop.mapUrl);
   }
 
   create(): void {
@@ -96,6 +107,24 @@ export class StageMapScene extends Phaser.Scene {
     if (!this.textures.exists("atlas_map_results")) return false;
     const atlas = this.textures.get("atlas_map_results");
     return mapResultsFramesReady((frame) => atlas.has(frame));
+  }
+
+  private chapterMapReady(backdrop: ChapterBackdrop): boolean {
+    if (this.textures.exists(backdrop.mapKey)) {
+      this.mapLoadFailedKey = "";
+      return true;
+    }
+    if (this.mapLoadFailedKey === backdrop.mapKey) return false;
+    const token = ++this.chapterMapToken;
+    const queued = queueMissingChapterMap(this, backdrop);
+    if (!queued) return true;
+    this.load.once("complete", () => {
+      if (token !== this.chapterMapToken || !this.scene.isActive()) return;
+      if (!this.textures.exists(backdrop.mapKey)) this.mapLoadFailedKey = backdrop.mapKey;
+      this.draw();
+    });
+    if (!this.load.isLoading()) this.load.start();
+    return false;
   }
 
   private waitForMapArt(): void {
@@ -147,9 +176,15 @@ export class StageMapScene extends Phaser.Scene {
     }
     const save = getSave();
     if (!save) return;
+    const backdrop = chapterBackdrop(activeChapter(save).id);
+    if (!this.chapterMapReady(backdrop)) {
+      if (this.mapLoadFailedKey === backdrop.mapKey) this.paintMapFallback();
+      return;
+    }
     this.tweens.killAll();
     this.children.removeAll(true);
-    warmBackground(this, "bg_map");
+    if (backdrop.groupId === "forest") warmBackground(this, "bg_map");
+    else paintSceneImage(this, backdrop.mapKey);
     const now = studyNow(save);
     const chapter = activeChapter(save);
     const statuses = playStatuses(save, chapter);
@@ -360,6 +395,14 @@ export class StageMapScene extends Phaser.Scene {
     warmButton(this, 160, 748, uiLabel("回村子"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
     probeNote("stages:ready");
     if (this.restPrompt) this.drawRest();
+  }
+
+  /** A failed forest (or chapter) load uses the village plate instead of the missing texture. */
+  private paintMapFallback(): void {
+    this.tweens.killAll();
+    this.children.removeAll(true);
+    if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
+    else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
   }
 
   private drawRest(): void {

@@ -1,0 +1,118 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import {
+  CHAPTER_SCENE_GROUP,
+  JOURNEY_NIGHT_CHAPTERS,
+  SCENE_GROUP_IDS,
+  chapterBackdrop,
+  journeyNightUrls,
+} from "./chapter-scenes";
+import { FOREST_CHAPTER } from "./stages";
+
+interface LedgerFile {
+  groupId: string;
+  role: string;
+  referenced: boolean;
+  sourceSha256: string;
+  repoPath: string;
+  repoSha256: string;
+  recompressed: boolean;
+}
+
+interface LedgerChapter {
+  chapterId: string;
+  groupId: string;
+}
+
+interface Ledger {
+  note: string;
+  chapters: LedgerChapter[];
+  files: LedgerFile[];
+}
+
+const ledger = JSON.parse(readFileSync(new URL("./chapters/scene-asset-ledger.json", import.meta.url), "utf8")) as Ledger;
+const chapterFile = JSON.parse(readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8")) as {
+  chapter_id: string;
+}[];
+
+function sha256(path: string): string {
+  return createHash("sha256").update(readFileSync(new URL(`../../${path}`, import.meta.url))).digest("hex");
+}
+
+describe("chapter scene groups", () => {
+  it("resolves all 31 grade chapters to a background that is in the repo", () => {
+    const gradeIds = chapterFile.map((chapter) => chapter.chapter_id).filter((id) => id !== FOREST_CHAPTER.chapter_id);
+    expect(gradeIds).toHaveLength(31);
+    expect(Object.keys(CHAPTER_SCENE_GROUP).sort()).toEqual([...gradeIds].sort());
+    expect(ledger.chapters.map((chapter) => chapter.chapterId).sort()).toEqual([...gradeIds].sort());
+    const referenced = new Set(ledger.files.filter((file) => file.referenced).map((file) => file.repoPath));
+    for (const id of gradeIds) {
+      const backdrop = chapterBackdrop(id);
+      expect(SCENE_GROUP_IDS).toContain(backdrop.groupId);
+      expect(backdrop.groupId).toBe(CHAPTER_SCENE_GROUP[id]);
+      expect(referenced.has(`public/${backdrop.mapUrl}`)).toBe(true);
+      expect(referenced.has(`public/${backdrop.battleUrl}`)).toBe(true);
+      expect(sha256(`public/${backdrop.mapUrl}`)).toBe(ledger.files.find((file) => file.repoPath === `public/${backdrop.mapUrl}`)!.repoSha256);
+      expect(sha256(`public/${backdrop.battleUrl}`)).toBe(ledger.files.find((file) => file.repoPath === `public/${backdrop.battleUrl}`)!.repoSha256);
+    }
+  });
+
+  it("keeps the forest on the existing map and battle art", () => {
+    const forest = chapterBackdrop(FOREST_CHAPTER.chapter_id);
+    expect(forest).toEqual({
+      groupId: "forest",
+      mapKey: "bg_map",
+      mapUrl: "assets/warm/backgrounds/bg_map_forest_2x.webp",
+      battleKey: "bg_forest",
+      battleUrl: "assets/warm/backgrounds/bg_forest_battle_2x.webp",
+    });
+    expect(CHAPTER_SCENE_GROUP[FOREST_CHAPTER.chapter_id]).toBeUndefined();
+  });
+
+  it("lets only pep_g6_01 reference the journey night set", () => {
+    const nights = journeyNightUrls();
+    const dayJourney = ["pep_g5_08", "pep_g5_09", "pep_g6_03", "pep_g6_04", "pep_g6_05", "pep_g6_06"];
+    expect(nights).toEqual([
+      "assets/chapter/scenes/journey/bg_map_night.webp",
+      "assets/chapter/scenes/journey/bg_battle_night.webp",
+    ]);
+    expect([...JOURNEY_NIGHT_CHAPTERS]).toEqual(["pep_g6_01"]);
+    expect(ledger.note).toContain("only pep_g6_01");
+    expect(ledger.note).not.toContain("pep_g6_04 uses the journey night");
+    for (const file of ledger.files) {
+      expect(file.referenced).toBe(true);
+      expect(file.recompressed).toBe(false);
+      expect(file.repoSha256).toBe(file.sourceSha256);
+      expect(sha256(file.repoPath)).toBe(file.repoSha256);
+    }
+    const night = chapterBackdrop("pep_g6_01");
+    expect(night.mapUrl).toBe(nights[0]);
+    expect(night.battleUrl).toBe(nights[1]);
+    expect(night.mapKey).toBe("chapter_map_journey_night");
+    expect(night.battleKey).toBe("chapter_battle_journey_night");
+    for (const id of dayJourney) {
+      const backdrop = chapterBackdrop(id);
+      expect(backdrop.mapUrl).toBe("assets/chapter/scenes/journey/bg_map_day.webp");
+      expect(backdrop.battleUrl).toBe("assets/chapter/scenes/journey/bg_battle_day.webp");
+      expect(backdrop.mapKey).toBe("chapter_map_journey_day");
+      expect(backdrop.battleKey).toBe("chapter_battle_journey_day");
+    }
+    for (const id of Object.keys(CHAPTER_SCENE_GROUP)) {
+      if (id === "pep_g6_01") continue;
+      const backdrop = chapterBackdrop(id);
+      expect(nights).not.toContain(backdrop.mapUrl);
+      expect(nights).not.toContain(backdrop.battleUrl);
+    }
+  });
+
+  it("does not add chapter scenes to the boot scene", () => {
+    const boot = readFileSync(new URL("../game/scenes/BootScene.ts", import.meta.url), "utf8");
+    const budget = readFileSync(new URL("../../tools/boot-budget.mjs", import.meta.url), "utf8");
+    expect(boot).not.toContain("chapter/scenes");
+    expect(boot).not.toContain("bg_map_home");
+    expect(budget).not.toContain("chapter/scenes");
+    expect(boot).toContain("bg_home");
+    expect(boot).toContain("bg_village");
+  });
+});
