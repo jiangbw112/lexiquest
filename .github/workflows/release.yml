@@ -1,0 +1,276 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: "Create a draft release instead of publishing"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+concurrency:
+  group: release-${{ github.sha }}
+  cancel-in-progress: false
+
+env:
+  IS_DRAFT: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.draft == 'true') || (github.event_name == 'push' && github.ref != 'refs/heads/main') }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep LF line endings
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git reset --hard HEAD
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install fonttools brotli
+      - run: npm run build:desktop:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: List installer sizes
+        shell: pwsh
+        run: Get-ChildItem dist-desktop -File | ForEach-Object { "{0}`t{1}" -f $_.Name, $_.Length }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: dist-desktop/*.exe
+          if-no-files-found: error
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install fonttools brotli
+      - run: npm run build:desktop:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_FOR_PULL_REQUEST: "true"
+      - name: List installer sizes
+        run: ls -l dist-desktop/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-mac
+          path: dist-desktop/*.zip
+          if-no-files-found: error
+
+  release:
+    needs: [windows, mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine release mode
+        id: mode
+        run: |
+          IS_DRAFT="${{ env.IS_DRAFT }}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          RUN_NUM="${{ github.run_number }}"
+          
+          if [ "$IS_DRAFT" = "true" ]; then
+            TAG="desktop-dryrun-${RUN_NUM}-${SHORT_SHA}"
+            echo "is_draft=true" >> "$GITHUB_OUTPUT"
+          else
+            TAG="desktop-r${RUN_NUM}-${SHORT_SHA}"
+            echo "is_draft=false" >> "$GITHUB_OUTPUT"
+          fi
+          
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Mode: draft=$IS_DRAFT, tag=$TAG"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          TAG="${{ steps.mode.outputs.tag }}"
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "Tag $TAG already exists, skipping release"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download Windows artifacts
+        if: steps.check_tag.outputs.exists != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: release-windows
+          path: artifacts/windows
+
+      - name: Download Mac artifacts
+        if: steps.check_tag.outputs.exists != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: release-mac
+          path: artifacts/mac
+
+      - name: List downloaded artifacts
+        if: steps.check_tag.outputs.exists != 'true'
+        run: |
+          echo "=== Windows ==="
+          ls -lh artifacts/windows/
+          echo "=== Mac ==="
+          ls -lh artifacts/mac/
+
+      - name: Get associated PR info
+        if: steps.check_tag.outputs.exists != 'true'
+        id: pr_info
+        run: |
+          PR_JSON=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls")
+          
+          PR_COUNT=$(echo "$PR_JSON" | jq 'length')
+          
+          if [ "$PR_COUNT" -gt 0 ]; then
+            PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title')
+            PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number')
+            PR_URL=$(echo "$PR_JSON" | jq -r '.[0].html_url')
+            PR_INFO="**关联 PR**: [#${PR_NUMBER} ${PR_TITLE}](${PR_URL})"
+          else
+            PR_INFO="**关联 PR**: 无关联 PR（直接推送）"
+          fi
+          
+          echo "pr_info<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$PR_INFO" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        if: steps.check_tag.outputs.exists != 'true'
+        id: notes
+        run: |
+          TAG="${{ steps.mode.outputs.tag }}"
+          SHORT_SHA="${{ steps.mode.outputs.short_sha }}"
+          FULL_SHA="${{ github.sha }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
+          
+          if [ "$IS_DRAFT" = "true" ]; then
+            DRAFT_NOTICE="
+> ⚠️ **这是草稿 Release，仅用于测试验证，请勿使用。**
+"
+          else
+            DRAFT_NOTICE=""
+          fi
+          
+          cat > release_notes.md << 'NOTES_EOF'
+## LexiQuest 桌面版 ${TAG}
+${DRAFT_NOTICE}
+### 版本信息
+
+${PR_INFO}
+
+- **提交**: \`${FULL_SHA}\`
+- **构建时间**: ${DATE}
+- **Workflow Run**: [查看构建日志](${RUN_URL})
+
+### 安装包
+
+| 平台 | 架构 | 文件 |
+|------|------|------|
+| Windows | x64 | LexiQuest-*-win-x64.exe |
+| macOS | x64 (Intel) | LexiQuest-*-mac-x64.zip |
+| macOS | arm64 (Apple Silicon) | LexiQuest-*-mac-arm64.zip |
+
+### ⚠️ 未签名安装说明
+
+本安装包**未经代码签名**，安装时系统会提示安全警告。
+
+#### Windows
+
+Windows SmartScreen 可能会阻止运行。请点击「**更多信息**」，然后点击「**仍要运行**」。
+
+#### macOS
+
+首次运行时，macOS Gatekeeper 会阻止打开应用。请使用以下方法之一：
+
+1. **右键点击**应用图标，选择「**打开**」，在弹出的对话框中再次点击「打开」
+2. 前往「**系统设置**」→「**隐私与安全性**」，找到被阻止的应用，点击「**仍要打开**」
+3. 如果以上方法无效，请在终端执行：
+   \`\`\`bash
+   xattr -dr com.apple.quarantine /Applications/LexiQuest.app
+   \`\`\`
+
+### 📢 重要提示
+
+- **无自动更新功能**：本桌面版不支持自动更新，请关注本页面获取新版本，手动下载安装。
+- 如遇问题，请在 [Issues](https://github.com/${GITHUB_REPOSITORY}/issues) 反馈。
+NOTES_EOF
+
+          # Replace variables in the template
+          sed -i "s|\${TAG}|$TAG|g" release_notes.md
+          sed -i "s|\${DRAFT_NOTICE}|$DRAFT_NOTICE|g" release_notes.md
+          sed -i "s|\${PR_INFO}|${{ steps.pr_info.outputs.pr_info }}|g" release_notes.md
+          sed -i "s|\${FULL_SHA}|$FULL_SHA|g" release_notes.md
+          sed -i "s|\${DATE}|$DATE|g" release_notes.md
+          sed -i "s|\${RUN_URL}|$RUN_URL|g" release_notes.md
+          sed -i "s|\${GITHUB_REPOSITORY}|${{ github.repository }}|g" release_notes.md
+          
+          echo "Generated release notes:"
+          cat release_notes.md
+
+      - name: Create release
+        if: steps.check_tag.outputs.exists != 'true'
+        run: |
+          TAG="${{ steps.mode.outputs.tag }}"
+          IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
+          DATE=$(date -u +"%Y-%m-%d")
+          
+          if [ "$IS_DRAFT" = "true" ]; then
+            TITLE="[草稿] LexiQuest 桌面版 $TAG ($DATE)"
+            DRAFT_FLAG="--draft"
+          else
+            TITLE="LexiQuest 桌面版 $TAG ($DATE)"
+            DRAFT_FLAG=""
+          fi
+          
+          # Collect all artifacts
+          ARTIFACTS=""
+          for f in artifacts/windows/*.exe artifacts/mac/*.zip; do
+            if [ -f "$f" ]; then
+              ARTIFACTS="$ARTIFACTS $f"
+            fi
+          done
+          
+          echo "Creating release with tag: $TAG"
+          echo "Title: $TITLE"
+          echo "Draft: $IS_DRAFT"
+          echo "Artifacts:$ARTIFACTS"
+          
+          gh release create "$TAG" \
+            --title "$TITLE" \
+            --notes-file release_notes.md \
+            $DRAFT_FLAG \
+            $ARTIFACTS
