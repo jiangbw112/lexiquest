@@ -284,7 +284,12 @@ export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list = v
 export function activeChapter(save: SaveData): PlayChapter {
   const list = visibleChapters(save.selectedGrades);
   const current = list.find((chapter) => chapter.id === save.currentChapterId);
-  return current ?? list[0]!;
+  if (current) return current;
+  if (save.chapterCleared) {
+    const next = list.find((chapter, index) => index > 0 && isChapterUnlocked(save, chapter, list));
+    if (next) return next;
+  }
+  return list[0]!;
 }
 
 export function findPlayChapter(save: SaveData, chapterId?: string): PlayChapter {

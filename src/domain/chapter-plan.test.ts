@@ -14,7 +14,6 @@ import {
   gradeChapters,
   isChapterUnlocked,
   parseChapterEncounter,
-  scopeWordIds,
   SPELLING_EXCEPTIONS,
   spellingSkipIds,
   unlockedWordIds,
@@ -32,6 +31,121 @@ const CHAPTERS_SHA256 = "f70645d8faf80032a3c938d364fe414f165aba082be062479cb020a
 const GLOSS_SHA256 = "b894a98edae983f916ebb3d6dc10fbb7c73021303120623b5a6587876b61f047";
 
 const START = new Date("2026-03-01T02:00:00Z");
+
+/** Shape written by 4cd2956. No chapterProgress and no currentChapterId. */
+const FOREST_OPEN_V1 = `{
+  "version": 1,
+  "createdAt": 1772323200000,
+  "player": {
+    "name": "小林",
+    "classId": "warrior",
+    "appearance": {
+      "skinId": "peach",
+      "hairStyle": "bob",
+      "hairColorId": "brown",
+      "eyeStyle": "bright",
+      "clothColorId": "fern",
+      "glasses": false,
+      "freckles": true
+    }
+  },
+  "wordCards": {
+    "tree": { "wordId": "tree", "collectedAt": 1772323200000, "masteryBadge": false }
+  },
+  "memory": {},
+  "spellingMemory": {},
+  "dailyStats": {},
+  "dueAnswers": [],
+  "parentGoalPreset": "normal",
+  "dailyGoal": null,
+  "goalDaysTotal": 0,
+  "lastGoalCompletedDayKey": null,
+  "goalCalendar": {},
+  "cosmeticTokens": 0,
+  "lastTimezone": null,
+  "clockAnomaly": false,
+  "skillLevels": { "warrior-bash": 1 },
+  "unlockedSkillIds": ["warrior-bash"],
+  "equippedSkillIds": ["warrior-bash"],
+  "ownedOutfitIds": ["traveler"],
+  "equippedOutfitId": "traveler",
+  "xp": 12,
+  "battlesWon": 1,
+  "battlesLost": 0,
+  "chapterCleared": false,
+  "stageWins": { "1": 1 },
+  "titles": [],
+  "unlockedCosmeticIds": [],
+  "unlockedTitleIds": [],
+  "equippedCosmeticIds": [],
+  "equippedTitleId": null,
+  "masteryMilestonesClaimed": [],
+  "clearRewardClaimed": false,
+  "selectedGrades": ["G3"],
+  "gradesConfirmed": true,
+  "clockOffsetMs": 0,
+  "rewardQueue": [],
+  "bestStars": { "1": 2 }
+}`;
+
+/** Forest boss already beaten, plus official words learned from the PR #7 continuation lessons. */
+const CONTINUATION_V1 = `{
+  "version": 1,
+  "createdAt": 1772323200000,
+  "player": {
+    "name": "小林",
+    "classId": "warrior",
+    "appearance": {
+      "skinId": "peach",
+      "hairStyle": "bob",
+      "hairColorId": "brown",
+      "eyeStyle": "bright",
+      "clothColorId": "fern",
+      "glasses": false,
+      "freckles": true
+    }
+  },
+  "wordCards": {
+    "tree": { "wordId": "tree", "collectedAt": 1772323200000, "masteryBadge": false },
+    "friend": { "wordId": "friend", "collectedAt": 1772323200000, "masteryBadge": false },
+    "about": { "wordId": "about", "collectedAt": 1772323200000, "masteryBadge": true, "spelledAloneAt": 1772323200000 },
+    "ice": { "wordId": "ice", "collectedAt": 1772323200000, "masteryBadge": true, "spelledAloneAt": 1772323200000 }
+  },
+  "memory": {},
+  "spellingMemory": {},
+  "dailyStats": {},
+  "dueAnswers": [],
+  "parentGoalPreset": "normal",
+  "dailyGoal": null,
+  "goalDaysTotal": 2,
+  "lastGoalCompletedDayKey": "2026-03-01",
+  "goalCalendar": { "2026-03-01": "completed" },
+  "cosmeticTokens": 1,
+  "lastTimezone": "Asia/Shanghai",
+  "clockAnomaly": false,
+  "skillLevels": { "warrior-bash": 1 },
+  "unlockedSkillIds": ["warrior-bash"],
+  "equippedSkillIds": ["warrior-bash"],
+  "ownedOutfitIds": ["traveler", "forest-cape"],
+  "equippedOutfitId": "forest-cape",
+  "xp": 40,
+  "battlesWon": 6,
+  "battlesLost": 1,
+  "chapterCleared": true,
+  "stageWins": { "1": 1, "2": 1, "3": 1, "4": 1, "5": 1 },
+  "titles": ["林间旅人"],
+  "unlockedCosmeticIds": ["forest_wreath"],
+  "unlockedTitleIds": ["forest_traveler"],
+  "equippedCosmeticIds": ["forest_wreath"],
+  "equippedTitleId": "forest_traveler",
+  "masteryMilestonesClaimed": ["forest-badge-1"],
+  "clearRewardClaimed": true,
+  "selectedGrades": ["G3", "G5"],
+  "gradesConfirmed": true,
+  "clockOffsetMs": 0,
+  "rewardQueue": [],
+  "bestStars": { "1": 3, "5": 2 }
+}`;
 const GRADES: GradeBand[] = ["G3", "G4", "G5", "G6"];
 
 function newSave(grades: GradeBand[] = GRADES) {
@@ -265,42 +379,76 @@ describe("grade chapters", () => {
     expect(battleWordIds(standing)).not.toContain("run");
   });
 
-  it("keeps cards, badges, spelling, outfits, and stars when the save has no chapter fields", () => {
-    let save = newSave(["G3"]);
-    save = learnWord(save, "about", START);
-    save = {
-      ...save,
-      chapterCleared: true,
-      stageWins: { "1": 1 },
-      bestStars: { "1": 3 },
-      ownedOutfitIds: ["traveler", "forest-cape"],
-      equippedOutfitId: "forest-cape",
-      wordCards: {
-        ...save.wordCards,
-        about: { ...save.wordCards.about!, masteryBadge: true, spelledAloneAt: START.getTime() },
-      },
-    };
-    const raw = JSON.parse(serialize(save)) as { chapterProgress?: unknown; currentChapterId?: unknown };
-    delete raw.chapterProgress;
-    delete raw.currentChapterId;
-    const loaded = deserialize(JSON.stringify(raw));
+  it("loads a 4cd2956 save that has not cleared the forest", () => {
+    const raw = JSON.parse(FOREST_OPEN_V1) as Record<string, unknown>;
+    expect(raw.chapterProgress).toBeUndefined();
+    expect(raw.currentChapterId).toBeUndefined();
+    const loaded = deserialize(FOREST_OPEN_V1);
     expect(loaded?.version).toBe(1);
-    expect(loaded?.wordCards.about?.spelledAloneAt).toBe(START.getTime());
-    expect(loaded?.wordCards.about?.masteryBadge).toBe(true);
-    expect(loaded?.equippedOutfitId).toBe("forest-cape");
-    expect(loaded?.bestStars).toEqual({ "1": 3 });
+    expect(loaded?.chapterCleared).toBe(false);
     expect(loaded?.stageWins).toEqual({ "1": 1 });
-    expect(loaded?.chapterCleared).toBe(true);
+    expect(loaded?.bestStars).toEqual({ "1": 2 });
+    expect(loaded?.wordCards.tree?.collectedAt).toBe(1772323200000);
+    expect(loaded?.equippedOutfitId).toBe("traveler");
     expect(loaded?.chapterProgress).toEqual({});
-    const home = gradeChapters("G3").find((chapter) => chapter.wordIds.includes("about"));
-    expect(home?.id).toBe("pep_g3_04");
-    expect(loaded && isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(true);
-    expect(loaded && home && isChapterUnlocked(loaded, home)).toBe(false);
-    expect(collectedCardIds(loaded!).includes("about")).toBe(true);
-    const cleared = scopeWordIds(loaded!);
-    expect(cleared).toContain("about");
-    expect(cleared).toContain("tree");
-    expect(new Set(cleared).size).toBe(cleared.length);
+    expect(loaded?.currentChapterId).toBeUndefined();
+    expect(loaded && activeChapter(loaded).id).toBe("forest_adventure");
+    expect(loaded && isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(false);
+  });
+
+  it("keeps a cleared-forest continuation save and counts those words in their own chapters", () => {
+    const raw = JSON.parse(CONTINUATION_V1) as Record<string, unknown>;
+    expect(raw.chapterProgress).toBeUndefined();
+    expect(raw.currentChapterId).toBeUndefined();
+    const loaded = deserialize(CONTINUATION_V1);
+    expect(loaded?.version).toBe(1);
+    expect(loaded?.chapterCleared).toBe(true);
+    expect(loaded?.stageWins).toEqual({ "1": 1, "2": 1, "3": 1, "4": 1, "5": 1 });
+    expect(loaded?.bestStars).toEqual({ "1": 3, "5": 2 });
+    expect(loaded?.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(loaded?.equippedOutfitId).toBe("forest-cape");
+    expect(loaded?.equippedCosmeticIds).toEqual(["forest_wreath"]);
+    expect(loaded?.wordCards.about?.masteryBadge).toBe(true);
+    expect(loaded?.wordCards.about?.spelledAloneAt).toBe(1772323200000);
+    expect(loaded && isMastered(loaded.wordCards.about)).toBe(true);
+    expect(loaded?.wordCards.friend?.collectedAt).toBe(1772323200000);
+    expect(loaded?.wordCards.friend?.spelledAloneAt).toBeUndefined();
+    expect(loaded?.wordCards.ice?.masteryBadge).toBe(true);
+    expect(loaded?.chapterProgress).toEqual({});
+    const friends = gradeChapters("G3")[0]!;
+    const aboutHome = gradeChapters("G3").find((chapter) => chapter.wordIds.includes("about"))!;
+    const iceHome = gradeChapters("G5").find((chapter) => chapter.wordIds.includes("ice"))!;
+    expect(friends.id).toBe("pep_g3_01");
+    expect(aboutHome.id).toBe("pep_g3_04");
+    expect(friends.wordIds.filter((id) => loaded?.wordCards[id])).toContain("friend");
+    expect(aboutHome.wordIds.filter((id) => loaded?.wordCards[id])).toContain("about");
+    expect(iceHome.wordIds.filter((id) => loaded?.wordCards[id])).toContain("ice");
+    expect(loaded && isChapterUnlocked(loaded, friends)).toBe(true);
+    expect(loaded && isChapterUnlocked(loaded, aboutHome)).toBe(false);
+    expect(loaded && isChapterUnlocked(loaded, iceHome)).toBe(false);
+    expect(loaded && activeChapter(loaded).id).toBe("pep_g3_01");
+    expect(collectedCardIds(loaded!)).toEqual(expect.arrayContaining(["about", "friend", "ice", "tree"]));
+    expect(parentView(loaded!, START).masteredLine).toContain("已掌握 2 个");
+  });
+
+  it("round-trips chapter progress without touching a forest save's own fields", () => {
+    const chapter = gradeChapters("G3")[0]!;
+    const save = {
+      ...newSave(["G3"]),
+      chapterCleared: true,
+      stageWins: { "1": 2 },
+      bestStars: { "1": 3 as const, [`${chapter.id}:1`]: 2 as const },
+      currentChapterId: chapter.id,
+      chapterProgress: { [chapter.id]: { cleared: false, stageWins: { "1": 1 } } },
+    };
+    const loaded = deserialize(serialize(save));
+    expect(loaded?.version).toBe(1);
+    expect(loaded?.chapterCleared).toBe(true);
+    expect(loaded?.stageWins).toEqual({ "1": 2 });
+    expect(loaded?.bestStars).toEqual({ "1": 3, [`${chapter.id}:1`]: 2 });
+    expect(loaded?.currentChapterId).toBe(chapter.id);
+    expect(loaded?.chapterProgress).toEqual({ [chapter.id]: { cleared: false, stageWins: { "1": 1 } } });
+    expect(loaded && activeChapter(loaded).id).toBe(chapter.id);
   });
 
   it("records a later chapter without touching forest wins or stars", () => {

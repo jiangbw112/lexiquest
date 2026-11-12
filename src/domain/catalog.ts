@@ -143,18 +143,19 @@ export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
   const theme = file.theme?.trim() || SAMPLE_THEME;
   const sample = file.sample !== false;
   return file.words.map((entry) => {
-    const english = typeof entry.word === "string" ? entry.word.trim().toLowerCase() : "";
-    if (!english || typeof entry.meaning_zh !== "string" || !entry.meaning_zh.trim()) {
+    const english = typeof entry.word === "string" ? entry.word.trim() : "";
+    const id = english.toLowerCase();
+    if (!id || typeof entry.meaning_zh !== "string" || !entry.meaning_zh.trim()) {
       throw new Error(`${source} has a word entry missing word or meaning_zh`);
     }
     if (!isGrade(entry.grade_est) || !isSpelling(entry.spelling)) {
-      throw new Error(`${source} word ${english} has a bad grade or spelling`);
+      throw new Error(`${source} word ${id} has a bad grade or spelling`);
     }
-    const pos = readPos(entry.pos, source, english);
-    const senses = readSenses(entry.senses, source, english);
+    const pos = readPos(entry.pos, source, id);
+    const senses = readSenses(entry.senses, source, id);
     const grade = GRADE_OF[entry.grade_est];
     return {
-      id: english,
+      id,
       english,
       chinese: entry.meaning_zh.trim(),
       ...(pos ? { pos } : {}),

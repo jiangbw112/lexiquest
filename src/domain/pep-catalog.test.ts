@@ -44,11 +44,25 @@ describe("PEP grades 3–6 v1.2.2 library", () => {
     expect(checkSpelling("camp", "camping")).toBe(false);
     expect(checkSpelling("camping", "camp")).toBe(false);
     const phrase = wordById("hong kong-zhuhai-macao bridge");
-    expect(phrase?.english).toBe("hong kong-zhuhai-macao bridge");
+    expect(phrase?.id).toBe("hong kong-zhuhai-macao bridge");
+    expect(phrase?.english).toBe("Hong Kong-Zhuhai-Macao Bridge");
     expect(phrase?.spelling).toBe("none");
     expect(checkSpelling(phrase!.english, "Hong Kong-Zhuhai-Macao Bridge")).toBe(true);
     expect(checkSpelling(phrase!.english, "hong kong zhuhai macao bridge")).toBe(false);
     expect(checkSpelling(phrase!.english, "hongkong-zhuhai-macao bridge")).toBe(false);
+    const museum = wordById("jinggangshan revolution museum");
+    expect(museum?.english).toBe("Jinggangshan Revolution Museum");
+    expect(wordById("monday")?.english).toBe("Monday");
+    expect(wordById("january")?.english).toBe("January");
+    expect(wordById("beijing opera")?.english).toBe("Beijing opera");
+    expect(wordById("t-shirt")?.english).toBe("T-shirt");
+    const quiz = quizForWord(museum!.id, 1, "zh-to-en", [museum!, wordById("send")!, wordById("thousand")!]);
+    expect(quiz.choices.find((choice) => choice.id === museum!.id)?.label).toBe("Jinggangshan Revolution Museum");
+    expect(checkSpelling(museum!.english, "jinggangshan revolution museum")).toBe(true);
+    expect(checkSpelling(museum!.english, "JINGGANGSHAN REVOLUTION MUSEUM")).toBe(true);
+    expect(checkSpelling("Monday", "monday")).toBe(true);
+    expect(checkSpelling("T-shirt", "t-shirt")).toBe(true);
+    expect(checkSpelling("T-shirt", "tshirt")).toBe(false);
   });
 
   it("loads the conversation cards as spelling none and never asks them as spelling", () => {
@@ -126,7 +140,7 @@ describe("PEP grades 3–6 v1.2.2 library", () => {
     expect(loaded).toHaveLength(1);
     expect(loaded[0]).toEqual({
       id: "about",
-      english: "about",
+      english: "About",
       chinese: "大约；关于",
       gradeEst: 3,
       grade: "G3",

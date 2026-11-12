@@ -174,6 +174,7 @@ export class StageMapScene extends Phaser.Scene {
     const chapters = visibleChapters(save.selectedGrades);
     const chapterIndex = Math.max(0, chapters.findIndex((item) => item.id === chapter.id));
     warmButton(this, 150, 118, "上一章", () => this.shiftChapter(-1), { width: 140, tone: "secondary", disabled: chapterIndex <= 0 });
+    warmPanel(this, 300, 118, 140, 46);
     this.add.text(300, 118, `第 ${chapterIndex + 1} / ${chapters.length} 章`, {
       fontFamily: FONT,
       fontSize: "18px",
