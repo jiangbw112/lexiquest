@@ -154,12 +154,12 @@ export class CreateScene extends Phaser.Scene {
           color: INK,
         }).setOrigin(0.5, 0);
       } else {
-        this.add.text(cx, 78, "?", {
+        this.add.text(cx, 86, "?", {
           fontFamily: FONT,
           fontSize: "48px",
-          color: "#3b2a20",
+          color: "#fff6e4",
           fontStyle: "700",
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(4);
       }
       this.add.text(cx, 176, unlocked ? def.blurb : INVENTOR_LOCK_NOTE, {
         fontFamily: FONT,
