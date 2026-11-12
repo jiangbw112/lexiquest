@@ -174,4 +174,17 @@ export interface SaveData {
    * A loss does not write it. Old saves omit the field and read as empty.
    */
   bestStars?: Record<string, 1 | 2 | 3>;
+  /**
+   * Reserved for the final-exam version. 1.0.0 does not read or write it,
+   * and a value already in a save does not unlock inventor.
+   */
+  finalBossCleared?: boolean;
+  /** Reserved. 1.0.0 ignores a value already in a save and does not add one. */
+  unlockedClassIds?: ClassId[];
+  /** Reserved. 1.0.0 ignores a value already in a save and does not add one. */
+  inventorUnlockedAt?: number;
+  /** Reserved. 1.0.0 ignores a value already in a save and does not add one. */
+  inventorUnlockedBy?: string;
+  /** Reserved. 1.0.0 does not backfill a clear into an unlock. */
+  examProgress?: Record<string, { cleared?: boolean; bestPhase?: number }>;
 }

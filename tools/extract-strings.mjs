@@ -193,6 +193,8 @@ function plain(map) {
   return Object.fromEntries(Array.from(map.entries()).map(([ch, where]) => [ch, where]));
 }
 
+for (const ch of sources.extraCore ?? []) add(core, ch, "tools/font-sources.json:extraCore");
+
 const written = {
   "charset_core.txt": textOf(core),
   "charset_kuaile.txt": textOf(kuaile),

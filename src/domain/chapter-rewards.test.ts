@@ -296,7 +296,7 @@ describe("forest chapter rewards", () => {
 
   it("hides only the warrior plume with the wreath, and the back slot with the cape", () => {
     expect(FOREST_REWARDS.hide_rules).toEqual([
-      { when_equipped: "forest_leaf_cape", hide_slots: ["back"] },
+      { when_equipped: "forest_leaf_cape", hide_slots: ["back", "back_front"] },
       { when_equipped: "forest_wreath", hide_slots: ["outfit_head_plume", "outfitHeadPlume"] },
     ]);
     const slots = WARRIOR_LAYERS.map((layer) => layer.slot);
@@ -308,7 +308,7 @@ describe("forest chapter rewards", () => {
     });
     expect(both.hiddenSlots).toEqual([]);
     expect(both.hiddenParts).toEqual([]);
-    expect(both.unmet).toEqual(["back", "outfit_head_plume", "outfitHeadPlume"]);
+    expect(both.unmet).toEqual(["back", "back_front", "outfit_head_plume", "outfitHeadPlume"]);
     const wreath = visibilityForCosmetics(FOREST_REWARDS, ["forest_wreath"], {
       slots: ["outfit_head", "outfit_head_plume", "hair", "body", "back"],
       parts: [],
@@ -319,7 +319,7 @@ describe("forest chapter rewards", () => {
     expect(wreath.unmet).toEqual(["outfitHeadPlume"]);
     const cape = visibilityForCosmetics(FOREST_REWARDS, ["forest_leaf_cape"], { slots, parts: [] });
     expect(cape.hiddenSlots).toEqual([]);
-    expect(cape.unmet).toEqual(["back"]);
+    expect(cape.unmet).toEqual(["back", "back_front"]);
     expect(CHAPTER_ART_LIMITS.join("\n")).toMatch(/back/);
     expect(CHAPTER_ART_LIMITS.join("\n")).toMatch(/羽饰/);
     expect(CHAPTER_ART_LIMITS.join("\n")).not.toMatch(/整顶头盔/);

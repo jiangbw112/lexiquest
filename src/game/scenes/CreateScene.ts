@@ -5,7 +5,7 @@ import { INVENTOR_LOCK_NOTE, isClassUnlocked, resolvedClassId, selectClass } fro
 import { createSave } from "../../domain/progress";
 import { sanitizeName } from "../../domain/appearance";
 import type { ClassId, GradeBand } from "../../domain/types";
-import { portraitFrame } from "../art/class-atlas";
+import { PORTRAIT_LOCKED_ATLAS, PORTRAIT_LOCKED_FRAME, portraitFrame } from "../art/class-atlas";
 import { queueClassPortraits } from "../art/class-load";
 import { cjkWrap } from "../layout";
 import { P0_APPEARANCE } from "../p0";
@@ -101,10 +101,11 @@ export class CreateScene extends Phaser.Scene {
       const selected = unlocked && def.id === this.classId;
       const box = this.add.rectangle(cx, 132, 196, 220, unlocked ? 0xfff4dc : 0xc8bfb0, selected ? 0.96 : 0.55);
       box.setStrokeStyle(selected ? 6 : 2, selected ? 0xc4533a : 0x3b2a20);
-      const portrait = this.add.image(cx, 118, "cls:portraits", portraitFrame(def.id, "side"));
+      const portrait = unlocked
+        ? this.add.image(cx, 118, "cls:portraits", portraitFrame(def.id, "side"))
+        : this.add.image(cx, 118, PORTRAIT_LOCKED_ATLAS, PORTRAIT_LOCKED_FRAME);
       portrait.setOrigin(0.5, 0.875);
       portrait.setScale(0.18);
-      if (!unlocked) portrait.setTint(0x141414);
       this.add.text(cx, 148, `${index + 1} ${def.name}`, {
         fontFamily: FONT,
         fontSize: "20px",

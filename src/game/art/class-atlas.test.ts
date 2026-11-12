@@ -1,12 +1,15 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CLASS_IDS } from "../../domain/classes";
-import { DASH_RULES, classAssetPath, countClassAnimKeys, topFacing } from "./class-atlas";
+import { DASH_RULES, atlasFile, classAssetPath, countClassAnimKeys, topFacing } from "./class-atlas";
 
 describe("class atlases", () => {
   it("points each class at its v1.0 sheet", () => {
     expect(classAssetPath("ranger", "side")).toBe("assets/classes/v1.0/side/cls_ranger_side@2x.png");
     expect(classAssetPath("mage", "top")).toBe("assets/classes/v1.0/top/cls_mage_top@2x.png");
+    expect(atlasFile("cls:portraits_locked")).toEqual({ png: "portrait/cls_portraits_locked@2x.png", json: "portrait/cls_portraits_locked@2x.json" });
+    expect(atlasFile("cls:wreath@1x")).toEqual({ png: "wreath/cls_wreath@1x.png", json: "wreath/cls_wreath@1x.json" });
+    expect(atlasFile("cls:shared:top@1x")?.png).toBe("top/cls_shared_top@1x.png");
     for (const id of CLASS_IDS) {
       expect(classAssetPath(id, "side")).toBe(`assets/classes/v1.0/side/cls_${id}_side@2x.png`);
       expect(classAssetPath(id, "top")).toBe(`assets/classes/v1.0/top/cls_${id}_top@2x.png`);
@@ -28,8 +31,8 @@ describe("class atlases", () => {
     expect(DASH_RULES.healer.heal).toBe("stay");
   });
 
-  it("builds 493 animation keys from the layer tables", () => {
-    expect(countClassAnimKeys()).toBe(493);
+  it("builds 513 animation keys from the layer tables", () => {
+    expect(countClassAnimKeys()).toBe(513);
   });
 
   it("leaves the boot preload list unchanged", () => {

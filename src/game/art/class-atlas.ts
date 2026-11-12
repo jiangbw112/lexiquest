@@ -4,6 +4,7 @@
  * The manifest stays out of the bundle (sha256 ed5d077744f8806a…).
  * Wreath placement is loaded with the wreath atlas from wreath/places.json.
  */
+import { CLASS_IDS } from "../../domain/classes";
 import type { ClassId } from "../../domain/types";
 
 export const CLASS_ASSET_ROOT = "assets/classes/v1.0";
@@ -11,34 +12,32 @@ export const CLASS_SIDE_ORIGIN = { x: 0.5, y: 0.875 } as const; // foot pivot (2
 export const CLASS_TOP_ORIGIN = { x: 0.5, y: 1 } as const;
 export const CLASS_SIDE_SCALE = 0.5; // @2x → 1 logical px
 
-export interface AtlasEntry { key: string; png: string; json: string; bytes: number }
-
-export const CLASS_ATLASES: Record<string, AtlasEntry> = {
-  "cls:shared:side": { key: "cls:shared:side", png: "side/cls_shared_side@2x.png", json: "side/cls_shared_side@2x.json", bytes: 217508 },
-  "cls:warrior:side": { key: "cls:warrior:side", png: "side/cls_warrior_side@2x.png", json: "side/cls_warrior_side@2x.json", bytes: 317758 },
-  "cls:mage:side": { key: "cls:mage:side", png: "side/cls_mage_side@2x.png", json: "side/cls_mage_side@2x.json", bytes: 286722 },
-  "cls:ranger:side": { key: "cls:ranger:side", png: "side/cls_ranger_side@2x.png", json: "side/cls_ranger_side@2x.json", bytes: 271066 },
-  "cls:healer:side": { key: "cls:healer:side", png: "side/cls_healer_side@2x.png", json: "side/cls_healer_side@2x.json", bytes: 274158 },
-  "cls:inventor:side": { key: "cls:inventor:side", png: "side/cls_inventor_side@2x.png", json: "side/cls_inventor_side@2x.json", bytes: 301980 },
-  "cls:explorer:side": { key: "cls:explorer:side", png: "side/cls_explorer_side@2x.png", json: "side/cls_explorer_side@2x.json", bytes: 323192 },
-  "cls:shared:top": { key: "cls:shared:top", png: "top/cls_shared_top@2x.png", json: "top/cls_shared_top@2x.json", bytes: 286838 },
-  "cls:shared:top@1x": { key: "cls:shared:top@1x", png: "top/cls_shared_top@1x.png", json: "top/cls_shared_top@1x.json", bytes: 134279 },
-  "cls:warrior:top": { key: "cls:warrior:top", png: "top/cls_warrior_top@2x.png", json: "top/cls_warrior_top@2x.json", bytes: 546934 },
-  "cls:warrior:top@1x": { key: "cls:warrior:top@1x", png: "top/cls_warrior_top@1x.png", json: "top/cls_warrior_top@1x.json", bytes: 255890 },
-  "cls:mage:top": { key: "cls:mage:top", png: "top/cls_mage_top@2x.png", json: "top/cls_mage_top@2x.json", bytes: 309182 },
-  "cls:mage:top@1x": { key: "cls:mage:top@1x", png: "top/cls_mage_top@1x.png", json: "top/cls_mage_top@1x.json", bytes: 146368 },
-  "cls:ranger:top": { key: "cls:ranger:top", png: "top/cls_ranger_top@2x.png", json: "top/cls_ranger_top@2x.json", bytes: 314005 },
-  "cls:ranger:top@1x": { key: "cls:ranger:top@1x", png: "top/cls_ranger_top@1x.png", json: "top/cls_ranger_top@1x.json", bytes: 160972 },
-  "cls:healer:top": { key: "cls:healer:top", png: "top/cls_healer_top@2x.png", json: "top/cls_healer_top@2x.json", bytes: 369276 },
-  "cls:healer:top@1x": { key: "cls:healer:top@1x", png: "top/cls_healer_top@1x.png", json: "top/cls_healer_top@1x.json", bytes: 174211 },
-  "cls:inventor:top": { key: "cls:inventor:top", png: "top/cls_inventor_top@2x.png", json: "top/cls_inventor_top@2x.json", bytes: 317759 },
-  "cls:inventor:top@1x": { key: "cls:inventor:top@1x", png: "top/cls_inventor_top@1x.png", json: "top/cls_inventor_top@1x.json", bytes: 151416 },
-  "cls:explorer:top": { key: "cls:explorer:top", png: "top/cls_explorer_top@2x.png", json: "top/cls_explorer_top@2x.json", bytes: 380185 },
-  "cls:explorer:top@1x": { key: "cls:explorer:top@1x", png: "top/cls_explorer_top@1x.png", json: "top/cls_explorer_top@1x.json", bytes: 183049 },
-  "cls:wreath": { key: "cls:wreath", png: "wreath/cls_wreath@2x.png", json: "wreath/cls_wreath@2x.json", bytes: 25170 },
-  "cls:wreath@1x": { key: "cls:wreath@1x", png: "wreath/cls_wreath@1x.png", json: "wreath/cls_wreath@1x.json", bytes: 8983 },
-  "cls:portraits": { key: "cls:portraits", png: "portrait/cls_portraits@2x.png", json: "portrait/cls_portraits@2x.json", bytes: 331013 },
-};
+/** Sheet path for a class atlas key. Names follow cls_<id>_<view>@2x, with @1x only where a half-size sheet exists. */
+export function atlasFile(key: string): { png: string; json: string } | null {
+  const half = key.endsWith("@1x");
+  const bare = half ? key.slice(0, -3) : key;
+  if (!bare.startsWith("cls:")) return null;
+  const body = bare.slice(4);
+  const scale = half ? "@1x" : "@2x";
+  let folder: string;
+  let stem: string;
+  if (body === "portraits" || body === "portraits_locked") {
+    if (half) return null;
+    folder = "portrait";
+    stem = `cls_${body}`;
+  } else if (body === "wreath") {
+    folder = "wreath";
+    stem = "cls_wreath";
+  } else {
+    const [id, view] = body.split(":");
+    if (!id || (view !== "side" && view !== "top")) return null;
+    if (id !== "shared" && !CLASS_IDS.includes(id as ClassId)) return null;
+    folder = view;
+    stem = `cls_${id}_${view}`;
+  }
+  const file = `${stem}${scale}`;
+  return { png: `${folder}/${file}.png`, json: `${folder}/${file}.json` };
+}
 
 export type ClassView = "side" | "top" | "top@1x";
 
@@ -49,6 +48,8 @@ export function classAtlasKeys(id: ClassId, view: ClassView): string[] {
 
 export const WREATH_ATLAS = { "@2x": "cls:wreath", "@1x": "cls:wreath@1x" } as const;
 export const PORTRAIT_ATLAS = "cls:portraits";
+export const PORTRAIT_LOCKED_ATLAS = "cls:portraits_locked";
+export const PORTRAIT_LOCKED_FRAME = "portrait_inventor_locked";
 export const portraitFrame = (id: ClassId, view: "side" | "top_s") => `portrait_${id}_${view}`;
 
 /** animKey = `${layerPrefix}:${anim}`；frame = `${layerPrefix}_${anim}_${NN}` */
@@ -98,15 +99,20 @@ export const SIDE_LAYERS: Record<ClassId, readonly { id: string; slot: string; z
   warrior: [
     { id: "char_heroA_shadow_e", slot: "shadow", z: 0, texture: "cls:shared:side" },
     { id: "char_fx_speed_e", slot: "fx_speed", z: 1, texture: "cls:shared:side" },
+    { id: "char_warrior_back_e", slot: "back", z: 5, texture: "cls:warrior:side" },
     { id: "char_warrior_handMain_e", slot: "hand_main", z: 10, texture: "cls:warrior:side" },
     { id: "char_heroA_bodyBack_e", slot: "body_back", z: 20, texture: "cls:shared:side" },
+    { id: "char_heroA_bodyBackWarrior_e", slot: "body_back", z: 20, texture: "cls:warrior:side", replaces: "char_heroA_bodyBack_e", onlyDuring: ["attack"] },
     { id: "char_warrior_outfitBack_e", slot: "outfit_back", z: 25, texture: "cls:warrior:side" },
     { id: "char_heroA_body_e", slot: "body", z: 30, texture: "cls:shared:side" },
     { id: "char_warrior_outfitBody_e", slot: "outfit_body", z: 40, texture: "cls:warrior:side" },
+    { id: "char_warrior_waist_e", slot: "waist", z: 45, texture: "cls:warrior:side" },
+    { id: "char_warrior_backFront_e", slot: "back_front", z: 46, texture: "cls:warrior:side" },
     { id: "char_heroA_hair_e", slot: "hair", z: 50, texture: "cls:shared:side" },
     { id: "char_warrior_outfitHeadPlume_e", slot: "outfit_head_plume", z: 59, texture: "cls:warrior:side" },
     { id: "char_warrior_outfitHeadNoPlume_e", slot: "outfit_head_noplume", z: 60, texture: "cls:warrior:side" },
     { id: "char_heroA_bodyFront_e", slot: "body_front", z: 70, texture: "cls:shared:side" },
+    { id: "char_heroA_bodyFrontWarrior_e", slot: "body_front", z: 70, texture: "cls:warrior:side", replaces: "char_heroA_bodyFront_e", onlyDuring: ["attack"] },
     { id: "char_warrior_outfitFront_e", slot: "outfit_front", z: 75, texture: "cls:warrior:side" },
     { id: "char_warrior_handOff_e", slot: "hand_off", z: 80, texture: "cls:warrior:side" },
   ],
@@ -248,9 +254,9 @@ export const CLASS_EXTRA_SLOT_Z = {
 } as const;
 
 export function classAssetPath(id: ClassId, view: ClassView): string {
-  const entry = CLASS_ATLASES[`cls:${id}:${view}`];
-  if (!entry) throw new Error(`missing atlas cls:${id}:${view}`);
-  return `${CLASS_ASSET_ROOT}/${entry.png}`;
+  const file = atlasFile(`cls:${id}:${view}`);
+  if (!file) throw new Error(`missing atlas cls:${id}:${view}`);
+  return `${CLASS_ASSET_ROOT}/${file.png}`;
 }
 
 /** West uses the east sheet, mirrored. */

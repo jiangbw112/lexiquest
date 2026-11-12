@@ -13,13 +13,18 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
-import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
-import { DASH_RULES } from "../art/class-atlas";
 import { ClassSideSprite } from "../art/class-sprite";
+import {
+  hasProjectileArt,
+  playProjectileHit,
+  registerProjectileAnims,
+  spawnOffset,
+  spawnProjectile,
+} from "../art/projectile-art";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { drawEquippedTitle } from "../art/title-bar";
 import { redirectUngraded } from "../grade-route";
@@ -135,11 +140,12 @@ export class BattleScene extends Phaser.Scene {
     queueClassSide(this, savedClassId(getSave()));
     queueClassWreath(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"], ["bg_forest"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results", "atlas_fx_projectiles"], ["bg_forest"]);
     if (this.bossFight) queueBossAtlases(this);
   }
 
   create(): void {
+    registerProjectileAnims(this);
     const save = getSave();
     const chapter = save ? findPlayChapter(save, this.launch.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (this.launch.stageId ?? 0));
@@ -812,32 +818,39 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private launchProjectile(onHit: () => void): void {
-    const fromX = (this.battleHero?.x ?? PLAYER_BATTLE_X) + 36;
-    const toX = (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X)) - 48;
-    const tint = Number.parseInt(classById(this.state.classId).color.slice(1), 16);
-    const hint = DASH_RULES[this.state.classId].projectileHint;
-    const bolt = hint === "arrow"
-      ? this.add.rectangle(fromX, 450, 36, 8, tint)
-      : this.add.circle(fromX, 450, hint === "gear" ? 14 : 11, tint);
-    bolt.setStrokeStyle(4, 0xfff4dc);
-    bolt.setDepth(3500);
+    const classId = this.state.classId;
+    const hero = this.battleHero;
+    const enemyX = this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+    if (!hero || !hasProjectileArt(classId)) {
+      onHit();
+      return;
+    }
+    const displayScale = Math.abs(hero.scaleY) || Math.abs(hero.scaleX) || 1;
+    const off = spawnOffset(classId, displayScale);
+    const facing = hero.scaleX < 0 ? -1 : 1;
+    const fromX = hero.x + off.x * facing;
+    const fromY = hero.y + off.y;
+    const toX = enemyX - 48 * facing;
+    const toY = fromY;
+    const bolt = spawnProjectile(this, classId, fromX, fromY, toX, toY).setDepth(3500);
+    if (motionOff()) {
+      bolt.destroy();
+      onHit();
+      return;
+    }
     this.time.delayedCall(PROJECTILE_MS / 2, () => {
       if (bolt.active) this.shot?.onShown("bolt");
     });
-    const finish = () => {
-      bolt.destroy();
-      onHit();
-    };
-    if (motionOff()) {
-      finish();
-      return;
-    }
     this.tweens.add({
       targets: bolt,
       x: toX,
+      y: toY,
       duration: PROJECTILE_MS,
       ease: "Quad.easeIn",
-      onComplete: finish,
+      onComplete: () => {
+        if (bolt.active) playProjectileHit(bolt, classId);
+        onHit();
+      },
     });
   }
 
@@ -876,6 +889,9 @@ export class BattleScene extends Phaser.Scene {
     }
     warmBackground(this, "bg_forest");
     const hero = new ClassSideSprite(this, 300, 520, savedClassId(save), 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    if (import.meta.env.DEV) {
+      (window as unknown as { __LEXI_HERO__?: ClassSideSprite }).__LEXI_HERO__ = hero;
+    }
     this.classHero = hero;
     this.battleHero = hero.root;
     const titleAt = this.children.length;

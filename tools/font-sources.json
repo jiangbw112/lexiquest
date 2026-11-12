@@ -9,6 +9,7 @@
   "kuaileJsonKeys": ["name_zh"],
   "bodyJsonKeys": ["goal_zh"],
   "ignoreKeys": ["words_resolved_snapshot", "notes", "source"],
+  "extraCore": ["★"],
   "fonts": {
     "noto": "fonts/src/NotoSansSC-wght.ttf",
     "kuaile": "fonts/src/ZCOOLKuaiLe-Regular.ttf",

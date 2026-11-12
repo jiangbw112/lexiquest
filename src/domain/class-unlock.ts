@@ -1,35 +1,31 @@
 import { CLASS_IDS } from "./classes";
 import type { ClassId } from "./types";
 
-/** A save may later record a final-exam boss. That boss is not in 1.0.0. */
-export interface FinalBossMark {
-  finalBossCleared?: boolean;
-}
+/**
+ * K22 hard lock for 1.0.0. This is a source literal. A later version turns it
+ * on by editing this line and shipping a new build. Nothing at runtime may set it.
+ */
+export const INVENTOR_UNLOCK_ENABLED = false as const;
 
 export const INVENTOR_LOCK_NOTE = "通关任意一个期末 Boss 后解锁";
 
+export interface ClassUnlockSave {
+  unlockedClassIds?: readonly string[];
+}
+
 /**
- * Reads the final-exam boss mark. Nothing in 1.0.0 writes it, so this is false
- * until a later version stores the clear.
+ * Inventor is not selectable while the constant is false, and that path does not
+ * read the save. The other five classes are always open.
  */
-export function readFinalBossCleared(save: object | null | undefined): boolean {
-  if (!save || !("finalBossCleared" in save)) return false;
-  return (save as FinalBossMark).finalBossCleared === true;
+export function isClassSelectable(id: ClassId, save: ClassUnlockSave | null | undefined): boolean {
+  if (id !== "inventor") return true;
+  if (!INVENTOR_UNLOCK_ENABLED) return false;
+  return save?.unlockedClassIds?.includes(id) === true;
 }
 
-function devForceUnlockClasses(): boolean {
-  // Production builds replace `import.meta.env.DEV` with false and drop this body.
-  if (import.meta.env.DEV && typeof window !== "undefined") {
-    return new URLSearchParams(window.location.search).get("unlockClasses") === "1";
-  }
-  return false;
-}
-
-/** Inventor stays locked until any final-exam boss is cleared. The other five are always open. */
-export function isClassUnlocked(classId: ClassId, save: object | null | undefined): boolean {
-  if (classId !== "inventor") return true;
-  if (devForceUnlockClasses()) return true;
-  return readFinalBossCleared(save);
+/** Same gate as isClassSelectable. Create and load both use it. */
+export function isClassUnlocked(classId: ClassId, save: ClassUnlockSave | null | undefined): boolean {
+  return isClassSelectable(classId, save);
 }
 
 /** Missing, unknown, and still-locked ids play as the warrior. */

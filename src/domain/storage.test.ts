@@ -50,8 +50,14 @@ describe("save class id", () => {
     expect(loaded?.selectedGrades).toEqual(["G3"]);
   });
 
-  it("falls back to warrior when the saved class is a locked inventor", () => {
-    const loaded = deserialize(savedBody("inventor", true));
+  it("falls back to warrior when the saved class is a locked inventor, even if the save claims it is open", () => {
+    const claimed = JSON.parse(savedBody("inventor", true)) as {
+      finalBossCleared?: boolean;
+      unlockedClassIds?: string[];
+    };
+    claimed.finalBossCleared = true;
+    claimed.unlockedClassIds = ["inventor"];
+    const loaded = deserialize(JSON.stringify(claimed));
     expect(loaded).not.toBeNull();
     expect(loaded?.player.classId).toBe("warrior");
     expect(loaded?.player.name).toBe("小林");
