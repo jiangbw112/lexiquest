@@ -30,6 +30,22 @@ import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
 import { FONT_BODY, INK, MUTED } from "../warm/theme";
+import {
+  computeActualHpChange,
+  spawnFloater,
+  activeFloaterCount,
+  floaterStackOffset,
+  emptyFloaterState,
+  pushFloater,
+  pruneFloaters,
+  type FloaterState,
+} from "../battle-floater";
+import {
+  actionTriggersLunge,
+  performLunge,
+  PLAYER_BATTLE_X,
+  MONSTER_BATTLE_X,
+} from "../battle-lunge";
 
 interface BattleLaunch {
   stageId?: number;
@@ -54,6 +70,12 @@ export class BattleScene extends Phaser.Scene {
   private battleHero?: Phaser.GameObjects.Container;
   private battleTitle: Phaser.GameObjects.GameObject[] = [];
   private battleHud: Phaser.GameObjects.GameObject[] = [];
+  private lunging = false;
+  private playerFloaters: FloaterState = emptyFloaterState();
+  private enemyFloaters: FloaterState = emptyFloaterState();
+  private pendingPlayerDamage = 0;
+  private pendingEnemyDamage = 0;
+  private pendingLunge: { attacker: "player" | "enemy"; skillKind?: string } | null = null;
 
   constructor() {
     super("battle");
@@ -93,6 +115,12 @@ export class BattleScene extends Phaser.Scene {
     this.clearedChapter = false;
     this.presenting = false;
     this.resultsOpened = false;
+    this.lunging = false;
+    this.playerFloaters = emptyFloaterState();
+    this.enemyFloaters = emptyFloaterState();
+    this.pendingPlayerDamage = 0;
+    this.pendingEnemyDamage = 0;
+    this.pendingLunge = null;
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();
@@ -149,6 +177,12 @@ export class BattleScene extends Phaser.Scene {
     this.poses = ["idle"];
     this.bossPoses = ["idle"];
     this.monsterHit = false;
+    this.lunging = false;
+    this.playerFloaters = emptyFloaterState();
+    this.enemyFloaters = emptyFloaterState();
+    this.pendingPlayerDamage = 0;
+    this.pendingEnemyDamage = 0;
+    this.pendingLunge = null;
     this.draw();
   }
 
@@ -158,7 +192,7 @@ export class BattleScene extends Phaser.Scene {
       this.leave();
       return;
     }
-    if (!this.state || this.resolving || document.getElementById("spell-form")?.classList.contains("open")) return;
+    if (!this.state || this.resolving || this.lunging || document.getElementById("spell-form")?.classList.contains("open")) return;
     const slotIndex = skillSlotIndexForKey(event.code);
     if (slotIndex !== null) {
       this.useSkill(slotIndex, "key");
@@ -177,13 +211,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private useSkill(slotIndex: number, via: "click" | "key"): void {
+    if (this.lunging) return;
     const slot = this.state.slots[slotIndex];
     if (!slot) return;
     const face = skillCardFace({
       phase: this.state.phase,
       energy: this.state.energy,
       energyCost: slot.energyCost,
-      resolving: this.resolving,
+      resolving: this.resolving || this.lunging,
     });
     const result = skillCardInput(face, via);
     if (result === "ignore") return;
@@ -192,6 +227,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
+    if (this.lunging) return;
     const question = this.state.question;
     if (question) {
       const correct = question.kind === "spelling"
@@ -208,6 +244,26 @@ export class BattleScene extends Phaser.Scene {
     }
     const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
+
+    const playerHpChange = computeActualHpChange({
+      hpBefore: before.playerHp,
+      hpAfter: this.state.playerHp,
+      maxHp: this.state.playerMaxHp,
+    });
+    const enemyHpChange = computeActualHpChange({
+      hpBefore: before.enemyHp,
+      hpAfter: this.state.enemyHp,
+      maxHp: this.state.enemyMaxHp,
+    });
+    this.pendingPlayerDamage = playerHpChange;
+    this.pendingEnemyDamage = enemyHpChange;
+
+    const pendingSlot = before.pendingSlot !== null ? before.slots[before.pendingSlot] : null;
+    const skillKind = pendingSlot?.kind;
+    const actionType = before.pendingBasic ?? (pendingSlot ? "skill" : undefined);
+    const shouldLungePlayer = actionType && actionTriggersLunge(actionType, skillKind) && enemyHpChange < 0;
+    const shouldLungeEnemy = playerHpChange < 0 && this.state.phase !== "won";
+
     this.poses = battlePoses({
       action: "answer",
       playerHpBefore: before.playerHp,
@@ -215,9 +271,19 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
-    this.holdResolution(before);
-    this.finishIfNeeded();
-    this.draw();
+
+    if (shouldLungePlayer) {
+      this.pendingLunge = { attacker: "player", skillKind };
+      this.executeLungeSequence(before);
+    } else if (shouldLungeEnemy) {
+      this.pendingLunge = { attacker: "enemy" };
+      this.executeLungeSequence(before);
+    } else {
+      this.spawnPendingFloaters();
+      this.holdResolution(before);
+      this.finishIfNeeded();
+      this.draw();
+    }
   }
 
   private submitSpelling(): void {
@@ -229,7 +295,72 @@ export class BattleScene extends Phaser.Scene {
     this.choose(correct ? this.state.question.answer : "miss");
   }
 
+  private spawnPendingFloaters(): void {
+    const now = Date.now();
+    this.playerFloaters = pruneFloaters(this.playerFloaters, now);
+    this.enemyFloaters = pruneFloaters(this.enemyFloaters, now);
+
+    if (this.pendingPlayerDamage !== 0) {
+      const stackOffset = floaterStackOffset(activeFloaterCount(this.playerFloaters, now));
+      spawnFloater(this, PLAYER_BATTLE_X, 280, this.pendingPlayerDamage, stackOffset);
+      this.playerFloaters = pushFloater(this.playerFloaters, this.pendingPlayerDamage, now);
+      this.pendingPlayerDamage = 0;
+    }
+
+    if (this.pendingEnemyDamage !== 0) {
+      const stackOffset = floaterStackOffset(activeFloaterCount(this.enemyFloaters, now));
+      const enemyX = this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X;
+      spawnFloater(this, enemyX, 320, this.pendingEnemyDamage, stackOffset);
+      this.enemyFloaters = pushFloater(this.enemyFloaters, this.pendingEnemyDamage, now);
+      this.pendingEnemyDamage = 0;
+    }
+  }
+
+  private executeLungeSequence(before: BattleState): void {
+    if (!this.pendingLunge) {
+      this.spawnPendingFloaters();
+      this.holdResolution(before);
+      this.finishIfNeeded();
+      this.draw();
+      return;
+    }
+
+    this.lunging = true;
+    this.draw();
+
+    const isPlayerAttacking = this.pendingLunge.attacker === "player";
+    const container = isPlayerAttacking ? this.battleHero : null;
+    const targetX = isPlayerAttacking ? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X) : PLAYER_BATTLE_X;
+
+    if (!container) {
+      this.lunging = false;
+      this.pendingLunge = null;
+      this.spawnPendingFloaters();
+      this.holdResolution(before);
+      this.finishIfNeeded();
+      this.draw();
+      return;
+    }
+
+    performLunge(
+      this,
+      container,
+      targetX,
+      () => {
+        this.spawnPendingFloaters();
+      },
+      () => {
+        this.lunging = false;
+        this.pendingLunge = null;
+        this.holdResolution(before);
+        this.finishIfNeeded();
+        this.draw();
+      },
+    );
+  }
+
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
+    if (this.lunging) return;
     const before = this.state;
     const result = takeAction(this.state, action);
     if (!result.ok) {
@@ -444,9 +575,9 @@ export class BattleScene extends Phaser.Scene {
       wordWrap: cjkWrap(640),
     }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
-    if (battleControlOpen(this.state.phase, "action", this.resolving)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+    const inputLocked = this.resolving || this.lunging;
+    if (battleControlOpen(this.state.phase, "action", inputLocked)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
     else {
-      // Swallow hover and clicks on the old action row. Only later answers or the leave button stay open.
       const blocker = this.add.zone(640, 686, 1200, 240);
       blocker.setInteractive();
       if (blocker.input) blocker.input.cursor = "default";
@@ -460,10 +591,10 @@ export class BattleScene extends Phaser.Scene {
         this.state.energy,
         () => this.useSkill(slot.index, "click"),
         () => this.useSkill(slot.index, "click"),
-        this.resolving,
+        inputLocked,
       ),
     }));
-    if (battleControlOpen(this.state.phase, "answer", this.resolving) && this.state.question) {
+    if (battleControlOpen(this.state.phase, "answer", inputLocked) && this.state.question) {
       warmPanel(this, 640, 696, 1100, 172);
       if (this.state.question.kind === "spelling") {
         probeQuestion(this.state.question.wordId, []);
@@ -488,19 +619,18 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     const choosing = this.state.phase === "choose";
-    if (battleControlOpen(this.state.phase, "action", this.resolving) || (choosing && this.resolving)) {
-      if (!battleControlOpen(this.state.phase, "action", this.resolving)) {
+    if (battleControlOpen(this.state.phase, "action", inputLocked) || (choosing && inputLocked)) {
+      if (!battleControlOpen(this.state.phase, "action", inputLocked)) {
         warmPanel(this, 640, 686, 1056, 204, "panel_wood");
       }
-      const locked = this.resolving;
-      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: locked });
-      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: locked });
-      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: locked });
+      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: inputLocked });
+      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: inputLocked });
+      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: inputLocked });
       if (this.state.supportStreak >= 2) {
         this.add.text(360, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
         this.add.text(520, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
       }
-      if (locked) {
+      if (inputLocked) {
         const blocker = this.add.zone(640, 686, 1200, 240);
         blocker.setInteractive();
         if (blocker.input) blocker.input.cursor = "default";
@@ -523,7 +653,7 @@ export class BattleScene extends Phaser.Scene {
         }
       }
     }
-    if (!this.presenting && battleControlOpen(this.state.phase, "leave", this.resolving)) {
+    if (!this.presenting && battleControlOpen(this.state.phase, "leave", inputLocked)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }

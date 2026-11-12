@@ -90,9 +90,9 @@ describe("skill card faces", () => {
     const scene = readBattle();
     expect(scene).toContain("blocker.setInteractive()");
     expect(scene).toContain('blocker.input.cursor = "default"');
-    expect(scene).toContain('battleControlOpen(this.state.phase, "answer", this.resolving)');
-    expect(scene).toContain('battleControlOpen(this.state.phase, "action", this.resolving)');
-    expect(scene).toContain("this.resolving");
+    expect(scene).toContain('battleControlOpen(this.state.phase, "answer", inputLocked)');
+    expect(scene).toContain('battleControlOpen(this.state.phase, "action", inputLocked)');
+    expect(scene).toContain("this.resolving || this.lunging");
     expect(scene).not.toContain("外形暂用墨团");
   });
 });
