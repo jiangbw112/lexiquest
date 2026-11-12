@@ -1,6 +1,6 @@
 {
   "version": "integration_v1.0",
-  "note": "WebP files were copied byte for byte. They were not recompressed. Journey night files are stored and not referenced. The game uses the day set.",
+  "note": "WebP files were copied byte for byte. They were not recompressed. integration_v1.0.1 uses the journey night set for pep_g6_01 and pep_g6_04. Every other journey chapter uses the day set.",
   "chapters": [
     {
       "chapterId": "pep_g3_01",
@@ -357,7 +357,7 @@
     {
       "groupId": "journey",
       "role": "map_night",
-      "referenced": false,
+      "referenced": true,
       "sourcePath": "bosses_v0.7_g34/backgrounds/bg_map_journey_night_2x.webp",
       "manifestPath": "/workspace/lexiquest-art/bosses_v0.7_g34/backgrounds/bg_map_journey_night_2x.webp",
       "sourceSha256": "04a14633a49eca470b956e34dd4798e4e6d497dd1008f5be0bbcddcdd3a51b15",
@@ -383,7 +383,7 @@
     {
       "groupId": "journey",
       "role": "battle_night",
-      "referenced": false,
+      "referenced": true,
       "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_night_2x.webp",
       "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_night_2x.webp",
       "sourceSha256": "e04fcc8565b9e7b77fc2bdeaa41dff854053f45c5fa1314fe3e4784a1adf6d60",
