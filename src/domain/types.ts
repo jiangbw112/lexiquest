@@ -132,6 +132,11 @@ export interface SaveData {
   skillLevels: Record<string, number>;
   unlockedSkillIds: string[];
   equippedSkillIds: string[];
+  /**
+   * Decks parked by class. A locked inventor save keeps its cards here
+   * when the active class falls back to warrior. Unlock fields are not read.
+   */
+  equippedByClass?: Partial<Record<ClassId, string[]>>;
   ownedOutfitIds: string[];
   equippedOutfitId: string;
   xp: number;
