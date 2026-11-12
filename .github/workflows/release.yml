@@ -1,19 +1,7 @@
 name: release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
-    inputs:
-      draft:
-        description: "Create a draft release instead of publishing"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 permissions:
   contents: read
@@ -23,7 +11,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate ref is main branch
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::Release workflow can only be triggered from the main branch."
+            echo "Current ref: ${{ github.ref }}"
+            echo "Please run this workflow from the main branch in the Actions tab."
+            exit 1
+          fi
+          echo "Ref validation passed: ${{ github.ref }}"
+
   windows:
+    needs: [check-ref]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +56,7 @@ jobs:
           if-no-files-found: error
 
   mac:
+    needs: [check-ref]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -88,76 +91,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Determine release mode
+      - name: Determine release tag
         id: mode
-        env:
-          INPUT_DRAFT: ${{ inputs.draft }}
-          EVENT_NAME: ${{ github.event_name }}
-          REF: ${{ github.ref }}
         run: |
           SHORT_SHA="${GITHUB_SHA:0:7}"
           RUN_NUM="${{ github.run_number }}"
-          
-          # Determine if this should be a draft release
-          # Rule: Only push to main can create non-draft releases
-          # workflow_dispatch on non-main MUST be draft regardless of input
-          IS_MAIN="false"
-          if [ "$REF" = "refs/heads/main" ]; then
-            IS_MAIN="true"
-          fi
-          
-          IS_DRAFT="true"
-          if [ "$IS_MAIN" = "true" ]; then
-            if [ "$EVENT_NAME" = "push" ]; then
-              # Push to main -> non-draft
-              IS_DRAFT="false"
-            elif [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$INPUT_DRAFT" = "false" ]; then
-              # workflow_dispatch on main with draft=false -> non-draft
-              IS_DRAFT="false"
-            fi
-          fi
-          # Any other case (including workflow_dispatch on non-main) -> draft
-          
-          if [ "$IS_DRAFT" = "true" ]; then
-            TAG="desktop-dryrun-${RUN_NUM}-${SHORT_SHA}"
-            echo "is_draft=true" >> "$GITHUB_OUTPUT"
-          else
-            TAG="desktop-r${RUN_NUM}-${SHORT_SHA}"
-            echo "is_draft=false" >> "$GITHUB_OUTPUT"
-          fi
+          TAG="desktop-r${RUN_NUM}-${SHORT_SHA}"
           
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
-          echo "is_main=$IS_MAIN" >> "$GITHUB_OUTPUT"
-          echo "Mode: is_main=$IS_MAIN, draft=$IS_DRAFT, tag=$TAG"
+          echo "Release tag: $TAG"
 
       - name: Check for existing release with same SHA
         id: check_tag
         run: |
           SHORT_SHA="${{ steps.mode.outputs.short_sha }}"
-          IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
           
-          # For non-draft releases, check if any desktop-r*-<SHA> tag exists
+          # Check if any desktop-r*-<SHA> tag exists
           # This prevents duplicate releases for the same commit even with different run_numbers
-          if [ "$IS_DRAFT" = "false" ]; then
-            PATTERN="desktop-r[0-9]*-${SHORT_SHA}$"
-            EXISTING_TAG=$(git ls-remote --tags origin | grep -E "refs/tags/${PATTERN}" | head -1 | sed 's/.*refs\/tags\///' || true)
-            if [ -n "$EXISTING_TAG" ]; then
-              echo "Release tag $EXISTING_TAG already exists for commit $SHORT_SHA, skipping"
-              echo "exists=true" >> "$GITHUB_OUTPUT"
-              echo "existing_tag=$EXISTING_TAG" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
+          PATTERN="desktop-r[0-9]*-${SHORT_SHA}$"
+          EXISTING_TAG=$(git ls-remote --tags origin | grep -E "refs/tags/${PATTERN}" | head -1 | sed 's/.*refs\/tags\///' || true)
+          if [ -n "$EXISTING_TAG" ]; then
+            echo "Release tag $EXISTING_TAG already exists for commit $SHORT_SHA, skipping"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "existing_tag=$EXISTING_TAG" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           
-          # Also check if exact tag exists (for draft releases)
-          TAG="${{ steps.mode.outputs.tag }}"
-          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
-            echo "Tag $TAG already exists, skipping release"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          echo "exists=false" >> "$GITHUB_OUTPUT"
 
       - name: Download Windows artifacts
         if: steps.check_tag.outputs.exists != 'true'
@@ -212,7 +173,6 @@ jobs:
           SHORT_SHA: ${{ steps.mode.outputs.short_sha }}
           FULL_SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          IS_DRAFT: ${{ steps.mode.outputs.is_draft }}
           PR_INFO: ${{ steps.pr_info.outputs.pr_info }}
           REPO: ${{ github.repository }}
         run: |
@@ -221,12 +181,6 @@ jobs:
           {
             echo "## LexiQuest 桌面版 $TAG"
             echo ""
-            
-            if [ "$IS_DRAFT" = "true" ]; then
-              echo "> **注意**: 这是草稿 Release，仅用于测试验证，请勿使用。"
-              echo ""
-            fi
-            
             echo "### 版本信息"
             echo ""
             echo "$PR_INFO"
@@ -275,16 +229,8 @@ jobs:
         if: steps.check_tag.outputs.exists != 'true'
         run: |
           TAG="${{ steps.mode.outputs.tag }}"
-          IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
           DATE=$(date -u +"%Y-%m-%d")
-          
-          if [ "$IS_DRAFT" = "true" ]; then
-            TITLE="[草稿] LexiQuest 桌面版 $TAG ($DATE)"
-            DRAFT_FLAG="--draft"
-          else
-            TITLE="LexiQuest 桌面版 $TAG ($DATE)"
-            DRAFT_FLAG=""
-          fi
+          TITLE="LexiQuest 桌面版 $TAG ($DATE)"
           
           # Collect all artifacts
           ARTIFACTS=""
@@ -296,12 +242,10 @@ jobs:
           
           echo "Creating release with tag: $TAG"
           echo "Title: $TITLE"
-          echo "Draft: $IS_DRAFT"
           echo "Artifacts:$ARTIFACTS"
           
-          # Never create prerelease - only draft or regular release
+          # Create non-draft, non-prerelease release
           gh release create "$TAG" \
             --title "$TITLE" \
             --notes-file release_notes.md \
-            $DRAFT_FLAG \
             $ARTIFACTS
