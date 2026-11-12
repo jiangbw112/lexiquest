@@ -118,6 +118,16 @@ describe("class spec v1.0.3 batch 1", () => {
     const wrong = cast(open, 0, false);
     expect(wrong.enemyHp).toBe(76);
     expect(wrong.playerHp).toBe(25);
+    const shaken = cast({
+      ...open,
+      shaken: true,
+      phases: [{ hp: 80, note: "第一阶段。" }, { hp: 40, note: "第二阶段。" }],
+      phaseIndex: 0,
+      enemyHp: 20,
+    }, 0, true);
+    expect(shaken.phaseIndex).toBe(1);
+    expect(shaken.enemyHp).toBe(40);
+    expect(shaken.supportStreak).toBe(0);
   });
 
   it("lands the rest of a gear after the counter, and drops it when the turn ends", () => {
