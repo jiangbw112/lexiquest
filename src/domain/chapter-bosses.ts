@@ -2,11 +2,30 @@
  * Grade-chapter bosses from integration_v1.0.2.
  * Forest stays on canopy and is not in this map.
  *
- * 好吃又健康 keeps the id below until scene art v1.0.3 brings a food boss.
- * Change `PEP_G3_07_BOSS_ID` only. Paths, texture keys, and frame lookup follow that id.
- * Frame names live in the atlas JSON and are not listed here.
+ * 好吃又健康 waits here for the scene v1.0.3 food boss.
+ * Replace `PEP_G3_07_BOSS` only: id, display name, and the four frame files.
+ * Other chapters keep the name in chapters_v0.2.json.
  */
-export const PEP_G3_07_BOSS_ID = "toychest";
+const PEP_G3_07_ID = "toychest";
+
+export const PEP_G3_07_BOSS = {
+  id: PEP_G3_07_ID,
+  nameZh: "玩具箱守护者",
+  frames: {
+    idle: `boss_${PEP_G3_07_ID}_w_idle@2x`,
+    attack: `boss_${PEP_G3_07_ID}_w_attack@2x`,
+    hit: `boss_${PEP_G3_07_ID}_w_hit@2x`,
+    defeat: `boss_${PEP_G3_07_ID}_w_defeat@2x`,
+  },
+} as const;
+
+export const PEP_G3_07_BOSS_ID = PEP_G3_07_BOSS.id;
+
+/** The chapter file still has a boss_name_zh. This chapter does not use it. */
+export function chapterBossDisplayName(chapterId: string, fileName: string): string {
+  if (chapterId === "pep_g3_07") return PEP_G3_07_BOSS.nameZh;
+  return fileName;
+}
 
 export const CHAPTER_BOSS_ID: Record<string, string> = {
   pep_g3_01: "family_album",
@@ -69,7 +88,7 @@ export function chapterBossTextureKey(bossId: string, pose: ChapterBossPose): st
 }
 
 export function chapterBossAsset(bossId: string, pose: ChapterBossPose): { imageUrl: string; dataUrl: string } {
-  const file = `boss_${bossId}_w_${pose}@2x`;
+  const file = bossId === PEP_G3_07_BOSS.id ? PEP_G3_07_BOSS.frames[pose] : `boss_${bossId}_w_${pose}@2x`;
   const dir = `assets/chapter/bosses/${bossId}`;
   return { imageUrl: `${dir}/${file}.png`, dataUrl: `${dir}/${file}.json` };
 }

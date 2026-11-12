@@ -1,5 +1,5 @@
 import { isChapterExtra, wordById } from "./catalog";
-import { chapterBossId } from "./chapter-bosses";
+import { chapterBossDisplayName, chapterBossId } from "./chapter-bosses";
 import { chapterMinion } from "./chapter-scenes";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone } from "./review";
@@ -176,7 +176,7 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
     chapters.push({
       id: source.chapter_id,
       name: source.name_zh,
-      bossName: source.boss_name_zh,
+      bossName: chapterBossDisplayName(source.chapter_id, source.boss_name_zh),
       grade,
       index,
       stages,

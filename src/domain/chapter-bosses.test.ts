@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   CHAPTER_BOSS_ID,
   CHAPTER_BOSS_POSES,
+  PEP_G3_07_BOSS,
   PEP_G3_07_BOSS_ID,
   chapterBossAsset,
+  chapterBossDisplayName,
   chapterBossId,
 } from "./chapter-bosses";
 import { gradeChapters, stageCombatFor } from "./chapter-plan";
@@ -27,11 +29,28 @@ function pngSize(bytes: Buffer): { width: number; height: number } {
 }
 
 describe("chapter bosses", () => {
-  it("keeps toychest as the only name for the pep_g3_07 boss until v1.0.3", () => {
+  it("keeps the pep_g3_07 boss id, display name, and frame files in one object", () => {
     const source = readFileSync(new URL("./chapter-bosses.ts", import.meta.url), "utf8");
+    const plan = readFileSync(new URL("./chapter-plan.ts", import.meta.url), "utf8");
+    const battle = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
     expect(source.match(/toychest/g)).toEqual(["toychest"]);
-    expect(CHAPTER_BOSS_ID.pep_g3_07).toBe(PEP_G3_07_BOSS_ID);
-    expect(chapterBossId("pep_g3_07")).toBe(PEP_G3_07_BOSS_ID);
+    expect(source.match(/玩具箱守护者/g)).toEqual(["玩具箱守护者"]);
+    expect(plan).not.toContain("玩具箱守护者");
+    expect(battle).not.toContain("玩具箱守护者");
+    expect(CHAPTER_BOSS_ID.pep_g3_07).toBe(PEP_G3_07_BOSS.id);
+    expect(PEP_G3_07_BOSS_ID).toBe(PEP_G3_07_BOSS.id);
+    expect(chapterBossId("pep_g3_07")).toBe(PEP_G3_07_BOSS.id);
+    expect(chapterBossDisplayName("pep_g3_07", "食物主题新名字")).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(chapterBossDisplayName("pep_g3_01", "全家福守护者")).toBe("全家福守护者");
+    const food = gradeChapters("G3").find((chapter) => chapter.id === "pep_g3_07");
+    expect(food?.bossName).toBe(PEP_G3_07_BOSS.nameZh);
+    const boss = stageById(5)!;
+    expect(stageCombatFor(food!, boss, "warrior").enemyName).toBe(PEP_G3_07_BOSS.nameZh);
+    for (const pose of CHAPTER_BOSS_POSES) {
+      expect(chapterBossAsset(PEP_G3_07_BOSS.id, pose).imageUrl).toBe(
+        `assets/chapter/bosses/${PEP_G3_07_BOSS.id}/${PEP_G3_07_BOSS.frames[pose]}.png`,
+      );
+    }
   });
 
   it("gives each of the 31 chapters its own atlas and does not reuse canopy", () => {
