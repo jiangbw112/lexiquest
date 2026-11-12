@@ -1,6 +1,7 @@
 /**
- * Six-class atlas keys for classes v1.0.
- * Layer tables are the slim constants. The 489KB manifest stays out of the JS bundle.
+ * Six-class atlas keys for integration atlas v1.0.1.
+ * PNG and sheet JSON match v1.0 byte for byte. v1.0.1 only adds dash rules.
+ * The manifest stays out of the bundle (sha256 ed5d077744f8806a…).
  * Wreath placement is loaded with the wreath atlas from wreath/places.json.
  */
 import type { ClassId } from "../../domain/types";
@@ -65,6 +66,24 @@ export const TOP_ANIMS = {
   idle: { frameCount: 1, fps: 1, repeat: -1 },
   walk: { frameCount: 6, fps: 10, repeat: -1 },
 } as const;
+
+export type DashMove = "dashToEnemy" | "stepThird";
+export interface DashRule {
+  attack: DashMove;
+  stepFraction?: number;
+  firesProjectile: boolean;
+  projectileHint?: "orb" | "arrow" | "lightDot" | "gear";
+  heal?: "stay";
+}
+/** Attack step from integration atlas v1.0.1. Inventor steps a third, then fires a gear. */
+export const DASH_RULES: Record<ClassId, DashRule> = {
+  warrior: { attack: "dashToEnemy", firesProjectile: false },
+  explorer: { attack: "dashToEnemy", firesProjectile: false },
+  mage: { attack: "stepThird", stepFraction: 1 / 3, firesProjectile: true, projectileHint: "orb" },
+  ranger: { attack: "stepThird", stepFraction: 1 / 3, firesProjectile: true, projectileHint: "arrow" },
+  healer: { attack: "stepThird", stepFraction: 1 / 3, firesProjectile: true, projectileHint: "lightDot", heal: "stay" },
+  inventor: { attack: "stepThird", stepFraction: 1 / 3, firesProjectile: true, projectileHint: "gear" },
+};
 
 /** P-4：帽子是否隐藏 hair_top / hairTop */
 export const HIDES_HAIR_TOP: Record<ClassId, boolean> = {"mage": true, "ranger": false, "healer": true, "inventor": true, "explorer": true, "warrior": false};

@@ -18,6 +18,7 @@ import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { DASH_RULES } from "../art/class-atlas";
 import { ClassSideSprite } from "../art/class-sprite";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { drawEquippedTitle } from "../art/title-bar";
@@ -59,6 +60,7 @@ import {
   performApproach,
   performLunge,
   performReturn,
+  stepFractionFor,
   stepTargetX,
   PLAYER_BATTLE_X,
   MONSTER_BATTLE_X,
@@ -448,7 +450,8 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
       this.shot?.onShown("approach");
-      performApproach(this, container, stepTargetX(container.x, enemyX, "ranged"), RANGED_STEP_MS, () => {
+      const fraction = stepFractionFor(this.state.classId);
+      performApproach(this, container, stepTargetX(container.x, enemyX, "ranged", fraction), RANGED_STEP_MS, () => {
         this.playBeats(beats, index + 1);
       });
       return;
@@ -812,9 +815,10 @@ export class BattleScene extends Phaser.Scene {
     const fromX = (this.battleHero?.x ?? PLAYER_BATTLE_X) + 36;
     const toX = (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X)) - 48;
     const tint = Number.parseInt(classById(this.state.classId).color.slice(1), 16);
-    const bolt = this.state.classId === "ranger"
+    const hint = DASH_RULES[this.state.classId].projectileHint;
+    const bolt = hint === "arrow"
       ? this.add.rectangle(fromX, 450, 36, 8, tint)
-      : this.add.circle(fromX, 450, 11, tint);
+      : this.add.circle(fromX, 450, hint === "gear" ? 14 : 11, tint);
     bolt.setStrokeStyle(4, 0xfff4dc);
     bolt.setDepth(3500);
     this.time.delayedCall(PROJECTILE_MS / 2, () => {

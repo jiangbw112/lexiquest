@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { ClassId } from "../domain/types";
+import { DASH_RULES } from "./art/class-atlas";
 import { motionOff } from "./warm/theme";
 
 /** Duration of the lunge forward in milliseconds. */
@@ -159,26 +160,22 @@ export type BattleSide = "player" | "enemy";
 export type AttackReach = "melee" | "ranged" | "still";
 
 /**
- * Warriors and explorers close the gap. Mages, rangers, healers, and inventors
- * step about a third of the way and loose a projectile. Healing never moves.
+ * Reach comes from DASH_RULES. A full dash closes to the monster.
+ * A third-step class stops at that fraction, then the scene fires the projectile.
+ * Healing never moves, including the healer's explicit stay.
  */
-export const ATTACK_REACH: Record<ClassId, Exclude<AttackReach, "still">> = {
-  warrior: "melee",
-  explorer: "melee",
-  mage: "ranged",
-  ranger: "ranged",
-  healer: "ranged",
-  inventor: "ranged",
-};
-
 export function attackReach(classId: ClassId, actionMoves: boolean): AttackReach {
   if (!actionMoves) return "still";
-  return ATTACK_REACH[classId];
+  return DASH_RULES[classId].attack === "dashToEnemy" ? "melee" : "ranged";
 }
 
-export function stepTargetX(attackerX: number, targetX: number, reach: AttackReach): number {
+export function stepFractionFor(classId: ClassId): number {
+  return DASH_RULES[classId].stepFraction ?? RANGED_STEP_FRACTION;
+}
+
+export function stepTargetX(attackerX: number, targetX: number, reach: AttackReach, fraction = RANGED_STEP_FRACTION): number {
   if (reach === "still") return attackerX;
-  if (reach === "ranged") return attackerX + (targetX - attackerX) * RANGED_STEP_FRACTION;
+  if (reach === "ranged") return attackerX + (targetX - attackerX) * fraction;
   return lungeTargetX(attackerX, targetX);
 }
 

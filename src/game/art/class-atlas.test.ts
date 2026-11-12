@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CLASS_IDS } from "../../domain/classes";
-import { classAssetPath, countClassAnimKeys, topFacing } from "./class-atlas";
+import { DASH_RULES, classAssetPath, countClassAnimKeys, topFacing } from "./class-atlas";
 
 describe("class atlases", () => {
   it("points each class at its v1.0 sheet", () => {
@@ -18,6 +18,14 @@ describe("class atlases", () => {
     expect(topFacing("e")).toEqual({ dir: "e", flipX: false });
     expect(topFacing("n")).toEqual({ dir: "n", flipX: false });
     expect(topFacing("s")).toEqual({ dir: "s", flipX: false });
+  });
+
+  it("gives every class a v1.0.1 dash rule, including the inventor step", () => {
+    expect(Object.keys(DASH_RULES).sort()).toEqual([...CLASS_IDS].sort());
+    expect(DASH_RULES.inventor.attack).toBe("stepThird");
+    expect(DASH_RULES.inventor.stepFraction).toBeCloseTo(1 / 3, 5);
+    expect(DASH_RULES.warrior.attack).toBe("dashToEnemy");
+    expect(DASH_RULES.healer.heal).toBe("stay");
   });
 
   it("builds 493 animation keys from the layer tables", () => {

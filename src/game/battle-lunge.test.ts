@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASS_IDS } from "../domain/classes";
 import type { ClassId } from "../domain/types";
+import { DASH_RULES } from "./art/class-atlas";
 import {
   shouldLunge,
   lungeTargetX,
@@ -8,6 +9,7 @@ import {
   isInputLocked,
   actionTriggersLunge,
   attackReach,
+  stepFractionFor,
   stepTargetX,
   exchangeDurationMs,
   battleMotionBeats,
@@ -128,6 +130,17 @@ describe("attack reach by class", () => {
       expect(attackReach(classId, false), classId).toBe("still");
       expect(attackReach(classId, true), classId).toBe(melee.has(classId) ? "melee" : "ranged");
     }
+  });
+
+  it("steps the inventor a third of the gap before the gear flies", () => {
+    const rule = DASH_RULES.inventor;
+    expect(rule).toEqual({ attack: "stepThird", stepFraction: 1 / 3, firesProjectile: true, projectileHint: "gear" });
+    expect(attackReach("inventor", true)).toBe("ranged");
+    expect(stepFractionFor("inventor")).toBe(1 / 3);
+    const gap = MONSTER_BATTLE_X - PLAYER_BATTLE_X;
+    const landed = stepTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X, "ranged", stepFractionFor("inventor"));
+    expect(landed - PLAYER_BATTLE_X).toBeCloseTo(gap / 3, 5);
+    expect(landed).toBeLessThan(lungeTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X));
   });
 
   it("steps a ranged class about a third of the gap and a melee class to the existing stop", () => {
