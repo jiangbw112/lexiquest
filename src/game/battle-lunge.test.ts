@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { CLASS_IDS } from "../domain/classes";
+import type { ClassId } from "../domain/types";
 import {
   shouldLunge,
   lungeTargetX,
   emptyLungeState,
   isInputLocked,
   actionTriggersLunge,
+  attackReach,
+  stepTargetX,
+  exchangeDurationMs,
+  battleMotionBeats,
   LUNGE_STOP_OFFSET,
   PLAYER_BATTLE_X,
   MONSTER_BATTLE_X,
+  RANGED_STEP_FRACTION,
 } from "./battle-lunge";
 
 describe("shouldLunge", () => {
@@ -108,5 +115,52 @@ describe("actionTriggersLunge", () => {
 
   it("returns true for skill with no kind specified", () => {
     expect(actionTriggersLunge("skill")).toBe(true);
+  });
+});
+
+describe("attack reach by class", () => {
+  const melee = new Set<ClassId>(["warrior", "explorer"]);
+  const ranged = new Set<ClassId>(["mage", "ranger", "healer", "inventor"]);
+
+  it("maps every class to a full lunge, a short step plus projectile, or no movement", () => {
+    expect(new Set(CLASS_IDS)).toEqual(new Set<ClassId>([...melee, ...ranged]));
+    for (const classId of CLASS_IDS) {
+      expect(attackReach(classId, false), classId).toBe("still");
+      expect(attackReach(classId, true), classId).toBe(melee.has(classId) ? "melee" : "ranged");
+    }
+  });
+
+  it("steps a ranged class about a third of the gap and a melee class to the existing stop", () => {
+    expect(stepTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X, "melee")).toBe(lungeTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X));
+    expect(stepTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X, "ranged")).toBeCloseTo(
+      PLAYER_BATTLE_X + (MONSTER_BATTLE_X - PLAYER_BATTLE_X) * RANGED_STEP_FRACTION,
+      5,
+    );
+    expect(stepTargetX(PLAYER_BATTLE_X, MONSTER_BATTLE_X, "still")).toBe(PLAYER_BATTLE_X);
+  });
+
+  it("keeps a player attack plus the enemy lunge within about 0.8s", () => {
+    expect(exchangeDurationMs("melee", true)).toBeLessThanOrEqual(800);
+    expect(exchangeDurationMs("ranged", true)).toBeLessThanOrEqual(800);
+    expect(exchangeDurationMs("still", true)).toBeLessThanOrEqual(800);
+  });
+
+  it("spawns the ranged floater when the projectile hits, before the return", () => {
+    const beats = battleMotionBeats({
+      playerLunge: false,
+      playerReach: "ranged",
+      enemyLunge: true,
+      enemyAmount: -7,
+      playerEffect: 0,
+      playerHit: -5,
+    });
+    const log = beats.map((beat) => beat.kind);
+    const projectile = log.indexOf("projectile");
+    const hit = log.indexOf("hit");
+    const back = log.indexOf("return");
+    expect(log.slice(0, 4)).toEqual(["step", "projectile", "hit", "return"]);
+    expect(projectile).toBeLessThan(hit);
+    expect(hit).toBeLessThan(back);
+    expect(beats[hit]).toEqual({ kind: "hit", attacker: "player", target: "enemy", amount: -7 });
   });
 });

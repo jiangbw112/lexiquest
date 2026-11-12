@@ -3,6 +3,8 @@ import type Phaser from "phaser";
 export interface BattleShotRead {
   playerHp: number;
   enemyHp: number;
+  displayPlayerHp: number;
+  displayEnemyHp: number;
   playerHpBefore: number;
   enemyHpBefore: number;
   playerX: number;
@@ -20,6 +22,7 @@ export interface BattleShotControls {
 
 export interface BattleShotHandle {
   onShown(kind: string): void;
+  holds(): boolean;
 }
 
 interface BattleShotApi {
@@ -80,6 +83,9 @@ export function attachBattleShot(
       api.lastShown = kind;
       api.read = read();
       if (api.pauseOnHit) api.setTimeScale(0);
+    },
+    holds() {
+      return api.pauseOnHit;
     },
   };
 }

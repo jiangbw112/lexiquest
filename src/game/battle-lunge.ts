@@ -1,14 +1,23 @@
 import Phaser from "phaser";
+import type { ClassId } from "../domain/types";
 import { motionOff } from "./warm/theme";
 
 /** Duration of the lunge forward in milliseconds. */
-export const LUNGE_FORWARD_MS = 200;
+export const LUNGE_FORWARD_MS = 160;
 
 /** Duration of the return lunge in milliseconds. */
-export const LUNGE_RETURN_MS = 200;
+export const LUNGE_RETURN_MS = 160;
 
 /** Pause at the target position (for hit effect) in milliseconds. */
-export const LUNGE_PAUSE_MS = 100;
+export const LUNGE_PAUSE_MS = 80;
+
+/** Ranged step, projectile, and return. Together with an enemy lunge this stays within 0.8s. */
+export const RANGED_STEP_MS = 120;
+export const PROJECTILE_MS = 160;
+export const RANGED_RETURN_MS = 120;
+
+/** Share of the gap a ranged class steps before the projectile flies. */
+export const RANGED_STEP_FRACTION = 1 / 3;
 
 /** Total animation duration including forward, pause, and return. */
 export const LUNGE_TOTAL_MS = LUNGE_FORWARD_MS + LUNGE_PAUSE_MS + LUNGE_RETURN_MS;
@@ -147,20 +156,103 @@ export function actionTriggersLunge(
 
 export type BattleSide = "player" | "enemy";
 
+export type AttackReach = "melee" | "ranged" | "still";
+
+/**
+ * Warriors and explorers close the gap. Mages, rangers, healers, and inventors
+ * step about a third of the way and loose a projectile. Healing never moves.
+ */
+export const ATTACK_REACH: Record<ClassId, Exclude<AttackReach, "still">> = {
+  warrior: "melee",
+  explorer: "melee",
+  mage: "ranged",
+  ranger: "ranged",
+  healer: "ranged",
+  inventor: "ranged",
+};
+
+export function attackReach(classId: ClassId, actionMoves: boolean): AttackReach {
+  if (!actionMoves) return "still";
+  return ATTACK_REACH[classId];
+}
+
+export function stepTargetX(attackerX: number, targetX: number, reach: AttackReach): number {
+  if (reach === "still") return attackerX;
+  if (reach === "ranged") return attackerX + (targetX - attackerX) * RANGED_STEP_FRACTION;
+  return lungeTargetX(attackerX, targetX);
+}
+
+/** Scheduled time for the player's motion plus the enemy's counter lunge. */
+export function exchangeDurationMs(reach: AttackReach, enemyLunge: boolean): number {
+  const player = reach === "melee"
+    ? LUNGE_FORWARD_MS + LUNGE_PAUSE_MS + LUNGE_RETURN_MS
+    : reach === "ranged"
+      ? RANGED_STEP_MS + PROJECTILE_MS + RANGED_RETURN_MS
+      : 0;
+  const enemy = enemyLunge ? LUNGE_FORWARD_MS + LUNGE_PAUSE_MS + LUNGE_RETURN_MS : 0;
+  return player + enemy;
+}
+
+export function performApproach(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  targetX: number,
+  duration: number,
+  onArrive?: () => void,
+): void {
+  if (motionOff()) {
+    container.x = targetX;
+    onArrive?.();
+    return;
+  }
+  scene.tweens.add({
+    targets: container,
+    x: targetX,
+    duration,
+    ease: "Quad.easeOut",
+    onComplete: () => onArrive?.(),
+  });
+}
+
+export function performReturn(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  homeX: number,
+  duration: number,
+  onDone?: () => void,
+): void {
+  if (motionOff()) {
+    container.x = homeX;
+    onDone?.();
+    return;
+  }
+  scene.tweens.add({
+    targets: container,
+    x: homeX,
+    duration,
+    ease: "Quad.easeIn",
+    onComplete: () => onDone?.(),
+  });
+}
+
 export type MotionBeat =
   | { kind: "lunge"; attacker: BattleSide }
+  | { kind: "step"; attacker: "player" }
+  | { kind: "projectile"; attacker: "player" }
   | { kind: "hit"; attacker: BattleSide; target: BattleSide; amount: number }
   | { kind: "return"; attacker: BattleSide }
   | { kind: "floater"; target: BattleSide; amount: number };
 
 /**
  * Visual order for one resolved turn.
- * A lunge spawns the defender's number on the hit beat, before the return.
+ * A melee lunge spawns the defender's number on the hit beat, before the return.
+ * A ranged attack steps, then spawns the number when the projectile hits, before the return.
  * Healing and other non-lunges spawn immediately, with no return beat.
  * A zero amount never becomes a floater beat.
  */
 export function battleMotionBeats(input: {
   playerLunge: boolean;
+  playerReach?: AttackReach;
   enemyLunge: boolean;
   /** Damage dealt to the enemy by this action. */
   enemyAmount: number;
@@ -170,8 +262,14 @@ export function battleMotionBeats(input: {
   playerHit: number;
 }): MotionBeat[] {
   const beats: MotionBeat[] = [];
-  if (input.playerLunge) {
+  const reach = input.playerReach ?? (input.playerLunge ? "melee" : "still");
+  if (reach === "melee") {
     beats.push({ kind: "lunge", attacker: "player" });
+    beats.push({ kind: "hit", attacker: "player", target: "enemy", amount: input.enemyAmount });
+    beats.push({ kind: "return", attacker: "player" });
+  } else if (reach === "ranged" && input.enemyAmount !== 0) {
+    beats.push({ kind: "step", attacker: "player" });
+    beats.push({ kind: "projectile", attacker: "player" });
     beats.push({ kind: "hit", attacker: "player", target: "enemy", amount: input.enemyAmount });
     beats.push({ kind: "return", attacker: "player" });
   } else if (input.enemyAmount !== 0) {
