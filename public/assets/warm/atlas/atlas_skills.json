@@ -499,6 +499,26 @@
     "w": 96,
     "h": 96
    }
+  },
+  "skill_healer_beam": {
+   "frame": {
+    "x": 492,
+    "y": 198,
+    "w": 96,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 96
+   }
   }
  },
  "meta": {
