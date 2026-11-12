@@ -169,74 +169,66 @@ jobs:
       - name: Generate release notes
         if: steps.check_tag.outputs.exists != 'true'
         id: notes
+        env:
+          TAG: ${{ steps.mode.outputs.tag }}
+          SHORT_SHA: ${{ steps.mode.outputs.short_sha }}
+          FULL_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          IS_DRAFT: ${{ steps.mode.outputs.is_draft }}
+          PR_INFO: ${{ steps.pr_info.outputs.pr_info }}
+          REPO: ${{ github.repository }}
         run: |
-          TAG="${{ steps.mode.outputs.tag }}"
-          SHORT_SHA="${{ steps.mode.outputs.short_sha }}"
-          FULL_SHA="${{ github.sha }}"
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
-          IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
           
-          if [ "$IS_DRAFT" = "true" ]; then
-            DRAFT_NOTICE="
-> ⚠️ **这是草稿 Release，仅用于测试验证，请勿使用。**
-"
-          else
-            DRAFT_NOTICE=""
-          fi
-          
-          cat > release_notes.md << 'NOTES_EOF'
-## LexiQuest 桌面版 ${TAG}
-${DRAFT_NOTICE}
-### 版本信息
-
-${PR_INFO}
-
-- **提交**: \`${FULL_SHA}\`
-- **构建时间**: ${DATE}
-- **Workflow Run**: [查看构建日志](${RUN_URL})
-
-### 安装包
-
-| 平台 | 架构 | 文件 |
-|------|------|------|
-| Windows | x64 | LexiQuest-*-win-x64.exe |
-| macOS | x64 (Intel) | LexiQuest-*-mac-x64.zip |
-| macOS | arm64 (Apple Silicon) | LexiQuest-*-mac-arm64.zip |
-
-### ⚠️ 未签名安装说明
-
-本安装包**未经代码签名**，安装时系统会提示安全警告。
-
-#### Windows
-
-Windows SmartScreen 可能会阻止运行。请点击「**更多信息**」，然后点击「**仍要运行**」。
-
-#### macOS
-
-首次运行时，macOS Gatekeeper 会阻止打开应用。请使用以下方法之一：
-
-1. **右键点击**应用图标，选择「**打开**」，在弹出的对话框中再次点击「打开」
-2. 前往「**系统设置**」→「**隐私与安全性**」，找到被阻止的应用，点击「**仍要打开**」
-3. 如果以上方法无效，请在终端执行：
-   \`\`\`bash
-   xattr -dr com.apple.quarantine /Applications/LexiQuest.app
-   \`\`\`
-
-### 📢 重要提示
-
-- **无自动更新功能**：本桌面版不支持自动更新，请关注本页面获取新版本，手动下载安装。
-- 如遇问题，请在 [Issues](https://github.com/${GITHUB_REPOSITORY}/issues) 反馈。
-NOTES_EOF
-
-          # Replace variables in the template
-          sed -i "s|\${TAG}|$TAG|g" release_notes.md
-          sed -i "s|\${DRAFT_NOTICE}|$DRAFT_NOTICE|g" release_notes.md
-          sed -i "s|\${PR_INFO}|${{ steps.pr_info.outputs.pr_info }}|g" release_notes.md
-          sed -i "s|\${FULL_SHA}|$FULL_SHA|g" release_notes.md
-          sed -i "s|\${DATE}|$DATE|g" release_notes.md
-          sed -i "s|\${RUN_URL}|$RUN_URL|g" release_notes.md
-          sed -i "s|\${GITHUB_REPOSITORY}|${{ github.repository }}|g" release_notes.md
+          {
+            echo "## LexiQuest 桌面版 $TAG"
+            echo ""
+            
+            if [ "$IS_DRAFT" = "true" ]; then
+              echo "> **注意**: 这是草稿 Release，仅用于测试验证，请勿使用。"
+              echo ""
+            fi
+            
+            echo "### 版本信息"
+            echo ""
+            echo "$PR_INFO"
+            echo ""
+            echo "- **提交**: \`$FULL_SHA\`"
+            echo "- **构建时间**: $DATE"
+            echo "- **Workflow Run**: [查看构建日志]($RUN_URL)"
+            echo ""
+            echo "### 安装包"
+            echo ""
+            echo "| 平台 | 架构 | 文件 |"
+            echo "|------|------|------|"
+            echo "| Windows | x64 | LexiQuest-*-win-x64.exe |"
+            echo "| macOS | x64 (Intel) | LexiQuest-*-mac-x64.zip |"
+            echo "| macOS | arm64 (Apple Silicon) | LexiQuest-*-mac-arm64.zip |"
+            echo ""
+            echo "### 未签名安装说明"
+            echo ""
+            echo "本安装包**未经代码签名**，安装时系统会提示安全警告。"
+            echo ""
+            echo "#### Windows"
+            echo ""
+            echo "Windows SmartScreen 可能会阻止运行。请点击「**更多信息**」，然后点击「**仍要运行**」。"
+            echo ""
+            echo "#### macOS"
+            echo ""
+            echo "首次运行时，macOS Gatekeeper 会阻止打开应用。请使用以下方法之一："
+            echo ""
+            echo "1. **右键点击**应用图标，选择「**打开**」，在弹出的对话框中再次点击「打开」"
+            echo "2. 前往「**系统设置**」→「**隐私与安全性**」，找到被阻止的应用，点击「**仍要打开**」"
+            echo "3. 如果以上方法无效，请在终端执行："
+            echo "   \`\`\`bash"
+            echo "   xattr -dr com.apple.quarantine /Applications/LexiQuest.app"
+            echo "   \`\`\`"
+            echo ""
+            echo "### 重要提示"
+            echo ""
+            echo "- **无自动更新功能**：本桌面版不支持自动更新，请关注本页面获取新版本，手动下载安装。"
+            echo "- 如遇问题，请在 [Issues](https://github.com/$REPO/issues) 反馈。"
+          } > release_notes.md
           
           echo "Generated release notes:"
           cat release_notes.md
