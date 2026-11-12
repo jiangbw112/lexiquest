@@ -1,19 +1,35 @@
 # 词境冒险 LexiQuest
 
-A desktop browser adventure for Chinese primary-school students in grades 3–6. The child plays a warrior, learns the Forest Adventure sample words, collects word cards, battles a word monster with up to three skill cards, and reviews on an adaptive schedule.
+面向小学 3–6 年级学生的桌面浏览器单词冒险游戏。孩子扮演战士，学习森林冒险的示例词汇，收集词卡，用最多三张技能卡与词灵对战，并按自适应复习计划巩固记忆。
 
-This is a local browser MVP. Progress stays in `localStorage` and is only a cache. There is no chat and no real-money shop.
+这是本地浏览器 MVP 版本。进度保存在 `localStorage`，仅作缓存。没有聊天功能，没有真钱商城。
 
-## Setup
+## 下载试玩
 
-Requirements: Node.js 22. Developed on 22.x. npm 10 is enough.
+桌面版可在 [Releases](https://github.com/jiangbw112/lexiquest/releases) 下载，最新版见 [releases/latest](https://github.com/jiangbw112/lexiquest/releases/latest)。
+
+每次 PR 合入 `main` 分支后会自动发布新的桌面版 Release。
+
+- **Windows**：下载 `.exe` 安装包。
+- **Mac**：Apple 芯片（M1/M2/M3/M4 等）下载 `mac-arm64.zip`；Intel 处理器下载 `mac-x64.zip`。
+
+安装包未签名，首次打开会被系统拦截：
+
+- **Windows SmartScreen**：弹出「Windows 已保护你的电脑」时，点「更多信息」→「仍要运行」。若 Windows 11 开启了「智能应用控制」并直接拦截（无「仍要运行」选项），请改用网页版，不要为此关闭「智能应用控制」。
+- **macOS Gatekeeper**：首次双击被拦截后，打开「系统设置 → 隐私与安全性」，向下滚动找到 LexiQuest，点「仍要打开」并输入登录密码。如果仍然无法打开，可在终端执行 `xattr -dr com.apple.quarantine /Applications/LexiQuest.app`（路径以实际解压位置为准）。
+
+桌面版没有自动更新，新版本需手动下载安装。
+
+## 配置
+
+需求：Node.js 22。开发环境使用 22.x。npm 10 即可。
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`). Use a desktop Chrome, Edge, or Safari window. This MVP is keyboard and mouse only. It does not add tablet touch controls.
+打开 Vite 输出的 URL（通常为 `http://localhost:5173`）。请使用桌面版 Chrome、Edge 或 Safari 窗口。此 MVP 仅支持键盘和鼠标，不添加平板触控。
 
 ```bash
 npm test
@@ -22,17 +38,17 @@ npm run build
 npm run preview
 ```
 
-## Desktop app
+## 桌面应用
 
-The browser build is unchanged. `npm run build` still produces the web `dist/` and the same boot-budget check. The desktop shell is a separate package that loads that `dist/` through a custom `app://lexiquest/` origin. It does not add save import or export.
+浏览器构建保持不变。`npm run build` 仍然生成网页版 `dist/` 和相同的启动预算检查。桌面外壳是一个独立包，通过自定义 `app://lexiquest/` 源加载 `dist/`。不提供存档导入或导出功能。
 
-Pack the app for the machine you are on:
+为当前机器打包应用：
 
 ```bash
 npm run build:desktop
 ```
 
-Platform-specific installers, still unsigned except for the Mac ad-hoc signature:
+生成特定平台的安装程序（除 Mac 临时签名外均未签名）：
 
 ```bash
 npm run build:desktop:win
@@ -40,113 +56,113 @@ npm run build:desktop:mac
 npm run build:desktop:linux
 ```
 
-- Windows is an NSIS installer, x64 only, with no code signature. `dist-desktop/LexiQuest-<version>-win-x64.exe`.
-- Mac is a zip of the `.app`, one x64 and one arm64. `dist-desktop/LexiQuest-<version>-mac-x64.zip` and `dist-desktop/LexiQuest-<version>-mac-arm64.zip`. The app is ad-hoc signed (`identity: "-"`). It is not notarized.
-- Linux `build:desktop:linux` writes an unpacked directory used to smoke-test the shell. It is not a release installer.
+- Windows 是 NSIS 安装程序，仅 x64，无代码签名。输出 `dist-desktop/LexiQuest-<version>-win-x64.exe`。
+- Mac 是 `.app` 的 zip 压缩包，分 x64 和 arm64 两个版本：`dist-desktop/LexiQuest-<version>-mac-x64.zip` 和 `dist-desktop/LexiQuest-<version>-mac-arm64.zip`。应用使用临时签名（`identity: "-"`），未经公证。
+- Linux `build:desktop:linux` 输出未打包目录，用于 shell 冒烟测试，不是正式安装包。
 
-Windows SmartScreen will say “Windows protected your PC” because the installer is unsigned. Choose **More info**, then **Run anyway**. If Windows 11 Smart App Control blocks the file and offers no run option, that is also because the app is unsigned. Do not turn Smart App Control off. Microsoft’s [Smart App Control FAQ](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions) says it can be turned off in Windows Security settings, and recent Windows updates allow Smart App Control to be turned back on without a clean installation. Use the web version instead.
+Windows SmartScreen 会提示「Windows 已保护你的电脑」，因为安装程序未签名。点「更多信息」，然后点「仍要运行」。如果 Windows 11 智能应用控制直接拦截且没有运行选项，同样是因为未签名。不要关闭智能应用控制。微软的[智能应用控制常见问题](https://support.microsoft.com/zh-cn/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions)说明可以在 Windows 安全设置中关闭，最近的 Windows 更新允许重新开启而无需重装系统。请改用网页版。
 
-On macOS 15 and later, Gatekeeper blocks the first open because the app is only ad-hoc signed. Double-click LexiQuest once and let it be blocked. Then open **System Settings → Privacy & Security**, scroll down, choose **Open Anyway** for LexiQuest, and enter the login password. That button stays available for about an hour. Do not disable Gatekeeper. A Mac with an Apple M chip uses the arm64 zip. A Mac whose processor is Intel uses the x64 zip. After unzipping, drag LexiQuest into the Applications folder. Parents can follow `docs/家长安装说明.md`.
+macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应用仅有临时签名。先双击 LexiQuest 让它被拦截。然后打开「系统设置 → 隐私与安全性」，向下滚动，找到 LexiQuest 旁边的「仍要打开」并点击，输入登录密码。该按钮大约保留一小时。不要禁用 Gatekeeper。Apple M 芯片的 Mac 使用 arm64 zip，Intel 处理器的 Mac 使用 x64 zip。解压后将 LexiQuest 拖入「应用程序」文件夹。家长可参考 `docs/家长安装说明.md`。
 
-The save stays in Electron’s `userData` directory (`localStorage` for `app://lexiquest`). The directory name is the lowercase `lexiquest`, pinned with `app.setName`, so a `productName` of LexiQuest does not move it. On Windows that is `%APPDATA%\lexiquest`. On macOS it is `~/Library/Application Support/lexiquest`. On Linux it is `~/.config/lexiquest` unless `XDG_CONFIG_HOME` is set. The NSIS uninstaller leaves that folder in place (`deleteAppDataOnUninstall` is false, which is electron-builder’s default). Uninstalling the app does not delete the save.
+存档保存在 Electron 的 `userData` 目录中（`app://lexiquest` 的 `localStorage`）。目录名为小写的 `lexiquest`，通过 `app.setName` 固定，因此 `productName` 为 LexiQuest 也不会移动它。Windows 上是 `%APPDATA%\lexiquest`，macOS 上是 `~/Library/Application Support/lexiquest`，Linux 上是 `~/.config/lexiquest`（除非设置了 `XDG_CONFIG_HOME`）。NSIS 卸载程序保留该文件夹（`deleteAppDataOnUninstall` 为 false，这是 electron-builder 的默认值）。卸载应用不会删除存档。
 
-A desktop save and a browser save do not see each other. The browser copy is the site’s `localStorage`. The desktop copy is this app’s `userData`. Clearing one does not clear the other. There is no import and no export.
+桌面存档和浏览器存档相互独立。浏览器副本是网站的 `localStorage`，桌面副本是应用的 `userData`。清除其中一个不会影响另一个。没有导入和导出功能。
 
-Chinese text uses WenQuanYi Micro Hei when it is installed, then Noto Sans SC or PingFang SC.
+中文显示优先使用文泉驿微米黑（如已安装），然后是 Noto Sans SC 或苹方。
 
-## How to play
+## 玩法说明
 
-1. Press Enter. A new game asks for one or more grades (3, 4, 5, or 6) before the name. Nothing is selected, including grade 3. With none selected, Continue stays disabled and the picker says 至少选一个年级. An older save that never stored a grade opens that same picker before the village. A save that is already empty and was confirmed does not: it says 请家长选年级, and that page cannot write a grade. 学堂 and 对战 stay closed until at least one grade is picked. Grades can be changed later on 给家长. Chips can all be turned off in the draft, but 保存年级 stays disabled and the page says 至少选一个年级. An empty grade list is not saved. Then type a name with the keyboard. This chapter is a warrior. The painted figure is provisional art v0.1 (outfit A, battle view, facing right).
-2. On the village map, click a building or press its number. 1 学堂, 2 对战, 3 词卡册, 4 复习桌, 5 技能, 6 衣柜, 7 同机练习, 8 给家长.
-3. In 学堂, study a SAMPLE DATA word from the grades you picked. Enter asks a meaning question, L plays a listening question, and P asks for keyboard spelling when that word allows it. Grade-3 basic words still use spelling. Advanced words spell only while the mastery badge is lit. Words marked none are never spelled. A correct answer grants the word card immediately.
-4. 对战 opens the five forest stages. A stage clears when its new words are learned and one small battle is won. A stage with no learnable words for the selected grades is not skipped: winning one small battle clears it. The map and the village line say that, and they do not show a 0/0 count. The map header 已学 count uses the same word list as the boss gate. Attack, block, and heal are keys 1–3. Skill slots are keys 4–6. Casting a skill card draws a question from due learned chapter words, or from learned chapter words if nothing is due. The same word is not asked again inside the last 3 questions when another word is available. A correct answer uses the card’s full effect. A wrong answer uses only the reduced base effect. Empty skill slots are filled with a weaker class base skill, so one equipped card is enough to start.
-5. Winning grants experience, may level a skill, and earns the 林间斗篷. Losing does not take cards away and does not change review memory. A lost boss fight can be retried.
-6. The boss is 林心守护者, on the fifth stage, after the earlier stages are cleared and every chapter word in the selected grades has a card. The fight has two phases. Beating the boss clears the chapter even if no mastery badge is lit. The completion screen shows lit badges out of 28. The boss figure is the provisional v0.1 林冠, one layer, facing left. Turning a grade off keeps cards you already collected. 给家长 opens 学习进度: today's new words, due reviews, lit badges, and words that keep getting mixed up. The daily goal is on the village and on that page. Its numbers are confirmed v1 in `src/domain/proposals.ts`. The study day changes at local midnight on the device. A clock or time-zone change does not take tokens back, roll state back, or fill in skipped days. Finishing the goal adds one appearance token and lights that day. It does not add a streak, XP, or battle stats. Changing the goal tier and changing grades share one parent PIN. It is a local gate against accidental changes, not a login. Clearing browser data removes it. The record is PBKDF2-SHA256 in its own localStorage key, separate from the save. Forgetting it asks a two-digit multiplication, which is a tech default still waiting on product and design, then resets only the PIN. Nothing here is sent over the network. Battle questions and due reviews for that grade pause, and come back with the same FSRS state when you select it again. 给家长 shows a notice when that happens. If a future list is too small to start a battle, the village says so instead of starting a broken fight. The village token bobs in place and walks to a building when you choose it. The figure is the actors atlas v0.2 top view: shadow, body, hair, cape, and sash.
-7. Open 复习桌. Scheduling follows FSRS (`ts-fsrs`), not a fixed 1/3/7-day ladder. The 学习沙漏 is hidden unless the page is opened with `?dev=1` (for example `http://localhost:5173/?dev=1`). With that query, T, Y, and R move a local practice clock; without it those keys do nothing. An earned badge turns grey when the word is due or lapsed, and turns bright again after a correct review. The card stays.
-8. Collecting every sample card earns the 星光绶带. Collection is not mastery.
-9. 同机练习 is the existing same-device practice. It is not an online match, and it does not update FSRS. Friend 1v1 is deferred.
+1. 按 Enter 键。新游戏会在输入名字前先选择一个或多个年级（3、4、5 或 6）。默认没有选中任何年级，包括三年级。未选择时「继续」保持禁用，选择器显示「至少选一个年级」。旧存档如果从未存储年级，在进入村庄前会弹出同样的选择器。已确认为空的存档不会弹出：它显示「请家长选年级」，且该页面无法写入年级。在选择至少一个年级前，学堂和对战保持关闭。稍后可在「给家长」中更改年级。在选卡界面可以全部取消，但「保存年级」保持禁用，页面显示「至少选一个年级」。空年级列表不会被保存。然后用键盘输入名字。本章角色是战士。角色图是暂定美术 v0.1（装扮 A，战斗视角，朝右）。
+2. 在村庄地图上，点击建筑或按对应数字键。1 学堂，2 对战，3 词卡册，4 复习桌，5 技能，6 衣柜，7 同机练习，8 给家长。
+3. 在学堂中学习所选年级的示例词汇。Enter 键提问词义，L 键播放听力题，P 键要求键盘拼写（如该词允许）。三年级基础词仍使用拼写。高级词汇仅在掌握徽章亮起时拼写。标记为 none 的词不会出拼写题。答对立即获得词卡。
+4. 对战打开五个森林关卡。当新词学完且赢得一场小战斗后，关卡通过。若某关卡对所选年级没有可学词汇，不会跳过：赢得一场小战斗即可通过。地图和村庄文字会说明，且不显示 0/0 计数。地图标题的「已学」计数与 Boss 门槛使用相同词表。攻击、格挡、治疗分别对应按键 1–3。技能槽对应按键 4–6。使用技能卡时会从已到期的本章已学词中抽题，如果没有到期词则从本章已学词中抽取。同一个词在最近 3 道题内不会重复（除非没有其他可选词）。答对使用卡牌全效果，答错只使用降低的基础效果。空技能槽会自动填充较弱的职业基础技能，因此带一张卡就能开战。
+5. 胜利获得经验值，可能升级技能，并获得林间斗篷。失败不会失去卡牌，也不改变复习记忆。Boss 战失败可以重试。
+6. Boss 是林心守护者，位于第五关，需先通过前面的关卡且所选年级的所有本章词汇都有卡牌。战斗分两个阶段。击败 Boss 即通关，即使没有亮起的掌握徽章。通关画面显示亮起徽章数（共 28 个）。Boss 图是暂定 v0.1 林冠，单层，朝左。关闭某个年级会保留已收集的卡牌。「给家长」打开学习进度：今日新词、待复习词、亮起徽章数，以及反复出错的词。每日目标显示在村庄和该页面上。数值已在 `src/domain/proposals.ts` 中确认为 v1。学习日在设备本地午夜切换。修改时钟或时区不会回收代币、回滚状态或补填跳过的天数。完成目标添加一个外观代币并点亮当天，不添加连胜、XP 或战斗统计。更改目标等级和更改年级共享一个家长 PIN。这只是防止意外更改的本地门槛，不是登录系统。清除浏览器数据会移除它。记录是 PBKDF2-SHA256，存储在独立的 localStorage 键中，与存档分开。忘记 PIN 时会出一道两位数乘法题（这是等待产品和设计确认的技术默认值），然后仅重置 PIN。这里没有任何数据通过网络发送。该年级的战斗题目和待复习词暂停，重新选择后以相同的 FSRS 状态恢复。发生这种情况时「给家长」会显示提示。如果未来可用词表太少无法开战，村庄会说明而不是开始残缺的战斗。村庄代币原地晃动，选择建筑后走向该建筑。角色图是 actors atlas v0.2 俯视图：阴影、身体、头发、披风和腰带。
+7. 打开复习桌。复习计划遵循 FSRS（`ts-fsrs`），不是固定的 1/3/7 天阶梯。学习沙漏除非在 URL 中加 `?dev=1`（例如 `http://localhost:5173/?dev=1`）否则隐藏。加了该参数后，T、Y、R 键可移动本地练习时钟；不加则这些键无效。获得的徽章在词到期或失效时变灰，正确复习后重新变亮。卡牌保留。
+8. 收集所有示例卡牌获得星光绶带。收集不等于掌握。
+9. 同机练习是现有的同设备练习模式，不是在线对战，不更新 FSRS。好友 1v1 延后。
 
-## Rules this MVP keeps
+## 此 MVP 保留的规则
 
-- Learning grants the word card at once. A mastery badge is separate. The card is permanent. The badge greys out when the word is due or lapsed and is restored after a correct review. Changing the badge never deletes the card.
-- Word cards and skill cards are different. A skill card is not bound to a word. Players carry at most 3 skill cards. Empty slots are auto-filled with the weaker class base skill.
-- When a skill card is cast in PvE, the question comes from that child’s FSRS-due learned words in this chapter and in the grades that are still selected. If none are due, it comes from learned chapter words in those grades. A deselected grade is not asked, and its reviews pause. Unlearned words are never used. The deck uses the whole pool before repeating the same words, and it also skips a word that was one of the last 3 questions when another word is available.
-- In a friend 1v1, both sides use one shared learned-word pool and identical slot values. Scoring is lexicographic: more correct answers wins; if the counts match, the lower total time on correct answers wins. Wrong answers add neither a count nor time. 1v1 answers do not update FSRS.
-- Review state is per word and follows FSRS. Mastery needs a correct review on at least 2 different local calendar days on the device, and FSRS stability of at least 7 days. Repeating a word on the same day cannot award mastery by itself. Winning or losing a battle does not change memory or cards. Pausing a grade does not change that word’s FSRS state.
-- Rewards are earned. There is no random paid loot.
-- The P0 hero is one warrior appearance. Other classes and looks stay in the domain data for later art. The battle figure is 11 layered PNG atlases from the provisional v0.1 pack, not skeletal animation. Garment layers (`outfit_back`, `outfit_body`, `outfit_head`, `outfit_front`) stay separate from the body layers and from the sword and shield, so a later outfit can replace the clothes only. The village map token is the actors atlas v0.2 top view (shadow, body, hair, cape, and sash), not a geometric placeholder. The warrior pack itself is still the battle view and has no separate top-down sheet.
-- 林心守护者 uses the provisional v0.1 林冠 pack: one layer, 768² @2x, foot pivot (0.5, 0.875), facing left, scale 0.5, no flip. Idle loops at 6 fps. Attack, hit, and defeat play once. Defeat holds its last frame. The battle note wraps at 640px so a second line stays clear of the canopy.
-- Pronunciation for v1 is the browser speech engine. There are no third-party recordings.
+- 学习立即获得词卡。掌握徽章是分开的。卡牌永久保留。徽章在词到期或失效时变灰，正确复习后恢复。改变徽章不会删除卡牌。
+- 词卡和技能卡不同。技能卡不绑定词汇。玩家最多携带 3 张技能卡。空槽自动填充较弱的职业基础技能。
+- 在 PvE 中使用技能卡时，题目来自该孩子本章已选年级中 FSRS 到期的已学词。如果没有到期词，则来自该年级的已学词。取消选择的年级不会被出题，其复习暂停。未学词不会被使用。词库在用完整个池之前不会重复，且在有其他可选词时跳过最近 3 道题中出现过的词。
+- 好友 1v1 中，双方使用同一个已学词池和相同的槽位值。计分采用字典序：正确数多者胜；正确数相同时，正确答题总用时少者胜。错误答案不计入数量或用时。1v1 答题不更新 FSRS。
+- 复习状态按词记录，遵循 FSRS。掌握需要在设备本地至少 2 个不同日历日正确复习，且 FSRS 稳定性至少 7 天。同一天重复答词本身不能授予掌握。战斗输赢不改变记忆或卡牌。暂停年级不改变该词的 FSRS 状态。
+- 奖励靠赢取，没有随机付费抽奖。
+- P0 主角是一个战士外观。其他职业和外观保留在领域数据中供后续美术使用。战斗角色图是暂定 v0.1 包中的 11 层 PNG 图集，不是骨骼动画。服装层（`outfit_back`、`outfit_body`、`outfit_head`、`outfit_front`）与身体层及剑盾分开，以便后续装扮只替换服装。村庄地图代币是 actors atlas v0.2 俯视图（阴影、身体、头发、披风、腰带），不是几何占位符。战士包本身仍是战斗视角，没有单独的俯视图。
+- 林心守护者使用暂定 v0.1 林冠包：单层，768² @2x，脚部锚点 (0.5, 0.875)，朝左，缩放 0.5，不翻转。待机以 6 fps 循环。攻击、受击、倒下播放一次。倒下停在最后一帧。战斗提示在 640px 处换行，让第二行避开树冠。
+- v1 发音使用浏览器语音引擎，没有第三方录音。
 
-## Decided v1 numbers
+## 已确定的 v1 数值
 
-These are decided. They live in `src/domain/provisional.ts`. Boss health is v1 tuning in the same file. Exploration health, the question gap, and the completion title and cosmetic are still provisional.
+以下数值已确定，定义在 `src/domain/provisional.ts` 中。Boss 血量是同文件中的 v1 调参。探索敌人血量、题目间隔、通关标题和装饰仍是暂定值。
 
-| Rule | Value |
+| 规则 | 数值 |
 | --- | --- |
-| Mastery badge | A correct review on at least 2 different local calendar days on the device, and FSRS stability ≥ 7 days |
-| Skill cards carried | 3 |
-| Base skill power scale | 0.45 of the class starter at level 1, and always weaker than that starter |
-| Base skill energy cost | 0, so a battle can start with one real card |
-| Wrong PvE skill answer | Level-1 power × 0.5. A correct answer still uses the full leveled power |
-| Grades | At least one of grades 3–6, chosen before learning or battle. No default grade. Cards stay if a grade is turned off. Battle questions and due reviews for that grade pause until it is selected again |
-| Pronunciation | Browser text-to-speech |
+| 掌握徽章 | 在设备本地至少 2 个不同日历日正确复习，且 FSRS 稳定性 ≥ 7 天 |
+| 携带技能卡数 | 3 |
+| 基础技能威力比例 | 1 级职业初始技能的 0.45 倍，始终弱于该初始技能 |
+| 基础技能能量消耗 | 0，因此带一张真卡就能开战 |
+| PvE 技能答错 | 1 级威力 × 0.5。答对仍使用满级威力 |
+| 年级 | 至少选择 3–6 年级之一，在学习或战斗前选择。无默认年级。关闭年级后卡牌保留。该年级的战斗题目和待复习词暂停，直到重新选择 |
+| 发音 | 浏览器 text-to-speech |
 
-Friend 1v1 comparison is a confirmed rule, not a point formula. Combat health and damage in `src/domain/classes.ts` are ordinary MVP tuning.
+好友 1v1 比较是已确定规则，不是积分公式。`src/domain/classes.ts` 中的战斗血量和伤害是普通 MVP 调参。
 
-Provisional chapter numbers, also in `src/domain/provisional.ts`:
+暂定章节数值，同样在 `src/domain/provisional.ts` 中：
 
-| Item | Value |
+| 项目 | 数值 |
 | --- | --- |
-| Exploration enemy health / attack | 44 / 6, about 3–5 casts of 盾击, 战吼, or 旋风斩 |
-| Question gap | No repeat inside the last 3 questions when another word can be asked |
-| Completion reward | Read from `src/domain/chapters/forest-rewards.json`. First clear grants `forest_leaf_cape` and the default title candidate. Mastery uses `ceil(chapter length × 0.5)` and `ceil(chapter length × 1)`. Names are not final (`final_name_selected_by_pm` is false) |
+| 探索敌人血量 / 攻击 | 44 / 6，约 3–5 次盾击、战吼或旋风斩 |
+| 题目间隔 | 有其他可选词时，最近 3 题内不重复 |
+| 通关奖励 | 从 `src/domain/chapters/forest-rewards.json` 读取。首次通关获得 `forest_leaf_cape` 和默认候选称号。掌握使用 `ceil(章节长度 × 0.5)` 和 `ceil(章节长度 × 1)`。名称未最终确定（`final_name_selected_by_pm` 为 false） |
 
-林心守护者 is two phases of 65 health. 盾击 clears in 12 casts and 战吼 in 9. 旋风斩 is heavier and clears in 7. Spelling stays at or under 30% of boss questions. These can move after playtesting.
+林心守护者是两阶段各 65 血量。盾击 12 次可通关，战吼 9 次。旋风斩更重，7 次可通关。拼写题占 Boss 题目的 30% 以下。这些数值可能在测试后调整。
 
-Forest chapter cosmetics and titles are `src/domain/chapters/forest-rewards.json`. That file stays outside the word-list directory. The first clear and the two mastery milestones grant cosmetics and titles once. A grey badge does not take them back, and a replay does not grant them again. They do not change XP, FSRS, or combat stats. The daily cosmetic token is still the daily-goal reward. The painted pieces are forest rewards v0.1 under `public/assets/chapter/forest/v0.1/`. The manifest status is 暂定. The cape is `cosmetic_back` at z 6, the acorn pin is `cosmetic_chest` at z 47, and the wreath is `cosmetic_head` at z 65. Slot table v0.2 adds `cosmetic_chest`. The pin's chest offset is already inside the trimmed frames. This warrior pack has no `back` atlas, so the cape hide rule has no backpack to hide. The wreath hides the whole `outfit_head` layer, which is the helmet with the plume baked in. The plume is not split into its own frame. In side view the cape reads as a strip of leaves behind the body. The pin is small, and on attack frames 02 and 03 most of it sits under the near arm.
+森林章节装饰和称号在 `src/domain/chapters/forest-rewards.json` 中，该文件在词表目录之外。首次通关和两个掌握里程碑各获得一次装饰和称号。徽章变灰不会收回，重玩不会再次获得。它们不改变 XP、FSRS 或战斗统计。每日装饰代币仍是每日目标奖励。绘制图在 `public/assets/chapter/forest/v0.1/` 下，是森林奖励 v0.1。清单状态为「暂定」。披风是 `cosmetic_back`，z 轴 6；橡果别针是 `cosmetic_chest`，z 轴 47；花环是 `cosmetic_head`，z 轴 65。槽位表 v0.2 新增 `cosmetic_chest`。别针的胸部偏移已包含在裁剪帧中。此战士包没有 `back` 图集，因此披风隐藏规则没有背包可隐藏。花环隐藏整个 `outfit_head` 层，即带羽饰的头盔。羽饰未单独分割。侧视时披风看起来像身后的一条树叶带。别针较小，在攻击帧 02 和 03 中大部分被近手遮挡。
 
-Placeholder art, the village map, and the provisional v0.1 warrior atlases together are about 818 KB. The provisional v0.1 林冠 atlases add about 1.15 MB. Forest rewards v0.1 adds about 228 KB. `public/assets` is about 2.12 MB, over the earlier 1.5 MB figure that covered the warrior pack only. The production JavaScript bundle is about 1.31 MB before gzip because it includes Phaser. A headless desktop Chrome run on this machine booted to the title in 995 ms, then measured 26 fps and 54 MB of JavaScript heap on the village after 45 frames. Headless frame rate is below the 60 fps target and the 30 fps floor; a normal desktop window should be higher. Boot time and heap are inside the 2 second and 150 MB budgets.
+占位美术、村庄地图和暂定 v0.1 战士图集合计约 818 KB。暂定 v0.1 林冠图集增加约 1.15 MB。森林奖励 v0.1 增加约 228 KB。`public/assets` 约 2.12 MB，超过之前仅覆盖战士包的 1.5 MB 数值。生产 JavaScript 包约 1.31 MB（gzip 前），因为包含 Phaser。在此机器上使用无头桌面 Chrome 运行，启动到标题用时 995 ms，然后在村庄测得 45 帧后 26 fps 和 54 MB JavaScript 堆。无头帧率低于 60 fps 目标和 30 fps 下限；正常桌面窗口应更高。启动时间和堆在 2 秒和 150 MB 预算内。
 
-## Sample data
+## 示例数据
 
-`src/domain/data/pep_words_g3-6_v1.2.2_loader.json` is the only word list. It is the PEP grades 3–6 library, v1.2.2, 863 words, `sample` false. The loader reads `word`, `meaning_zh`, `grade_est`, `spelling`, and an optional `pos`. `pos` is an opaque string and is shown exactly as written, including `modal v.` and `v./n.`. Null, a missing field, or `""` leaves the meaning with no prefix. A number or an object is refused. The v1.2.2 loader file has word-level `pos` only. When an entry also has `senses`, a shown sense uses that sense's `pos` and falls back to the word's `pos`. A sense marked `new_sense` is not loaded and is never a quiz answer or distractor. Notes, change notes, and top-level lists such as `dedup_dropped` are still ignored. A file in that directory without a `words` array is refused. One file can hold every grade, or each grade can have its own file. A repeated word id is refused. `unitId` is still hard-coded as `${grade}-S1-U1`. Semester and unit are on the formal table and are not used yet.
+`src/domain/data/pep_words_g3-6_v1.2.2_loader.json` 是唯一的词表。它是 PEP 3–6 年级词库，v1.2.2，863 个词，`sample` 为 false。加载器读取 `word`、`meaning_zh`、`grade_est`、`spelling` 和可选的 `pos`。`pos` 是不透明字符串，按原样显示，包括 `modal v.` 和 `v./n.`。null、缺失字段或 `""` 使词义不带前缀。数字或对象会被拒绝。v1.2.2 加载器文件只有词级 `pos`。当条目还有 `senses` 时，显示的义项使用该义项的 `pos`，回退到词的 `pos`。标记为 `new_sense` 的义项不加载，不会成为测验答案或干扰项。注释、变更注释和顶层列表（如 `dedup_dropped`）仍被忽略。该目录中没有 `words` 数组的文件会被拒绝。一个文件可以包含所有年级，也可以每个年级一个文件。重复的词 id 会被拒绝。`unitId` 仍硬编码为 `${grade}-S1-U1`。学期和单元在正式表中，尚未使用。
 
-The forest chapter is `src/domain/chapters/chapter_forest_v1.1.json`, outside the word-list directory. Its five stages and the 6/6/6/6/4 split come from that file. Twenty words are resolved by id from the v1.2.2 library, so spelling, meaning, grade, and `pos` follow that list. The chapter file's `words_resolved_snapshot` is not read. Eight words (`bridge`, `brave`, `path`, `treasure`, `journey`, `discover`, `adventure`, `protect`) belong only to this chapter. They can be learned here and they never enter a grade pool. Boss clear rules that the chapter file does not define stay in `forest-stage-rules.json`. The school teaches this 28-word chapter. Grade pools used for “enough words to battle” and the daily-goal learn fallback are the library. Saved card ids match the previous forest ids, so existing saves keep those cards. A card’s displayed grade, meaning, spelling, and part of speech now follow v1.2.2. `docs/pep/forest_chapter_mapping_v1.json` is an older mapping and is not read.
+森林章节是 `src/domain/chapters/chapter_forest_v1.1.json`，在词表目录之外。其五个关卡和 6/6/6/6/4 分配来自该文件。二十个词通过 id 从 v1.2.2 词库解析，因此拼写、词义、年级和 `pos` 遵循该词库。章节文件的 `words_resolved_snapshot` 不被读取。八个词（`bridge`、`brave`、`path`、`treasure`、`journey`、`discover`、`adventure`、`protect`）仅属于本章。它们可在此学习，不会进入年级池。章节文件未定义的 Boss 通关规则保留在 `forest-stage-rules.json` 中。学堂教授这 28 个词的章节。用于「够不够开战」和每日目标学习回退的年级池是词库。已保存的卡牌 id 与之前的森林 id 匹配，因此现有存档保留这些卡牌。卡牌显示的年级、词义、拼写和词性现在遵循 v1.2.2。`docs/pep/forest_chapter_mapping_v1.json` 是旧映射，不被游戏读取。
 
-Spelling comparison is trim, lower case, and collapsed whitespace, then an exact string. A hyphen, an apostrophe, or a space is part of the answer. `camp` and `camping` are two ids. Words with `spelling` `none`, including the conversation cards `hello`, `hi`, and `goodbye`, are never spelling questions.
+拼写比较采用 trim、小写、合并空白，然后精确字符串匹配。连字符、撇号或空格是答案的一部分。`camp` 和 `camping` 是两个 id。`spelling` 为 `none` 的词（包括对话卡 `hello`、`hi` 和 `goodbye`）不会出拼写题。
 
-## Save data
+## 存档数据
 
-The key is `lexiquest.save.v1` in `localStorage`. It is an MVP cache, not authoritative progress. On the web, clearing site data, or 给家长 → 清除这台浏览器的缓存, deletes it. The desktop app uses the same key inside its own `userData` folder and the button says 清除这台电脑的缓存. Rewards stored here must be checked again before any future server grant.
+键是 `localStorage` 中的 `lexiquest.save.v1`。这是 MVP 缓存，不是权威进度。在网页端，清除站点数据或「给家长 → 清除这台浏览器的缓存」会删除它。桌面应用在自己的 `userData` 文件夹中使用相同的键，按钮显示「清除这台电脑的缓存」。此处存储的奖励必须在任何未来服务器授权前重新校验。
 
-## What is left
+## 待完成
 
-- Server-authoritative save. This browser cache is not the child’s real progress.
-- Networked friend 1v1. Same-device practice uses the tested comparison. A real match must be server-authoritative for the room, judging, timing, the lexicographic result, and rewards, with replay, forgery, and duplicate-reward protection. The client must not submit the final result.
-- `unitId` is still hard-coded as `${grade}-S1-U1`. The v1.2.2 table has semester and unit, and this build does not use them. The school still teaches the 28-word forest chapter rather than walking every library word in that one unit.
-- Explorer and the other classes as painted characters. The domain already has their skills. This chapter draws the provisional v0.1 warrior only.
-- The village map token uses the actors atlas v0.2 top frames (shadow, body, hair, cape, and sash). It only bobs and walks with a tween.
-- Whether a turned-off grade should change the boss gate. The clear itself is the boss win. Lit badges stay a count of this chapter’s words. The boss figure is provisional v0.1 林冠 (`bossSprite` is `canopy`).
-- Title names stay the first candidate until the config sets `final_name_selected_by_pm`. The v0.1 forest drawings are in the game. The pack itself is still marked 暂定.
-- A separate `back` layer. The cape hide rule targets it, and this pack does not draw one. The wreath hides the whole `outfit_head` helmet instead of a split plume.
-- A final 林冠 drawing. v0.1 is the integrable pack under `public/assets/boss/canopy/v0.1`, documented in `docs/art/boss-canopy/`.
-- Outfit variants. 林间斗篷 and 星光绶带 are stored, but v0.1 bakes a single outfit A. Equipping them does not change the painted layers.
-- More appearances. The save still stores ponytail and freckles. The painted appearance A is short brown hair with the face baked into the body layer.
-- Walk is in the atlas (6 frames at 10 fps) and is not played in battle, because the battle scene does not move the figure.
-- Tablet touch and an iPad app. This MVP does not target them.
+- 服务器权威存档。此浏览器缓存不是孩子的真实进度。
+- 联网好友 1v1。同设备练习使用已测试的比较规则。真正的对战需要服务器权威处理房间、判定、计时、字典序结果和奖励，并有回放、防伪和防重复奖励保护。客户端不能提交最终结果。
+- `unitId` 仍硬编码为 `${grade}-S1-U1`。v1.2.2 表有学期和单元，此构建未使用。学堂仍教授 28 个词的森林章节，而不是遍历该单元的所有词库词汇。
+- 探险家和其他职业的绘制角色。领域中已有它们的技能。本章只绘制暂定 v0.1 战士。
+- 村庄地图代币使用 actors atlas v0.2 俯视帧（阴影、身体、头发、披风、腰带）。它只通过 tween 晃动和行走。
+- 关闭年级是否应改变 Boss 门槛。通关本身是击败 Boss。亮起徽章仍是本章词汇的计数。Boss 图是暂定 v0.1 林冠（`bossSprite` 为 `canopy`）。
+- 称号名称保持首选候选直到配置设置 `final_name_selected_by_pm`。v0.1 森林图在游戏中。包本身仍标记为「暂定」。
+- 单独的 `back` 层。披风隐藏规则针对它，而此包不绘制。花环隐藏整个 `outfit_head` 头盔而非分离的羽饰。
+- 最终林冠图。v0.1 是 `public/assets/boss/canopy/v0.1` 下的可集成包，文档在 `docs/art/boss-canopy/`。
+- 装扮变体。林间斗篷和星光绶带已存储，但 v0.1 固定为装扮 A。装备它们不改变绘制层。
+- 更多外观。存档仍存储马尾和雀斑。绘制外观 A 是短棕发，脸部烘焙在身体层中。
+- 行走在图集中（10 fps 6 帧），战斗中未播放，因为战斗场景不移动角色。
+- 平板触控和 iPad 应用。此 MVP 不针对它们。
 
-## Layout
+## 布局
 
-- `src/domain` — cards, FSRS review, battle, skill slots, duel scoring, rewards, save shape
-- `src/domain/proposals.ts` — confirmed v1 numbers for the parent page and the daily goal
-- `src/domain/parent-pin.ts` — local parent PIN gate against accidental changes. The adult-check form is a tech default pending product and design confirmation
-- `src/domain/data/pep_words_g3-6_v1.2.2_loader.json` — the PEP grades 3–6 library, the only word list
-- `src/domain/chapters/chapter_forest_v1.1.json` — the forest chapter, resolved by reference
-- `docs/pep/forest_chapter_mapping_v1.json` — an older mapping, not read by the game
-- `src/game` — Phaser 3 client, village actors atlas v0.2, provisional warrior v0.1, forest rewards v0.1, provisional 林冠 v0.1, and scenes
-- `public/assets/warrior/v0.1` — the 11 battle-view atlases, `manifest.json`, and slot table v0.2
-- `public/assets/chapter/forest/v0.1` — the cape, pin, wreath, and title atlases, plus `manifest.json`
-- `public/assets/boss/canopy/v0.1` — the four 林冠 atlases and `manifest.json`
-- `docs/art` — the warrior pack README, slot table v0.2, and QA report. `docs/art/forest-rewards` is the forest reward readme and QA report. `docs/art/boss-canopy` is the 林冠 readme and QA report. `style_ref_v0.1.png` is concept art and is not in the game
-- `src/domain/*.test.ts` — review scheduling, card and badge tone, the 3-slot loadout, question pools, and lexicographic scoring
+- `src/domain` — 卡牌、FSRS 复习、战斗、技能槽、对决计分、奖励、存档结构
+- `src/domain/proposals.ts` — 家长页和每日目标的已确定 v1 数值
+- `src/domain/parent-pin.ts` — 防止意外更改的本地家长 PIN 门槛。成人验证表单是等待产品和设计确认的技术默认值
+- `src/domain/data/pep_words_g3-6_v1.2.2_loader.json` — PEP 3–6 年级词库，唯一的词表
+- `src/domain/chapters/chapter_forest_v1.1.json` — 森林章节，按引用解析
+- `docs/pep/forest_chapter_mapping_v1.json` — 旧映射，游戏不读取
+- `src/game` — Phaser 3 客户端、村庄 actors atlas v0.2、暂定战士 v0.1、森林奖励 v0.1、暂定林冠 v0.1 和场景
+- `public/assets/warrior/v0.1` — 11 个战斗视角图集、`manifest.json` 和槽位表 v0.2
+- `public/assets/chapter/forest/v0.1` — 披风、别针、花环和称号图集，以及 `manifest.json`
+- `public/assets/boss/canopy/v0.1` — 四个林冠图集和 `manifest.json`
+- `docs/art` — 战士包 README、槽位表 v0.2 和 QA 报告。`docs/art/forest-rewards` 是森林奖励 readme 和 QA 报告。`docs/art/boss-canopy` 是林冠 readme 和 QA 报告。`style_ref_v0.1.png` 是概念图，不在游戏中
+- `src/domain/*.test.ts` — 复习计划、卡牌和徽章色调、3 槽配置、题库和字典序计分测试
