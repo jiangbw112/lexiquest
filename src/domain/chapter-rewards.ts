@@ -187,10 +187,10 @@ export function visibilityForCosmetics(
 }
 
 /**
- * The cape targets `back`, which this pack does not draw.
- * The wreath hides the whole `outfit_head` layer. That layer is the helmet, plume included.
+ * The cape targets `back`, which the v0.1 pack does not draw.
+ * The wreath sits outside the helmet and hides only the warrior plume.
  */
 export const CHAPTER_ART_LIMITS = [
   "披肩要藏职业 back（背包、箭袋）。战士 v0.1 没有 back 图，这一层没有画出来，所以没有可藏的背包。",
-  "花环戴上时，整顶头盔藏起来。头盔是 outfit_head 这一层，羽饰也在里面，不另拆一层。",
+  "花环戴在帽外。战士只藏羽饰。",
 ] as const;

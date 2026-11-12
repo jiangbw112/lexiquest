@@ -11,7 +11,8 @@ import { OUTFITS } from "../../domain/outfits";
 import { equipOutfit } from "../../domain/progress";
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { WARDROBE_TITLE_Y, parchmentTitleY } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -27,7 +28,8 @@ export class WardrobeScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
     queueWarm(this, ["atlas_ui_core", "atlas_wardrobe"], ["bg_room"]);
   }
@@ -51,11 +53,19 @@ export class WardrobeScene extends Phaser.Scene {
     warmSlice(this, "atlas_ui_core", "panel_parchment", 1040, 740).setPosition(640, 400);
     const titleY = parchmentTitleY(400, 740);
     this.add.text(150, titleY, "衣柜", { fontFamily: FONT, fontSize: "36px", color: INK });
-    this.add.text(150, titleY + 48, "戴上花环，头盔会藏起来。", {
+    const classId = savedClassId(save);
+    this.add.text(150, titleY + 48, "花环戴在帽外。战士只藏羽饰。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
     });
+    if (classId !== "warrior") {
+      this.add.text(430, titleY + 48, "这身衣服先给战士换。", {
+        fontFamily: FONT,
+        fontSize: "16px",
+        color: NOTE,
+      });
+    }
     OUTFITS.forEach((outfit, index) => {
       const owned = save.ownedOutfitIds.includes(outfit.id);
       const y = 150 + index * 78;
@@ -135,11 +145,11 @@ export class WardrobeScene extends Phaser.Scene {
 
     this.add.image(1000, 294, "atlas_wardrobe", "wardrobe_arch").setDisplaySize(280, 420);
     this.add.image(1000, 492, "atlas_wardrobe", "wardrobe_stage").setDisplaySize(280, 105);
-    const hero = new WarriorSprite(this, 1000, 500, 0.48, save.equippedCosmeticIds, save.equippedOutfitId);
+    const hero = new ClassSideSprite(this, 1000, 500, classId, 0.48, save.equippedCosmeticIds, save.equippedOutfitId);
     hero.play("idle");
     drawEquippedTitle(this, 1000, WARDROBE_TITLE_Y, save.equippedTitleId, 440);
     const worn = `${save.equippedOutfitId}:${save.equippedCosmeticIds.join(",") || "none"}`;
-    const helmet = hero.isSlotVisible("outfit_head") ? "shown" : "hidden";
+    const helmet = hero.isSlotVisible("outfit_head") || hero.isSlotVisible("outfit_head_noplume") ? "shown" : "hidden";
     const back = hero.isSlotDrawn("back") ? "drawn" : "absent";
     probeNote(`forest:equip:${worn}:helmet=${helmet}:back=${back}`);
     warmButton(this, 1040, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });

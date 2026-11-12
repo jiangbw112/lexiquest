@@ -157,10 +157,12 @@ describe("control hit areas", () => {
     expect(kit.match(/containerHitArea\(width, height\)/g)).toHaveLength(4);
     expect(kit).not.toContain("Rectangle(-width / 2");
     expect(village).toContain("village_bld_");
-    expect(village).toContain("new LayeredActor(this, 640, 520, \"top\")");
-    expect(village).toContain("y: 508 - 520");
-    expect(village).toContain("hero.floatingLayers()");
+    expect(village).toContain("new ClassTopSprite(this, 640, 520, savedClassId(save)");
+    expect(village).not.toContain("new LayeredActor");
     expect(village).not.toContain("targets: hero.root");
+    const top = readFileSync(new URL("./art/class-top.ts", import.meta.url), "utf8");
+    expect(top).toContain("y: -12");
+    expect(top).toContain("targets: this.layers");
     expect(village).toContain("containerHitArea");
     expect(village).not.toContain("polygon");
     const map = readFileSync(new URL("./scenes/StageMapScene.ts", import.meta.url), "utf8");

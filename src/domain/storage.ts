@@ -6,9 +6,9 @@
  */
 import { isAppearance } from "./appearance";
 import { normalizeGrades } from "./catalog";
-import { CLASS_IDS } from "./classes";
+import { resolvedClassId } from "./class-unlock";
 import { withParentDefaults } from "./parent";
-import type { ClassId, SaveData } from "./types";
+import type { SaveData } from "./types";
 
 export const SAVE_KEY = "lexiquest.save.v1";
 
@@ -50,10 +50,8 @@ export function deserialize(raw: string): SaveData | null {
     if (!isRecord(value) || value.version !== 1) return null;
     if (!isRecord(value.player)) return null;
     const name = value.player.name;
-    const classId = value.player.classId;
     const appearance = value.player.appearance;
     if (typeof name !== "string" || name.length < 1 || name.length > 12) return null;
-    if (typeof classId !== "string" || !CLASS_IDS.includes(classId as ClassId)) return null;
     if (!isAppearance(appearance)) return null;
     if (!isRecord(value.wordCards) || !isRecord(value.memory) || !isRecord(value.skillLevels)) return null;
     if (!Array.isArray(value.equippedSkillIds) || !Array.isArray(value.unlockedSkillIds)) return null;
@@ -62,6 +60,7 @@ export function deserialize(raw: string): SaveData | null {
     if (typeof value.xp !== "number" || typeof value.clockOffsetMs !== "number") return null;
     if (typeof value.battlesWon !== "number" || typeof value.battlesLost !== "number") return null;
     const save = value as unknown as SaveData;
+    save.player.classId = resolvedClassId(value.player.classId, value);
     save.chapterCleared = value.chapterCleared === true;
     save.stageWins = readStageWins(value.stageWins);
     save.bestStars = readBestStars(value.bestStars);

@@ -1,6 +1,6 @@
 import type { Appearance } from "../domain/types";
 
-/** The only painted hero in this chapter. Other classes stay in the domain model. */
+/** Default look for a new hero. The class is chosen on the create screen. */
 export const P0_CLASS_ID = "warrior" as const;
 
 export const P0_APPEARANCE: Appearance = {
@@ -12,5 +12,3 @@ export const P0_APPEARANCE: Appearance = {
   glasses: false,
   freckles: true,
 };
-
-export const P0_NOTE = "这一章只能当战士。";

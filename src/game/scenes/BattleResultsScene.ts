@@ -22,9 +22,11 @@ import { skillCardFrame, skillIconFrame, skillLevelFrame } from "../../domain/sk
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { restPromptDue } from "../play-timer";
 import { probeNote } from "../probe";
+import { getSave } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm } from "../warm/load";
@@ -71,7 +73,8 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
     queueWarm(this, ["atlas_ui_core", "atlas_ui_pages", "atlas_battle", "atlas_skills", "atlas_results"], []);
   }
@@ -196,7 +199,15 @@ export class BattleResultsScene extends Phaser.Scene {
 
   private drawHero(): void {
     // Feet on the art mark. Outfit pieces come from the actor sheet; cosmetics stay on this pack.
-    const hero = new WarriorSprite(this, 235, 646, 0.7, this.view.equippedCosmeticIds, this.view.equippedOutfitId);
+    const hero = new ClassSideSprite(
+      this,
+      235,
+      646,
+      savedClassId(getSave()),
+      0.7,
+      this.view.equippedCosmeticIds,
+      this.view.equippedOutfitId,
+    );
     hero.play(this.view.won ? "victory" : "idle");
     this.finishing.push(hero.root);
   }

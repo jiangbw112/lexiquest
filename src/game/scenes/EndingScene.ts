@@ -6,7 +6,8 @@ import { PROVISIONAL } from "../../domain/provisional";
 import { chapterLearnedCount, chapterWordIds, litMasteryCount } from "../../domain/stages";
 import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave } from "../session";
@@ -22,7 +23,8 @@ export class EndingScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
     queueWarm(this, ["atlas_ui_core"], ["bg_ending"]);
   }
@@ -70,12 +72,12 @@ export class EndingScene extends Phaser.Scene {
       fontSize: "22px",
       color: TEAL_DEEP,
     });
-    this.add.text(150, 440, "戴上花环，头盔会藏起来。", {
+    this.add.text(150, 440, "花环戴在帽外。战士只藏羽饰。", {
       fontFamily: FONT,
       fontSize: "16px",
       color: NOTE,
     });
-    const hero = new WarriorSprite(this, 1040, 560, 0.55, save.equippedCosmeticIds, save.equippedOutfitId);
+    const hero = new ClassSideSprite(this, 1040, 560, savedClassId(save), 0.55, save.equippedCosmeticIds, save.equippedOutfitId);
     hero.play("victory");
     drawEquippedTitle(this, 1040, 200, save.equippedTitleId);
     warmButton(this, 280, 720, "回村子", () => this.scene.start("overworld"), { width: 220 });

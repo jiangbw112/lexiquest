@@ -1,21 +1,26 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
+import { CLASSES } from "../../domain/classes";
+import { INVENTOR_LOCK_NOTE, isClassUnlocked, resolvedClassId, selectClass } from "../../domain/class-unlock";
 import { createSave } from "../../domain/progress";
 import { sanitizeName } from "../../domain/appearance";
-import { classById } from "../../domain/classes";
-import type { GradeBand } from "../../domain/types";
-import { WarriorSprite } from "../art/warrior-sprite";
+import type { ClassId, GradeBand } from "../../domain/types";
+import { portraitFrame } from "../art/class-atlas";
+import { queueClassPortraits } from "../art/class-load";
 import { cjkWrap } from "../layout";
-import { P0_APPEARANCE, P0_CLASS_ID, P0_NOTE } from "../p0";
+import { P0_APPEARANCE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
-import { commit } from "../session";
-import { FONT, paper } from "../ui";
+import { commit, getSave } from "../session";
+import { FONT, listenKeys, paper } from "../ui";
 import { warmButton, warmPanel } from "../warm/kit";
 import { paintRoom, queueWarm } from "../warm/load";
 import { INK, MUTED } from "../warm/theme";
 
+const CARD_KEYS = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"];
+
 export class CreateScene extends Phaser.Scene {
   private grades: GradeBand[] = [];
+  private classId: ClassId = "warrior";
 
   constructor() {
     super("create");
@@ -23,10 +28,12 @@ export class CreateScene extends Phaser.Scene {
 
   preload(): void {
     queueWarm(this, ["atlas_ui_core"], ["bg_room"]);
+    queueClassPortraits(this);
   }
 
   init(data: { grades?: readonly string[] } = {}): void {
     this.grades = normalizeGrades(data.grades);
+    this.classId = "warrior";
   }
 
   create(): void {
@@ -53,14 +60,29 @@ export class CreateScene extends Phaser.Scene {
         if (error) error.textContent = "名字用 1 到 12 个字。";
         return;
       }
-      commit(createSave({ name, classId: P0_CLASS_ID, appearance: P0_APPEARANCE, now: Date.now(), grades: this.grades }));
+      const classId = resolvedClassId(this.classId, getSave());
+      commit(createSave({ name, classId, appearance: P0_APPEARANCE, now: Date.now(), grades: this.grades }));
+      probeNote(`class:${this.classId}`);
       this.leave("overworld");
     };
     form?.addEventListener("submit", submit);
+    listenKeys(this, (event) => {
+      if (event.target instanceof HTMLInputElement) return;
+      const index = CARD_KEYS.indexOf(event.code);
+      if (index < 0) return;
+      this.pick(CLASSES[index].id);
+    });
     this.events.once("shutdown", () => {
       form?.removeEventListener("submit", submit);
       form?.classList.remove("open");
     });
+  }
+
+  private pick(id: ClassId): void {
+    const next = selectClass(this.classId, id, getSave());
+    if (next === this.classId) return;
+    this.classId = next;
+    this.draw();
   }
 
   private leave(scene: string): void {
@@ -72,24 +94,48 @@ export class CreateScene extends Phaser.Scene {
     this.children.removeAll(true);
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
+    const progress = getSave();
+    CLASSES.forEach((def, index) => {
+      const cx = 124 + index * 206;
+      const unlocked = isClassUnlocked(def.id, progress);
+      const selected = unlocked && def.id === this.classId;
+      const box = this.add.rectangle(cx, 132, 196, 220, unlocked ? 0xfff4dc : 0xc8bfb0, selected ? 0.96 : 0.55);
+      box.setStrokeStyle(selected ? 6 : 2, selected ? 0xc4533a : 0x3b2a20);
+      const portrait = this.add.image(cx, 118, "cls:portraits", portraitFrame(def.id, "side"));
+      portrait.setOrigin(0.5, 0.875);
+      portrait.setScale(0.18);
+      if (!unlocked) portrait.setTint(0x141414);
+      this.add.text(cx, 148, `${index + 1} ${def.name}`, {
+        fontFamily: FONT,
+        fontSize: "20px",
+        color: unlocked ? INK : MUTED,
+      }).setOrigin(0.5, 0);
+      this.add.text(cx, 176, unlocked ? def.blurb : INVENTOR_LOCK_NOTE, {
+        fontFamily: FONT,
+        fontSize: unlocked ? "14px" : "13px",
+        color: MUTED,
+        align: "center",
+        wordWrap: cjkWrap(176),
+      }).setOrigin(0.5, 0);
+      if (!unlocked) return;
+      const zone = this.add.zone(cx, 132, 196, 220).setInteractive({ useHandCursor: true });
+      zone.on("pointerdown", () => this.pick(def.id));
+    });
     const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label ?? id).join("、");
-    this.add.text(180, 64, "给战士起名字", { fontFamily: FONT, fontSize: "40px", color: INK });
-    this.add.text(180, 118, P0_NOTE, { fontFamily: FONT, fontSize: "18px", color: MUTED, wordWrap: cjkWrap(700) });
-    this.add.text(180, 176, classById(P0_CLASS_ID).blurb, { fontFamily: FONT, fontSize: "18px", color: INK, wordWrap: cjkWrap(700) });
-    this.add.text(180, 470, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "24px", color: INK });
-    this.add.text(180, 520, "名字在画面中间输入。Enter 出发。年级可以稍后在给家长里改。", {
+    this.add.text(160, 320, "选一个职业", { fontFamily: FONT, fontSize: "32px", color: INK });
+    this.add.text(160, 368, "按 1 到 6，或点一张卡片。名字在右边输入。", {
       fontFamily: FONT,
       fontSize: "18px",
       color: MUTED,
-      wordWrap: cjkWrap(760),
+      wordWrap: cjkWrap(280),
     });
-    this.add.text(180, 700, "用键盘输入名字。", {
+    this.add.text(160, 500, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "22px", color: INK });
+    this.add.text(160, 548, "Enter 出发。年级可以稍后在给家长里改。", {
       fontFamily: FONT,
-      fontSize: "16px",
+      fontSize: "18px",
       color: MUTED,
+      wordWrap: cjkWrap(280),
     });
-    const hero = new WarriorSprite(this, 980, 280, 0.5);
-    hero.play("idle");
-    warmButton(this, 270, 600, "重选年级", () => this.leave("grades"), { width: 180, tone: "secondary" });
+    warmButton(this, 250, 640, "重选年级", () => this.leave("grades"), { width: 180, tone: "secondary" });
   }
 }

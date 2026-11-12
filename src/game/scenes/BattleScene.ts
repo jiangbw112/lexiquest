@@ -18,8 +18,9 @@ import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { drawEquippedTitle } from "../art/title-bar";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
 import { ATTACK_HINT_TOAST, cjkWrap } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
@@ -91,6 +92,8 @@ export class BattleScene extends Phaser.Scene {
   private presenting = false;
   private resultsOpened = false;
   private battleHero?: Phaser.GameObjects.Container;
+  private classHero?: ClassSideSprite;
+  private dashOpen = false;
   private battleTitle: Phaser.GameObjects.GameObject[] = [];
   private battleHud: Phaser.GameObjects.GameObject[] = [];
   private lunging = false;
@@ -127,7 +130,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
     queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"], ["bg_forest"]);
     if (this.bossFight) queueBossAtlases(this);
@@ -390,6 +394,7 @@ export class BattleScene extends Phaser.Scene {
 
   private playMotion(beats: readonly MotionBeat[], before: BattleState): void {
     this.lunging = beats.some((beat) => beat.kind === "lunge" || beat.kind === "step" || beat.kind === "projectile" || beat.kind === "return");
+    this.dashOpen = beats.some((beat) => (beat.kind === "lunge" || beat.kind === "step") && beat.attacker === "player");
     this.displayHp = hpAtMotionStart({ playerHp: before.playerHp, enemyHp: before.enemyHp });
     this.hpSteps = [...(this.state.turnDeltas ?? [])];
     this.notePlan = planBattleNote(this.state.lastNote);
@@ -422,6 +427,7 @@ export class BattleScene extends Phaser.Scene {
         ? (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X))
         : (this.battleHero?.x ?? PLAYER_BATTLE_X);
       const onHit = () => {
+        if (beat.attacker === "player") this.classHero?.playSequence(this.poses);
         this.spawnSigned(hit.target, hit.amount);
         this.shot?.onShown(beat.attacker);
       };
@@ -448,6 +454,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     if (beat.kind === "projectile") {
+      this.classHero?.playSequence(this.poses);
       this.launchProjectile(() => this.playBeats(beats, index + 1));
       return;
     }
@@ -864,12 +871,18 @@ export class BattleScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     warmBackground(this, "bg_forest");
-    const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    const hero = new ClassSideSprite(this, 300, 520, savedClassId(save), 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    this.classHero = hero;
     this.battleHero = hero.root;
     const titleAt = this.children.length;
     drawEquippedTitle(this, 300, 250, save.equippedTitleId);
     this.battleTitle = this.children.list.slice(titleAt);
-    hero.playSequence(this.poses);
+    if (this.dashOpen) {
+      hero.play("dash");
+      this.dashOpen = false;
+    } else {
+      hero.playSequence(this.poses);
+    }
     this.drawMonster();
     const hudAt = this.children.length;
     warmPanel(this, 350, 92, 400, 104);

@@ -36,18 +36,21 @@ describe("worn appearance", () => {
     expect(wornCosmeticIds([])).toEqual([]);
   });
 
-  it("passes the equipped outfit into the warrior and the plaza actor", () => {
+  it("passes the equipped outfit into the side view and keeps actor clothes off the plaza", () => {
     const battle = readFileSync(new URL("../scenes/BattleScene.ts", import.meta.url), "utf8");
     const wardrobe = readFileSync(new URL("../scenes/WardrobeScene.ts", import.meta.url), "utf8");
     const ending = readFileSync(new URL("../scenes/EndingScene.ts", import.meta.url), "utf8");
     const results = readFileSync(new URL("../scenes/BattleResultsScene.ts", import.meta.url), "utf8");
     const village = readFileSync(new URL("../scenes/OverworldScene.ts", import.meta.url), "utf8");
     const warrior = readFileSync(new URL("./warrior-sprite.ts", import.meta.url), "utf8");
+    const side = readFileSync(new URL("./class-sprite.ts", import.meta.url), "utf8");
     expect(battle).toContain("save.equippedOutfitId");
     expect(wardrobe).toContain("save.equippedOutfitId");
     expect(ending).toContain("save.equippedOutfitId");
     expect(results).toContain("this.view.equippedOutfitId");
-    expect(village).toContain("applyAppearance(save.equippedOutfitId, save.equippedCosmeticIds)");
+    expect(village).toContain("new ClassTopSprite");
+    expect(village).not.toContain("applyAppearance");
+    expect(side).toContain("outfitExtraFrames");
     expect(warrior).toContain("outfitExtraFrames");
   });
 });

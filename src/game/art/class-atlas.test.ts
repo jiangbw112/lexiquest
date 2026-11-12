@@ -1,0 +1,38 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { CLASS_IDS } from "../../domain/classes";
+import { classAssetPath, countClassAnimKeys, topFacing } from "./class-atlas";
+
+describe("class atlases", () => {
+  it("points each class at its v1.0 sheet", () => {
+    expect(classAssetPath("ranger", "side")).toBe("assets/classes/v1.0/side/cls_ranger_side@2x.png");
+    expect(classAssetPath("mage", "top")).toBe("assets/classes/v1.0/top/cls_mage_top@2x.png");
+    for (const id of CLASS_IDS) {
+      expect(classAssetPath(id, "side")).toBe(`assets/classes/v1.0/side/cls_${id}_side@2x.png`);
+      expect(classAssetPath(id, "top")).toBe(`assets/classes/v1.0/top/cls_${id}_top@2x.png`);
+    }
+  });
+
+  it("mirrors east when the hero faces west", () => {
+    expect(topFacing("w")).toEqual({ dir: "e", flipX: true });
+    expect(topFacing("e")).toEqual({ dir: "e", flipX: false });
+    expect(topFacing("n")).toEqual({ dir: "n", flipX: false });
+    expect(topFacing("s")).toEqual({ dir: "s", flipX: false });
+  });
+
+  it("builds 493 animation keys from the layer tables", () => {
+    expect(countClassAnimKeys()).toBe(493);
+  });
+
+  it("leaves the boot preload list unchanged", () => {
+    const source = readFileSync(new URL("../scenes/BootScene.ts", import.meta.url), "utf8");
+    const preload = source.slice(source.indexOf("preload(): void {"), source.indexOf("create(): void {"));
+    expect(preload).toContain('this.load.atlas("actors"');
+    expect(preload).toContain("queueWarriorAtlases(this)");
+    expect(preload).toContain("queueChapterCosmetics(this)");
+    expect(preload).toContain('queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_home", "bg_village"])');
+    expect(preload).toContain('this.load.image("logo_title"');
+    expect(preload).not.toContain("assets/classes");
+    expect(preload).not.toContain("queueClass");
+  });
+});
