@@ -53,6 +53,16 @@ function insideUiLabel(node) {
   return false;
 }
 
+/** The banner template lives in this function; the scene passes it through uiLabel. */
+function insideBossBanner(node) {
+  let current = node.parent;
+  while (current) {
+    if (ts.isFunctionDeclaration(current) && current.name?.text === "bossVictoryBanner") return true;
+    current = current.parent;
+  }
+  return false;
+}
+
 const core = new Map();
 const kuaile = new Map();
 const meanings = [];
@@ -84,7 +94,7 @@ for (const file of tsFiles) {
     if ((literal || chunk) && node.text) {
       const where = loc(file, sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1);
       add(core, node.text, where);
-      if (insideUiLabel(node)) add(kuaile, node.text, where);
+      if (insideUiLabel(node) || insideBossBanner(node)) add(kuaile, node.text, where);
     }
     ts.forEachChild(node, visit);
   };
@@ -100,19 +110,32 @@ function takeMeanings(file, words) {
   }
 }
 
-for (const rel of sources.chapters) {
-  const file = path.join(root, rel);
-  const chapter = JSON.parse(readFileSync(file, "utf8"));
+function addChapterNames(rel, file, chapter, intoKuaile) {
   if (typeof chapter.name_zh === "string") {
     add(core, chapter.name_zh, `${rel}:name_zh`);
-    add(kuaile, chapter.name_zh, `${rel}:name_zh`);
+    if (intoKuaile) add(kuaile, chapter.name_zh, `${rel}:name_zh`);
+  }
+  if (typeof chapter.boss_name_zh === "string") {
+    add(core, chapter.boss_name_zh, `${rel}:boss_name_zh`);
+    add(kuaile, chapter.boss_name_zh, `${rel}:boss_name_zh`);
   }
   for (const stage of chapter.stages ?? []) {
     add(core, stage.name_zh ?? "", `${rel}:stage ${stage.id} name_zh`);
-    add(kuaile, stage.name_zh ?? "", `${rel}:stage ${stage.id} name_zh`);
+    if (intoKuaile) add(kuaile, stage.name_zh ?? "", `${rel}:stage ${stage.id} name_zh`);
     add(core, stage.goal_zh ?? "", `${rel}:stage ${stage.id} goal_zh`);
   }
   takeMeanings(file, chapter.chapter_extra_words ?? []);
+}
+
+const laterChapterNames = [];
+for (const rel of sources.chapters) {
+  const file = path.join(root, rel);
+  const chapter = JSON.parse(readFileSync(file, "utf8"));
+  if (Array.isArray(chapter) || Array.isArray(chapter.chapters)) {
+    for (const item of Array.isArray(chapter) ? chapter : chapter.chapters) laterChapterNames.push({ rel, item });
+  } else {
+    addChapterNames(rel, file, chapter, true);
+  }
 }
 
 for (const rel of sources.wordlists) {
@@ -138,6 +161,27 @@ for (const grade of [3, 4, 5, 6]) {
 for (const item of meanings) {
   for (const ch of Array.from(item.text)) {
     if (!covered.has(ch)) fail(`meaning glyph ${ch} U+${ch.codePointAt(0).toString(16)} from ${item.file} is in neither core nor a grade chunk`);
+  }
+}
+
+const gradeNumber = { G3: 3, G4: 4, G5: 5, G6: 6 };
+for (const { rel, item } of laterChapterNames) {
+  if (typeof item.boss_name_zh === "string") add(kuaile, item.boss_name_zh, `${rel}:boss_name_zh`);
+  const grade = gradeNumber[item.grade] ?? null;
+  const texts = [item.name_zh, item.boss_name_zh, ...(item.stages ?? []).map((stage) => stage.name_zh)].filter((text) => typeof text === "string");
+  for (const text of texts) {
+    for (const ch of Array.from(text)) {
+      if (covered.has(ch) || ch.trim() === "") continue;
+      if (grade == null) {
+        add(core, ch, `${rel}:name_zh`);
+        covered.add(ch);
+        continue;
+      }
+      const list = grades[grade].get(ch) ?? [];
+      if (list.length < 4) list.push(`${rel}:name_zh`);
+      grades[grade].set(ch, list);
+      covered.add(ch);
+    }
   }
 }
 

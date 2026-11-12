@@ -225,10 +225,12 @@ describe("boot and renderer guards", () => {
     expect(probe).toContain("Phaser.WEBGL");
     expect(probe).not.toContain("Phaser.CANVAS");
     const map = readFileSync(new URL("./scenes/StageMapScene.ts", import.meta.url), "utf8");
-    expect(map).toContain("initialMapStageId");
+    expect(map).toContain("playStatuses");
+    expect(map).toContain("activeChapter");
+    expect(map).toContain("上一章");
     expect(map).toContain("this.tweens.killAll()");
     expect(map).toContain("learnedRequiredCount(save)");
-    expect(map).toContain("required.length");
+    expect(map).toContain("requiredWordIds(save).length");
     expect(map).not.toContain("FOREST_WORD_COUNT");
   });
 });

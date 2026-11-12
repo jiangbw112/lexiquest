@@ -268,7 +268,7 @@ const report = {
 };
 console.log(JSON.stringify(report, null, 2));
 const desktopWording =
-  report.desktopLabel === "清除这台电脑的缓存" &&
+  report.desktopLabel === "清除这台电脑上的存档" &&
   report.desktopNotice.includes("这台电脑") &&
   report.desktopNotice.includes("游戏数据") &&
   !report.desktopNotice.includes("站点数据") &&

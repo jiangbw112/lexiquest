@@ -70,6 +70,8 @@ export interface BattleResultsView {
   stars: StarCount | null;
   stageId: number;
   boss: boolean;
+  /** This chapter's boss, from the fight. The victory banner uses it. */
+  bossName: string;
   firstChapterClear: boolean;
   practiceOnly: boolean;
   thirdReplayReward: boolean;
@@ -102,6 +104,11 @@ export function praiseFor(stars: StarCount): string {
   if (stars === 3) return "太棒了！";
   if (stars === 2) return "打得真好！";
   return "赢啦！继续加油！";
+}
+
+/** Boss victory title. `bossName` is the chapter's own boss, not a fixed forest name. */
+export function bossVictoryBanner(bossName: string): string {
+  return `打败了${bossName}！`;
 }
 
 const THUMB: Record<string, string> = {
@@ -165,6 +172,7 @@ export function buildResultsView(input: {
   answers: readonly ResultAnswer[];
   stageId: number;
   boss: boolean;
+  bossName?: string;
   now: number;
 }): BattleResultsView {
   const words = wordsForResults(input.answers);
@@ -228,6 +236,7 @@ export function buildResultsView(input: {
     stars,
     stageId: input.stageId,
     boss: input.boss,
+    bossName: input.bossName ?? "",
     firstChapterClear: won && input.boss && !input.before.chapterCleared && input.after.chapterCleared,
     practiceOnly,
     thirdReplayReward: won && !practiceOnly && beforeReplay === 2 && afterReplay === 3,

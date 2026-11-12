@@ -62,7 +62,15 @@ function faces(stage: ForestStage, save: SaveData, mode: "hide" | "learned" | "a
 }
 
 /** Right-hand map panel. Counts and words come from the chapter file and the save. */
-export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus): MapPanel {
+export interface MapPanelCounts {
+  wins: number;
+  bestStars: 1 | 2 | 3 | null;
+  /** Used only while the stage is locked. */
+  lockedLine?: string;
+  bossLabel?: string;
+}
+
+export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus, counts?: MapPanelCounts): MapPanel {
   const total = stage.new_words.length;
   const learned = stage.new_words.filter((id) => save.wordCards[id]).length;
   const boss = stage.type === "boss";
@@ -79,8 +87,9 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     learned,
     total,
     progressLabel,
-    bestStars: bestOf(save, stage.id),
+    bestStars: counts ? counts.bestStars : bestOf(save, stage.id),
   };
+  const bossLabel = counts?.bossLabel ?? uiLabel("挑战林心守护者");
   if (status === "locked" && !boss) {
     const after = stage.unlock && "after_stage" in stage.unlock ? stage.unlock.after_stage : null;
     return {
@@ -90,7 +99,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       showLock: true,
       wins: null,
       words: faces(stage, save, "hide"),
-      unlockLine: after === null ? null : `通过第 ${after} 关后开启`,
+      unlockLine: counts?.lockedLine ?? (after === null ? null : `通过第 ${after} 关后开启`),
       note: null,
       buttons: [{ id: "fight", label: uiLabel("未开启"), enabled: false, tone: "primary" }],
     };
@@ -103,9 +112,9 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       showLock: true,
       wins: null,
       words: faces(stage, save, "learned"),
-      unlockLine: bossUnlockLine(save),
+      unlockLine: counts?.lockedLine ?? bossUnlockLine(save),
       note: null,
-      buttons: [{ id: "fight", label: uiLabel("挑战林心守护者"), enabled: false, tone: "coral" }],
+      buttons: [{ id: "fight", label: bossLabel, enabled: false, tone: "coral" }],
     };
   }
   if (boss && status === "open") {
@@ -118,7 +127,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       words: faces(stage, save, "learned"),
       unlockLine: null,
       note: null,
-      buttons: [{ id: "fight", label: uiLabel("挑战林心守护者"), enabled: true, tone: "coral" }],
+      buttons: [{ id: "fight", label: bossLabel, enabled: true, tone: "coral" }],
     };
   }
   if (boss && status === "cleared") {
@@ -145,7 +154,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     goal: emptyLearn ? `赢 ${winsNeeded} 场小战斗` : null,
     statusLabel: cleared ? "已通过" : "进行中",
     showLock: false,
-    wins: stageWins(save, stage.id),
+    wins: counts ? counts.wins : stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
     note: cleared && practiceFull(save)

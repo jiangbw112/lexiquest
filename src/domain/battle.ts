@@ -1,5 +1,5 @@
 import { classById } from "./classes";
-import { wordById } from "./catalog";
+import { wordById, type WordDef } from "./catalog";
 import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import {
   drawSkillQuestionWord,
@@ -164,6 +164,11 @@ export interface BattleState {
    * Each amount is after shield, max HP, and zero clamps. Zero changes are omitted.
    */
   turnDeltas: TurnDelta[];
+  /**
+   * Unlocked words a meaning question may use as distractors.
+   * Null keeps the forest sample pool.
+   */
+  distractorIds: string[] | null;
 }
 
 export interface TurnDelta {
@@ -199,6 +204,8 @@ export function startBattle(input: {
   litWordIds?: readonly string[];
   /** Learned words, earliest review first. Ties should already be shuffled. */
   padOrder?: readonly string[];
+  /** Unlocked word ids. Meaning questions keep the answer's grade and drop same meanings. */
+  distractorIds?: readonly string[];
 }): BattleState {
   const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
   const enemy = input.enemy ?? (known
@@ -263,6 +270,7 @@ export function startBattle(input: {
     askedCount: {},
     padOrder: [...(input.padOrder ?? [])],
     turnDeltas: [],
+    distractorIds: input.distractorIds ? [...input.distractorIds] : null,
   };
 }
 
@@ -529,9 +537,12 @@ function askQuestion(
       state.spellingAsked < PROVISIONAL.chapterEnding.bossSpellingMax &&
       nextShare <= state.spellingCap + 1e-9,
   );
+  const distractors = state.distractorIds
+    ? state.distractorIds.map((id) => wordById(id)).filter((item): item is WordDef => Boolean(item))
+    : undefined;
   const question = spell
     ? spellingQuestion(drawn.wordId, lit)
-    : quizForWord(drawn.wordId, state.seed + state.casts * 13, state.questionsAsked % 2 === 0 ? "zh-to-en" : "en-to-zh");
+    : quizForWord(drawn.wordId, state.seed + state.casts * 13, state.questionsAsked % 2 === 0 ? "zh-to-en" : "en-to-zh", distractors);
   if (!question) return { ok: false, reason: "这道题现在出不了", state };
   return {
     ok: true,

@@ -18,6 +18,7 @@ import {
 import { notePracticeAnswer, parentView, studyDayKey } from "./parent";
 import { applyBattleOutcome, createSave, learnWord, reviewWord } from "./progress";
 import { DEFAULT_APPEARANCE } from "./appearance";
+import { scopeWordIds } from "./chapter-plan";
 import { chapterWordIds, litMasteryCount } from "./stages";
 import { deserialize, serialize } from "./storage";
 import type { SaveData } from "./types";
@@ -288,7 +289,8 @@ describe("forest chapter rewards", () => {
     expect(equipTitle(cleared, "missing")).toBe(cleared);
     const facing = parentView(save, START).masteredLine;
     expect(facing).toContain("已通关森林");
-    expect(facing).toContain(`徽章亮起 0 / ${chapterWordIds().length}`);
+    expect(facing).toContain(`徽章亮起 0 / ${scopeWordIds(save).length}`);
+    expect(facing).toContain("已通关 1/");
     expect(facing).not.toMatch(/最强|排行|稀有/);
   });
 

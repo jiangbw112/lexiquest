@@ -1,3 +1,4 @@
+import { spellingSkipIds } from "./chapter-plan";
 import type { WordCardRecord } from "./types";
 
 /** A collected card. Choosing the right meaning is this, and is not mastery. */
@@ -5,9 +6,14 @@ export function isRecognized(card: { wordId: string } | undefined): boolean {
   return Boolean(card);
 }
 
-/** Recognized, and spelled once with the answer hidden. The meaning badge is separate. */
-export function isMastered(card: { spelledAloneAt?: number } | undefined): boolean {
-  return typeof card?.spelledAloneAt === "number";
+/**
+ * Recognized, and spelled once with the answer hidden. The meaning badge is separate.
+ * Names that are never spelling questions stay at 已认识 even if an old save stored a time.
+ */
+export function isMastered(card: { wordId?: string; spelledAloneAt?: number } | undefined): boolean {
+  if (typeof card?.spelledAloneAt !== "number") return false;
+  if (card.wordId && spellingSkipIds().includes(card.wordId)) return false;
+  return true;
 }
 
 export function grantWordCard(

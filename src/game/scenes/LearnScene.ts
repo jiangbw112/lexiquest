@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { GRADE_BANDS, lessonUnits, posGloss, wordById } from "../../domain/catalog";
+import { activeChapter, isChapterUnlocked, unlockedWordIds } from "../../domain/chapter-plan";
+import { GRADE_BANDS, lessonUnits, posGloss, wordById, type UnitDef, type WordDef } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
 import { NEW_WORD_CAP_NOTICE, canLearnNewWord, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
@@ -76,8 +77,25 @@ export class LearnScene extends Phaser.Scene {
     probeNote("learn:ready");
   }
 
-  private units() {
-    return lessonUnits(getSave()?.selectedGrades);
+  private units(): UnitDef[] {
+    const save = getSave();
+    if (!save) return [];
+    const chapter = activeChapter(save);
+    if (!isChapterUnlocked(save, chapter)) return [];
+    if (chapter.grade === "mixed") return lessonUnits(save.selectedGrades);
+    return [{
+      id: chapter.id,
+      grade: chapter.grade,
+      semester: 1,
+      index: chapter.index,
+      title: chapter.name,
+      status: "sample",
+      wordIds: chapter.wordIds,
+    }];
+  }
+
+  private distractors(save: NonNullable<ReturnType<typeof getSave>>): WordDef[] {
+    return unlockedWordIds(save).map((id) => wordById(id)).filter((word): word is WordDef => Boolean(word));
   }
 
   private badgeLit(wordId: string): boolean {
@@ -146,7 +164,8 @@ export class LearnScene extends Phaser.Scene {
   private startMeaning(): void {
     const id = this.currentId();
     if (!id || this.atNewWordCap()) return;
-    this.question = quizForWord(id, hashSeed(`${id}:${this.retry}`), "zh-to-en");
+    const save = getSave();
+    this.question = quizForWord(id, hashSeed(`${id}:${this.retry}`), "zh-to-en", save ? this.distractors(save) : undefined);
     this.phase = "quiz";
     this.draw();
   }
@@ -154,7 +173,8 @@ export class LearnScene extends Phaser.Scene {
   private startListening(): void {
     const id = this.currentId();
     if (!id || this.atNewWordCap()) return;
-    this.question = listeningQuestion(id, hashSeed(`listen:${id}:${this.retry}`));
+    const save = getSave();
+    this.question = listeningQuestion(id, hashSeed(`listen:${id}:${this.retry}`), save ? this.distractors(save) : undefined);
     this.phase = "listen";
     if (this.question.speakText) speakWord(this.question.speakText, browserSpeaker());
     this.draw();
