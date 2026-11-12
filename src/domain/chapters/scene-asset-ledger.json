@@ -1,6 +1,6 @@
 {
   "version": "integration_v1.0",
-  "note": "WebP files were copied byte for byte. They were not recompressed. integration_v1.0.1 uses the journey night set for pep_g6_01 and pep_g6_04. Every other journey chapter uses the day set.",
+  "note": "WebP files were copied byte for byte. They were not recompressed. K35 (Haru 18:56): only pep_g6_01 uses the journey night set. pep_g6_03, pep_g6_04, pep_g5_08, pep_g5_09, pep_g6_05, and pep_g6_06 use the day set. The night files stay in the repo because pep_g6_01 references them.",
   "chapters": [
     {
       "chapterId": "pep_g3_01",
