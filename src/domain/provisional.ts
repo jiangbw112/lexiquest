@@ -43,10 +43,18 @@ export const PROVISIONAL = {
     bossPhaseHpByClass: {
       warrior: 75,
       mage: 90,
-      ranger: 75,
-      healer: 30,
-      inventor: 65,
-      explorer: 65,
+      ranger: 85,
+      healer: 48,
+      inventor: 70,
+      explorer: 75,
+    },
+    /**
+     * Paper numbers for a later exam boss. No fight reads them in 1.0.0.
+     * Midterm is round(boss × 1.6). Final is round(boss × 1.4).
+     */
+    examBossPhaseHp: {
+      midterm: { warrior: 120, mage: 144, ranger: 136, healer: 77, inventor: 112, explorer: 120 },
+      final: { warrior: 105, mage: 126, ranger: 119, healer: 67, inventor: 98, explorer: 105 },
     },
     /** Boss spelling is also capped by this many questions, on top of the 30% share. */
     bossSpellingMax: 4,

@@ -9,6 +9,7 @@ import {
 } from "./skill-cast";
 import {
   castEffect,
+  castHeal,
   fillSkillSlots,
   SKILL_CARD_RULES,
   type SkillCardRules,
@@ -284,13 +285,21 @@ function pushLog(log: string[], line: string): string[] {
   return [...log, line].slice(-5);
 }
 
+/** Immediate half, then the rest. The rest is cancelled by the caller when the turn ends early. */
+export function splitDelayDamage(amount: number): { now: number; later: number } {
+  const now = Math.round(amount / 2);
+  return { now, later: amount - now };
+}
+
 function applySlotEffect(
   slot: SkillSlot,
   amount: number,
   current: { enemyHp: number; playerHp: number; playerMaxHp: number; guard: number },
+  healAmount = 0,
 ): { enemyHp: number; playerHp: number; guard: number; note: string } {
-  if (slot.kind === "damage") {
-    return { ...current, enemyHp: current.enemyHp - amount, note: `${slot.name}造成了伤害。` };
+  if (slot.kind === "damage" || slot.kind === "delay-damage") {
+    const note = amount > 0 ? `${slot.name}造成了伤害。` : "这次没有打中。";
+    return { ...current, enemyHp: current.enemyHp - amount, note };
   }
   if (slot.kind === "guard") {
     return { ...current, guard: amount, note: `${slot.name}挡下了下一次伤害。` };
@@ -300,6 +309,17 @@ function applySlotEffect(
     const healed = Math.min(amount, Math.max(0, room));
     const note = room <= 0 ? "体力已经满了。" : `${slot.name}恢复了体力。`;
     return { ...current, playerHp: current.playerHp + healed, note };
+  }
+  if (slot.kind === "strike-heal") {
+    const room = current.playerMaxHp - current.playerHp;
+    const healed = Math.min(healAmount, Math.max(0, room));
+    const note = healed > 0 ? `${slot.name}造成了伤害，也恢复了体力。` : `${slot.name}造成了伤害。`;
+    return {
+      ...current,
+      enemyHp: current.enemyHp - amount,
+      playerHp: current.playerHp + healed,
+      note,
+    };
   }
   const guard = Math.round(amount * 0.45);
   return {
@@ -322,7 +342,7 @@ function supportAmount(amount: number, streak: number): number {
 }
 
 function damagingKind(kind: SkillSlot["kind"]): boolean {
-  return kind === "damage" || kind === "strike-guard";
+  return kind === "damage" || kind === "strike-guard" || kind === "strike-heal" || kind === "delay-damage";
 }
 
 function afterEnemyHit(state: BattleState, note: string): BattleState {
@@ -359,7 +379,19 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
   };
 }
 
-function finishPlayerTurn(state: BattleState, note: string): BattleState {
+function finishPlayerTurn(state: BattleState, note: string, skipCounter = false): BattleState {
+  if (state.enemyHp > 0 && skipCounter) {
+    return {
+      ...state,
+      guard: 0,
+      phase: "choose",
+      turn: state.turn + 1,
+      pendingSlot: null,
+      pendingBasic: null,
+      question: null,
+      lastNote: note,
+    };
+  }
   if (state.enemyHp > 0) return afterEnemyHit(state, note);
   const next = state.phases?.[state.phaseIndex + 1];
   if (next) {
@@ -402,6 +434,8 @@ function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
     origin: "base",
     fullPower: effect,
     basePower: effect,
+    fullHeal: 0,
+    baseHeal: 0,
     energyCost: 0,
     level: null,
   };
@@ -428,15 +462,21 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   } else if (damaging) {
     supportStreak = 0;
   }
+  const delayed = slot.kind === "delay-damage";
+  const split = delayed ? splitDelayDamage(amount) : { now: amount, later: 0 };
+  let later = split.later;
+  const healAmount = slot.kind === "strike-heal" ? castHeal(slot, correct, state.rules.wrongAnswerMultiplier) : 0;
   const hero = classById(state.classId);
   const energy = Math.min(state.maxEnergy, state.energy + (correct ? hero.energyGain : 0));
-  const applied = applySlotEffect(slot, amount, {
+  const applied = applySlotEffect(slot, delayed ? split.now : amount, {
     enemyHp: state.enemyHp,
     playerHp: state.playerHp,
     playerMaxHp: state.playerMaxHp,
     guard: state.guard,
-  });
+  }, healAmount);
   const phaseEnd = Boolean(state.shaken && correct && damaging && state.phases);
+  const whiff = delayed && split.now === 0;
+  if (whiff || phaseEnd || applied.enemyHp <= 0) later = 0;
   const quality = correct ? "答对了，全力发动。" : "答错了，只有减弱的基础效果。";
   const note = `${quality}${applied.note}`;
   const enemyHpForTurn = phaseEnd ? 0 : applied.enemyHp;
@@ -456,12 +496,27 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
       lastNote: note,
     },
     note,
+    whiff,
   );
+  if (finished.phase === "lost") later = 0;
+  let laterAmount = 0;
+  if (later > 0 && finished.phase !== "won" && finished.phase !== "lost" && finished.enemyHp > 0) {
+    const beforeLater = finished.enemyHp;
+    const nextEnemy = beforeLater - later;
+    const followNote = `${finished.lastNote}齿轮还在转。`;
+    laterAmount = clampedHpDelta(beforeLater, Math.max(0, nextEnemy), finished.enemyMaxHp);
+    if (nextEnemy <= 0) {
+      finished = finishPlayerTurn({ ...finished, enemyHp: nextEnemy, lastNote: followNote }, followNote);
+    } else {
+      finished = { ...finished, enemyHp: nextEnemy, lastNote: followNote };
+    }
+  }
   const playerHit = clampedHpDelta(playerHpForTurn, finished.playerHp, state.playerMaxHp);
   const turnDeltas: TurnDelta[] = [];
   if (enemyAmount !== 0) turnDeltas.push({ target: "enemy", amount: enemyAmount });
   if (playerEffect !== 0) turnDeltas.push({ target: "player", amount: playerEffect });
   if (playerHit !== 0) turnDeltas.push({ target: "player", amount: playerHit });
+  if (laterAmount !== 0) turnDeltas.push({ target: "enemy", amount: laterAmount });
   finished = { ...finished, turnDeltas };
   if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= PROVISIONAL.chapterEnding.shakenAfterQuestions) {
     finished = { ...finished, shaken: true };

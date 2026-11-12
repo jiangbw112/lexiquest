@@ -14,7 +14,7 @@ export const SKILL_CARD_RULES: SkillCardRules = PROVISIONAL.skillCards;
 export const MAX_EQUIPPED_SKILLS = PROVISIONAL.skillCards.maxEquipped;
 export const MAX_SKILL_LEVEL = 3;
 
-export type SkillKind = "damage" | "guard" | "heal" | "strike-guard";
+export type SkillKind = "damage" | "guard" | "heal" | "strike-guard" | "strike-heal" | "delay-damage";
 
 export interface SkillDef {
   id: string;
@@ -25,6 +25,8 @@ export interface SkillDef {
   kind: SkillKind;
   power: number;
   order: number;
+  /** Used only by strike-heal. The damage half stays on `power`. */
+  healPower?: number;
 }
 
 export const SKILLS: SkillDef[] = [
@@ -32,7 +34,7 @@ export const SKILLS: SkillDef[] = [
   { id: "warrior-shout", classId: "warrior", name: "战吼", description: "大喊一声，打出更重的一击。", cost: 2, kind: "damage", power: 14, order: 1 },
   { id: "warrior-hold", classId: "warrior", name: "坚守", description: "举起盾，接下词灵的冲撞。", cost: 1, kind: "guard", power: 12, order: 2 },
   { id: "warrior-spin", classId: "warrior", name: "旋风斩", description: "转一圈，把词灵推远。", cost: 3, kind: "damage", power: 18, order: 3 },
-  { id: "mage-spark", classId: "mage", name: "火花", description: "一簇小火苗，明亮但不烫手。", cost: 2, kind: "damage", power: 12, order: 0 },
+  { id: "mage-spark", classId: "mage", name: "火花", description: "一簇小火苗，明亮但不烫手。", cost: 2, kind: "damage", power: 10, order: 0 },
   { id: "mage-ward", classId: "mage", name: "星盾", description: "用光做成的盾。", cost: 2, kind: "guard", power: 11, order: 1 },
   { id: "mage-glow", classId: "mage", name: "微光", description: "暖暖的光，补回一些体力。", cost: 2, kind: "heal", power: 12, order: 2 },
   { id: "mage-star", classId: "mage", name: "星落", description: "一颗小星星落在词灵面前。", cost: 3, kind: "damage", power: 18, order: 3 },
@@ -40,11 +42,11 @@ export const SKILLS: SkillDef[] = [
   { id: "ranger-step", classId: "ranger", name: "疾走", description: "侧步躲开下一击。", cost: 1, kind: "guard", power: 10, order: 1 },
   { id: "ranger-herb", classId: "ranger", name: "草药", description: "路边的叶子也能帮忙。", cost: 2, kind: "heal", power: 9, order: 2 },
   { id: "ranger-volley", classId: "ranger", name: "连射", description: "快速的两下。", cost: 3, kind: "damage", power: 16, order: 3 },
-  { id: "healer-cure", classId: "healer", name: "治愈", description: "认真地包扎一下。", cost: 2, kind: "heal", power: 14, order: 0 },
-  { id: "healer-guard", classId: "healer", name: "守护", description: "先护住自己。", cost: 2, kind: "guard", power: 11, order: 1 },
-  { id: "healer-light", classId: "healer", name: "光击", description: "柔和的光也能把词灵推开。", cost: 2, kind: "damage", power: 9, order: 2 },
-  { id: "healer-cheer", classId: "healer", name: "鼓舞", description: "推开词灵，并挡住接下来的一些伤害。", cost: 3, kind: "strike-guard", power: 10, order: 3 },
-  { id: "inventor-gear", classId: "inventor", name: "齿轮弹", description: "弹出一颗圆圆的齿轮。", cost: 2, kind: "damage", power: 11, order: 0 },
+  { id: "healer-beam", classId: "healer", name: "光愈", description: "一道温和的光，推开词灵，也让自己好一些。", cost: 2, kind: "strike-heal", power: 7, healPower: 10, order: 0 },
+  { id: "healer-cure", classId: "healer", name: "治愈", description: "认真地包扎一下。", cost: 2, kind: "heal", power: 14, order: 1 },
+  { id: "healer-guard", classId: "healer", name: "守护", description: "先护住自己。", cost: 2, kind: "guard", power: 11, order: 2 },
+  { id: "healer-light", classId: "healer", name: "光击", description: "柔和的光也能把词灵推开。", cost: 2, kind: "damage", power: 9, order: 3 },
+  { id: "inventor-gear", classId: "inventor", name: "齿轮弹", description: "弹出一颗圆圆的齿轮。", cost: 2, kind: "delay-damage", power: 9, order: 0 },
   { id: "inventor-pad", classId: "inventor", name: "减震垫", description: "软垫接住下一次撞击。", cost: 1, kind: "guard", power: 11, order: 1 },
   { id: "inventor-fix", classId: "inventor", name: "修理", description: "拧紧松掉的部分，恢复体力。", cost: 2, kind: "heal", power: 10, order: 2 },
   { id: "inventor-over", classId: "inventor", name: "超载", description: "小机器全力转一圈。", cost: 3, kind: "damage", power: 17, order: 3 },
@@ -84,6 +86,14 @@ export function skillMagnitude(skill: SkillDef, classDef: ClassDef, level: numbe
   return Math.max(1, Math.round(skill.power * classDef.skillPower * levelScale));
 }
 
+/** Heal half of a strike-heal card. Zero for every other kind. */
+export function skillHealMagnitude(skill: SkillDef, classDef: ClassDef, level: number): number {
+  if (!skill.healPower) return 0;
+  const safeLevel = Math.min(MAX_SKILL_LEVEL, Math.max(1, level));
+  const levelScale = 1 + (safeLevel - 1) * 0.3;
+  return Math.max(1, Math.round(skill.healPower * classDef.skillPower * levelScale));
+}
+
 export function equipSkillIds(
   equipped: readonly string[],
   skillId: string,
@@ -116,6 +126,10 @@ export interface SkillSlot {
   /** Level-1 power, or the weaker filler power. A wrong answer reduces this, not fullPower. */
   basePower: number;
   energyCost: number;
+  /** Strike-heal restore on a correct answer. Other kinds leave this at 0. */
+  fullHeal: number;
+  /** Level-1 heal, or the filler heal. A wrong answer reduces this. */
+  baseHeal: number;
   /** 1–3 on an equipped card. Base fillers and the attack/block/heal stand-in have none. */
   level: number | null;
 }
@@ -125,6 +139,15 @@ export function classBasePower(classId: ClassId, rules: SkillCardRules = SKILL_C
   const starter = skillsForClass(classId)[0];
   if (!starter) throw new Error(`No skills for ${classId}`);
   const full = skillMagnitude(starter, classById(classId), 1);
+  const scaled = Math.round(full * rules.baseSkillPowerScale);
+  return Math.max(1, Math.min(full - 1, scaled));
+}
+
+/** Heal half of a strike-heal filler. Zero when the starter does not heal. */
+export function classBaseHeal(classId: ClassId, rules: SkillCardRules = SKILL_CARD_RULES): number {
+  const starter = skillsForClass(classId)[0];
+  if (!starter?.healPower) return 0;
+  const full = skillHealMagnitude(starter, classById(classId), 1);
   const scaled = Math.round(full * rules.baseSkillPowerScale);
   return Math.max(1, Math.min(full - 1, scaled));
 }
@@ -154,6 +177,8 @@ export function fillSkillSlots(
       origin: "equipped",
       fullPower: skillMagnitude(skill, hero, level),
       basePower: skillMagnitude(skill, hero, 1),
+      fullHeal: skillHealMagnitude(skill, hero, level),
+      baseHeal: skillHealMagnitude(skill, hero, 1),
       energyCost: skillEnergyCost(skill, hero),
       level,
     });
@@ -161,6 +186,7 @@ export function fillSkillSlots(
   const starter = skillsForClass(classId)[0];
   if (!starter) throw new Error(`No skills for ${classId}`);
   const filler = classBasePower(classId, rules);
+  const fillerHeal = classBaseHeal(classId, rules);
   while (slots.length < MAX_EQUIPPED_SKILLS) {
     slots.push({
       index: slots.length,
@@ -170,6 +196,8 @@ export function fillSkillSlots(
       origin: "base",
       fullPower: filler,
       basePower: filler,
+      fullHeal: fillerHeal,
+      baseHeal: fillerHeal,
       energyCost: Math.max(0, rules.baseSkillEnergyCost),
       level: null,
     });
@@ -184,6 +212,14 @@ export function castEffect(slot: SkillSlot, correct: boolean, multiplier: number
   return Math.max(0, Math.round(slot.basePower * safe));
 }
 
+/** Strike-heal restore. A support streak does not pass through here. */
+export function castHeal(slot: SkillSlot, correct: boolean, multiplier: number): number {
+  if (slot.fullHeal <= 0 && slot.baseHeal <= 0) return 0;
+  if (correct) return slot.fullHeal;
+  const safe = Number.isFinite(multiplier) ? Math.max(0, multiplier) : 0;
+  return Math.max(0, Math.round(slot.baseHeal * safe));
+}
+
 function sameSkillSet(left: readonly string[], right: readonly string[]): boolean {
   if (left.length !== right.length) return false;
   const sortedLeft = [...left].sort();
@@ -195,7 +231,7 @@ function sameSkillSet(left: readonly string[], right: readonly string[]): boolea
 export function hasDamageCard(equippedSkillIds: readonly string[]): boolean {
   return equippedSkillIds.some((id) => {
     const kind = skillById(id)?.kind;
-    return kind === "damage" || kind === "strike-guard";
+    return kind === "damage" || kind === "strike-guard" || kind === "strike-heal" || kind === "delay-damage";
   });
 }
 

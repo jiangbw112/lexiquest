@@ -145,7 +145,7 @@ export type ActionType = "attack" | "block" | "heal" | "skill";
  */
 export function actionTriggersLunge(
   actionType: ActionType,
-  skillKind?: "damage" | "guard" | "heal" | "strike-guard",
+  skillKind?: "damage" | "guard" | "heal" | "strike-guard" | "strike-heal" | "delay-damage",
 ): boolean {
   if (actionType === "heal") return false;
   if (actionType === "block") return false;
@@ -257,6 +257,8 @@ export function battleMotionBeats(input: {
   playerEffect: number;
   /** Damage the enemy's counterattack actually dealt. */
   playerHit: number;
+  /** Gear damage that lands after the counter, as its own floater. */
+  enemyFollowup?: number;
 }): MotionBeat[] {
   const beats: MotionBeat[] = [];
   const reach = input.playerReach ?? (input.playerLunge ? "melee" : "still");
@@ -280,6 +282,7 @@ export function battleMotionBeats(input: {
   } else if (input.playerHit !== 0) {
     beats.push({ kind: "floater", target: "player", amount: input.playerHit });
   }
+  if (input.enemyFollowup) beats.push({ kind: "floater", target: "enemy", amount: input.enemyFollowup });
   return beats;
 }
 

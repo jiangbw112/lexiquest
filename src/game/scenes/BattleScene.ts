@@ -303,7 +303,9 @@ export class BattleScene extends Phaser.Scene {
     this.state = answerQuestion(this.state, choiceId);
 
     const deltas = this.state.turnDeltas ?? [];
-    const enemyAmount = deltas.filter((delta) => delta.target === "enemy").reduce((sum, delta) => sum + delta.amount, 0);
+    const enemySteps = deltas.filter((delta) => delta.target === "enemy");
+    const enemyAmount = enemySteps[0]?.amount ?? 0;
+    const enemyFollowup = enemySteps.slice(1).reduce((sum, delta) => sum + delta.amount, 0);
     const playerEffect = deltas.filter((delta) => delta.target === "player" && delta.amount > 0).reduce((sum, delta) => sum + delta.amount, 0);
     const playerHit = deltas.filter((delta) => delta.target === "player" && delta.amount < 0).reduce((sum, delta) => sum + delta.amount, 0);
     const pendingSlot = before.pendingSlot !== null ? before.slots[before.pendingSlot] : null;
@@ -328,6 +330,7 @@ export class BattleScene extends Phaser.Scene {
       enemyAmount,
       playerEffect,
       playerHit,
+      enemyFollowup,
     });
     this.playMotion(beats, before);
   }
@@ -1012,7 +1015,7 @@ export class BattleScene extends Phaser.Scene {
             energyCost: slot.energyCost,
             resolving: false,
           });
-          if (face === "ready" && (slot.kind === "damage" || slot.kind === "strike-guard")) this.flash(card);
+          if (face === "ready" && (slot.kind === "damage" || slot.kind === "strike-guard" || slot.kind === "strike-heal" || slot.kind === "delay-damage")) this.flash(card);
         }
         if (this.state.attackHintShown <= 2 && this.toastedHints < this.state.attackHintShown) {
           this.toastedHints = this.state.attackHintShown;
