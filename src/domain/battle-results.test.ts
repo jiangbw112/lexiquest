@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import {
+  bossVictoryBanner,
   buildResultsView,
   LOSS_ENCOURAGEMENT,
   MAP_PRACTICE_NOTE,
@@ -24,6 +25,7 @@ import {
   XP_LEVEL_HOLD_MS,
   xpBarSegments,
 } from "./battle-results";
+import { forestPlayChapter, gradeChapters } from "./chapter-plan";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { mapPanel } from "./map-panel";
 import { applyBattleOutcome, createSave, levelFromXp } from "./progress";
@@ -404,6 +406,22 @@ describe("battle results stars and words", () => {
     const wordBottom = 220 + 64 + nudge;
     const xp = 430 - shift + nudge;
     expect(xp - wordBottom).toBe(70);
+  });
+
+  it("names the chapter boss on a victory banner", () => {
+    const forest = bossVictoryBanner(forestPlayChapter().bossName);
+    expect(forest).toContain("林心守护者");
+    expect(forest).toBe("打败了林心守护者！");
+    const club = gradeChapters("G5")[0]!;
+    expect(club.id).toBe("pep_g5_01");
+    expect(club.bossName).toBe("笑脸心情灵");
+    const banner = bossVictoryBanner(club.bossName);
+    expect(banner).toContain("笑脸心情灵");
+    expect(banner).toBe("打败了笑脸心情灵！");
+    expect(banner).not.toContain("林心守护者");
+    const scene = source("../game/scenes/BattleResultsScene.ts");
+    expect(scene).toContain("bossVictoryBanner(");
+    expect(scene).not.toContain("打败了林心守护者！");
   });
 
   it("refuses to paint map nodes until the results atlas frames are loaded", () => {

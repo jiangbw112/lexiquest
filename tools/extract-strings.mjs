@@ -53,6 +53,16 @@ function insideUiLabel(node) {
   return false;
 }
 
+/** The banner template lives in this function; the scene passes it through uiLabel. */
+function insideBossBanner(node) {
+  let current = node.parent;
+  while (current) {
+    if (ts.isFunctionDeclaration(current) && current.name?.text === "bossVictoryBanner") return true;
+    current = current.parent;
+  }
+  return false;
+}
+
 const core = new Map();
 const kuaile = new Map();
 const meanings = [];
@@ -84,7 +94,7 @@ for (const file of tsFiles) {
     if ((literal || chunk) && node.text) {
       const where = loc(file, sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1);
       add(core, node.text, where);
-      if (insideUiLabel(node)) add(kuaile, node.text, where);
+      if (insideUiLabel(node) || insideBossBanner(node)) add(kuaile, node.text, where);
     }
     ts.forEachChild(node, visit);
   };
@@ -105,7 +115,10 @@ function addChapterNames(rel, file, chapter, intoKuaile) {
     add(core, chapter.name_zh, `${rel}:name_zh`);
     if (intoKuaile) add(kuaile, chapter.name_zh, `${rel}:name_zh`);
   }
-  if (typeof chapter.boss_name_zh === "string") add(core, chapter.boss_name_zh, `${rel}:boss_name_zh`);
+  if (typeof chapter.boss_name_zh === "string") {
+    add(core, chapter.boss_name_zh, `${rel}:boss_name_zh`);
+    add(kuaile, chapter.boss_name_zh, `${rel}:boss_name_zh`);
+  }
   for (const stage of chapter.stages ?? []) {
     add(core, stage.name_zh ?? "", `${rel}:stage ${stage.id} name_zh`);
     if (intoKuaile) add(kuaile, stage.name_zh ?? "", `${rel}:stage ${stage.id} name_zh`);
@@ -153,6 +166,7 @@ for (const item of meanings) {
 
 const gradeNumber = { G3: 3, G4: 4, G5: 5, G6: 6 };
 for (const { rel, item } of laterChapterNames) {
+  if (typeof item.boss_name_zh === "string") add(kuaile, item.boss_name_zh, `${rel}:boss_name_zh`);
   const grade = gradeNumber[item.grade] ?? null;
   const texts = [item.name_zh, item.boss_name_zh, ...(item.stages ?? []).map((stage) => stage.name_zh)].filter((text) => typeof text === "string");
   for (const text of texts) {

@@ -334,6 +334,7 @@ export class BattleScene extends Phaser.Scene {
       answers,
       stageId,
       boss: this.bossFight,
+      bossName: this.state.enemyName,
       now,
     });
     const delay = won && this.bossFight ? 750 : 500;

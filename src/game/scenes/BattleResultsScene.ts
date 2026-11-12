@@ -10,6 +10,7 @@ import {
   resultsSkipHintState,
   resultsSkipKind,
   resultsStackNudge,
+  bossVictoryBanner,
   practiceItemLine,
   visibleItems,
   xpBarSegments,
@@ -205,7 +206,7 @@ export class BattleResultsScene extends Phaser.Scene {
     const boss = view.won && view.boss;
     const title = view.won
       ? boss
-        ? uiLabel("打败了林心守护者！")
+        ? uiLabel(bossVictoryBanner(view.bossName))
         : uiLabel("胜利！")
       : uiLabel("差一点点！");
     const banner = this.add.image(boss ? 340 : 380, boss ? 0 : 14, "atlas_results", boss ? "result_banner_boss" : "result_banner");
