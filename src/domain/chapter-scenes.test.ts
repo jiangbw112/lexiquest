@@ -1,13 +1,17 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { stageCombatFor, type PlayChapter } from "./chapter-plan";
 import {
+  CHAPTER_MINION_ID,
   CHAPTER_SCENE_GROUP,
   SCENE_GROUP_IDS,
   chapterBackdrop,
+  chapterMinion,
   journeyNightUrls,
 } from "./chapter-scenes";
-import { FOREST_CHAPTER } from "./stages";
+import { PROVISIONAL } from "./provisional";
+import { FOREST_CHAPTER, stageById, stageCombat } from "./stages";
 
 interface LedgerFile {
   groupId: string;
@@ -22,11 +26,13 @@ interface LedgerFile {
 interface LedgerChapter {
   chapterId: string;
   groupId: string;
+  minionId: string;
 }
 
 interface Ledger {
   chapters: LedgerChapter[];
   files: LedgerFile[];
+  minionFiles?: LedgerFile[];
 }
 
 const ledger = JSON.parse(readFileSync(new URL("./chapters/scene-asset-ledger.json", import.meta.url), "utf8")) as Ledger;
@@ -98,5 +104,63 @@ describe("chapter scene groups", () => {
     expect(budget).not.toContain("chapter/scenes");
     expect(boot).toContain("bg_home");
     expect(boot).toContain("bg_village");
+    expect(boot).not.toContain("atlas_monsters_scenes");
+    expect(budget).not.toContain("atlas_monsters_scenes");
+  });
+
+  it("resolves all 31 grade chapters to a minion whose frames are in the stored atlas", () => {
+    const gradeIds = chapterFile.map((chapter) => chapter.chapter_id).filter((id) => id !== FOREST_CHAPTER.chapter_id);
+    expect(Object.keys(CHAPTER_MINION_ID).sort()).toEqual([...gradeIds].sort());
+    const minionFiles = ledger.minionFiles ?? [];
+    expect(minionFiles.map((file) => file.repoPath).sort()).toEqual([
+      "public/assets/chapter/scenes/minions/atlas_monsters_scenes.json",
+      "public/assets/chapter/scenes/minions/atlas_monsters_scenes.png",
+      "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.json",
+      "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
+    ]);
+    for (const file of minionFiles) {
+      expect(sha256(file.repoPath)).toBe(file.repoSha256);
+      if (file.repoPath.endsWith(".png")) expect(file.recompressed).toBe(true);
+      else {
+        expect(file.recompressed).toBe(false);
+        expect(file.repoSha256).toBe(file.sourceSha256);
+      }
+    }
+    const framesByAtlas = new Map<string, Set<string>>();
+    for (const file of minionFiles.filter((item) => item.repoPath.endsWith(".json"))) {
+      const atlas = JSON.parse(readFileSync(new URL(`../../${file.repoPath}`, import.meta.url), "utf8")) as { frames: Record<string, unknown> };
+      framesByAtlas.set(file.repoPath, new Set(Object.keys(atlas.frames)));
+    }
+    for (const id of gradeIds) {
+      const minion = chapterMinion(id);
+      const listed = ledger.chapters.find((chapter) => chapter.chapterId === id);
+      expect(minion.id).toBe(CHAPTER_MINION_ID[id]);
+      expect(minion.id).toBe(listed?.minionId);
+      expect(minion.atlasKey).not.toBe("atlas_monsters");
+      const frames = framesByAtlas.get(`public/${minion.dataUrl}`);
+      expect(frames?.has(minion.idleFrame)).toBe(true);
+      expect(frames?.has(minion.hitFrame)).toBe(true);
+    }
+    expect(chapterMinion("pep_g3_01").atlasKey).toBe("atlas_monsters_scenes");
+    expect(chapterMinion("pep_g5_07").atlasKey).toBe("atlas_monsters_scenes_2");
+  });
+
+  it("keeps the forest minion and the chapter boss sprite", () => {
+    expect(chapterMinion(FOREST_CHAPTER.chapter_id)).toMatchObject({
+      id: "inkling",
+      atlasKey: "atlas_monsters",
+      idleFrame: "monster_inkling_idle",
+      hitFrame: "monster_inkling_hit",
+    });
+    expect(CHAPTER_MINION_ID[FOREST_CHAPTER.chapter_id]).toBeUndefined();
+    const exploration = stageById(1)!;
+    const boss = stageById(5)!;
+    expect(stageCombat(exploration, "warrior").sprite).toBe("inkling");
+    const forest = { id: FOREST_CHAPTER.chapter_id, bossName: "林心守护者" } as PlayChapter;
+    const home = { id: "pep_g3_01", bossName: "全家福守护者" } as PlayChapter;
+    expect(stageCombatFor(forest, exploration, "warrior").sprite).toBe("inkling");
+    expect(stageCombatFor(home, exploration, "warrior").sprite).toBe("cushion");
+    expect(stageCombatFor(home, boss, "mage").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
+    expect(stageCombat(boss, "mage", "cushion").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
   });
 });

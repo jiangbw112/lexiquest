@@ -13,7 +13,7 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
-import { chapterBackdrop, type ChapterBackdrop } from "../../domain/chapter-scenes";
+import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
 import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
@@ -28,7 +28,7 @@ import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm/kit";
-import { paintSceneImage, queueSceneImage } from "../chapter-scene-load";
+import { paintSceneImage, queueSceneAtlas, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
 import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
@@ -116,6 +116,7 @@ export class BattleScene extends Phaser.Scene {
   private pendingResults: ReturnType<typeof buildResultsView> | null = null;
   private resultsArmed = false;
   private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
+  private battleMinion: ChapterMinion = chapterMinion("forest_adventure");
 
   constructor() {
     super("battle");
@@ -127,17 +128,20 @@ export class BattleScene extends Phaser.Scene {
     const chapter = save ? findPlayChapter(save, data.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
     this.bossFight = stage?.type === "boss";
-    this.battleBackdrop = chapterBackdrop(chapter?.id ?? "forest_adventure");
+    const chapterId = chapter?.id ?? "forest_adventure";
+    this.battleBackdrop = chapterBackdrop(chapterId);
+    this.battleMinion = chapterMinion(chapterId);
   }
 
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    const atlases = ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"] as const;
-    if (this.battleBackdrop.groupId === "forest") queueWarm(this, atlases, ["bg_forest"]);
+    const shared = ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_ui_pages", "atlas_results"] as const;
+    if (this.battleBackdrop.groupId === "forest") queueWarm(this, [...shared, "atlas_monsters"], ["bg_forest"]);
     else {
-      queueWarm(this, atlases, []);
+      queueWarm(this, shared, []);
       queueSceneImage(this, this.battleBackdrop.battleKey, this.battleBackdrop.battleUrl);
+      if (!this.bossFight) queueSceneAtlas(this, this.battleMinion.atlasKey, this.battleMinion.imageUrl, this.battleMinion.dataUrl);
     }
     if (this.bossFight) queueBossAtlases(this);
   }
@@ -554,12 +558,26 @@ export class BattleScene extends Phaser.Scene {
     this.noteText?.setText(this.displayNote);
   }
 
+  private monsterFrame(hit: boolean): { atlas: string; frame: string } | null {
+    const sprite = this.state?.enemySprite;
+    if (!sprite || sprite === "canopy") return null;
+    if (sprite === "page" || sprite === "inkling") {
+      return { atlas: "atlas_monsters", frame: `monster_${sprite}_${hit ? "hit" : "idle"}` };
+    }
+    if (sprite !== this.battleMinion.id) return null;
+    return {
+      atlas: this.battleMinion.atlasKey,
+      frame: hit ? this.battleMinion.hitFrame : this.battleMinion.idleFrame,
+    };
+  }
+
   private showMonsterHit(): void {
     if (this.bossFight) return;
     const child = this.battleEnemy?.list[0];
     if (!child || !("setFrame" in child) || typeof child.setFrame !== "function") return;
-    const kind = this.state.enemySprite === "page" ? "page" : "inkling";
-    child.setFrame(`monster_${kind}_hit`);
+    const frame = this.monsterFrame(true);
+    if (!frame) return;
+    child.setFrame(frame.frame);
   }
 
   private spawnSigned(target: "player" | "enemy", amount: number): void {
@@ -850,10 +868,9 @@ export class BattleScene extends Phaser.Scene {
       this.battleEnemy = this.add.container(BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y, [boss.sprite]);
       return;
     }
-    const kind = this.state.enemySprite === "page" ? "page" : this.state.enemySprite === "inkling" ? "inkling" : null;
-    if (!kind) return;
-    const frame = `monster_${kind}_${this.monsterHit ? "hit" : "idle"}`;
-    const monster = this.add.image(0, 0, "atlas_monsters", frame);
+    const frame = this.monsterFrame(this.monsterHit);
+    if (!frame) return;
+    const monster = this.add.image(0, 0, frame.atlas, frame.frame);
     monster.setOrigin(0.5, 0.977);
     monster.setScale(0.45);
     this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
