@@ -133,7 +133,7 @@ describe("class unlock", () => {
     expect(scene).not.toContain("icon_lock");
   });
 
-  it("C-12 ④ does not unlock inventor when the save only lists unlockedClassIds", () => {
+  it("C-12 case 4 does not unlock inventor when the save only lists unlockedClassIds", () => {
     const raw = claimedSave("warrior");
     delete raw.inventorUnlockedAt;
     delete raw.inventorUnlockedBy;
@@ -151,7 +151,7 @@ describe("class unlock", () => {
     expect(kept.inventorUnlockedAt).toBeUndefined();
   });
 
-  it("C-12 ⑤ does not unlock inventor when only exam clears are stored, one or all eight", () => {
+  it("C-12 case 5 does not unlock inventor when only exam clears are stored, one or all eight", () => {
     const one = claimedSave("warrior");
     delete one.unlockedClassIds;
     delete one.inventorUnlockedAt;
