@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_family_album_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1256,
+    "w": 712,
+    "h": 621
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 25,
+    "y": 89,
+    "w": 712,
+    "h": 621
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_attack_01": {
+   "frame": {
+    "x": 716,
+    "y": 1256,
+    "w": 712,
+    "h": 619
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 91,
+    "w": 712,
+    "h": 619
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_attack_02": {
+   "frame": {
+    "x": 733,
+    "y": 2,
+    "w": 712,
+    "h": 624
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 29,
+    "y": 86,
+    "w": 712,
+    "h": 624
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 729,
+    "h": 626
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 14,
+    "y": 84,
+    "w": 729,
+    "h": 626
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 630,
+    "w": 737,
+    "h": 624
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 5,
+    "y": 86,
+    "w": 737,
+    "h": 624
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_attack_05": {
+   "frame": {
+    "x": 741,
+    "y": 630,
+    "w": 712,
+    "h": 622
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 88,
+    "w": 712,
+    "h": 622
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.2_formal tools/pack.py (code-drawn)",
+  "version": "0.2-formal",
+  "image": "boss_family_album_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1880
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.2 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

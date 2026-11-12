@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_lookout_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1352,
+    "w": 694,
+    "h": 668
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 42,
+    "w": 694,
+    "h": 668
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_attack_01": {
+   "frame": {
+    "x": 698,
+    "y": 1352,
+    "w": 692,
+    "h": 662
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 48,
+    "w": 692,
+    "h": 662
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_attack_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 694,
+    "h": 673
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 38,
+    "y": 37,
+    "w": 694,
+    "h": 673
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_attack_03": {
+   "frame": {
+    "x": 698,
+    "y": 2,
+    "w": 691,
+    "h": 673
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 42,
+    "y": 37,
+    "w": 691,
+    "h": 673
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 677,
+    "w": 700,
+    "h": 673
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 33,
+    "y": 37,
+    "w": 700,
+    "h": 673
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_attack_05": {
+   "frame": {
+    "x": 704,
+    "y": 677,
+    "w": 695,
+    "h": 673
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 37,
+    "w": 695,
+    "h": 673
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.5_formal_g56 tools/pack.py (code-drawn)",
+  "version": "0.5-formal-g56",
+  "image": "boss_lookout_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1404,
+   "h": 2024
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.5 formal g5/g6 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

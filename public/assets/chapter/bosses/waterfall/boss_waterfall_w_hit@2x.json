@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_waterfall_body_w_hit_00": {
+   "frame": {
+    "x": 728,
+    "y": 2,
+    "w": 719,
+    "h": 649
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 63,
+    "w": 719,
+    "h": 649
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_waterfall_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 654,
+    "w": 715,
+    "h": 648
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 64,
+    "w": 715,
+    "h": 648
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_waterfall_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 724,
+    "h": 650
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 62,
+    "w": 724,
+    "h": 650
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_waterfall_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1452,
+   "h": 1304
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

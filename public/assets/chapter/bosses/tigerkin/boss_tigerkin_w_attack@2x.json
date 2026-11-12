@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_tigerkin_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1265,
+    "w": 708,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 29,
+    "y": 94,
+    "w": 708,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_attack_01": {
+   "frame": {
+    "x": 712,
+    "y": 1265,
+    "w": 708,
+    "h": 610
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 100,
+    "w": 708,
+    "h": 610
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_attack_02": {
+   "frame": {
+    "x": 708,
+    "y": 2,
+    "w": 706,
+    "h": 627
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 34,
+    "y": 83,
+    "w": 706,
+    "h": 627
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 704,
+    "h": 632
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 38,
+    "y": 78,
+    "w": 704,
+    "h": 632
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 636,
+    "w": 707,
+    "h": 627
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 34,
+    "y": 83,
+    "w": 707,
+    "h": 627
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_attack_05": {
+   "frame": {
+    "x": 711,
+    "y": 636,
+    "w": 708,
+    "h": 621
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 31,
+    "y": 89,
+    "w": 708,
+    "h": 621
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0.2_tigerkin tools/pack.py (code-drawn)",
+  "version": "1.0.2-tigerkin",
+  "image": "boss_tigerkin_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1424,
+   "h": 1884
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "v1.0.2 条纹修订 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_camelbell_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 705,
+    "h": 618
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 38,
+    "y": 92,
+    "w": 705,
+    "h": 618
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_defeat_01": {
+   "frame": {
+    "x": 709,
+    "y": 2,
+    "w": 705,
+    "h": 603
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 35,
+    "y": 107,
+    "w": 705,
+    "h": 603
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 622,
+    "w": 705,
+    "h": 587
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 123,
+    "w": 705,
+    "h": 587
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_defeat_03": {
+   "frame": {
+    "x": 709,
+    "y": 622,
+    "w": 705,
+    "h": 574
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 136,
+    "w": 705,
+    "h": 574
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 1211,
+    "w": 705,
+    "h": 562
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 148,
+    "w": 705,
+    "h": 562
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_defeat_05": {
+   "frame": {
+    "x": 709,
+    "y": 1211,
+    "w": 705,
+    "h": 556
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 154,
+    "w": 705,
+    "h": 556
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_camelbell_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1416,
+   "h": 1776
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

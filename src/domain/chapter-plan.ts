@@ -1,4 +1,5 @@
 import { isChapterExtra, wordById } from "./catalog";
+import { chapterBossId } from "./chapter-bosses";
 import { chapterMinion } from "./chapter-scenes";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone } from "./review";
@@ -374,7 +375,8 @@ export function stageCombatFor(chapter: PlayChapter, stage: ForestStage, classId
     ? `chapter:${chapter.id}:boss`
     : `chapter:${chapter.id}:stage:${stage.id}`;
   const enemyName = stage.type === "boss" ? chapter.bossName : minion?.name ?? combat.enemyName;
-  return { ...combat, encounterId, enemyName };
+  const sprite = stage.type === "boss" ? chapterBossId(chapter.id) : combat.sprite;
+  return { ...combat, encounterId, enemyName, sprite };
 }
 
 export interface MapStageCounts {

@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_family_album_body_w_hit_00": {
+   "frame": {
+    "x": 716,
+    "y": 2,
+    "w": 712,
+    "h": 619
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 37,
+    "y": 91,
+    "w": 712,
+    "h": 619
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 625,
+    "w": 712,
+    "h": 617
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 41,
+    "y": 93,
+    "w": 712,
+    "h": 617
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 712,
+    "h": 621
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 89,
+    "w": 712,
+    "h": 621
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.2_formal tools/pack.py (code-drawn)",
+  "version": "0.2-formal",
+  "image": "boss_family_album_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1432,
+   "h": 1244
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.2 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -13,10 +13,12 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { chapterBossId, isChapterBossId } from "../../domain/chapter-bosses";
 import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
 import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
+import { ChapterBossSprite, chapterBossReactionMs, queueChapterBoss } from "../art/chapter-boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { drawEquippedTitle } from "../art/title-bar";
@@ -115,6 +117,7 @@ export class BattleScene extends Phaser.Scene {
   private enemyHpTween?: Phaser.Tweens.Tween;
   private pendingResults: ReturnType<typeof buildResultsView> | null = null;
   private resultsArmed = false;
+  private battleChapterId = "forest_adventure";
   private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
   private battleMinion: ChapterMinion = chapterMinion("forest_adventure");
   private forestBattleQueued = false;
@@ -131,6 +134,7 @@ export class BattleScene extends Phaser.Scene {
     const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
     this.bossFight = stage?.type === "boss";
     const chapterId = chapter?.id ?? "forest_adventure";
+    this.battleChapterId = chapterId;
     this.battleBackdrop = chapterBackdrop(chapterId);
     this.battleMinion = chapterMinion(chapterId);
   }
@@ -145,7 +149,8 @@ export class BattleScene extends Phaser.Scene {
       queueSceneImage(this, this.battleBackdrop.battleKey, this.battleBackdrop.battleUrl);
       if (!this.bossFight) queueSceneAtlas(this, this.battleMinion.atlasKey, this.battleMinion.imageUrl, this.battleMinion.dataUrl);
     }
-    if (this.bossFight) queueBossAtlases(this);
+    if (this.bossFight && this.battleBackdrop.groupId === "forest") queueBossAtlases(this);
+    else if (this.bossFight) queueChapterBoss(this, chapterBossId(this.battleChapterId));
   }
 
   create(): void {
@@ -656,7 +661,7 @@ export class BattleScene extends Phaser.Scene {
       (this.state.enemyHits > before.enemyHits ||
         this.state.enemyHp < before.enemyHp ||
         this.state.phaseIndex > before.phaseIndex);
-    const ms = enemyMoved ? (this.bossFight ? bossReactionMs(this.bossPoses) : 200) : 0;
+    const ms = enemyMoved ? (this.bossFight ? this.reactionMs() : 200) : 0;
     this.monsterHit = !this.bossFight && this.state.enemyHp < before.enemyHp;
     this.resolving = ms > 0;
     this.monsterTimer?.remove(false);
@@ -675,6 +680,12 @@ export class BattleScene extends Phaser.Scene {
       if (this.lunging) return;
       this.draw();
     });
+  }
+
+  private reactionMs(): number {
+    if (this.state.enemySprite === "canopy") return bossReactionMs(this.bossPoses);
+    if (isChapterBossId(this.state.enemySprite)) return chapterBossReactionMs(this, this.state.enemySprite, this.bossPoses);
+    return 200;
   }
 
   private syncBoss(before: BattleState): void {
@@ -860,6 +871,12 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawMonster(): void {
+    if (isChapterBossId(this.state.enemySprite)) {
+      const boss = new ChapterBossSprite(this, 0, 0, this.state.enemySprite);
+      boss.playSequence(this.bossPoses);
+      this.battleEnemy = this.add.container(BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y, [boss.sprite]);
+      return;
+    }
     if (this.state.enemySprite === "canopy") {
       if (!this.bossReported) {
         reportBossLoad(this);
@@ -937,8 +954,8 @@ export class BattleScene extends Phaser.Scene {
     }).setOrigin(0, 0.5);
     if (this.state.shaken && this.state.phases) {
       const shakenCopy = this.state.phaseIndex === 0
-        ? "林心守护者动摇了！答对并出手攻击，就能突破！"
-        : "林心守护者动摇了！答对并出手攻击，就能赢！";
+        ? `${this.state.enemyName}动摇了！答对并出手攻击，就能突破！`
+        : `${this.state.enemyName}动摇了！答对并出手攻击，就能赢！`;
       this.add.text(750, 148, shakenCopy, {
         fontFamily: FONT_BODY,
         fontSize: "16px",
