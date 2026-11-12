@@ -146,7 +146,7 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
       }
       return {
         id: stage.id,
-        name_zh: stage.name_zh,
+        name_zh: boss ? chapterBossDisplayName(source.chapter_id, stage.name_zh) : stage.name_zh,
         goal_zh: "",
         type: boss ? "boss" : "exploration",
         new_words: wordIds,

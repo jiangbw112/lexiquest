@@ -35,3 +35,13 @@ export function queueMissingForestBattle(scene: Phaser.Scene, backdrop: ChapterB
 export function paintSceneImage(scene: Phaser.Scene, key: string): Phaser.GameObjects.Image {
   return scene.add.image(640, 400, key).setDisplaySize(1280, 800);
 }
+
+/**
+ * What the map may paint. A missing file that already failed uses the fallback
+ * plate and still draws the title and chapter controls. An in-flight load waits.
+ */
+export function chapterMapPlate(input: { textureReady: boolean; failed: boolean }): "wait" | "image" | "fallback" {
+  if (input.textureReady) return "image";
+  if (input.failed) return "fallback";
+  return "wait";
+}

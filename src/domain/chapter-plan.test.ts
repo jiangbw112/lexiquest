@@ -29,7 +29,7 @@ import { chapterWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
 /** chapters_v0.2.json. pep_g3_07 boss_name_zh is 营养餐盘守护者 as of integration_v1.0.4. */
-const CHAPTERS_SHA256 = "2ebafb4c51be6a7bdca1854b74ec498464317dad9ead1e94a3eecf3e07e196c2";
+const CHAPTERS_SHA256 = "dbd573df3ef7af1a05ef4223887a113eac2c7385aa35a97e5a45f8b155ec1848";
 const GLOSS_SHA256 = "b894a98edae983f916ebb3d6dc10fbb7c73021303120623b5a6587876b61f047";
 
 const START = new Date("2026-03-01T02:00:00Z");

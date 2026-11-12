@@ -37,6 +37,7 @@ describe("chapter bosses", () => {
     const chapters = JSON.parse(readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8")) as Array<{
       chapter_id: string;
       boss_name_zh: string;
+      stages?: Array<{ name_zh: string }>;
     }>;
     expect(source.match(/mealmap/g)).toEqual(["mealmap"]);
     expect(source.match(/toychest/g)).toEqual(["toychest"]);
@@ -50,11 +51,17 @@ describe("chapter bosses", () => {
     expect(Object.values(CHAPTER_BOSS_ID)).not.toContain("toychest");
     expect(BOSS_RESERVE).toEqual([{ id: "toychest", nameZh: "玩具箱守护者" }]);
     expect(chapterBossId("pep_g3_07")).toBe("mealmap");
-    expect(chapters.find((chapter) => chapter.chapter_id === "pep_g3_07")?.boss_name_zh).toBe(PEP_G3_07_BOSS.nameZh);
+    const foodFile = chapters.find((chapter) => chapter.chapter_id === "pep_g3_07");
+    expect(foodFile?.boss_name_zh).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(foodFile?.stages?.[4]?.name_zh).toBe(PEP_G3_07_BOSS.nameZh);
+    const fileText = readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8");
+    expect(fileText).not.toContain("旧玩具守护");
+    expect(fileText).not.toContain("玩具守护");
     expect(chapterBossDisplayName("pep_g3_07", "别的名字")).toBe(PEP_G3_07_BOSS.nameZh);
     expect(chapterBossDisplayName("pep_g3_01", "全家福守护者")).toBe("全家福守护者");
     const food = gradeChapters("G3").find((chapter) => chapter.id === "pep_g3_07");
     expect(food?.bossName).toBe("营养餐盘守护者");
+    expect(food?.stages[4]?.name_zh).toBe("营养餐盘守护者");
     const boss = stageById(5)!;
     expect(stageCombatFor(food!, boss, "warrior").enemyName).toBe("营养餐盘守护者");
     expect(stageCombatFor(food!, boss, "warrior").sprite).toBe("mealmap");
