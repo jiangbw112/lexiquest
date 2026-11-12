@@ -14,6 +14,7 @@ import {
   gradeChapters,
   isChapterUnlocked,
   parseChapterEncounter,
+  playStatuses,
   SPELLING_EXCEPTIONS,
   spellingSkipIds,
   unlockedWordIds,
@@ -449,6 +450,58 @@ describe("grade chapters", () => {
     expect(loaded?.currentChapterId).toBe(chapter.id);
     expect(loaded?.chapterProgress).toEqual({ [chapter.id]: { cleared: false, stageWins: { "1": 1 } } });
     expect(loaded && activeChapter(loaded).id).toBe(chapter.id);
+  });
+
+  it("keeps a higher grade open when a lower grade is added later", () => {
+    const g5 = gradeChapters("G5");
+    const g3 = gradeChapters("G3");
+    const first = g5[0]!;
+    const second = g5[1]!;
+    const playing = g5[2]!;
+    const wins = { "1": 1, "2": 1, "3": 1, "4": 1, "5": 1 };
+    const added = {
+      ...newSave(["G3", "G5"]),
+      chapterCleared: true,
+      currentChapterId: playing.id,
+      chapterProgress: {
+        [first.id]: { cleared: true, stageWins: wins },
+        [second.id]: { cleared: true, stageWins: wins },
+        [playing.id]: { cleared: false, stageWins: { "1": 1 } },
+      },
+    };
+    expect({
+      firstOpen: isChapterUnlocked(added, first),
+      secondOpen: isChapterUnlocked(added, second),
+      playingOpen: isChapterUnlocked(added, playing),
+      boss: playStatuses(added, first).at(-1),
+      active: activeChapter(added).id,
+    }).toEqual({
+      firstOpen: true,
+      secondOpen: true,
+      playingOpen: true,
+      boss: "cleared",
+      active: playing.id,
+    });
+    expect(playStatuses(added, first).every((status) => status === "locked")).toBe(false);
+    expect(isChapterUnlocked(added, g3[0]!)).toBe(true);
+    expect(isChapterUnlocked(added, g3[1]!)).toBe(false);
+    const beforeForest = newSave(["G3", "G5"]);
+    for (const chapter of visibleChapters(beforeForest.selectedGrades).slice(1)) {
+      expect(isChapterUnlocked(beforeForest, chapter)).toBe(false);
+    }
+    const only = newSave(["G5"]);
+    expect(isChapterUnlocked(only, first)).toBe(false);
+    expect(isChapterUnlocked(only, second)).toBe(false);
+    const forestDone = { ...only, chapterCleared: true };
+    expect(isChapterUnlocked(forestDone, first)).toBe(true);
+    expect(isChapterUnlocked(forestDone, second)).toBe(false);
+    const firstDone = {
+      ...forestDone,
+      chapterProgress: { [first.id]: { cleared: true, stageWins: wins } },
+    };
+    expect(isChapterUnlocked(firstDone, second)).toBe(true);
+    expect(isChapterUnlocked(firstDone, playing)).toBe(false);
+    expect(activeChapter({ ...forestDone, currentChapterId: first.id }).id).toBe(first.id);
   });
 
   it("records a later chapter without touching forest wins or stars", () => {

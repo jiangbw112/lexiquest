@@ -269,15 +269,19 @@ export function isChapterCleared(save: SaveData, chapter: PlayChapter): boolean 
 }
 
 /**
- * The forest is always open. The next chapter opens when the previous one is
- * cleared. An old save that already beat the forest boss therefore opens the
- * first chapter of the earliest selected grade.
+ * The forest is always open. A cleared chapter stays open.
+ * After the forest boss, every selected grade opens its first chapter.
+ * Inside one grade, the next chapter opens when the previous one is cleared.
  */
 export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list = visibleChapters(save.selectedGrades)): boolean {
   const index = list.findIndex((item) => item.id === chapter.id);
   if (index < 0) return false;
-  if (index === 0) return true;
-  const previous = list[index - 1];
+  if (index === 0 || isChapterCleared(save, chapter)) return true;
+  if (!save.chapterCleared) return false;
+  const sameGrade = list.filter((item) => item.grade === chapter.grade);
+  const at = sameGrade.findIndex((item) => item.id === chapter.id);
+  if (at <= 0) return true;
+  const previous = sameGrade[at - 1];
   return previous ? isChapterCleared(save, previous) : false;
 }
 
