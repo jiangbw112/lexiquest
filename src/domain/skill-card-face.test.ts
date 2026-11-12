@@ -11,9 +11,19 @@ import {
   skillListFace,
   skillOrderFrame,
   skillSlotIndexForKey,
+  starMark,
 } from "./skill-card-face";
 
 describe("skill card faces", () => {
+  it("writes a card level as a star, not Lv", () => {
+    expect(starMark(1)).toBe("★1");
+    expect(starMark(2)).toBe("★2");
+    expect(starMark(3)).toBe("★3");
+    const page = readFileSync(new URL("../game/scenes/SkillsScene.ts", import.meta.url), "utf8");
+    expect(page).toContain("starMark(mark.level)");
+    expect(page).not.toContain("Lv ");
+  });
+
   it("keeps a low-energy card clickable and ignores a disabled card", () => {
     const low = skillCardFace({ phase: "choose", energy: 0, energyCost: 2 });
     const blocked = skillCardFace({ phase: "question", energy: 6, energyCost: 1 });
