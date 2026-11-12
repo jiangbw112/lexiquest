@@ -1,7 +1,7 @@
 import { Rating, type Grade } from "ts-fsrs";
 import { isMastered } from "./cards";
 import { formatMeaning, GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
-import { chapterWordIds, litMasteryCount } from "./stages";
+import { scopeBadgeCount, spellingSkipIds } from "./chapter-plan";
 import { PROPOSALS } from "./proposals";
 import { withRewardDefaults } from "./chapter-rewards";
 import { deviceTimeZone, localDayKey } from "./local-day";
@@ -539,9 +539,11 @@ export function parentView(
   const reviewedToday = todayStat.reviewedDueWordIds.length;
   const dueNow = dueWordIds(save, now).length;
   const cards = Object.keys(save.wordCards);
+  const skip = new Set(spellingSkipIds());
   const masteredNow = cards.filter((id) => isMastered(save.wordCards[id])).length;
   const brightNow = cards.filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length;
   const spelledFirst = cards.filter((id) => {
+    if (skip.has(id)) return false;
     const at = save.wordCards[id]?.spelledAloneAt;
     return typeof at === "number" && week.includes(localDayKey(new Date(at), timeZone));
   }).length;
@@ -559,6 +561,7 @@ export function parentView(
     todayLine = "这几天休息了一下。单词卡都还在，想捡起来时从待复习开始即可。";
   }
   const struggleLine = struggle.length === 0 ? "最近没有特别吃力的词，继续保持就好。" : "这些词最近复习时容易错，一起再练练：";
+  const scope = scopeBadgeCount(save, now);
   return {
     learnedToday,
     learned7d: uniqueAcross(save, week, "learnedWordIds"),
@@ -582,7 +585,7 @@ export function parentView(
     weekLine: `近 7 天：新学 ${uniqueAcross(save, week, "learnedWordIds")} 个 · 复习过 ${uniqueAcross(save, week, "reviewedDueWordIds")} 个词`,
     firstMasteredLine: `首次掌握：${spelledFirst} 个`,
     restoredMasteredLine: "重新掌握：0 个",
-    masteredLine: `${save.chapterCleared ? "已通关森林。" : ""}已认识 ${cards.length} 个，已掌握 ${masteredNow} 个。徽章亮起 ${litMasteryCount(save, now)} / ${chapterWordIds().length}。目前亮着徽章的词：${brightNow} 个`,
+    masteredLine: `${save.chapterCleared ? "已通关森林。" : ""}已通关 ${scope.clearedChapters}/${scope.chapters} 章。已认识 ${cards.length} 个，已掌握 ${masteredNow} 个。徽章亮起 ${scope.lit} / ${scope.total}。目前亮着徽章的词：${brightNow} 个`,
     masteredNote: "徽章变灰只是提醒该复习了，单词卡还在。",
     gradesLine: `正在学：${gradesLabel}`,
     struggleLine,

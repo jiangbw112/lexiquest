@@ -25,6 +25,16 @@ function readBestStars(value: unknown): Record<string, 1 | 2 | 3> {
   return stars;
 }
 
+function readChapterProgress(value: unknown): Record<string, { cleared: boolean; stageWins: Record<string, number> }> {
+  if (!isRecord(value)) return {};
+  const progress: Record<string, { cleared: boolean; stageWins: Record<string, number> }> = {};
+  for (const [id, entry] of Object.entries(value)) {
+    if (!/^[a-z0-9_-]+$/.test(id) || !isRecord(entry)) continue;
+    progress[id] = { cleared: entry.cleared === true, stageWins: readStageWins(entry.stageWins) };
+  }
+  return progress;
+}
+
 function readStageWins(value: unknown): Record<string, number> {
   if (!isRecord(value)) return {};
   const wins: Record<string, number> = {};
@@ -55,6 +65,10 @@ export function deserialize(raw: string): SaveData | null {
     save.chapterCleared = value.chapterCleared === true;
     save.stageWins = readStageWins(value.stageWins);
     save.bestStars = readBestStars(value.bestStars);
+    save.chapterProgress = readChapterProgress(value.chapterProgress);
+    save.currentChapterId = typeof value.currentChapterId === "string" && /^[a-z0-9_-]+$/.test(value.currentChapterId)
+      ? value.currentChapterId
+      : undefined;
     save.titles = Array.isArray(value.titles) ? value.titles.filter((item): item is string => typeof item === "string") : [];
     const grades = Array.isArray(value.selectedGrades)
       ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")

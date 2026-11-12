@@ -143,18 +143,19 @@ export function readWordFile(file: WordFile, source = "word file"): WordDef[] {
   const theme = file.theme?.trim() || SAMPLE_THEME;
   const sample = file.sample !== false;
   return file.words.map((entry) => {
-    const english = typeof entry.word === "string" ? entry.word.trim().toLowerCase() : "";
-    if (!english || typeof entry.meaning_zh !== "string" || !entry.meaning_zh.trim()) {
+    const english = typeof entry.word === "string" ? entry.word.trim() : "";
+    const id = english.toLowerCase();
+    if (!id || typeof entry.meaning_zh !== "string" || !entry.meaning_zh.trim()) {
       throw new Error(`${source} has a word entry missing word or meaning_zh`);
     }
     if (!isGrade(entry.grade_est) || !isSpelling(entry.spelling)) {
-      throw new Error(`${source} word ${english} has a bad grade or spelling`);
+      throw new Error(`${source} word ${id} has a bad grade or spelling`);
     }
-    const pos = readPos(entry.pos, source, english);
-    const senses = readSenses(entry.senses, source, english);
+    const pos = readPos(entry.pos, source, id);
+    const senses = readSenses(entry.senses, source, id);
     const grade = GRADE_OF[entry.grade_est];
     return {
-      id: english,
+      id,
       english,
       chinese: entry.meaning_zh.trim(),
       ...(pos ? { pos } : {}),
@@ -255,6 +256,7 @@ export function isChapterExtra(id: string): boolean {
 /**
  * Forest lessons for the selected grades. Extra words whose own grade is off
  * still appear, on the first open lesson, because they always count.
+ * Words after the forest set belong to later chapters, not these lessons.
  */
 export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
   const selected = new Set(normalizeGrades(grades));
@@ -262,13 +264,8 @@ export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
   if (units.length === 0) return [];
   const shown = new Set(units.flatMap((unit) => unit.wordIds));
   const missing = CHAPTER_EXTRAS.map((word) => word.id).filter((id) => !shown.has(id));
-  const withExtras = missing.length === 0 || !units[0]
-    ? units
-    : [{ ...units[0], wordIds: [...units[0].wordIds, ...missing] }, ...units.slice(1)];
-  return withExtras.map((unit) => {
-    const more = continuationWordIds(unit.grade).filter((id) => !unit.wordIds.includes(id));
-    return more.length === 0 ? unit : { ...unit, wordIds: [...unit.wordIds, ...more] };
-  });
+  if (missing.length === 0 || !units[0]) return units;
+  return [{ ...units[0], wordIds: [...units[0].wordIds, ...missing] }, ...units.slice(1)];
 }
 
 /**

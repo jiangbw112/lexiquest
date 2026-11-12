@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { ensureChapterPlan } from "../../domain/chapter-plan";
 import { queueChapterCosmetics, reportForestLoad } from "../art/chapter-cosmetics";
 import { queueWarriorAtlases, reportWarriorLoad } from "../art/warrior-sprite";
 import { probeNote } from "../probe";
@@ -33,7 +34,7 @@ export class BootScene extends Phaser.Scene {
         ]).catch(() => undefined)
       : Promise.resolve();
     const cap = new Promise<void>((resolve) => window.setTimeout(resolve, 1500));
-    void Promise.race([ready, cap]).then(() => {
+    void Promise.all([Promise.race([ready, cap]), ensureChapterPlan()]).then(() => {
       probeNote("boot:ready", { bootMs: Math.round(performance.now()) });
       this.scene.start("title");
     });

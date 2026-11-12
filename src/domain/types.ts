@@ -139,8 +139,15 @@ export interface SaveData {
   battlesLost: number;
   /** True after the forest boss is defeated. Mastery badges are not required. */
   chapterCleared: boolean;
-  /** Wins of each exploration stage, keyed by the stage id. A stage clears at 1. */
+  /** Wins of each exploration stage, keyed by the stage id. A stage clears at 1. Forest only. */
   stageWins: Record<string, number>;
+  /**
+   * Wins and clears for chapters after the forest.
+   * Forest progress stays in `chapterCleared` and `stageWins`. Missing on older saves.
+   */
+  chapterProgress?: Record<string, { cleared: boolean; stageWins: Record<string, number> }>;
+  /** Chapter the child is standing on. Missing means the forest. */
+  currentChapterId?: string;
   /** Display names already granted. The id list is `unlockedTitleIds`. */
   titles: string[];
   /** Chapter cosmetics granted once. They stay after a badge goes grey. */

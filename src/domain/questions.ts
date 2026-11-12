@@ -1,3 +1,4 @@
+import { glossPairBlocked, spellingSkipIds } from "./chapter-plan";
 import { formatMeaning, sampleWords, wordById, type WordDef } from "./catalog";
 import { hashSeed, shuffle } from "./rng";
 
@@ -33,9 +34,13 @@ export function spellingMarkHint(answer: string): string | null {
   return null;
 }
 
-/** Same theme and same grade first, then the rest of the theme, then anything else. */
+/**
+ * Same theme and same grade first, then the rest of the theme, then anything else.
+ * Exact gloss pairs and pairs that share a sense are left out, including across grades.
+ * A pair whose only rule is that one gloss contains the other stays in the pool.
+ */
 export function pickDistractors(word: WordDef, count: number, seed: number, pool: readonly WordDef[] = sampleWords()): WordDef[] {
-  const others = pool.filter((item) => item.id !== word.id);
+  const others = pool.filter((item) => item.id !== word.id && !glossPairBlocked(word.id, item.id));
   const sameGrade = others.filter((item) => item.theme === word.theme && item.gradeEst === word.gradeEst);
   const sameTheme = others.filter((item) => item.theme === word.theme && item.gradeEst !== word.gradeEst);
   const elsewhere = others.filter((item) => item.theme !== word.theme);
@@ -46,10 +51,14 @@ export function quizForWord(
   wordId: string,
   seed: number,
   direction: "zh-to-en" | "en-to-zh" | "listen-to-zh" = "zh-to-en",
+  pool?: readonly WordDef[],
 ): QuizQuestion {
   const word = wordById(wordId);
   if (!word) throw new Error(`Unknown word ${wordId}`);
-  const distractors = pickDistractors(word, 2, seed || hashSeed(word.id));
+  const source = pool ? pool.filter((item) => item.grade === word.grade) : undefined;
+  const distractors = source
+    ? pickDistractors(word, 2, seed || hashSeed(word.id), source)
+    : pickDistractors(word, 2, seed || hashSeed(word.id));
   const choices = shuffle([word, ...distractors], (seed || 1) + 17).map((item) => ({
     id: item.id,
     label: direction === "zh-to-en" ? item.english : formatMeaning(item),
@@ -67,8 +76,8 @@ export function quizForWord(
   };
 }
 
-export function listeningQuestion(wordId: string, seed: number): QuizQuestion {
-  return quizForWord(wordId, seed, "listen-to-zh");
+export function listeningQuestion(wordId: string, seed: number, pool?: readonly WordDef[]): QuizQuestion {
+  return quizForWord(wordId, seed, "listen-to-zh", pool);
 }
 
 /**
@@ -76,7 +85,8 @@ export function listeningQuestion(wordId: string, seed: number): QuizQuestion {
  * Advanced spelling needs the badge to be lit: earned, not due, and not lapsed.
  * A grey badge is not enough. None is never asked.
  */
-export function spellingAllowed(word: WordDef, badgeLit: boolean): boolean {
+export function spellingAllowed(word: WordDef, badgeLit: boolean, skip: readonly string[] = spellingSkipIds()): boolean {
+  if (skip.includes(word.id)) return false;
   if (word.spelling === "none") return false;
   if (word.spelling === "basic") return true;
   return badgeLit;
@@ -94,9 +104,9 @@ export function spellingChildLabel(spelling: string, badgeLit: boolean): string 
   return null;
 }
 
-export function spellingQuestion(wordId: string, badgeLit: boolean): SpellingQuestion | null {
+export function spellingQuestion(wordId: string, badgeLit: boolean, skip?: readonly string[]): SpellingQuestion | null {
   const word = wordById(wordId);
-  if (!word || !spellingAllowed(word, badgeLit)) return null;
+  if (!word || !spellingAllowed(word, badgeLit, skip)) return null;
   return {
     kind: "spelling",
     wordId: word.id,
