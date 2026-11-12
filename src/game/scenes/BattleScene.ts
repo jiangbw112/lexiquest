@@ -2,9 +2,21 @@ import Phaser from "phaser";
 import {
   answerQuestion,
   startBattle,
+  swapCard,
+  swapCandidates,
+  swapOffer,
   takeAction,
   type BattleState,
 } from "../../domain/battle";
+import {
+  EXPLORER_PREVIEW_HINT,
+  EXPLORER_PREVIEW_LABEL,
+  RANGER_SWAP_BUTTON,
+  RANGER_SWAP_HINT,
+  RANGER_SWAP_PICK_CARD,
+  RANGER_SWAP_PICK_SLOT,
+  RANGER_SWAP_USED,
+} from "../../domain/class-copy";
 import { buildResultsView, starsFor } from "../../domain/battle-results";
 import { applyBattleOutcome, noteBattleAnswer, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
@@ -111,6 +123,9 @@ export class BattleScene extends Phaser.Scene {
   private floaterLayer?: Phaser.GameObjects.Container;
   private battleEnemy?: Phaser.GameObjects.Container;
   private shot: BattleShotHandle | null = null;
+  private swapStep: "off" | "card" | "slot" = "off";
+  private swapSkillId: string | null = null;
+  private scoutHintPending = true;
   private shownFrom = { playerHp: 0, enemyHp: 0 };
   private displayHp: HpReadout = { playerHp: 0, enemyHp: 0 };
   private displayNote = "";
@@ -216,6 +231,9 @@ export class BattleScene extends Phaser.Scene {
     const combat = stageCombatFor(chapter, stage, save.player.classId);
     this.openingDue = dueWordIds;
     this.toastedHints = 0;
+    this.swapStep = "off";
+    this.swapSkillId = null;
+    this.scoutHintPending = true;
     const padOrder = orderReviewWords(
       Object.values(save.memory)
         .filter((memory) => save.wordCards[memory.wordId])
@@ -227,6 +245,7 @@ export class BattleScene extends Phaser.Scene {
       classId: save.player.classId,
       learnedIds: Object.keys(save.wordCards),
       equippedSkillIds: save.equippedSkillIds,
+      unlockedSkillIds: save.unlockedSkillIds,
       skillLevels: save.skillLevels,
       seed: Date.now() % 100000,
       dueWordIds,
@@ -257,9 +276,16 @@ export class BattleScene extends Phaser.Scene {
   private onKey(event: KeyboardEvent): void {
     if (this.presenting || this.scene.isPaused()) return;
     if (event.code === "Escape") {
+      if (this.swapStep !== "off") {
+        this.swapStep = "off";
+        this.swapSkillId = null;
+        this.draw();
+        return;
+      }
       this.leave();
       return;
     }
+    if (this.swapStep !== "off") return;
     if (!this.state || this.resolving || this.lunging || document.getElementById("spell-form")?.classList.contains("open")) return;
     const slotIndex = skillSlotIndexForKey(event.code);
     if (slotIndex !== null) {
@@ -632,6 +658,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     this.state = result.state;
+    this.scoutHintPending = false;
     this.displayNote = this.state.lastNote;
     this.poses = battlePoses({
       action: action.type,
@@ -980,6 +1007,8 @@ export class BattleScene extends Phaser.Scene {
       wordWrap: cjkWrap(640),
     }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
+    this.drawPreview();
+    if (this.state.phase === "question" && this.state.question) probeNote(`asked:${this.state.question.kind}`);
     const inputLocked = this.resolving || this.lunging;
     if (battleControlOpen(this.state.phase, "action", inputLocked)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
     else {
@@ -1033,6 +1062,7 @@ export class BattleScene extends Phaser.Scene {
       const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: inputLocked });
       warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: inputLocked });
       warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: inputLocked });
+      this.drawSwapButton(inputLocked);
       if (this.state.supportStreak >= 2) {
         this.add.text(360, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
         this.add.text(520, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
@@ -1065,7 +1095,87 @@ export class BattleScene extends Phaser.Scene {
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
     this.battleHud = this.children.list.slice(hudAt);
+    if (this.swapStep !== "off" && this.state.phase === "choose") this.drawSwapPanel();
+    else this.swapStep = "off";
     this.finishDraw();
+  }
+
+  private drawPreview(): void {
+    if (this.state.phase !== "choose" || !this.state.previewLabel) return;
+    this.add.text(640, 36, `${EXPLORER_PREVIEW_LABEL}  ${this.state.previewLabel}`, {
+      fontFamily: FONT_BODY,
+      fontSize: "22px",
+      fontStyle: "700",
+      color: INK,
+    }).setOrigin(0.5, 0.5);
+    if (this.scoutHintPending) {
+      this.add.text(640, 500, EXPLORER_PREVIEW_HINT, {
+        fontFamily: FONT_BODY,
+        fontSize: "16px",
+        color: INK,
+        align: "center",
+        wordWrap: cjkWrap(420),
+      }).setOrigin(0.5, 0);
+    }
+    probeNote(`preview:${this.state.previewLabel}`);
+  }
+
+  private drawSwapButton(inputLocked: boolean): void {
+    const offer = swapOffer(this.state);
+    if (offer === "hidden") return;
+    if (offer === "used") {
+      warmButton(this, 640, 300, RANGER_SWAP_USED, () => undefined, { width: 240, height: 48, tone: "secondary", disabled: true });
+      probeNote("swap:used");
+      return;
+    }
+    warmButton(this, 640, 300, RANGER_SWAP_BUTTON, () => {
+      if (inputLocked) return;
+      this.swapStep = "card";
+      this.swapSkillId = null;
+      this.draw();
+    }, { width: 140, height: 48, tone: "secondary", disabled: inputLocked });
+    probeNote("swap:ready");
+  }
+
+  private drawSwapPanel(): void {
+    const dim = this.add.rectangle(640, 400, 1280, 800, 0x2a2118, 0.45);
+    dim.setInteractive();
+    warmPanel(this, 640, 390, 920, 460);
+    const title = this.swapStep === "slot" ? RANGER_SWAP_PICK_SLOT : RANGER_SWAP_PICK_CARD;
+    this.add.text(640, 200, title, { fontFamily: FONT_BODY, fontSize: "28px", fontStyle: "700", color: INK }).setOrigin(0.5);
+    this.add.text(640, 244, RANGER_SWAP_HINT, { fontFamily: FONT_BODY, fontSize: "16px", color: MUTED }).setOrigin(0.5);
+    if (this.swapStep === "card") {
+      swapCandidates(this.state).forEach((skill, index) => {
+        warmButton(this, 360 + index * 220, 360, skill.name, () => {
+          this.swapSkillId = skill.id;
+          this.swapStep = "slot";
+          this.draw();
+        }, { width: 180, height: 64 });
+      });
+    } else {
+      const real = this.state.slots.filter((slot) => slot.origin === "equipped");
+      real.forEach((slot, index) => {
+        warmButton(this, 420 + index * 220, 360, slot.name, () => this.confirmSwap(slot.index), { width: 180, height: 64, tone: "coral" });
+      });
+      this.add.text(640, 430, "基础招式不能换下来", { fontFamily: FONT_BODY, fontSize: "16px", color: MUTED }).setOrigin(0.5);
+    }
+    warmButton(this, 640, 540, "返回", () => {
+      this.swapStep = "off";
+      this.swapSkillId = null;
+      this.draw();
+    }, { width: 160, tone: "secondary" });
+    probeNote(this.swapStep === "slot" ? "swap:slot" : "swap:card");
+  }
+
+  private confirmSwap(slotIndex: number): void {
+    if (!this.swapSkillId) return;
+    const result = swapCard(this.state, this.swapSkillId, slotIndex);
+    if (!result.ok) return;
+    this.state = result.state;
+    this.swapStep = "off";
+    this.swapSkillId = null;
+    probeNote(`swap:done:${result.state.slots[slotIndex]?.skillId ?? ""}:${slotIndex}`);
+    this.draw();
   }
 
   private finishDraw(): void {

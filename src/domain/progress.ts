@@ -20,6 +20,7 @@ import {
   wordsUntilBoss,
 } from "./stages";
 import { classById } from "./classes";
+import { isClassSelectable } from "./class-unlock";
 import { isChapterExtra, normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
@@ -313,6 +314,30 @@ export function practiceDuel(
   answersB: readonly DuelAnswer[],
 ): { save: SaveData; comparison: ReturnType<typeof compareRounds> } {
   return { save, comparison: compareRounds(answersA, answersB) };
+}
+
+/**
+ * Outside a fight, park the current deck and load the other class's deck.
+ * A locked inventor and a mid-battle call both leave the save untouched.
+ * Stars stay on the card id. A class that has no stored deck starts from its first card.
+ */
+export function switchClass(save: SaveData, nextId: ClassId, inBattle = false): SaveData {
+  if (inBattle || !isClassSelectable(nextId, save) || save.player.classId === nextId) return save;
+  const equippedByClass: NonNullable<SaveData["equippedByClass"]> = {
+    ...(save.equippedByClass ?? {}),
+    [save.player.classId]: [...save.equippedSkillIds],
+  };
+  const known = new Set(skillsForClass(nextId).map((skill) => skill.id));
+  const stored = (equippedByClass[nextId] ?? []).filter((id) => known.has(id)).slice(0, MAX_EQUIPPED_SKILLS);
+  const equippedSkillIds = stored.length > 0 ? stored : [starterSkillId(nextId)];
+  const refreshed = refreshUnlocks({
+    ...save,
+    player: { ...save.player, classId: nextId },
+    equippedByClass,
+    equippedSkillIds,
+  });
+  if (refreshed.equippedSkillIds.length > 0) return refreshed;
+  return { ...refreshed, equippedSkillIds: [starterSkillId(nextId)] };
 }
 
 export function equipSkill(

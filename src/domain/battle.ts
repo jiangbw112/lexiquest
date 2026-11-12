@@ -7,12 +7,20 @@ import {
   skillQuestionPool,
   type SkillQuestionDeck,
 } from "./skill-cast";
+import { PREVIEW_LISTENING, PREVIEW_MEANING, PREVIEW_SPELLING, RANGER_SWAP_USED } from "./class-copy";
 import {
   castEffect,
   castHeal,
   fillSkillSlots,
+  MAX_SKILL_LEVEL,
   SKILL_CARD_RULES,
+  skillById,
+  skillEnergyCost,
+  skillHealMagnitude,
+  skillMagnitude,
+  skillsForClass,
   type SkillCardRules,
+  type SkillDef,
   type SkillSlot,
 } from "./skills";
 import { PROVISIONAL } from "./provisional";
@@ -170,6 +178,23 @@ export interface BattleState {
    * Null keeps the forest sample pool.
    */
   distractorIds: string[] | null;
+  /** Ranger only. True after this fight's one card swap. The save deck is not changed. */
+  swapUsed: boolean;
+  /** Equipped ids copied from the save when the fight started. A swap does not rewrite this. */
+  savedEquippedSkillIds: string[];
+  /** Cards the player may swap in. Defaults to the equipped list when the caller omits it. */
+  unlockedSkillIds: string[];
+  /** Explorer only. Drawn for the next action, and committed by that action. */
+  heldQuestion: BattleQuestion | null;
+  heldDraw: HeldDraw | null;
+  /** Kind name only. The scene must not read the held question's prompt or answer. */
+  previewLabel: string | null;
+}
+
+export interface HeldDraw {
+  deck: SkillQuestionDeck;
+  recent: string[];
+  askedCount: Record<string, number>;
 }
 
 export interface TurnDelta {
@@ -207,6 +232,8 @@ export function startBattle(input: {
   padOrder?: readonly string[];
   /** Unlocked word ids. Meaning questions keep the answer's grade and drop same meanings. */
   distractorIds?: readonly string[];
+  /** Unlocked skill ids of this class. Omitted means only the equipped cards are unlocked. */
+  unlockedSkillIds?: readonly string[];
 }): BattleState {
   const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
   const enemy = input.enemy ?? (known
@@ -225,7 +252,7 @@ export function startBattle(input: {
   const rules: SkillCardRules = { ...SKILL_CARD_RULES, ...input.rules };
   const slots = fillSkillSlots(input.classId, input.equippedSkillIds, input.skillLevels, rules);
   const learnedIds = [...input.learnedIds];
-  return {
+  return settle({
     encounterId: input.encounterId,
     seed: input.seed,
     playerHp: hero.maxHp,
@@ -272,7 +299,13 @@ export function startBattle(input: {
     padOrder: [...(input.padOrder ?? [])],
     turnDeltas: [],
     distractorIds: input.distractorIds ? [...input.distractorIds] : null,
-  };
+    swapUsed: false,
+    savedEquippedSkillIds: [...input.equippedSkillIds],
+    unlockedSkillIds: [...(input.unlockedSkillIds ?? input.equippedSkillIds)],
+    heldQuestion: null,
+    heldDraw: null,
+    previewLabel: null,
+  });
 }
 
 function clampedHpDelta(before: number, after: number, max: number): number {
@@ -351,7 +384,7 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
   const hitText = dealt > 0 ? "受到了伤害。" : "这次没有受到伤害。";
   const log = pushLog(state.log, `${state.enemyName}：${hitText}`);
   if (playerHp <= 0) {
-    return {
+    return settle({
       ...state,
       playerHp: 0,
       guard: 0,
@@ -362,9 +395,9 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
       question: null,
       log,
       lastNote: `${note}${hitText}你先退下来。词卡都还在。`,
-    };
+    });
   }
-  return {
+  return settle({
     ...state,
     playerHp,
     guard: 0,
@@ -376,12 +409,12 @@ function afterEnemyHit(state: BattleState, note: string): BattleState {
     question: null,
     log,
     lastNote: `${note}${hitText}`,
-  };
+  });
 }
 
 function finishPlayerTurn(state: BattleState, note: string, skipCounter = false): BattleState {
   if (state.enemyHp > 0 && skipCounter) {
-    return {
+    return settle({
       ...state,
       guard: 0,
       phase: "choose",
@@ -390,12 +423,12 @@ function finishPlayerTurn(state: BattleState, note: string, skipCounter = false)
       pendingBasic: null,
       question: null,
       lastNote: note,
-    };
+    });
   }
   if (state.enemyHp > 0) return afterEnemyHit(state, note);
   const next = state.phases?.[state.phaseIndex + 1];
   if (next) {
-    return {
+    return settle({
       ...state,
       phaseIndex: state.phaseIndex + 1,
       enemyHp: next.hp,
@@ -407,9 +440,9 @@ function finishPlayerTurn(state: BattleState, note: string, skipCounter = false)
       guard: 0,
       log: pushLog(state.log, next.note),
       lastNote: `${note}${next.note}`,
-    };
+    });
   }
-  return {
+  return settle({
     ...state,
     enemyHp: 0,
     phase: "won",
@@ -418,7 +451,7 @@ function finishPlayerTurn(state: BattleState, note: string, skipCounter = false)
     question: null,
     log: pushLog(state.log, "词灵散开了。"),
     lastNote: `${note}你赢了。`,
-  };
+  });
 }
 
 function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
@@ -564,23 +597,97 @@ function drawBattleWord(state: BattleState, pool: readonly string[]): {
   };
 }
 
-function askQuestion(
+export function questionKindLabel(question: BattleQuestion): string {
+  if (question.kind === "spelling") return PREVIEW_SPELLING;
+  if (question.kind === "listening") return PREVIEW_LISTENING;
+  return PREVIEW_MEANING;
+}
+
+export type SwapOffer = "hidden" | "ready" | "used";
+
+/** Unequipped unlocked cards of this class. Other classes have none to offer. */
+export function swapCandidates(state: BattleState): SkillDef[] {
+  if (state.classId !== "ranger") return [];
+  const equipped = new Set(state.slots.filter((slot) => slot.origin === "equipped").map((slot) => slot.skillId));
+  const unlocked = new Set(state.unlockedSkillIds);
+  return skillsForClass("ranger").filter((skill) => unlocked.has(skill.id) && !equipped.has(skill.id));
+}
+
+/**
+ * Ready only in the choose phase, once per fight, when a real card and a candidate exist.
+ * After that one swap the offer stays used, including once the next choose phase opens.
+ */
+export function swapOffer(state: BattleState): SwapOffer {
+  if (state.classId !== "ranger" || state.phase !== "choose") return "hidden";
+  if (state.swapUsed) return "used";
+  const real = state.slots.some((slot) => slot.origin === "equipped");
+  if (!real || swapCandidates(state).length === 0) return "hidden";
+  return "ready";
+}
+
+function equippedSlot(skill: SkillDef, index: number, state: BattleState): SkillSlot {
+  const hero = classById(state.classId);
+  const level = Math.min(MAX_SKILL_LEVEL, Math.max(1, state.skillLevels[skill.id] ?? 1));
+  return {
+    index,
+    skillId: skill.id,
+    name: skill.name,
+    kind: skill.kind,
+    origin: "equipped",
+    fullPower: skillMagnitude(skill, hero, level),
+    basePower: skillMagnitude(skill, hero, 1),
+    fullHeal: skillHealMagnitude(skill, hero, level),
+    baseHeal: skillHealMagnitude(skill, hero, 1),
+    energyCost: skillEnergyCost(skill, hero),
+    level,
+  };
+}
+
+/**
+ * Replace one equipped slot. Same slot index, so keys 4/5/6 stay.
+ * No energy, question, turn, enemy, or word-pool change, and the save list is left on savedEquippedSkillIds.
+ */
+export function swapCard(
   state: BattleState,
-  slot: SkillSlot,
-  basic: BasicAction | null = null,
+  skillId: string,
+  slotIndex: number,
 ): { ok: boolean; reason?: string; state: BattleState } {
+  if (swapOffer(state) !== "ready") {
+    return { ok: false, reason: state.swapUsed ? RANGER_SWAP_USED : "现在不能换牌", state };
+  }
+  const skill = skillById(skillId);
+  const target = state.slots[slotIndex];
+  if (!skill || !swapCandidates(state).some((item) => item.id === skillId)) {
+    return { ok: false, reason: "这张卡换不上", state };
+  }
+  if (!target || target.origin !== "equipped") {
+    return { ok: false, reason: "基础招式不能换下来", state };
+  }
+  const slots = state.slots.map((slot) => (slot.index === slotIndex ? equippedSlot(skill, slot.index, state) : slot));
+  return {
+    ok: true,
+    state: {
+      ...state,
+      slots,
+      equippedSkillIds: slots.filter((slot) => slot.origin === "equipped").map((slot) => slot.skillId),
+      swapUsed: true,
+    },
+  };
+}
+
+function composeQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
   const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
     allowedIds: state.allowedWordIds ?? undefined,
     padOrder: state.padOrder,
   });
   if (pool.length === 0) {
-    return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。", state };
+    return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。" };
   }
   let drawn: ReturnType<typeof drawBattleWord>;
   try {
     drawn = drawBattleWord(state, pool);
   } catch {
-    return { ok: false, reason: "还没有学过的词", state };
+    return { ok: false, reason: "还没有学过的词" };
   }
   const word = wordById(drawn.wordId);
   const lit = state.litWordIds.includes(drawn.wordId);
@@ -598,27 +705,69 @@ function askQuestion(
   const question = spell
     ? spellingQuestion(drawn.wordId, lit)
     : quizForWord(drawn.wordId, state.seed + state.casts * 13, state.questionsAsked % 2 === 0 ? "zh-to-en" : "en-to-zh", distractors);
-  if (!question) return { ok: false, reason: "这道题现在出不了", state };
+  if (!question) return { ok: false, reason: "这道题现在出不了" };
+  return { ok: true, question, drawn };
+}
+
+function commitQuestion(state: BattleState, slot: SkillSlot, basic: BasicAction | null, question: BattleQuestion, drawn: ReturnType<typeof drawBattleWord>): BattleState {
   return {
-    ok: true,
-    state: {
-      ...state,
-      energy: state.energy - slot.energyCost,
-      phase: "question",
-      pendingSlot: basic ? null : slot.index,
-      pendingBasic: basic,
-      question,
-      deck: drawn.deck,
-      recentQuestionIds: drawn.recent,
-      askedCount: drawn.askedCount,
-      casts: state.casts + 1,
-      questionsAsked: state.questionsAsked + 1,
-      spellingAsked: state.spellingAsked + (question.kind === "spelling" ? 1 : 0),
-      lastNote: basic
-        ? `${slot.name}之前先答题：答对是完整效果，答错只有减弱的基础效果。`
-        : `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
-    },
+    ...state,
+    energy: state.energy - slot.energyCost,
+    phase: "question",
+    pendingSlot: basic ? null : slot.index,
+    pendingBasic: basic,
+    question,
+    deck: drawn.deck,
+    recentQuestionIds: drawn.recent,
+    askedCount: drawn.askedCount,
+    casts: state.casts + 1,
+    questionsAsked: state.questionsAsked + 1,
+    spellingAsked: state.spellingAsked + (question.kind === "spelling" ? 1 : 0),
+    heldQuestion: null,
+    heldDraw: null,
+    previewLabel: null,
+    lastNote: basic
+      ? `${slot.name}之前先答题：答对是完整效果，答错只有减弱的基础效果。`
+      : `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,
   };
+}
+
+/** Explorer draws the next question when choose opens. Other classes draw when the action is taken. */
+function settle(state: BattleState): BattleState {
+  if (state.phase !== "choose" || state.classId !== "explorer") {
+    if (state.heldQuestion === null && state.heldDraw === null && state.previewLabel === null) return state;
+    return { ...state, heldQuestion: null, heldDraw: null, previewLabel: null };
+  }
+  if (state.heldQuestion && state.heldDraw && state.previewLabel) return state;
+  const composed = composeQuestion(state);
+  if (!composed.ok) return { ...state, heldQuestion: null, heldDraw: null, previewLabel: null };
+  return {
+    ...state,
+    heldQuestion: composed.question,
+    heldDraw: { deck: composed.drawn.deck, recent: composed.drawn.recent, askedCount: composed.drawn.askedCount },
+    previewLabel: questionKindLabel(composed.question),
+  };
+}
+
+function askQuestion(
+  state: BattleState,
+  slot: SkillSlot,
+  basic: BasicAction | null = null,
+): { ok: boolean; reason?: string; state: BattleState } {
+  if (state.heldQuestion && state.heldDraw) {
+    return {
+      ok: true,
+      state: commitQuestion(state, slot, basic, state.heldQuestion, {
+        wordId: state.heldQuestion.wordId,
+        deck: state.heldDraw.deck,
+        recent: state.heldDraw.recent,
+        askedCount: state.heldDraw.askedCount,
+      }),
+    };
+  }
+  const composed = composeQuestion(state);
+  if (!composed.ok) return { ok: false, reason: composed.reason, state };
+  return { ok: true, state: commitQuestion(state, slot, basic, composed.question, composed.drawn) };
 }
 
 export function takeAction(
