@@ -1,9 +1,6 @@
 name: release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       draft:
@@ -23,7 +20,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  main-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release only from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Release can only be dispatched from refs/heads/main (got ${{ github.ref }}). No build, draft, release, or tag will be created."
+          exit 1
+
   windows:
+    needs: main-only
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +61,7 @@ jobs:
           if-no-files-found: error
 
   mac:
+    needs: main-only
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -204,6 +212,18 @@ jobs:
           echo "$PR_INFO" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
+      - name: Read version from package.json
+        if: steps.check_tag.outputs.exists != 'true'
+        id: pkg
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ -z "$VERSION" ]; then
+            echo "package.json has no version"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=LexiQuest v${VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Generate release notes
         if: steps.check_tag.outputs.exists != 'true'
         id: notes
@@ -215,11 +235,14 @@ jobs:
           IS_DRAFT: ${{ steps.mode.outputs.is_draft }}
           PR_INFO: ${{ steps.pr_info.outputs.pr_info }}
           REPO: ${{ github.repository }}
+          RELEASE_NAME: ${{ steps.pkg.outputs.name }}
         run: |
           DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
           
           {
-            echo "## LexiQuest 桌面版 $TAG"
+            echo "$RELEASE_NAME"
+            echo ""
+            echo "## $RELEASE_NAME"
             echo ""
             
             if [ "$IS_DRAFT" = "true" ]; then
@@ -276,13 +299,11 @@ jobs:
         run: |
           TAG="${{ steps.mode.outputs.tag }}"
           IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
-          DATE=$(date -u +"%Y-%m-%d")
+          TITLE="${{ steps.pkg.outputs.name }}"
           
           if [ "$IS_DRAFT" = "true" ]; then
-            TITLE="[草稿] LexiQuest 桌面版 $TAG ($DATE)"
             DRAFT_FLAG="--draft"
           else
-            TITLE="LexiQuest 桌面版 $TAG ($DATE)"
             DRAFT_FLAG=""
           fi
           
