@@ -30,7 +30,6 @@ function main() {
     // The forest manifest is imported by the JS bundle, so it is not counted again.
     path.join(root, "public/assets/atlases/actors.png"),
     path.join(root, "public/assets/atlases/actors.json"),
-    ...files(path.join(root, "public/assets/warrior/v0.1/atlas")),
     ...files(path.join(root, "public/assets/chapter/forest/v0.1/atlas")),
     ...files(path.join(root, "public/assets/warm/atlas")).filter((file) => path.basename(file).startsWith("atlas_ui_core")),
     ...files(path.join(root, "public/assets/warm/atlas")).filter((file) => path.basename(file).startsWith("atlas_village")),

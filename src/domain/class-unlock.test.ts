@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { CLASS_IDS } from "./classes";
 import {
+  INVENTOR_LOCK_BUTTON,
   INVENTOR_LOCK_NOTE,
   INVENTOR_LOCK_TIP,
   INVENTOR_LOCK_TITLE,
@@ -14,6 +15,7 @@ import {
   INVENTOR_UNLOCK_ENABLED,
   isClassSelectable,
   isClassUnlocked,
+  lockedCardTip,
   resolvedClassId,
   selectClass,
 } from "./class-unlock";
@@ -106,9 +108,81 @@ describe("class unlock", () => {
     expect(INVENTOR_UNLOCK_LATER).toBe("等会儿");
     expect(scene).toContain("INVENTOR_LOCK_TITLE");
     expect(scene).toContain("INVENTOR_LOCK_TIP");
-    expect(scene).toContain("if (!unlocked) return");
+    expect(scene).toContain("lockedCardTip");
+    expect(scene).toContain("showLockTip");
+    expect(scene).not.toContain("if (!unlocked) return");
     expect(scene).toContain("PORTRAIT_LOCKED_FRAME");
     expect(scene).not.toContain("setTint(0x141414)");
     expect(scene).not.toContain("unlockClasses");
+  });
+
+  it("keeps the current class and shows the full lock tip when the inventor card is chosen", () => {
+    expect(INVENTOR_UNLOCK_ENABLED).toBe(false);
+    expect(INVENTOR_LOCK_NOTE).toBe("打败期末大 Boss 后解锁");
+    expect(INVENTOR_LOCK_TIP).toBe(
+      "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。期末大 Boss 还在准备中，先和大家一起去冒险吧！",
+    );
+    expect(INVENTOR_LOCK_TIP).not.toBe(INVENTOR_LOCK_NOTE);
+    expect(INVENTOR_LOCK_BUTTON).toBe("好的");
+    expect(lockedCardTip("inventor", null)).toBe(INVENTOR_LOCK_TIP);
+    expect(lockedCardTip("inventor", { unlockedClassIds: ["inventor"] })).toBe(INVENTOR_LOCK_TIP);
+    expect(lockedCardTip("warrior", null)).toBeNull();
+    expect(selectClass("explorer", "inventor", { unlockedClassIds: ["inventor"] })).toBe("explorer");
+    const scene = readFileSync(new URL("../game/scenes/CreateScene.ts", import.meta.url), "utf8");
+    expect(scene).toContain("INVENTOR_LOCK_BUTTON");
+    expect(scene).not.toContain("icon_lock");
+  });
+
+  it("does not unlock inventor when the save only lists unlockedClassIds", () => {
+    const raw = claimedSave("warrior");
+    delete raw.inventorUnlockedAt;
+    delete raw.inventorUnlockedBy;
+    delete raw.examProgress;
+    raw.unlockedClassIds = ["inventor"];
+    const loaded = deserialize(JSON.stringify(raw));
+    expect(loaded?.player.classId).toBe("warrior");
+    expect(isClassSelectable("inventor", loaded)).toBe(false);
+    expect(isClassUnlocked("inventor", loaded)).toBe(false);
+    expect(selectClass("mage", "inventor", loaded)).toBe("mage");
+    const kept = JSON.parse(serialize(loaded!)) as typeof raw;
+    expect(kept.unlockedClassIds).toEqual(["inventor"]);
+    expect(kept.examProgress).toBeUndefined();
+    expect(kept.inventorUnlockedAt).toBeUndefined();
+  });
+
+  it("does not unlock inventor when only exam clears are stored, including all eight together", () => {
+    const one = claimedSave("warrior");
+    delete one.unlockedClassIds;
+    delete one.inventorUnlockedAt;
+    delete one.inventorUnlockedBy;
+    one.player.classId = "inventor";
+    one.examProgress = { exam_g3_s1_final: { cleared: true, bestPhase: 3 } };
+    const oneLoaded = deserialize(JSON.stringify(one));
+    expect(oneLoaded?.player.classId).toBe("warrior");
+    expect(isClassSelectable("inventor", oneLoaded)).toBe(false);
+    expect(JSON.parse(serialize(oneLoaded!)).examProgress).toEqual(one.examProgress);
+    expect(JSON.parse(serialize(oneLoaded!)).unlockedClassIds).toBeUndefined();
+
+    const exams = [
+      "exam_g3_s1_final",
+      "exam_g3_s2_final",
+      "exam_g4_s1_final",
+      "exam_g4_s2_final",
+      "exam_g5_s1_final",
+      "exam_g5_s2_final",
+      "exam_g6_s1_final",
+      "exam_g6_s2_final",
+    ];
+    const all = claimedSave("warrior");
+    delete all.unlockedClassIds;
+    delete all.inventorUnlockedAt;
+    delete all.inventorUnlockedBy;
+    all.examProgress = Object.fromEntries(exams.map((id) => [id, { cleared: true, bestPhase: 3 }]));
+    const allLoaded = deserialize(JSON.stringify(all));
+    expect(allLoaded?.player.classId).toBe("warrior");
+    expect(isClassSelectable("inventor", allLoaded)).toBe(false);
+    expect(selectClass("warrior", "inventor", allLoaded)).toBe("warrior");
+    expect(JSON.parse(serialize(allLoaded!)).examProgress).toEqual(all.examProgress);
+    expect(JSON.parse(serialize(allLoaded!)).unlockedClassIds).toBeUndefined();
   });
 });

@@ -39,7 +39,8 @@ describe("class atlases", () => {
     const source = readFileSync(new URL("../scenes/BootScene.ts", import.meta.url), "utf8");
     const preload = source.slice(source.indexOf("preload(): void {"), source.indexOf("create(): void {"));
     expect(preload).toContain('this.load.atlas("actors"');
-    expect(preload).toContain("queueWarriorAtlases(this)");
+    expect(preload).not.toContain("queueWarriorAtlases");
+    expect(preload).not.toContain("char_p0");
     expect(preload).toContain("queueChapterCosmetics(this)");
     expect(preload).toContain('queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_home", "bg_village"])');
     expect(preload).toContain('this.load.image("logo_title"');

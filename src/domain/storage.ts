@@ -6,9 +6,11 @@
  */
 import { isAppearance } from "./appearance";
 import { normalizeGrades } from "./catalog";
+import { CLASS_IDS } from "./classes";
 import { resolvedClassId } from "./class-unlock";
 import { withParentDefaults } from "./parent";
-import type { SaveData } from "./types";
+import { skillsForClass, starterSkillId } from "./skills";
+import type { ClassId, SaveData } from "./types";
 
 export const SAVE_KEY = "lexiquest.save.v1";
 
@@ -33,6 +35,34 @@ function readChapterProgress(value: unknown): Record<string, { cleared: boolean;
     progress[id] = { cleared: entry.cleared === true, stageWins: readStageWins(entry.stageWins) };
   }
   return progress;
+}
+
+function readSkillIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is string => typeof id === "string");
+}
+
+function readEquippedByClass(value: unknown): Partial<Record<ClassId, string[]>> {
+  if (!isRecord(value)) return {};
+  const decks: Partial<Record<ClassId, string[]>> = {};
+  for (const [key, deck] of Object.entries(value)) {
+    if (!CLASS_IDS.includes(key as ClassId)) continue;
+    decks[key as ClassId] = readSkillIds(deck);
+  }
+  return decks;
+}
+
+/** Park a locked inventor deck, then make sure the warrior has cards. */
+function parkLockedInventorDeck(save: SaveData, rawClassId: unknown): void {
+  if (rawClassId !== "inventor" || save.player.classId === "inventor") return;
+  const original = readSkillIds(save.equippedSkillIds);
+  const parked = { ...(save.equippedByClass ?? {}), inventor: [...original] };
+  const warriorIds = new Set(skillsForClass("warrior").map((skill) => skill.id));
+  const storedWarrior = (parked.warrior ?? []).filter((id) => warriorIds.has(id));
+  const kept = original.filter((id) => warriorIds.has(id));
+  const deck = storedWarrior.length > 0 ? storedWarrior : kept;
+  save.equippedByClass = parked;
+  save.equippedSkillIds = deck.length > 0 ? [...deck] : [starterSkillId("warrior")];
 }
 
 function readStageWins(value: unknown): Record<string, number> {
@@ -60,7 +90,10 @@ export function deserialize(raw: string): SaveData | null {
     if (typeof value.xp !== "number" || typeof value.clockOffsetMs !== "number") return null;
     if (typeof value.battlesWon !== "number" || typeof value.battlesLost !== "number") return null;
     const save = value as unknown as SaveData;
-    save.player.classId = resolvedClassId(value.player.classId, value);
+    const rawClassId = value.player.classId;
+    save.player.classId = resolvedClassId(rawClassId, value);
+    if (isRecord(value.equippedByClass)) save.equippedByClass = readEquippedByClass(value.equippedByClass);
+    parkLockedInventorDeck(save, rawClassId);
     save.chapterCleared = value.chapterCleared === true;
     save.stageWins = readStageWins(value.stageWins);
     save.bestStars = readBestStars(value.bestStars);
