@@ -5,6 +5,7 @@ import { stageCombatFor, type PlayChapter } from "./chapter-plan";
 import {
   CHAPTER_MINION_ID,
   CHAPTER_SCENE_GROUP,
+  JOURNEY_NIGHT_CHAPTERS,
   SCENE_GROUP_IDS,
   chapterBackdrop,
   chapterMinion,
@@ -74,26 +75,37 @@ describe("chapter scene groups", () => {
     expect(CHAPTER_SCENE_GROUP[FOREST_CHAPTER.chapter_id]).toBeUndefined();
   });
 
-  it("stores the journey night art and does not point any chapter at it", () => {
+  it("follows the v1.0.1 journey day and night assignment", () => {
     const nights = journeyNightUrls();
     expect(nights).toEqual([
       "assets/chapter/scenes/journey/bg_map_night.webp",
       "assets/chapter/scenes/journey/bg_battle_night.webp",
     ]);
-    const nightFiles = ledger.files.filter((file) => !file.referenced);
-    expect(nightFiles.map((file) => file.repoPath).sort()).toEqual(nights.map((url) => `public/${url}`).sort());
+    expect([...JOURNEY_NIGHT_CHAPTERS]).toEqual(["pep_g6_01", "pep_g6_04"]);
     for (const file of ledger.files) {
+      expect(file.referenced).toBe(true);
       expect(file.recompressed).toBe(false);
       expect(file.repoSha256).toBe(file.sourceSha256);
       expect(sha256(file.repoPath)).toBe(file.repoSha256);
     }
+    for (const id of JOURNEY_NIGHT_CHAPTERS) {
+      const backdrop = chapterBackdrop(id);
+      expect(backdrop.mapUrl).toBe(nights[0]);
+      expect(backdrop.battleUrl).toBe(nights[1]);
+      expect(backdrop.mapKey).toBe("chapter_map_journey_night");
+      expect(backdrop.battleKey).toBe("chapter_battle_journey_night");
+    }
     for (const id of Object.keys(CHAPTER_SCENE_GROUP)) {
+      if ((JOURNEY_NIGHT_CHAPTERS as readonly string[]).includes(id)) continue;
       const backdrop = chapterBackdrop(id);
       expect(nights).not.toContain(backdrop.mapUrl);
       expect(nights).not.toContain(backdrop.battleUrl);
     }
-    expect(chapterBackdrop("pep_g6_06").mapUrl).toBe("assets/chapter/scenes/journey/bg_map_day.webp");
-    expect(chapterBackdrop("pep_g6_06").battleUrl).toBe("assets/chapter/scenes/journey/bg_battle_day.webp");
+    const day = chapterBackdrop("pep_g6_06");
+    expect(day.mapUrl).toBe("assets/chapter/scenes/journey/bg_map_day.webp");
+    expect(day.battleUrl).toBe("assets/chapter/scenes/journey/bg_battle_day.webp");
+    expect(day.mapKey).toBe("chapter_map_journey_day");
+    expect(day.mapKey).not.toBe(chapterBackdrop("pep_g6_01").mapKey);
   });
 
   it("does not add chapter scenes to the boot scene", () => {

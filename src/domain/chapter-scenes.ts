@@ -59,8 +59,17 @@ const FOREST_BACKDROP: ChapterBackdrop = {
   battleUrl: "assets/warm/backgrounds/bg_forest_battle_2x.webp",
 };
 
-function sceneFile(group: SceneGroupId, kind: "map" | "battle"): string {
-  if (group === "journey") return kind === "map" ? "bg_map_day.webp" : "bg_battle_day.webp";
+/**
+ * integration_v1.0.1 journey defaults. Night is adopted for these chapters only.
+ * pep_g6_03 stays on the day set until Haru confirms it.
+ */
+export const JOURNEY_NIGHT_CHAPTERS = ["pep_g6_01", "pep_g6_04"] as const;
+
+function sceneFile(group: SceneGroupId, kind: "map" | "battle", night: boolean): string {
+  if (group === "journey") {
+    if (night) return kind === "map" ? "bg_map_night.webp" : "bg_battle_night.webp";
+    return kind === "map" ? "bg_map_day.webp" : "bg_battle_day.webp";
+  }
   return kind === "map" ? "bg_map.webp" : "bg_battle.webp";
 }
 
@@ -69,16 +78,18 @@ export function chapterBackdrop(chapterId: string): ChapterBackdrop {
   if (chapterId === FOREST_CHAPTER.chapter_id) return FOREST_BACKDROP;
   const group = CHAPTER_SCENE_GROUP[chapterId];
   if (!group) throw new Error(`No scene group for ${chapterId}`);
+  const night = (JOURNEY_NIGHT_CHAPTERS as readonly string[]).includes(chapterId);
+  const variant = group === "journey" ? (night ? "night" : "day") : "";
   return {
     groupId: group,
-    mapKey: `chapter_map_${group}`,
-    mapUrl: `assets/chapter/scenes/${group}/${sceneFile(group, "map")}`,
-    battleKey: `chapter_battle_${group}`,
-    battleUrl: `assets/chapter/scenes/${group}/${sceneFile(group, "battle")}`,
+    mapKey: variant ? `chapter_map_${group}_${variant}` : `chapter_map_${group}`,
+    mapUrl: `assets/chapter/scenes/${group}/${sceneFile(group, "map", night)}`,
+    battleKey: variant ? `chapter_battle_${group}_${variant}` : `chapter_battle_${group}`,
+    battleUrl: `assets/chapter/scenes/${group}/${sceneFile(group, "battle", night)}`,
   };
 }
 
-/** Stored for later. The game does not load these. */
+/** Journey night files. pep_g6_01 and pep_g6_04 load them. The other journey chapters do not. */
 export function journeyNightUrls(): readonly string[] {
   return [
     "assets/chapter/scenes/journey/bg_map_night.webp",
