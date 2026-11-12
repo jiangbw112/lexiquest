@@ -255,6 +255,7 @@ export function isChapterExtra(id: string): boolean {
 /**
  * Forest lessons for the selected grades. Extra words whose own grade is off
  * still appear, on the first open lesson, because they always count.
+ * Words after the forest set belong to later chapters, not these lessons.
  */
 export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
   const selected = new Set(normalizeGrades(grades));
@@ -262,13 +263,8 @@ export function lessonUnits(grades: readonly string[] | undefined): UnitDef[] {
   if (units.length === 0) return [];
   const shown = new Set(units.flatMap((unit) => unit.wordIds));
   const missing = CHAPTER_EXTRAS.map((word) => word.id).filter((id) => !shown.has(id));
-  const withExtras = missing.length === 0 || !units[0]
-    ? units
-    : [{ ...units[0], wordIds: [...units[0].wordIds, ...missing] }, ...units.slice(1)];
-  return withExtras.map((unit) => {
-    const more = continuationWordIds(unit.grade).filter((id) => !unit.wordIds.includes(id));
-    return more.length === 0 ? unit : { ...unit, wordIds: [...unit.wordIds, ...more] };
-  });
+  if (missing.length === 0 || !units[0]) return units;
+  return [{ ...units[0], wordIds: [...units[0].wordIds, ...missing] }, ...units.slice(1)];
 }
 
 /**

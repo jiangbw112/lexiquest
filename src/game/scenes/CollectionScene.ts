@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { formatMeaning, sampleWords, wordById } from "../../domain/catalog";
+import { collectedCardIds } from "../../domain/chapter-plan";
+import { formatMeaning, wordById } from "../../domain/catalog";
 import { studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import { COLLECTION_CARD, cjkWrap, parchmentTitleY } from "../layout";
@@ -12,8 +13,11 @@ import { INK, MUTED, NOTE, PLUM } from "../warm/theme";
 
 const TONE_LABEL = { none: "未熟练", bright: "熟练", grey: "熟练·待复习" } as const;
 const TONE_BADGE = { none: "badge_mastery_none", bright: "badge_mastery_lit", grey: "badge_mastery_dim" } as const;
+const PAGE_SIZE = 35;
 
 export class CollectionScene extends Phaser.Scene {
+  private page = 0;
+
   constructor() {
     super("collection");
   }
@@ -29,17 +33,37 @@ export class CollectionScene extends Phaser.Scene {
       return;
     }
     probeEnter("collection");
+    const onKey = (event: KeyboardEvent) => {
+      if (event.code === "Escape") this.scene.start("overworld");
+      if (event.code === "BracketLeft" || event.code === "ArrowLeft") this.turn(-1);
+      if (event.code === "BracketRight" || event.code === "ArrowRight") this.turn(1);
+    };
+    this.input.keyboard?.on("keydown", onKey);
+    this.events.once("shutdown", () => this.input.keyboard?.off("keydown", onKey));
+    this.draw();
+  }
+
+  private turn(delta: number): void {
+    const save = getSave();
+    if (!save) return;
+    const pages = Math.max(1, Math.ceil(collectedCardIds(save).length / PAGE_SIZE));
+    const next = Math.min(pages - 1, Math.max(0, this.page + delta));
+    if (next === this.page) return;
+    this.page = next;
+    this.draw();
+  }
+
+  private draw(): void {
+    const save = getSave();
+    if (!save) return;
+    this.children.removeAll(true);
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
     const now = studyNow(save);
-    const forestOwned = sampleWords().filter((word) => save.wordCards[word.id]);
-    const forestIds = new Set(forestOwned.map((word) => word.id));
-    const later = Object.keys(save.wordCards)
-      .filter((id) => !forestIds.has(id))
-      .map((id) => wordById(id))
-      .filter((word): word is NonNullable<ReturnType<typeof wordById>> => Boolean(word));
-    const owned = [...forestOwned, ...later];
-    const shown = owned.slice(0, 35);
+    const owned = collectedCardIds(save).map((id) => wordById(id)).filter((word): word is NonNullable<ReturnType<typeof wordById>> => Boolean(word));
+    const pages = Math.max(1, Math.ceil(owned.length / PAGE_SIZE));
+    if (this.page > pages - 1) this.page = pages - 1;
+    const shown = owned.slice(this.page * PAGE_SIZE, (this.page + 1) * PAGE_SIZE);
     const titleY = parchmentTitleY(400, 740);
     this.add.text(160, titleY, "词卡册", { fontFamily: FONT, fontSize: "36px", color: INK });
     this.add.text(340, titleY + 12, `已收集 ${owned.length} 个 · 词卡不会因为徽章变灰而消失`, {
@@ -93,6 +117,14 @@ export class CollectionScene extends Phaser.Scene {
       this.add.image(x + 51, y - 33, "atlas_ui_core", TONE_BADGE[tone]).setDisplaySize(30, 30);
     });
     warmButton(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
-    this.input.keyboard?.once("keydown-ESC", () => this.scene.start("overworld"));
+    if (pages > 1) {
+      this.add.text(620, 730, `第 ${this.page + 1} / ${pages} 页`, {
+        fontFamily: FONT,
+        fontSize: "18px",
+        color: INK,
+      }).setOrigin(0.5);
+      warmButton(this, 820, 730, "上一页", () => this.turn(-1), { width: 140, tone: "secondary", disabled: this.page === 0 });
+      warmButton(this, 980, 730, "下一页", () => this.turn(1), { width: 140, tone: "secondary", disabled: this.page >= pages - 1 });
+    }
   }
 }

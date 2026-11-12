@@ -1,0 +1,4691 @@
+[
+ {
+  "order": 1,
+  "chapter_id": "forest_adventure",
+  "status": "existing",
+  "grade": null,
+  "grades_present": [
+   "G3",
+   "G4",
+   "G5",
+   "G6"
+  ],
+  "name_zh": "森林冒险",
+  "boss_name_zh": "林心守护者",
+  "word_count": 28,
+  "units_covered": [],
+  "word_refs_formal": [
+   "tree",
+   "bird",
+   "fish",
+   "sun",
+   "map",
+   "run",
+   "big",
+   "red",
+   "river",
+   "forest",
+   "mountain",
+   "flower",
+   "rain",
+   "cloud",
+   "jump",
+   "village",
+   "climb",
+   "weather",
+   "dangerous",
+   "explore"
+  ],
+  "chapter_extra_word_ids": [
+   "bridge",
+   "brave",
+   "path",
+   "treasure",
+   "journey",
+   "discover",
+   "adventure",
+   "protect"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "林缘小径",
+    "type": "exploration",
+    "word_refs": [
+     "tree",
+     "bird",
+     "fish",
+     "sun",
+     "map",
+     "run"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "河岸花径",
+    "type": "exploration",
+    "word_refs": [
+     "big",
+     "red",
+     "river",
+     "forest",
+     "flower",
+     "rain"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "云桥山道",
+    "type": "exploration",
+    "word_refs": [
+     "cloud",
+     "jump",
+     "mountain",
+     "bridge",
+     "path",
+     "climb"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "迷雾村庄",
+    "type": "exploration",
+    "word_refs": [
+     "village",
+     "weather",
+     "brave",
+     "dangerous",
+     "explore",
+     "protect"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "林心守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "treasure",
+     "journey",
+     "discover",
+     "adventure"
+    ]
+   }
+  ],
+  "source": "repo 4cd2956 src/domain/chapters/chapter_forest_v1.1.json（沿用，未改）；boss_name_zh 取自 src/domain/provisional.ts"
+ },
+ {
+  "order": 2,
+  "chapter_id": "pep_g3_01",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 1,
+  "name_zh": "朋友与家人",
+  "boss_name_zh": "全家福守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3a-u1",
+    "grade": 3,
+    "semester": "上",
+    "unit": 1,
+    "unit_title_en": "Making friends",
+    "word_count": 19
+   },
+   {
+    "unit_code": "3a-u2",
+    "grade": 3,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "Different families",
+    "word_count": 9
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "arm",
+   "can",
+   "ear",
+   "eye",
+   "friend",
+   "good",
+   "hand",
+   "help",
+   "listen",
+   "mouth",
+   "name",
+   "nice",
+   "say",
+   "share",
+   "smile",
+   "hello",
+   "hi",
+   "goodbye",
+   "toy",
+   "aunt",
+   "baby",
+   "brother",
+   "cousin",
+   "dad",
+   "family",
+   "father",
+   "grandfather",
+   "grandma"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "握手小路",
+    "type": "exploration",
+    "word_refs": [
+     "arm",
+     "can",
+     "ear",
+     "eye",
+     "friend",
+     "good"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "认识新名字",
+    "type": "exploration",
+    "word_refs": [
+     "hand",
+     "help",
+     "listen",
+     "mouth",
+     "name",
+     "nice"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "微笑问候亭",
+    "type": "exploration",
+    "word_refs": [
+     "say",
+     "share",
+     "smile",
+     "hello",
+     "hi",
+     "goodbye"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "亲戚玩具屋",
+    "type": "exploration",
+    "word_refs": [
+     "toy",
+     "aunt",
+     "baby",
+     "brother",
+     "cousin",
+     "dad"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "家人守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "family",
+     "father",
+     "grandfather",
+     "grandma"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "friend",
+   "hand",
+   "hello",
+   "smile",
+   "share",
+   "baby",
+   "family",
+   "father"
+  ],
+  "theme_note_zh": "3上 U1 Making friends（问候、五官手臂、分享）接 U2 Different families（家人称呼），先交朋友再见家人。"
+ },
+ {
+  "order": 3,
+  "chapter_id": "pep_g3_02",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 2,
+  "name_zh": "动物好朋友",
+  "boss_name_zh": "温柔小虎灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3a-u2",
+    "grade": 3,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "Different families",
+    "word_count": 9
+   },
+   {
+    "unit_code": "3a-u3",
+    "grade": 3,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Amazing animals",
+    "word_count": 19
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "grandmother",
+   "grandpa",
+   "have",
+   "me",
+   "mother",
+   "mum",
+   "sister",
+   "small",
+   "uncle",
+   "animal",
+   "cat",
+   "cute",
+   "dog",
+   "elephant",
+   "fast",
+   "fox",
+   "giraffe",
+   "go",
+   "like",
+   "lion",
+   "miss",
+   "monkey",
+   "panda",
+   "pet",
+   "rabbit",
+   "red panda",
+   "tall",
+   "tiger"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "外婆家门口",
+    "type": "exploration",
+    "word_refs": [
+     "grandmother",
+     "grandpa",
+     "have",
+     "me",
+     "mother",
+     "mum"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "可爱小猫窝",
+    "type": "exploration",
+    "word_refs": [
+     "sister",
+     "small",
+     "uncle",
+     "animal",
+     "cat",
+     "cute"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "快跑动物道",
+    "type": "exploration",
+    "word_refs": [
+     "dog",
+     "elephant",
+     "fast",
+     "fox",
+     "giraffe",
+     "go"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "熊猫猴子坡",
+    "type": "exploration",
+    "word_refs": [
+     "like",
+     "lion",
+     "miss",
+     "monkey",
+     "panda",
+     "pet"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "老虎守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "rabbit",
+     "red panda",
+     "tall",
+     "tiger"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "grandmother",
+   "mother",
+   "cat",
+   "dog",
+   "elephant",
+   "giraffe",
+   "panda",
+   "tiger"
+  ],
+  "theme_note_zh": "U2 家人收尾（grandmother/mother/uncle）进入 U3 Amazing animals，动物占 17 词。"
+ },
+ {
+  "order": 4,
+  "chapter_id": "pep_g3_03",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 3,
+  "name_zh": "花园调色盘",
+  "boss_name_zh": "绿鸭画笔灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3a-u3",
+    "grade": 3,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Amazing animals",
+    "word_count": 1
+   },
+   {
+    "unit_code": "3a-u4",
+    "grade": 3,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Plants around us",
+    "word_count": 18
+   },
+   {
+    "unit_code": "3a-u5",
+    "grade": 3,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "The colourful world",
+    "word_count": 9
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "zoo",
+   "air",
+   "apple",
+   "banana",
+   "farm",
+   "garden",
+   "give",
+   "grape",
+   "grass",
+   "need",
+   "new",
+   "orange",
+   "plant",
+   "school",
+   "them",
+   "us",
+   "water",
+   "wood",
+   "get",
+   "bear",
+   "black",
+   "blue",
+   "brown",
+   "colour",
+   "draw",
+   "duck",
+   "green",
+   "make"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "果园农场",
+    "type": "exploration",
+    "word_refs": [
+     "zoo",
+     "air",
+     "apple",
+     "banana",
+     "farm",
+     "garden"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "葡萄草地",
+    "type": "exploration",
+    "word_refs": [
+     "give",
+     "grape",
+     "grass",
+     "need",
+     "new",
+     "orange"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "浇水小苗圃",
+    "type": "exploration",
+    "word_refs": [
+     "plant",
+     "school",
+     "them",
+     "us",
+     "water",
+     "wood"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "棕熊调色盘",
+    "type": "exploration",
+    "word_refs": [
+     "get",
+     "bear",
+     "black",
+     "blue",
+     "brown",
+     "colour"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "画画守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "draw",
+     "duck",
+     "green",
+     "make"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "apple",
+   "banana",
+   "garden",
+   "grape",
+   "plant",
+   "water",
+   "colour",
+   "draw"
+  ],
+  "theme_note_zh": "U4 Plants around us（水果、花园、浇水种植）接 U5 The colourful world 开头的颜色词与 draw。"
+ },
+ {
+  "order": 5,
+  "chapter_id": "pep_g3_04",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 4,
+  "name_zh": "彩虹数数",
+  "boss_name_zh": "远方来信灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3a-u5",
+    "grade": 3,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "The colourful world",
+    "word_count": 6
+   },
+   {
+    "unit_code": "3a-u6",
+    "grade": 3,
+    "semester": "上",
+    "unit": 6,
+    "unit_title_en": "Useful numbers",
+    "word_count": 16
+   },
+   {
+    "unit_code": "3b-u1",
+    "grade": 3,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "Meeting new people",
+    "word_count": 6
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "pink",
+   "purple",
+   "sea",
+   "some",
+   "white",
+   "yellow",
+   "cake",
+   "cut",
+   "eat",
+   "eight",
+   "five",
+   "four",
+   "nine",
+   "o'clock",
+   "old",
+   "one",
+   "seven",
+   "six",
+   "ten",
+   "three",
+   "two",
+   "year",
+   "about",
+   "after",
+   "also",
+   "boy",
+   "canada",
+   "china"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "彩虹海边",
+    "type": "exploration",
+    "word_refs": [
+     "pink",
+     "purple",
+     "sea",
+     "some",
+     "white",
+     "yellow"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "数字蛋糕店",
+    "type": "exploration",
+    "word_refs": [
+     "cake",
+     "cut",
+     "eat",
+     "eight",
+     "five",
+     "four"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "钟点小屋",
+    "type": "exploration",
+    "word_refs": [
+     "nine",
+     "o'clock",
+     "old",
+     "one",
+     "seven",
+     "six"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "数数阶梯",
+    "type": "exploration",
+    "word_refs": [
+     "ten",
+     "three",
+     "two",
+     "year",
+     "about",
+     "after"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "远方守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "also",
+     "boy",
+     "canada",
+     "china"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "pink",
+   "purple",
+   "yellow",
+   "cake",
+   "eight",
+   "o'clock",
+   "ten",
+   "year"
+  ],
+  "theme_note_zh": "U5 颜色收尾 + U6 Useful numbers（数字、钟点、年龄）为主体，末尾进入 3下 U1 Meeting new people（Canada/China）。"
+ },
+ {
+  "order": 6,
+  "chapter_id": "pep_g3_05",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 5,
+  "name_zh": "认识新朋友",
+  "boss_name_zh": "礼物盒守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3b-u1",
+    "grade": 3,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "Meeting new people",
+    "word_count": 18
+   },
+   {
+    "unit_code": "3b-u2",
+    "grade": 3,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Expressing yourself",
+    "word_count": 10
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "classmate",
+   "english",
+   "from",
+   "girl",
+   "he",
+   "man",
+   "mr",
+   "neighbour",
+   "she",
+   "student",
+   "teacher",
+   "today",
+   "uk",
+   "usa",
+   "very",
+   "where",
+   "who",
+   "woman",
+   "all",
+   "body",
+   "card",
+   "dance",
+   "face",
+   "fat",
+   "gift",
+   "has",
+   "her",
+   "leg"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "新同学门口",
+    "type": "exploration",
+    "word_refs": [
+     "classmate",
+     "english",
+     "from",
+     "girl",
+     "he",
+     "man"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "老师邻居街",
+    "type": "exploration",
+    "word_refs": [
+     "mr",
+     "neighbour",
+     "she",
+     "student",
+     "teacher",
+     "today"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "你从哪里来",
+    "type": "exploration",
+    "word_refs": [
+     "uk",
+     "usa",
+     "very",
+     "where",
+     "who",
+     "woman"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "跳舞卡片台",
+    "type": "exploration",
+    "word_refs": [
+     "all",
+     "body",
+     "card",
+     "dance",
+     "face",
+     "fat"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "礼物守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "gift",
+     "has",
+     "her",
+     "leg"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "classmate",
+   "english",
+   "neighbour",
+   "teacher",
+   "where",
+   "who",
+   "dance",
+   "gift"
+  ],
+  "theme_note_zh": "3下 U1 Meeting new people（同学、老师、来自哪里）接 U2 Expressing yourself（跳舞、礼物、身体）。"
+ },
+ {
+  "order": 7,
+  "chapter_id": "pep_g3_06",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 6,
+  "name_zh": "爱学习的我",
+  "boss_name_zh": "铅笔尺子灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3b-u2",
+    "grade": 3,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Expressing yourself",
+    "word_count": 14
+   },
+   {
+    "unit_code": "3b-u3",
+    "grade": 3,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Learning better",
+    "word_count": 14
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "long",
+   "love",
+   "much",
+   "or",
+   "picture",
+   "right",
+   "short",
+   "sing",
+   "slow",
+   "so",
+   "song",
+   "tail",
+   "talk",
+   "thin",
+   "bag",
+   "book",
+   "class",
+   "computer",
+   "eraser",
+   "find",
+   "hear",
+   "in class",
+   "learn",
+   "nose",
+   "paper",
+   "pen",
+   "pencil",
+   "ruler"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "爱心画廊",
+    "type": "exploration",
+    "word_refs": [
+     "long",
+     "love",
+     "much",
+     "or",
+     "picture",
+     "right"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "慢慢歌谣路",
+    "type": "exploration",
+    "word_refs": [
+     "short",
+     "sing",
+     "slow",
+     "so",
+     "song",
+     "tail"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "书包教室",
+    "type": "exploration",
+    "word_refs": [
+     "talk",
+     "thin",
+     "bag",
+     "book",
+     "class",
+     "computer"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "认真听讲堂",
+    "type": "exploration",
+    "word_refs": [
+     "eraser",
+     "find",
+     "hear",
+     "in class",
+     "learn",
+     "nose"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "文具守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "paper",
+     "pen",
+     "pencil",
+     "ruler"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "love",
+   "picture",
+   "sing",
+   "song",
+   "book",
+   "class",
+   "learn",
+   "pencil"
+  ],
+  "theme_note_zh": "U2 表达自我（爱、唱歌、长短）接 U3 Learning better（书包、课堂、文具）。"
+ },
+ {
+  "order": 8,
+  "chapter_id": "pep_g3_07",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 7,
+  "name_zh": "好吃又健康",
+  "boss_name_zh": "玩具箱守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "3b-u3",
+    "grade": 3,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Learning better",
+    "word_count": 6
+   },
+   {
+    "unit_code": "3b-u4",
+    "grade": 3,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "Healthy food",
+    "word_count": 17
+   },
+   {
+    "unit_code": "3b-u5",
+    "grade": 3,
+    "semester": "下",
+    "unit": 5,
+    "unit_title_en": "Old toys",
+    "word_count": 5
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "see",
+   "smell",
+   "taste",
+   "these",
+   "tongue",
+   "touch",
+   "bread",
+   "breakfast",
+   "candy",
+   "colourful",
+   "egg",
+   "fruit",
+   "healthy",
+   "juice",
+   "meat",
+   "milk",
+   "noodle",
+   "plate",
+   "rice",
+   "soup",
+   "time",
+   "vegetable",
+   "yummy",
+   "at",
+   "ball",
+   "boat",
+   "box",
+   "cap"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "五感小屋",
+    "type": "exploration",
+    "word_refs": [
+     "see",
+     "smell",
+     "taste",
+     "these",
+     "tongue",
+     "touch"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "早餐果篮",
+    "type": "exploration",
+    "word_refs": [
+     "bread",
+     "breakfast",
+     "candy",
+     "colourful",
+     "egg",
+     "fruit"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "健康餐桌",
+    "type": "exploration",
+    "word_refs": [
+     "healthy",
+     "juice",
+     "meat",
+     "milk",
+     "noodle",
+     "plate"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "热汤菜园",
+    "type": "exploration",
+    "word_refs": [
+     "rice",
+     "soup",
+     "time",
+     "vegetable",
+     "yummy",
+     "at"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "旧玩具守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "ball",
+     "boat",
+     "box",
+     "cap"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "smell",
+   "taste",
+   "breakfast",
+   "fruit",
+   "healthy",
+   "milk",
+   "vegetable",
+   "ball"
+  ],
+  "theme_note_zh": "U3 的五感词收尾，主体是 U4 Healthy food，关 5 进入 U5 Old toys（ball/boat/box/cap）。"
+ },
+ {
+  "order": 9,
+  "chapter_id": "pep_g3_08",
+  "status": "proposal",
+  "grade": "G3",
+  "chapter_index_in_grade": 8,
+  "name_zh": "玩具与数字",
+  "boss_name_zh": "存钱罐守护者",
+  "word_count": 24,
+  "units_covered": [
+   {
+    "unit_code": "3b-u5",
+    "grade": 3,
+    "semester": "下",
+    "unit": 5,
+    "unit_title_en": "Old toys",
+    "word_count": 11
+   },
+   {
+    "unit_code": "3b-u6",
+    "grade": 3,
+    "semester": "下",
+    "unit": 6,
+    "unit_title_en": "Numbers in life",
+    "word_count": 13
+   }
+  ],
+  "stage_sizes": [
+   5,
+   5,
+   5,
+   5,
+   4
+  ],
+  "word_refs_formal": [
+   "car",
+   "cool",
+   "doll",
+   "home",
+   "in",
+   "keep",
+   "on",
+   "put",
+   "shelf",
+   "still",
+   "under",
+   "back",
+   "eighteen",
+   "eleven",
+   "fifteen",
+   "fourteen",
+   "nineteen",
+   "pay",
+   "piggy bank",
+   "seventeen",
+   "sixteen",
+   "thirteen",
+   "twelve",
+   "twenty"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "玩偶小家",
+    "type": "exploration",
+    "word_refs": [
+     "car",
+     "cool",
+     "doll",
+     "home",
+     "nineteen"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "整齐书架",
+    "type": "exploration",
+    "word_refs": [
+     "keep",
+     "on",
+     "put",
+     "shelf",
+     "seventeen"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "数字楼梯",
+    "type": "exploration",
+    "word_refs": [
+     "under",
+     "back",
+     "eighteen",
+     "eleven",
+     "fifteen"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "存钱小猪",
+    "type": "exploration",
+    "word_refs": [
+     "fourteen",
+     "in",
+     "pay",
+     "piggy bank",
+     "still"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "数字守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "sixteen",
+     "thirteen",
+     "twelve",
+     "twenty"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "seventeen",
+    "from_stage_a": 4,
+    "to_stage_a": 2,
+    "word_b": "still",
+    "from_stage_b": 2,
+    "to_stage_b": 4
+   },
+   {
+    "word_a": "nineteen",
+    "from_stage_a": 4,
+    "to_stage_a": 1,
+    "word_b": "in",
+    "from_stage_b": 1,
+    "to_stage_b": 4
+   }
+  ],
+  "representative_words": [
+   "car",
+   "doll",
+   "shelf",
+   "under",
+   "eleven",
+   "piggy bank",
+   "pay",
+   "twenty"
+  ],
+  "theme_note_zh": "U5 Old toys（玩偶、书架、方位）接 U6 Numbers in life（11–20、付钱、储蓄罐）。"
+ },
+ {
+  "order": 10,
+  "chapter_id": "pep_g4_01",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 1,
+  "name_zh": "家里好帮手",
+  "boss_name_zh": "善良友谊灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4a-u1",
+    "grade": 4,
+    "semester": "上",
+    "unit": 1,
+    "unit_title_en": "Helping at home",
+    "word_count": 19
+   },
+   {
+    "unit_code": "4a-u2",
+    "grade": 4,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "My friends",
+    "word_count": 9
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "busy",
+   "child",
+   "chore",
+   "clean",
+   "cook",
+   "doctor",
+   "factory worker",
+   "farmer",
+   "floor",
+   "job",
+   "look after",
+   "nurse",
+   "office worker",
+   "pe",
+   "people",
+   "room",
+   "sweep",
+   "tired",
+   "together",
+   "always",
+   "basketball",
+   "best",
+   "chinese",
+   "football",
+   "game",
+   "hair",
+   "his",
+   "kind"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "家务小厨房",
+    "type": "exploration",
+    "word_refs": [
+     "busy",
+     "child",
+     "chore",
+     "clean",
+     "cook",
+     "look after"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "职业小街",
+    "type": "exploration",
+    "word_refs": [
+     "factory worker",
+     "farmer",
+     "floor",
+     "job",
+     "doctor",
+     "nurse"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "打扫房间",
+    "type": "exploration",
+    "word_refs": [
+     "office worker",
+     "pe",
+     "people",
+     "room",
+     "sweep",
+     "tired"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "球场好朋友",
+    "type": "exploration",
+    "word_refs": [
+     "together",
+     "always",
+     "basketball",
+     "best",
+     "chinese",
+     "football"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "友谊守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "game",
+     "hair",
+     "his",
+     "kind"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "look after",
+    "from_stage_a": 2,
+    "to_stage_a": 1,
+    "word_b": "doctor",
+    "from_stage_b": 1,
+    "to_stage_b": 2
+   }
+  ],
+  "representative_words": [
+   "chore",
+   "clean",
+   "cook",
+   "doctor",
+   "farmer",
+   "sweep",
+   "basketball",
+   "kind"
+  ],
+  "theme_note_zh": "4上 U1 Helping at home（家务、家人职业）接 U2 My friends（球类、外貌、性格）。"
+ },
+ {
+  "order": 11,
+  "chapter_id": "pep_g4_02",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 2,
+  "name_zh": "我们的社区",
+  "boss_name_zh": "社区守望者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4a-u2",
+    "grade": 4,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "My friends",
+    "word_count": 4
+   },
+   {
+    "unit_code": "4a-u3",
+    "grade": 4,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Places we live in",
+    "word_count": 18
+   },
+   {
+    "unit_code": "4a-u4",
+    "grade": 4,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Helping in the community",
+    "word_count": 6
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "play",
+   "quiet",
+   "read",
+   "strong",
+   "afternoon",
+   "bus stop",
+   "buy",
+   "community",
+   "favourite",
+   "hospital",
+   "library",
+   "over",
+   "park",
+   "photo",
+   "place",
+   "playground",
+   "shop",
+   "sport",
+   "story",
+   "there",
+   "toilet",
+   "walk",
+   "a lot of",
+   "cleaner",
+   "delivery worker",
+   "driver",
+   "everyone",
+   "firefighter"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "午后车站",
+    "type": "exploration",
+    "word_refs": [
+     "play",
+     "quiet",
+     "read",
+     "strong",
+     "afternoon",
+     "bus stop"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "社区图书馆",
+    "type": "exploration",
+    "word_refs": [
+     "buy",
+     "community",
+     "favourite",
+     "hospital",
+     "library",
+     "over"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "公园操场",
+    "type": "exploration",
+    "word_refs": [
+     "park",
+     "photo",
+     "place",
+     "playground",
+     "shop",
+     "sport"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "散步故事路",
+    "type": "exploration",
+    "word_refs": [
+     "story",
+     "there",
+     "toilet",
+     "walk",
+     "a lot of",
+     "cleaner"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "社区守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "delivery worker",
+     "driver",
+     "everyone",
+     "firefighter"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "bus stop",
+   "community",
+   "hospital",
+   "library",
+   "park",
+   "playground",
+   "cleaner",
+   "driver"
+  ],
+  "theme_note_zh": "U3 Places we live in（社区场所）接 U4 Helping in the community（清洁工、司机、快递员、消防员）。"
+ },
+ {
+  "order": 12,
+  "chapter_id": "pep_g4_03",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 3,
+  "name_zh": "天气变变变",
+  "boss_name_zh": "明天风向灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4a-u4",
+    "grade": 4,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Helping in the community",
+    "word_count": 7
+   },
+   {
+    "unit_code": "4a-u5",
+    "grade": 4,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "The weather and us",
+    "word_count": 21
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "important",
+   "make the bed",
+   "ms",
+   "now",
+   "police officer",
+   "tell",
+   "why",
+   "bad",
+   "closed",
+   "cloudy",
+   "cold",
+   "film",
+   "fly",
+   "fun",
+   "hot",
+   "idea",
+   "kite",
+   "rainy",
+   "snowman",
+   "snowy",
+   "speak",
+   "sunny",
+   "swim",
+   "sydney",
+   "their",
+   "tomorrow",
+   "warm",
+   "windy"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "安全小岗亭",
+    "type": "exploration",
+    "word_refs": [
+     "important",
+     "make the bed",
+     "ms",
+     "now",
+     "police officer",
+     "tell"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "多云电影院",
+    "type": "exploration",
+    "word_refs": [
+     "why",
+     "bad",
+     "closed",
+     "cloudy",
+     "cold",
+     "film"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "风筝雨坡",
+    "type": "exploration",
+    "word_refs": [
+     "fly",
+     "fun",
+     "hot",
+     "idea",
+     "kite",
+     "rainy"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "晴雪小园",
+    "type": "exploration",
+    "word_refs": [
+     "snowman",
+     "snowy",
+     "speak",
+     "sunny",
+     "swim",
+     "sydney"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "风暖守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "their",
+     "tomorrow",
+     "warm",
+     "windy"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "police officer",
+   "cloudy",
+   "cold",
+   "kite",
+   "rainy",
+   "snowy",
+   "sunny",
+   "windy"
+  ],
+  "theme_note_zh": "U4 社区职业收尾（police officer），主体是 U5 The weather and us 的天气词。"
+ },
+ {
+  "order": 13,
+  "chapter_id": "pep_g4_04",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 4,
+  "name_zh": "四季换衣",
+  "boss_name_zh": "小课桌守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4a-u6",
+    "grade": 4,
+    "semester": "上",
+    "unit": 6,
+    "unit_title_en": "Changing for the seasons",
+    "word_count": 21
+   },
+   {
+    "unit_code": "4b-u1",
+    "grade": 4,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "Class rules",
+    "word_count": 7
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "autumn",
+   "coat",
+   "dress",
+   "fall",
+   "get together",
+   "glove",
+   "leaf",
+   "mine",
+   "season",
+   "shirt",
+   "snow",
+   "sock",
+   "spring",
+   "summer",
+   "sweater",
+   "t-shirt",
+   "then",
+   "wear",
+   "which",
+   "whose",
+   "winter",
+   "blackboard",
+   "chair",
+   "classroom",
+   "desk",
+   "door",
+   "fan",
+   "hand out"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "秋日外套",
+    "type": "exploration",
+    "word_refs": [
+     "autumn",
+     "coat",
+     "dress",
+     "fall",
+     "get together",
+     "glove"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "落叶雪袜",
+    "type": "exploration",
+    "word_refs": [
+     "leaf",
+     "mine",
+     "season",
+     "shirt",
+     "snow",
+     "sock"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "春夏衣橱",
+    "type": "exploration",
+    "word_refs": [
+     "spring",
+     "summer",
+     "sweater",
+     "t-shirt",
+     "then",
+     "wear"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "冬日教室",
+    "type": "exploration",
+    "word_refs": [
+     "which",
+     "whose",
+     "winter",
+     "blackboard",
+     "chair",
+     "classroom"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "课桌守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "desk",
+     "door",
+     "fan",
+     "hand out"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "autumn",
+   "coat",
+   "season",
+   "snow",
+   "spring",
+   "sweater",
+   "winter",
+   "classroom"
+  ],
+  "theme_note_zh": "U6 Changing for the seasons（四季与衣服）接 4下 U1 Class rules（教室物品）。"
+ },
+ {
+  "order": 14,
+  "chapter_id": "pep_g4_05",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 5,
+  "name_zh": "家规小约定",
+  "boss_name_zh": "安睡小夜灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4b-u1",
+    "grade": 4,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "Class rules",
+    "word_count": 15
+   },
+   {
+    "unit_code": "4b-u2",
+    "grade": 4,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Family rules",
+    "word_count": 13
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "hurry up",
+   "late",
+   "light",
+   "music",
+   "newspaper",
+   "ready",
+   "rule",
+   "sorry",
+   "tidy",
+   "turn off",
+   "understand",
+   "wall",
+   "when",
+   "window",
+   "workbook",
+   "bathroom",
+   "bedroom",
+   "feel",
+   "first",
+   "follow",
+   "hard",
+   "helpful",
+   "homework",
+   "kitchen",
+   "living room",
+   "loud",
+   "safe",
+   "sleep"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "准备出发",
+    "type": "exploration",
+    "word_refs": [
+     "hurry up",
+     "late",
+     "light",
+     "music",
+     "newspaper",
+     "ready"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "规则墙",
+    "type": "exploration",
+    "word_refs": [
+     "rule",
+     "sorry",
+     "tidy",
+     "turn off",
+     "understand",
+     "wall"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "卧室窗前",
+    "type": "exploration",
+    "word_refs": [
+     "when",
+     "window",
+     "workbook",
+     "bathroom",
+     "bedroom",
+     "feel"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "作业厨房",
+    "type": "exploration",
+    "word_refs": [
+     "first",
+     "follow",
+     "hard",
+     "helpful",
+     "homework",
+     "kitchen"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "客厅守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "living room",
+     "loud",
+     "safe",
+     "sleep"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "hurry up",
+   "ready",
+   "rule",
+   "tidy",
+   "bedroom",
+   "homework",
+   "kitchen",
+   "living room"
+  ],
+  "theme_note_zh": "4下 U1 Class rules 收尾（守时、规则）接 U2 Family rules（房间、作业、安静睡觉）。"
+ },
+ {
+  "order": 15,
+  "chapter_id": "pep_g4_06",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 6,
+  "name_zh": "一天的时间",
+  "boss_name_zh": "价签守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4b-u2",
+    "grade": 4,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Family rules",
+    "word_count": 8
+   },
+   {
+    "unit_code": "4b-u3",
+    "grade": 4,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Time for school",
+    "word_count": 13
+   },
+   {
+    "unit_code": "4b-u4",
+    "grade": 4,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "Going shopping",
+    "word_count": 7
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "study",
+   "think",
+   "tv",
+   "wash",
+   "watch",
+   "wet",
+   "word",
+   "work",
+   "art",
+   "clock",
+   "dinner",
+   "get up",
+   "go home",
+   "go to bed",
+   "go to school",
+   "just",
+   "kid",
+   "lunch",
+   "maths",
+   "minute",
+   "want",
+   "any",
+   "beautiful",
+   "cheap",
+   "clothes",
+   "dear",
+   "expensive",
+   "free"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "书房电视角",
+    "type": "exploration",
+    "word_refs": [
+     "study",
+     "think",
+     "tv",
+     "wash",
+     "watch",
+     "wet"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "起床时钟",
+    "type": "exploration",
+    "word_refs": [
+     "word",
+     "work",
+     "art",
+     "clock",
+     "dinner",
+     "get up"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "上学回家路",
+    "type": "exploration",
+    "word_refs": [
+     "go home",
+     "go to bed",
+     "go to school",
+     "just",
+     "kid",
+     "lunch"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "一分钟数学",
+    "type": "exploration",
+    "word_refs": [
+     "maths",
+     "minute",
+     "want",
+     "any",
+     "beautiful",
+     "cheap"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "购物守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "clothes",
+     "dear",
+     "expensive",
+     "free"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "study",
+   "clock",
+   "get up",
+   "go to school",
+   "lunch",
+   "minute",
+   "cheap",
+   "expensive"
+  ],
+  "theme_note_zh": "U2 家规收尾 + U3 Time for school（作息、时钟、课程）+ U4 Going shopping 开头（贵、便宜、免费）。"
+ },
+ {
+  "order": 16,
+  "chapter_id": "pep_g4_07",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 7,
+  "name_zh": "逛店去农场",
+  "boss_name_zh": "小羊碗筷灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "4b-u4",
+    "grade": 4,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "Going shopping",
+    "word_count": 14
+   },
+   {
+    "unit_code": "4b-u5",
+    "grade": 4,
+    "semester": "下",
+    "unit": 5,
+    "unit_title_en": "Farms and us",
+    "word_count": 12
+   },
+   {
+    "unit_code": "4b-u6",
+    "grade": 4,
+    "semester": "下",
+    "unit": 6,
+    "unit_title_en": "On the farm",
+    "word_count": 2
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "hat",
+   "jacket",
+   "large",
+   "list",
+   "pair",
+   "shoe",
+   "shorts",
+   "size",
+   "skirt",
+   "sunglasses",
+   "take",
+   "those",
+   "trousers",
+   "try on",
+   "a box of",
+   "bee",
+   "carrot",
+   "chicken",
+   "cow",
+   "green bean",
+   "horse",
+   "mouse",
+   "pig",
+   "potato",
+   "sheep",
+   "tomato",
+   "bowl",
+   "chopstick"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "帽子鞋店",
+    "type": "exploration",
+    "word_refs": [
+     "hat",
+     "jacket",
+     "large",
+     "list",
+     "pair",
+     "shoe"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "试衣小镜",
+    "type": "exploration",
+    "word_refs": [
+     "shorts",
+     "size",
+     "skirt",
+     "sunglasses",
+     "take",
+     "those"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "胡萝卜菜园",
+    "type": "exploration",
+    "word_refs": [
+     "trousers",
+     "try on",
+     "a box of",
+     "bee",
+     "carrot",
+     "chicken"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "农场动物圈",
+    "type": "exploration",
+    "word_refs": [
+     "cow",
+     "green bean",
+     "horse",
+     "mouse",
+     "pig",
+     "potato"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "农家守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "sheep",
+     "tomato",
+     "bowl",
+     "chopstick"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "hat",
+   "shoe",
+   "skirt",
+   "try on",
+   "carrot",
+   "cow",
+   "horse",
+   "sheep"
+  ],
+  "theme_note_zh": "U4 Going shopping（衣帽试穿）接 U5 Farms and us / U6 On the farm（蔬菜、家畜、碗筷）。"
+ },
+ {
+  "order": 17,
+  "chapter_id": "pep_g4_08",
+  "status": "proposal",
+  "grade": "G4",
+  "chapter_index_in_grade": 8,
+  "name_zh": "农场餐桌",
+  "boss_name_zh": "不浪费小灵",
+  "word_count": 15,
+  "units_covered": [
+   {
+    "unit_code": "4b-u6",
+    "grade": 4,
+    "semester": "下",
+    "unit": 6,
+    "unit_title_en": "On the farm",
+    "word_count": 15
+   }
+  ],
+  "stage_sizes": [
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "word_refs_formal": [
+   "clear the table",
+   "delicious",
+   "feed",
+   "food",
+   "fork",
+   "herself",
+   "knife",
+   "pass",
+   "pick",
+   "salad",
+   "set the table",
+   "spoon",
+   "supermarket",
+   "waste",
+   "week"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "美味喂食",
+    "type": "exploration",
+    "word_refs": [
+     "clear the table",
+     "delicious",
+     "feed"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "餐叉小桌",
+    "type": "exploration",
+    "word_refs": [
+     "food",
+     "fork",
+     "herself"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "采摘园",
+    "type": "exploration",
+    "word_refs": [
+     "knife",
+     "pass",
+     "pick"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "沙拉餐桌",
+    "type": "exploration",
+    "word_refs": [
+     "salad",
+     "set the table",
+     "spoon"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "节约守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "supermarket",
+     "waste",
+     "week"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "delicious",
+   "feed",
+   "food",
+   "fork",
+   "knife",
+   "pick",
+   "salad",
+   "spoon"
+  ],
+  "theme_note_zh": "全部来自 4下 U6 On the farm：餐具、摆桌、采摘、不浪费。"
+ },
+ {
+  "order": 18,
+  "chapter_id": "pep_g5_01",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 1,
+  "name_zh": "不一样的朋友",
+  "boss_name_zh": "笑脸心情灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5a-u1",
+    "grade": 5,
+    "semester": "上",
+    "unit": 1,
+    "unit_title_en": "Different friends",
+    "word_count": 17
+   },
+   {
+    "unit_code": "5a-u2",
+    "grade": 5,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "My feelings",
+    "word_count": 11
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "australia",
+   "chess",
+   "clever",
+   "easy",
+   "front",
+   "hard-working",
+   "him",
+   "lovely",
+   "piano",
+   "player",
+   "robot",
+   "rope",
+   "science",
+   "star",
+   "team",
+   "wonderful",
+   "young",
+   "afraid",
+   "agree",
+   "angry",
+   "ask",
+   "both",
+   "centre",
+   "excited",
+   "finish",
+   "laugh",
+   "matter",
+   "move"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "聪明棋社",
+    "type": "exploration",
+    "word_refs": [
+     "australia",
+     "chess",
+     "clever",
+     "easy",
+     "front",
+     "hard-working"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "钢琴机器人",
+    "type": "exploration",
+    "word_refs": [
+     "him",
+     "lovely",
+     "piano",
+     "player",
+     "robot",
+     "rope"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "科学小队",
+    "type": "exploration",
+    "word_refs": [
+     "science",
+     "star",
+     "team",
+     "wonderful",
+     "young",
+     "afraid"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "心情中心",
+    "type": "exploration",
+    "word_refs": [
+     "agree",
+     "angry",
+     "ask",
+     "both",
+     "centre",
+     "excited"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "欢笑守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "finish",
+     "laugh",
+     "matter",
+     "move"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "chess",
+   "clever",
+   "piano",
+   "robot",
+   "science",
+   "team",
+   "angry",
+   "excited"
+  ],
+  "theme_note_zh": "5上 U1 Different friends（特长、性格）接 U2 My feelings（害怕、生气、兴奋）。"
+ },
+ {
+  "order": 19,
+  "chapter_id": "pep_g5_02",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 2,
+  "name_zh": "忙碌一周",
+  "boss_name_zh": "一周日历灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5a-u2",
+    "grade": 5,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "My feelings",
+    "word_count": 6
+   },
+   {
+    "unit_code": "5a-u3",
+    "grade": 5,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Work and play",
+    "word_count": 20
+   },
+   {
+    "unit_code": "5a-u4",
+    "grade": 5,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Healthy habits",
+    "word_count": 2
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "parent",
+   "project",
+   "sad",
+   "worried",
+   "wrong",
+   "yours",
+   "answer",
+   "because",
+   "evening",
+   "friday",
+   "grandparent",
+   "lesson",
+   "monday",
+   "night",
+   "ping-pong",
+   "saturday",
+   "sometimes",
+   "start",
+   "subject",
+   "sunday",
+   "thursday",
+   "tuesday",
+   "usually",
+   "visit",
+   "wednesday",
+   "weekend",
+   "brush",
+   "check"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "小烦恼角",
+    "type": "exploration",
+    "word_refs": [
+     "parent",
+     "project",
+     "sad",
+     "worried",
+     "wrong",
+     "yours"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "周五晚课",
+    "type": "exploration",
+    "word_refs": [
+     "answer",
+     "because",
+     "evening",
+     "friday",
+     "grandparent",
+     "lesson"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "乒乓周末",
+    "type": "exploration",
+    "word_refs": [
+     "monday",
+     "night",
+     "ping-pong",
+     "saturday",
+     "sometimes",
+     "start"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "一周课表",
+    "type": "exploration",
+    "word_refs": [
+     "subject",
+     "sunday",
+     "thursday",
+     "tuesday",
+     "usually",
+     "visit"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "周末守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "wednesday",
+     "weekend",
+     "brush",
+     "check"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "worried",
+   "lesson",
+   "friday",
+   "monday",
+   "ping-pong",
+   "subject",
+   "sunday",
+   "weekend"
+  ],
+  "theme_note_zh": "U2 情绪收尾，主体是 U3 Work and play 的星期、课程、周末活动。"
+ },
+ {
+  "order": 20,
+  "chapter_id": "pep_g5_03",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 3,
+  "name_zh": "健康好习惯",
+  "boss_name_zh": "荷花湖守护者",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5a-u4",
+    "grade": 5,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Healthy habits",
+    "word_count": 17
+   },
+   {
+    "unit_code": "5a-u5",
+    "grade": 5,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "Food we eat",
+    "word_count": 11
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "else",
+   "enough",
+   "exercise",
+   "flu",
+   "habit",
+   "hour",
+   "house",
+   "if",
+   "less",
+   "phone",
+   "rest",
+   "should",
+   "show",
+   "stay",
+   "take care of",
+   "tooth",
+   "twice",
+   "beef",
+   "coconut",
+   "different",
+   "dumpling",
+   "hamburger",
+   "hungry",
+   "ice cream",
+   "interesting",
+   "lake",
+   "little",
+   "lotus"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "锻炼习惯",
+    "type": "exploration",
+    "word_refs": [
+     "else",
+     "enough",
+     "exercise",
+     "flu",
+     "habit",
+     "hour"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "休息小屋",
+    "type": "exploration",
+    "word_refs": [
+     "house",
+     "if",
+     "less",
+     "phone",
+     "rest",
+     "should"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "护牙小站",
+    "type": "exploration",
+    "word_refs": [
+     "show",
+     "stay",
+     "take care of",
+     "tooth",
+     "twice",
+     "ice cream"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "美食小街",
+    "type": "exploration",
+    "word_refs": [
+     "coconut",
+     "different",
+     "dumpling",
+     "lotus",
+     "hungry",
+     "beef"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "荷塘守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "interesting",
+     "lake",
+     "little",
+     "hamburger"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "ice cream",
+    "from_stage_a": 4,
+    "to_stage_a": 3,
+    "word_b": "beef",
+    "from_stage_b": 3,
+    "to_stage_b": 4
+   },
+   {
+    "word_a": "hamburger",
+    "from_stage_a": 4,
+    "to_stage_a": 5,
+    "word_b": "lotus",
+    "from_stage_b": 5,
+    "to_stage_b": 4
+   }
+  ],
+  "representative_words": [
+   "exercise",
+   "habit",
+   "rest",
+   "tooth",
+   "dumpling",
+   "hamburger",
+   "ice cream",
+   "lotus"
+  ],
+  "theme_note_zh": "U4 Healthy habits（锻炼、休息、刷牙）接 U5 Food we eat（各地美食、荷花）。"
+ },
+ {
+  "order": 21,
+  "chapter_id": "pep_g5_04",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 4,
+  "name_zh": "走进大自然",
+  "boss_name_zh": "风雨瀑布灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5a-u5",
+    "grade": 5,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "Food we eat",
+    "word_count": 9
+   },
+   {
+    "unit_code": "5a-u6",
+    "grade": 5,
+    "semester": "上",
+    "unit": 6,
+    "unit_title_en": "Nature and us",
+    "word_count": 19
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "mrs",
+   "pull",
+   "root",
+   "round",
+   "seed",
+   "stem",
+   "tea",
+   "way",
+   "world",
+   "before",
+   "bring",
+   "close",
+   "famous",
+   "fine",
+   "fire",
+   "flood",
+   "fog",
+   "go hiking",
+   "heavy",
+   "hotel",
+   "know",
+   "nature",
+   "raincoat",
+   "trip",
+   "umbrella",
+   "waterfall",
+   "wind",
+   "worry"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "种子根茎",
+    "type": "exploration",
+    "word_refs": [
+     "mrs",
+     "pull",
+     "root",
+     "round",
+     "seed",
+     "stem"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "茶香小路",
+    "type": "exploration",
+    "word_refs": [
+     "tea",
+     "way",
+     "world",
+     "before",
+     "bring",
+     "close"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "远足雾道",
+    "type": "exploration",
+    "word_refs": [
+     "famous",
+     "fine",
+     "fire",
+     "flood",
+     "fog",
+     "go hiking"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "雨衣旅程",
+    "type": "exploration",
+    "word_refs": [
+     "heavy",
+     "hotel",
+     "know",
+     "nature",
+     "raincoat",
+     "trip"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "瀑布守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "umbrella",
+     "waterfall",
+     "wind",
+     "worry"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "root",
+   "seed",
+   "stem",
+   "fog",
+   "go hiking",
+   "nature",
+   "umbrella",
+   "waterfall"
+  ],
+  "theme_note_zh": "U5 植物与食物收尾（root/seed/stem/tea）接 U6 Nature and us（天气、远足、瀑布）。"
+ },
+ {
+  "order": 22,
+  "chapter_id": "pep_g5_05",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 5,
+  "name_zh": "守规则的城",
+  "boss_name_zh": "左转路标灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5b-u1",
+    "grade": 5,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "Following the rules",
+    "word_count": 16
+   },
+   {
+    "unit_code": "5b-u2",
+    "grade": 5,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Our community",
+    "word_count": 12
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "borrow",
+   "flash",
+   "guard",
+   "inside",
+   "line",
+   "must",
+   "open",
+   "password",
+   "return",
+   "scare",
+   "shout",
+   "sir",
+   "smoke",
+   "stand",
+   "wait",
+   "write",
+   "along",
+   "artist",
+   "behind",
+   "between",
+   "cinema",
+   "city",
+   "direct",
+   "far",
+   "foreign",
+   "left",
+   "litter",
+   "live"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "排队守则",
+    "type": "exploration",
+    "word_refs": [
+     "borrow",
+     "flash",
+     "guard",
+     "inside",
+     "line",
+     "must"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "密码大门",
+    "type": "exploration",
+    "word_refs": [
+     "open",
+     "password",
+     "return",
+     "scare",
+     "shout",
+     "sir"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "画家街角",
+    "type": "exploration",
+    "word_refs": [
+     "smoke",
+     "stand",
+     "wait",
+     "write",
+     "along",
+     "artist"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "城市指路",
+    "type": "exploration",
+    "word_refs": [
+     "behind",
+     "between",
+     "cinema",
+     "city",
+     "direct",
+     "far"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "街区守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "foreign",
+     "left",
+     "litter",
+     "live"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "borrow",
+   "line",
+   "must",
+   "password",
+   "wait",
+   "behind",
+   "city",
+   "direct"
+  ],
+  "theme_note_zh": "5下 U1 Following the rules（排队、借还、不大喊）接 U2 Our community（方位、指路、城市）。"
+ },
+ {
+  "order": 23,
+  "chapter_id": "pep_g5_06",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 6,
+  "name_zh": "街区与节日",
+  "boss_name_zh": "假期龙舟灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5b-u2",
+    "grade": 5,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Our community",
+    "word_count": 14
+   },
+   {
+    "unit_code": "5b-u3",
+    "grade": 5,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Life in different seasons",
+    "word_count": 14
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "lost",
+   "next",
+   "note",
+   "recycle",
+   "scientist",
+   "sign",
+   "station",
+   "street",
+   "taxi",
+   "teach",
+   "traffic",
+   "train",
+   "visitor",
+   "volunteer",
+   "ago",
+   "april",
+   "august",
+   "beside",
+   "catch",
+   "celebrate",
+   "christmas",
+   "country",
+   "cpc founding day",
+   "cup",
+   "december",
+   "dragon boat festival",
+   "february",
+   "holiday"
+  ],
+  "no_spelling_word_refs": [
+   "cpc founding day",
+   "dragon boat festival"
+  ],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "迷路便条",
+    "type": "exploration",
+    "word_refs": [
+     "lost",
+     "next",
+     "note",
+     "recycle",
+     "scientist",
+     "sign"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "车站街口",
+    "type": "exploration",
+    "word_refs": [
+     "station",
+     "street",
+     "taxi",
+     "teach",
+     "traffic",
+     "train"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "志愿者小站",
+    "type": "exploration",
+    "word_refs": [
+     "visitor",
+     "volunteer",
+     "ago",
+     "april",
+     "august",
+     "beside"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "庆祝广场",
+    "type": "exploration",
+    "word_refs": [
+     "catch",
+     "celebrate",
+     "christmas",
+     "country",
+     "cpc founding day",
+     "february"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "节日守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "december",
+     "dragon boat festival",
+     "cup",
+     "holiday"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "february",
+    "from_stage_a": 5,
+    "to_stage_a": 4,
+    "word_b": "cup",
+    "from_stage_b": 4,
+    "to_stage_b": 5
+   }
+  ],
+  "representative_words": [
+   "recycle",
+   "sign",
+   "station",
+   "street",
+   "traffic",
+   "volunteer",
+   "celebrate",
+   "holiday"
+  ],
+  "theme_note_zh": "U2 社区交通收尾，后半进入 U3 Life in different seasons 的月份与节日。命名不用宗教、政治专名。"
+ },
+ {
+  "order": 24,
+  "chapter_id": "pep_g5_07",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 7,
+  "name_zh": "四季与远方",
+  "boss_name_zh": "沙丘驼铃灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5b-u3",
+    "grade": 5,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Life in different seasons",
+    "word_count": 18
+   },
+   {
+    "unit_code": "5b-u4",
+    "grade": 5,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "My hometown",
+    "word_count": 10
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "ice",
+   "january",
+   "july",
+   "june",
+   "labour day",
+   "march",
+   "may",
+   "national day",
+   "november",
+   "october",
+   "party",
+   "pla day",
+   "september",
+   "sit",
+   "skate",
+   "sunshine",
+   "turkey",
+   "west",
+   "beach",
+   "beijing opera",
+   "britain",
+   "cairo",
+   "camel",
+   "common",
+   "confucius",
+   "could",
+   "desert",
+   "even"
+  ],
+  "no_spelling_word_refs": [
+   "labour day",
+   "national day",
+   "pla day",
+   "beijing opera"
+  ],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "月份冰站",
+    "type": "exploration",
+    "word_refs": [
+     "ice",
+     "january",
+     "july",
+     "june",
+     "labour day",
+     "march"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "秋日派对",
+    "type": "exploration",
+    "word_refs": [
+     "may",
+     "national day",
+     "november",
+     "october",
+     "party",
+     "pla day"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "阳光溜冰",
+    "type": "exploration",
+    "word_refs": [
+     "september",
+     "sit",
+     "skate",
+     "sunshine",
+     "turkey",
+     "west"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "骆驼海滩",
+    "type": "exploration",
+    "word_refs": [
+     "beach",
+     "beijing opera",
+     "britain",
+     "cairo",
+     "camel",
+     "common"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "沙漠守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "confucius",
+     "could",
+     "desert",
+     "even"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "january",
+   "july",
+   "october",
+   "party",
+   "skate",
+   "sunshine",
+   "beach",
+   "camel"
+  ],
+  "theme_note_zh": "U3 月份与节日收尾，接 U4 My hometown 的各地风物（海滩、骆驼、沙漠）。"
+ },
+ {
+  "order": 25,
+  "chapter_id": "pep_g5_08",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 8,
+  "name_zh": "家乡与旅行",
+  "boss_name_zh": "远足脚印灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "5b-u4",
+    "grade": 5,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "My hometown",
+    "word_count": 20
+   },
+   {
+    "unit_code": "5b-u5",
+    "grade": 5,
+    "semester": "下",
+    "unit": 5,
+    "unit_title_en": "Travelling around",
+    "word_count": 8
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "feel like",
+   "grassland",
+   "hawaii",
+   "high",
+   "hometown",
+   "india",
+   "island",
+   "italy",
+   "its",
+   "kangaroo",
+   "koala",
+   "middle",
+   "mount taishan",
+   "painting",
+   "pyramid",
+   "ride",
+   "special",
+   "travel",
+   "wild",
+   "wish",
+   "bike",
+   "carry",
+   "early",
+   "environment",
+   "everyday",
+   "finally",
+   "foot",
+   "health"
+  ],
+  "no_spelling_word_refs": [
+   "mount taishan"
+  ],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "家乡草原",
+    "type": "exploration",
+    "word_refs": [
+     "feel like",
+     "grassland",
+     "hawaii",
+     "high",
+     "hometown",
+     "india"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "考拉小岛",
+    "type": "exploration",
+    "word_refs": [
+     "island",
+     "italy",
+     "its",
+     "kangaroo",
+     "koala",
+     "middle"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "名胜画册",
+    "type": "exploration",
+    "word_refs": [
+     "mount taishan",
+     "painting",
+     "pyramid",
+     "ride",
+     "special",
+     "travel"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "单车心愿",
+    "type": "exploration",
+    "word_refs": [
+     "wild",
+     "wish",
+     "bike",
+     "carry",
+     "early",
+     "environment"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "步行守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "everyday",
+     "finally",
+     "foot",
+     "health"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "grassland",
+   "hometown",
+   "island",
+   "koala",
+   "kangaroo",
+   "painting",
+   "travel",
+   "bike"
+  ],
+  "theme_note_zh": "U4 My hometown（家乡、草原、海岛）接 U5 Travelling around（旅行、骑车、步行）。"
+ },
+ {
+  "order": 26,
+  "chapter_id": "pep_g5_09",
+  "status": "proposal",
+  "grade": "G5",
+  "chapter_index_in_grade": 9,
+  "name_zh": "旅行计划",
+  "boss_name_zh": "旅行地图灵",
+  "word_count": 27,
+  "units_covered": [
+   {
+    "unit_code": "5b-u5",
+    "grade": 5,
+    "semester": "下",
+    "unit": 5,
+    "unit_title_en": "Travelling around",
+    "word_count": 7
+   },
+   {
+    "unit_code": "5b-u6",
+    "grade": 5,
+    "semester": "下",
+    "unit": 6,
+    "unit_title_en": "Making a travel plan",
+    "word_count": 20
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   3
+  ],
+  "word_refs_formal": [
+   "hurt",
+   "on foot",
+   "plane",
+   "ship",
+   "suggest",
+   "tip",
+   "underground",
+   "app",
+   "blog",
+   "building",
+   "culture",
+   "hill",
+   "history",
+   "hot pot",
+   "information",
+   "internet",
+   "join",
+   "last",
+   "local",
+   "magazine",
+   "maybe",
+   "northeast",
+   "palace",
+   "plan",
+   "seafood",
+   "stone",
+   "tour"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "出发建议",
+    "type": "exploration",
+    "word_refs": [
+     "hurt",
+     "on foot",
+     "plane",
+     "ship",
+     "suggest",
+     "tip"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "地铁博客",
+    "type": "exploration",
+    "word_refs": [
+     "underground",
+     "app",
+     "blog",
+     "building",
+     "culture",
+     "hill"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "网上查查看",
+    "type": "exploration",
+    "word_refs": [
+     "history",
+     "hot pot",
+     "information",
+     "internet",
+     "join",
+     "last"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "旅行计划书",
+    "type": "exploration",
+    "word_refs": [
+     "local",
+     "magazine",
+     "maybe",
+     "northeast",
+     "palace",
+     "plan"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "旅程守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "seafood",
+     "stone",
+     "tour"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "on foot",
+   "plane",
+   "ship",
+   "underground",
+   "information",
+   "internet",
+   "magazine",
+   "plan"
+  ],
+  "theme_note_zh": "U5 交通方式收尾 + U6 Making a travel plan（查资料、做计划、当地风物）。"
+ },
+ {
+  "order": 27,
+  "chapter_id": "pep_g6_01",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 1,
+  "name_zh": "神奇的地方",
+  "boss_name_zh": "倒数星光灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "6a-u1",
+    "grade": 6,
+    "semester": "上",
+    "unit": 1,
+    "unit_title_en": "Amazing places",
+    "word_count": 20
+   },
+   {
+    "unit_code": "6a-u2",
+    "grade": 6,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "Getting together",
+    "word_count": 8
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "airport",
+   "bamboo",
+   "clay",
+   "dry",
+   "eiffel tower",
+   "gingerbread house",
+   "hong kong-zhuhai-macao bridge",
+   "inspiring",
+   "jinggangshan revolution museum",
+   "kilometre",
+   "new zealand",
+   "paris",
+   "pumpkin",
+   "restaurant",
+   "send",
+   "terracotta warriors",
+   "the red army",
+   "thousand",
+   "view",
+   "was",
+   "as",
+   "begin",
+   "book fair",
+   "cheer",
+   "count down",
+   "ever",
+   "exciting",
+   "gala"
+  ],
+  "no_spelling_word_refs": [
+   "eiffel tower",
+   "hong kong-zhuhai-macao bridge",
+   "jinggangshan revolution museum",
+   "new zealand",
+   "terracotta warriors",
+   "the red army"
+  ],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "机场竹林",
+    "type": "exploration",
+    "word_refs": [
+     "airport",
+     "bamboo",
+     "clay",
+     "dry",
+     "eiffel tower",
+     "gingerbread house"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "千里名胜",
+    "type": "exploration",
+    "word_refs": [
+     "hong kong-zhuhai-macao bridge",
+     "inspiring",
+     "jinggangshan revolution museum",
+     "kilometre",
+     "new zealand",
+     "paris"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "南瓜餐馆",
+    "type": "exploration",
+    "word_refs": [
+     "pumpkin",
+     "restaurant",
+     "send",
+     "terracotta warriors",
+     "the red army",
+     "thousand"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "书市欢呼",
+    "type": "exploration",
+    "word_refs": [
+     "view",
+     "was",
+     "as",
+     "begin",
+     "book fair",
+     "cheer"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "联欢守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "count down",
+     "ever",
+     "exciting",
+     "gala"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "airport",
+   "bamboo",
+   "clay",
+   "kilometre",
+   "pumpkin",
+   "restaurant",
+   "book fair",
+   "gala"
+  ],
+  "theme_note_zh": "6上 U1 Amazing places（名胜、旅途）接 U2 Getting together（书市、联欢、倒计时）。关名避开历史与军事专名。"
+ },
+ {
+  "order": 28,
+  "chapter_id": "pep_g6_02",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 2,
+  "name_zh": "赛跑与健康",
+  "boss_name_zh": "早睡小月灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "6a-u2",
+    "grade": 6,
+    "semester": "上",
+    "unit": 2,
+    "unit_title_en": "Getting together",
+    "word_count": 11
+   },
+   {
+    "unit_code": "6a-u3",
+    "grade": 6,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Healthy life",
+    "word_count": 17
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "judge",
+   "later",
+   "marathon",
+   "notice",
+   "paste",
+   "race",
+   "wake",
+   "win",
+   "winner",
+   "writer",
+   "yesterday",
+   "add",
+   "another",
+   "better",
+   "call",
+   "cough",
+   "cry",
+   "diet",
+   "discuss",
+   "email",
+   "fever",
+   "glass",
+   "head",
+   "ill",
+   "runny nose",
+   "soon",
+   "stay up",
+   "unhappy"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "马拉松赛道",
+    "type": "exploration",
+    "word_refs": [
+     "judge",
+     "later",
+     "marathon",
+     "notice",
+     "paste",
+     "race"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "冠军早晨",
+    "type": "exploration",
+    "word_refs": [
+     "wake",
+     "win",
+     "winner",
+     "writer",
+     "yesterday",
+     "add"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "好些了吗",
+    "type": "exploration",
+    "word_refs": [
+     "another",
+     "better",
+     "call",
+     "cough",
+     "cry",
+     "diet"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "量体温角",
+    "type": "exploration",
+    "word_refs": [
+     "discuss",
+     "email",
+     "fever",
+     "glass",
+     "head",
+     "ill"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "早睡守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "runny nose",
+     "soon",
+     "stay up",
+     "unhappy"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "marathon",
+   "race",
+   "winner",
+   "yesterday",
+   "cough",
+   "diet",
+   "fever",
+   "stay up"
+  ],
+  "theme_note_zh": "U2 比赛与过去（marathon/win/winner/yesterday）接 U3 Healthy life（咳嗽、发烧、别熬夜）。"
+ },
+ {
+  "order": 29,
+  "chapter_id": "pep_g6_03",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 3,
+  "name_zh": "攒钱去太空",
+  "boss_name_zh": "火星弹珠灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "6a-u3",
+    "grade": 6,
+    "semester": "上",
+    "unit": 3,
+    "unit_title_en": "Healthy life",
+    "word_count": 1
+   },
+   {
+    "unit_code": "6a-u4",
+    "grade": 6,
+    "semester": "上",
+    "unit": 4,
+    "unit_title_en": "Managing money well",
+    "word_count": 17
+   },
+   {
+    "unit_code": "6a-u5",
+    "grade": 6,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "Exploring space",
+    "word_count": 10
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "video",
+   "drink",
+   "for example",
+   "goods",
+   "haircut",
+   "half",
+   "jar",
+   "lucky",
+   "manage",
+   "microscope",
+   "money",
+   "pocket money",
+   "sale",
+   "save up",
+   "schoolbag",
+   "sell",
+   "service",
+   "ticket",
+   "alien",
+   "astronaut",
+   "cloth",
+   "daytime",
+   "earth",
+   "into",
+   "marble",
+   "mars",
+   "month",
+   "moon"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "理发小店",
+    "type": "exploration",
+    "word_refs": [
+     "video",
+     "drink",
+     "for example",
+     "goods",
+     "haircut",
+     "half"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "零花钱罐",
+    "type": "exploration",
+    "word_refs": [
+     "jar",
+     "lucky",
+     "manage",
+     "microscope",
+     "money",
+     "pocket money"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "特卖集市",
+    "type": "exploration",
+    "word_refs": [
+     "sale",
+     "save up",
+     "schoolbag",
+     "sell",
+     "service",
+     "ticket"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "宇航出发",
+    "type": "exploration",
+    "word_refs": [
+     "alien",
+     "astronaut",
+     "cloth",
+     "daytime",
+     "earth",
+     "into"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "月亮守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "marble",
+     "mars",
+     "month",
+     "moon"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "haircut",
+   "money",
+   "pocket money",
+   "save up",
+   "sale",
+   "ticket",
+   "astronaut",
+   "moon"
+  ],
+  "theme_note_zh": "U3 收尾 + U4 Managing money well（零花钱、攒钱、买卖）+ U5 Exploring space 开头（宇航员、地球、月亮）。"
+ },
+ {
+  "order": 30,
+  "chapter_id": "pep_g6_04",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 4,
+  "name_zh": "星空与能源",
+  "boss_name_zh": "暖暖能量灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "6a-u5",
+    "grade": 6,
+    "semester": "上",
+    "unit": 5,
+    "unit_title_en": "Exploring space",
+    "word_count": 16
+   },
+   {
+    "unit_code": "6a-u6",
+    "grade": 6,
+    "semester": "上",
+    "unit": 6,
+    "unit_title_en": "Energy, nature and us",
+    "word_count": 12
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "ocean",
+   "outer space",
+   "planet",
+   "question",
+   "rover",
+   "satellite",
+   "sky",
+   "soil",
+   "space",
+   "space station",
+   "spaceship",
+   "sunrise",
+   "sunset",
+   "taikonaut",
+   "telescope",
+   "toothpaste",
+   "air conditioner",
+   "bottle",
+   "change",
+   "difference",
+   "dirty",
+   "drive",
+   "electricity",
+   "energy",
+   "heat",
+   "market",
+   "own",
+   "power"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "行星问号",
+    "type": "exploration",
+    "word_refs": [
+     "ocean",
+     "outer space",
+     "planet",
+     "question",
+     "rover",
+     "satellite"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "空间站日出",
+    "type": "exploration",
+    "word_refs": [
+     "sky",
+     "soil",
+     "space",
+     "space station",
+     "energy",
+     "sunrise"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "望远镜台",
+    "type": "exploration",
+    "word_refs": [
+     "sunset",
+     "taikonaut",
+     "telescope",
+     "toothpaste",
+     "air conditioner",
+     "bottle"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "飞船能源站",
+    "type": "exploration",
+    "word_refs": [
+     "change",
+     "difference",
+     "dirty",
+     "drive",
+     "electricity",
+     "spaceship"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "能量守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "heat",
+     "market",
+     "own",
+     "power"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "spaceship",
+    "from_stage_a": 2,
+    "to_stage_a": 4,
+    "word_b": "energy",
+    "from_stage_b": 4,
+    "to_stage_b": 2
+   }
+  ],
+  "representative_words": [
+   "planet",
+   "rover",
+   "satellite",
+   "space station",
+   "spaceship",
+   "telescope",
+   "electricity",
+   "energy"
+  ],
+  "theme_note_zh": "U5 Exploring space（行星、飞船、望远镜）接 U6 Energy, nature and us（电、能源）。"
+ },
+ {
+  "order": 31,
+  "chapter_id": "pep_g6_05",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 5,
+  "name_zh": "比一比",
+  "boss_name_zh": "量身高小灵",
+  "word_count": 28,
+  "units_covered": [
+   {
+    "unit_code": "6a-u6",
+    "grade": 6,
+    "semester": "上",
+    "unit": 6,
+    "unit_title_en": "Energy, nature and us",
+    "word_count": 12
+   },
+   {
+    "unit_code": "6b-u1",
+    "grade": 6,
+    "semester": "下",
+    "unit": 1,
+    "unit_title_en": "How tall are you?",
+    "word_count": 13
+   },
+   {
+    "unit_code": "6b-u2",
+    "grade": 6,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Last weekend",
+    "word_count": 3
+   }
+  ],
+  "stage_sizes": [
+   6,
+   6,
+   6,
+   6,
+   4
+  ],
+  "word_refs_formal": [
+   "quick",
+   "reduce",
+   "resource",
+   "reuse",
+   "run out",
+   "shower",
+   "side",
+   "solar",
+   "top",
+   "type",
+   "unplug",
+   "useful",
+   "bigger",
+   "heavier",
+   "kilogram",
+   "longer",
+   "metre",
+   "older",
+   "shorter",
+   "smaller",
+   "stronger",
+   "taller",
+   "than",
+   "thinner",
+   "younger",
+   "cleaned",
+   "drank",
+   "enjoy"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "节约水滴",
+    "type": "exploration",
+    "word_refs": [
+     "quick",
+     "reduce",
+     "resource",
+     "reuse",
+     "run out",
+     "shower"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "太阳能屋顶",
+    "type": "exploration",
+    "word_refs": [
+     "side",
+     "solar",
+     "top",
+     "type",
+     "unplug",
+     "useful"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "比一比秤台",
+    "type": "exploration",
+    "word_refs": [
+     "bigger",
+     "heavier",
+     "kilogram",
+     "longer",
+     "metre",
+     "older"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "身高尺子",
+    "type": "exploration",
+    "word_refs": [
+     "shorter",
+     "smaller",
+     "stronger",
+     "taller",
+     "than",
+     "thinner"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "成长守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "younger",
+     "cleaned",
+     "drank",
+     "enjoy"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [],
+  "representative_words": [
+   "reduce",
+   "reuse",
+   "solar",
+   "heavier",
+   "kilogram",
+   "taller",
+   "stronger",
+   "younger"
+  ],
+  "theme_note_zh": "U6 节约能源收尾，主体是 6下 U1 How tall are you? 的比较级，末尾进入 U2 Last weekend。"
+ },
+ {
+  "order": 32,
+  "chapter_id": "pep_g6_06",
+  "status": "proposal",
+  "grade": "G6",
+  "chapter_index_in_grade": 6,
+  "name_zh": "上周去哪儿",
+  "boss_name_zh": "旧相册守护者",
+  "word_count": 21,
+  "units_covered": [
+   {
+    "unit_code": "6b-u2",
+    "grade": 6,
+    "semester": "下",
+    "unit": 2,
+    "unit_title_en": "Last weekend",
+    "word_count": 5
+   },
+   {
+    "unit_code": "6b-u3",
+    "grade": 6,
+    "semester": "下",
+    "unit": 3,
+    "unit_title_en": "Where did you go?",
+    "word_count": 10
+   },
+   {
+    "unit_code": "6b-u4",
+    "grade": 6,
+    "semester": "下",
+    "unit": 4,
+    "unit_title_en": "Then and now",
+    "word_count": 6
+   }
+  ],
+  "stage_sizes": [
+   5,
+   4,
+   4,
+   4,
+   4
+  ],
+  "word_refs_formal": [
+   "fixed",
+   "slept",
+   "stayed",
+   "washed",
+   "watched",
+   "bought",
+   "camping",
+   "fell",
+   "fishing",
+   "laughed",
+   "rode",
+   "sand",
+   "swam",
+   "took",
+   "camp",
+   "badminton",
+   "changed",
+   "cycling",
+   "dining hall",
+   "gym",
+   "ice-skate"
+  ],
+  "no_spelling_word_refs": [],
+  "stages": [
+   {
+    "id": 1,
+    "name_zh": "上周末小屋",
+    "type": "exploration",
+    "word_refs": [
+     "fixed",
+     "slept",
+     "stayed",
+     "washed",
+     "watched"
+    ]
+   },
+   {
+    "id": 2,
+    "name_zh": "露营钓鱼",
+    "type": "exploration",
+    "word_refs": [
+     "bought",
+     "camping",
+     "fell",
+     "fishing"
+    ]
+   },
+   {
+    "id": 3,
+    "name_zh": "沙滩欢笑",
+    "type": "exploration",
+    "word_refs": [
+     "laughed",
+     "rode",
+     "sand",
+     "ice-skate"
+    ]
+   },
+   {
+    "id": 4,
+    "name_zh": "营地合影",
+    "type": "exploration",
+    "word_refs": [
+     "took",
+     "camp",
+     "badminton",
+     "changed"
+    ]
+   },
+   {
+    "id": 5,
+    "name_zh": "运动守护",
+    "type": "boss",
+    "learn_before_fight": true,
+    "word_refs": [
+     "cycling",
+     "dining hall",
+     "gym",
+     "swam"
+    ]
+   }
+  ],
+  "in_chapter_stage_swaps": [
+   {
+    "word_a": "ice-skate",
+    "from_stage_a": 5,
+    "to_stage_a": 3,
+    "word_b": "swam",
+    "from_stage_b": 3,
+    "to_stage_b": 5
+   }
+  ],
+  "representative_words": [
+   "slept",
+   "washed",
+   "bought",
+   "camping",
+   "fishing",
+   "swam",
+   "took",
+   "cycling"
+  ],
+  "theme_note_zh": "6下 U2 Last weekend / U3 Where did you go? 的过去式与出游，末尾 U4 Then and now（gym、dining hall）。"
+ }
+]

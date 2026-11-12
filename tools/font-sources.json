@@ -1,6 +1,9 @@
 {
   "typescript": ["src"],
-  "chapters": ["src/domain/chapters/chapter_forest_v1.1.json"],
+  "chapters": [
+    "src/domain/chapters/chapter_forest_v1.1.json",
+    "src/domain/chapters/chapters_v0.2.json"
+  ],
   "wordlists": ["src/domain/data/pep_words_g3-6_v1.2.2_loader.json"],
   "kuaileCall": "uiLabel",
   "kuaileJsonKeys": ["name_zh"],

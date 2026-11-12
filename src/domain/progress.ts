@@ -2,6 +2,7 @@ import { sanitizeName } from "./appearance";
 import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
+import { chapterBossReady, parseChapterEncounter, spellingSkipIds, starKey } from "./chapter-plan";
 import { PROVISIONAL } from "./provisional";
 import {
   bossReady,
@@ -114,6 +115,8 @@ export function createSave(input: {
     battlesLost: 0,
     chapterCleared: false,
     stageWins: {},
+    chapterProgress: {},
+    currentChapterId: FOREST_CHAPTER.chapter_id,
     titles: [],
     unlockedCosmeticIds: [],
     unlockedTitleIds: [],
@@ -290,6 +293,7 @@ export function noteBattleAnswer(
 export function noteIndependentSpelling(save: SaveData, wordId: string, now: Date): SaveData {
   const card = save.wordCards[wordId];
   if (!card || typeof card.spelledAloneAt === "number") return save;
+  if (spellingSkipIds().includes(wordId)) return save;
   if (!gradeIsOpen(save, wordId)) return save;
   return {
     ...save,
@@ -436,13 +440,21 @@ export function applyBattleOutcome(
     return { ...save, battlesLost: save.battlesLost + 1, memory: save.memory, wordCards: save.wordCards };
   }
   const hero = classById(save.player.classId);
-  const stage = explorationStageByEncounter(encounterId);
-  const boss = encounterId === CHAPTER_BOSS_ID;
-  const alreadyCleared = stage
-    ? (save.stageWins[String(stage.id)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
-    : boss
-      ? save.chapterCleared
-      : false;
+  const chapterHit = parseChapterEncounter(encounterId);
+  const stage = chapterHit ? null : explorationStageByEncounter(encounterId);
+  const boss = chapterHit ? chapterHit.boss : encounterId === CHAPTER_BOSS_ID;
+  const priorEntry = chapterHit
+    ? (save.chapterProgress?.[chapterHit.chapterId] ?? { cleared: false, stageWins: {} })
+    : null;
+  const alreadyCleared = chapterHit
+    ? chapterHit.boss
+      ? priorEntry!.cleared
+      : (priorEntry!.stageWins[String(chapterHit.stageId)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
+    : stage
+      ? (save.stageWins[String(stage.id)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
+      : boss
+        ? save.chapterCleared
+        : false;
   const dayKey = localDayKey(new Date(now), deviceTimeZone());
   const replayCount = alreadyCleared ? (save.replayWinsByDay?.[dayKey] ?? 0) : 0;
   const grantRewards = !alreadyCleared || replayCount < 3;
@@ -463,16 +475,31 @@ export function applyBattleOutcome(
     equippedOutfitId = "forest-cape";
   }
   let bestStars = save.bestStars;
-  if ((stars === 1 || stars === 2 || stars === 3) && typeof stageId === "number") {
-    const key = String(stageId);
-    const previous = bestStars?.[key] ?? 0;
-    if (stars > previous) bestStars = { ...bestStars, [key]: stars };
+  const starId = chapterHit
+    ? starKey(chapterHit.chapterId, chapterHit.stageId)
+    : typeof stageId === "number"
+      ? String(stageId)
+      : null;
+  if ((stars === 1 || stars === 2 || stars === 3) && starId) {
+    const previous = bestStars?.[starId] ?? 0;
+    if (stars > previous) bestStars = { ...bestStars, [starId]: stars };
   }
   let chapterCleared = save.chapterCleared;
-  const stageWins = stage
-    ? { ...save.stageWins, [String(stage.id)]: (save.stageWins[String(stage.id)] ?? 0) + 1 }
-    : save.stageWins;
-  if (encounterId === CHAPTER_BOSS_ID && bossReady(save) && !chapterCleared) {
+  let chapterProgress = save.chapterProgress;
+  let stageWins = save.stageWins;
+  if (chapterHit && priorEntry) {
+    const entry = { cleared: priorEntry.cleared, stageWins: { ...priorEntry.stageWins } };
+    if (!chapterHit.boss) {
+      const key = String(chapterHit.stageId);
+      entry.stageWins[key] = (entry.stageWins[key] ?? 0) + 1;
+    } else if (chapterBossReady(save, chapterHit.chapterId) && !entry.cleared) {
+      entry.cleared = true;
+    }
+    chapterProgress = { ...chapterProgress, [chapterHit.chapterId]: entry };
+  } else if (stage) {
+    stageWins = { ...stageWins, [String(stage.id)]: (stageWins[String(stage.id)] ?? 0) + 1 };
+  }
+  if (!chapterHit && encounterId === CHAPTER_BOSS_ID && bossReady(save) && !chapterCleared) {
     chapterCleared = true;
   }
   const next: SaveData = {
@@ -483,6 +510,7 @@ export function applyBattleOutcome(
     ownedOutfitIds: owned,
     equippedOutfitId,
     chapterCleared,
+    chapterProgress,
     stageWins,
     memory: save.memory,
     wordCards: save.wordCards,

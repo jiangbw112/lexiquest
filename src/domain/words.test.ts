@@ -14,6 +14,7 @@ import {
   type WordFile,
 } from "./catalog";
 import { spellingInstruction } from "../game/spelling-form";
+import { glossPairBlocked } from "./chapter-plan";
 import { checkSpelling, listeningQuestion, pickDistractors, spellingAllowed, spellingChildLabel, spellingMarkHint, spellingQuestion } from "./questions";
 import { placeholderSpeaker, speakWord } from "./speech";
 
@@ -43,26 +44,21 @@ describe("Forest chapter words", () => {
     const forestG3 = chapterWords().filter((word) => word.grade === "G3").map((word) => word.id);
     expect(only3[0]?.wordIds.slice(0, forestG3.length)).toEqual(forestG3);
     expect(only3[0]?.wordIds.slice(forestG3.length, forestG3.length + extras.length)).toEqual(extras);
-    expect(only3[0]?.wordIds.slice(forestG3.length + extras.length)).toEqual(continuationWordIds("G3"));
+    expect(only3[0]?.wordIds).toHaveLength(forestG3.length + extras.length);
     const all = lessonUnits(["G3", "G4", "G5", "G6"]);
     const seen = all.flatMap((unit) => unit.wordIds);
     expect(new Set(seen).size).toBe(seen.length);
-    expect(seen).toHaveLength(CATALOG_WORDS.length + extras.length);
+    expect(seen).toHaveLength(chapterWords().length);
     expect(extras.every((id) => seen.includes(id))).toBe(true);
     expect(sampleUnits()).toEqual([]);
   });
 
-  it("offers an official word that is not one of the forest 28", () => {
-    const grades = ["G3", "G4", "G5", "G6"] as const;
+  it("keeps later official words out of the forest lessons", () => {
     const forest = new Set(chapterWords().map((word) => word.id));
-    const units = lessonUnits(grades);
-    let next: string | undefined;
-    for (const unit of units) {
-      next = unit.wordIds.find((id) => !forest.has(id));
-      if (next) break;
+    for (const unit of lessonUnits(["G3", "G4", "G5", "G6"])) {
+      for (const id of unit.wordIds) expect(forest.has(id)).toBe(true);
     }
-    const firstOutside = CATALOG_WORDS.find((word) => word.grade === "G3" && !forest.has(word.id));
-    expect(next).toBe(firstOutside?.id);
+    const next = continuationWordIds("G3")[0];
     expect(next).toBeTruthy();
     expect(forest.has(next ?? "")).toBe(false);
     expect(wordById(next ?? "")?.theme).toBe("PEP Grades 3-6");
@@ -91,6 +87,32 @@ describe("Forest chapter words", () => {
     expect(picked.slice(0, 7).every((word) => word.gradeEst === 3 && word.theme === tree?.theme)).toBe(true);
     expect(picked[7]?.gradeEst).not.toBe(3);
     expect(picked.every((word) => chapterWords().some((item) => item.id === word.id))).toBe(true);
+  });
+
+  it("drops exact and shared-sense distractors, including across grades", () => {
+    const grandpa = wordById("grandpa");
+    const grandfather = wordById("grandfather");
+    const mum = wordById("mum");
+    const mother = wordById("mother");
+    const parent = wordById("parent");
+    const grape = wordById("grape");
+    const grandma = wordById("grandma");
+    const cap = wordById("cap");
+    const hat = wordById("hat");
+    expect(grandpa && grandfather && glossPairBlocked(grandpa.id, grandfather.id)).toBe(true);
+    expect(mum && mother && glossPairBlocked(mum.id, mother.id)).toBe(true);
+    expect(mother && parent && glossPairBlocked(mother.id, parent.id)).toBe(false);
+    expect(cap && hat && cap.grade !== hat.grade && glossPairBlocked(cap.id, hat.id)).toBe(true);
+    expect(grandpa && grape && glossPairBlocked(grandpa.id, grape.id)).toBe(false);
+    const family = pickDistractors(grandpa!, 2, 3, [grandfather!, grape!, grandma!]);
+    expect(family.map((word) => word.id)).not.toContain("grandfather");
+    expect(family.length).toBeGreaterThan(0);
+    expect(pickDistractors(mum!, 2, 1, [mother!])).toEqual([]);
+    expect(pickDistractors(mother!, 2, 1, [parent!, grape!]).map((word) => word.id)).toContain("parent");
+    expect(pickDistractors(cap!, 2, 1, [hat!, grape!]).map((word) => word.id)).not.toContain("hat");
+    expect(spellingAllowed(wordById("tree")!, true, ["tree"])).toBe(false);
+    expect(spellingQuestion("tree", true, ["tree"])).toBeNull();
+    expect(spellingAllowed(wordById("tree")!, true)).toBe(true);
   });
 
   it("allows meaning and listening for every chapter word, and spelling by the approved rule", () => {

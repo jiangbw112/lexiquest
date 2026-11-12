@@ -1,0 +1,2215 @@
+{
+ "version": "0.2",
+ "created_at": "2026-11-12",
+ "status": "草案 v0.2，待 Haru 审",
+ "source": {
+  "loader": "jiangbw112/lexiquest@4cd2956 src/domain/data/pep_words_g3-6_v1.2.2_loader.json (863)",
+  "forest_extras": "jiangbw112/lexiquest@4cd2956 src/domain/chapters/chapter_forest_v1.1.json chapter_extra_words (8)"
+ },
+ "id_rule": "word.trim().toLowerCase()（与 catalog.ts readWordFile 一致）",
+ "rules": "Gloss overlap pairs over the whole book: repo 4cd2956 loader (863) + forest chapter_extra_words (8).\nRules (reproducible):\n  norm(s): drop ASCII/full-width whitespace, drop parenthesised text （…）/(...), drop '…' and '...'.\n  senses(g): split meaning_zh on ； ; ， , then norm each part, drop empty ones.\n  exact   : the two words have identical sense SETS after norm.\n  overlap : not exact, and either\n            R1 shared_sense  - at least one normalised sense is identical;\n            R2 contains      - some sense of one (len>=2) is a substring of a sense of the other\n                                (e.g. 担心 / 担心的, 旅行 / 旅行…).",
+ "use": "出题时排除与正确答案 exact 或 overlap(R1_shared_sense) 的干扰项；R2_contains 仅含包含关系的词对供开发自行决定（含部分无害包含，如 十一/十一月）。",
+ "counts": {
+  "exact": 23,
+  "overlap": 92,
+  "overlap_R1_shared_sense": 26,
+  "overlap_R2_contains_only": 66
+ },
+ "exact": [
+  {
+   "a": "cap",
+   "a_word": "cap",
+   "a_meaning_zh": "帽子",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "hat",
+   "b_word": "hat",
+   "b_meaning_zh": "帽子",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "帽子"
+   ]
+  },
+  {
+   "a": "grandfather",
+   "a_word": "grandfather",
+   "a_meaning_zh": "爷爷；外公",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "grandpa",
+   "b_word": "grandpa",
+   "b_meaning_zh": "爷爷；外公",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "外公",
+    "爷爷"
+   ]
+  },
+  {
+   "a": "grandma",
+   "a_word": "grandma",
+   "a_meaning_zh": "奶奶；外婆",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "grandmother",
+   "b_word": "grandmother",
+   "b_meaning_zh": "奶奶；外婆",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "外婆",
+    "奶奶"
+   ]
+  },
+  {
+   "a": "has",
+   "a_word": "has",
+   "a_meaning_zh": "有（用于他/她/它）",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "have",
+   "b_word": "have",
+   "b_meaning_zh": "有",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "有"
+   ]
+  },
+  {
+   "a": "he",
+   "a_word": "he",
+   "a_meaning_zh": "他",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "him",
+   "b_word": "him",
+   "b_meaning_zh": "他",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "他"
+   ]
+  },
+  {
+   "a": "mr",
+   "a_word": "Mr",
+   "a_meaning_zh": "先生",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "sir",
+   "b_word": "sir",
+   "b_meaning_zh": "先生",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "先生"
+   ]
+  },
+  {
+   "a": "say",
+   "a_word": "say",
+   "a_meaning_zh": "说",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "speak",
+   "b_word": "speak",
+   "b_meaning_zh": "说（语言）",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "说"
+   ]
+  },
+  {
+   "a": "tall",
+   "a_word": "tall",
+   "a_meaning_zh": "高的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "high",
+   "b_word": "high",
+   "b_meaning_zh": "高的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "高的"
+   ]
+  },
+  {
+   "a": "uk",
+   "a_word": "UK",
+   "a_meaning_zh": "英国",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "britain",
+   "b_word": "Britain",
+   "b_meaning_zh": "英国（不列颠）",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "英国"
+   ]
+  },
+  {
+   "a": "buy",
+   "a_word": "buy",
+   "a_meaning_zh": "买",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "bought",
+   "b_word": "bought",
+   "b_meaning_zh": "买（buy 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "买"
+   ]
+  },
+  {
+   "a": "get together",
+   "a_word": "get together",
+   "a_meaning_zh": "聚会",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "party",
+   "b_word": "party",
+   "b_meaning_zh": "聚会",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "聚会"
+   ]
+  },
+  {
+   "a": "look after",
+   "a_word": "look after",
+   "a_meaning_zh": "照顾",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "take care of",
+   "b_word": "take care of",
+   "b_meaning_zh": "照顾",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "照顾"
+   ]
+  },
+  {
+   "a": "sleep",
+   "a_word": "sleep",
+   "a_meaning_zh": "睡觉",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "slept",
+   "b_word": "slept",
+   "b_meaning_zh": "睡觉（sleep 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "睡觉"
+   ]
+  },
+  {
+   "a": "sunny",
+   "a_word": "sunny",
+   "a_meaning_zh": "晴朗的",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "fine",
+   "b_word": "fine",
+   "b_meaning_zh": "晴朗的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "晴朗的"
+   ]
+  },
+  {
+   "a": "swim",
+   "a_word": "swim",
+   "a_meaning_zh": "游泳",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "swam",
+   "b_word": "swam",
+   "b_meaning_zh": "游泳（swim 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "游泳"
+   ]
+  },
+  {
+   "a": "wash",
+   "a_word": "wash",
+   "a_meaning_zh": "洗",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "washed",
+   "b_word": "washed",
+   "b_meaning_zh": "洗（wash 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "洗"
+   ]
+  },
+  {
+   "a": "watch",
+   "a_word": "watch",
+   "a_meaning_zh": "看",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "watched",
+   "b_word": "watched",
+   "b_meaning_zh": "看（watch 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "看"
+   ]
+  },
+  {
+   "a": "laugh",
+   "a_word": "laugh",
+   "a_meaning_zh": "笑",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "laughed",
+   "b_word": "laughed",
+   "b_meaning_zh": "笑（laugh 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "笑"
+   ]
+  },
+  {
+   "a": "ride",
+   "a_word": "ride",
+   "a_meaning_zh": "骑",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "rode",
+   "b_word": "rode",
+   "b_meaning_zh": "骑（ride 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "骑"
+   ]
+  },
+  {
+   "a": "skate",
+   "a_word": "skate",
+   "a_meaning_zh": "滑冰",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "ice-skate",
+   "b_word": "ice-skate",
+   "b_meaning_zh": "滑冰",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "滑冰"
+   ]
+  },
+  {
+   "a": "start",
+   "a_word": "start",
+   "a_meaning_zh": "开始",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "begin",
+   "b_word": "begin",
+   "b_meaning_zh": "开始（过去式 began）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "开始"
+   ]
+  },
+  {
+   "a": "travel",
+   "a_word": "travel",
+   "a_meaning_zh": "旅行",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "trip",
+   "b_word": "trip",
+   "b_meaning_zh": "旅行",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "旅行"
+   ]
+  },
+  {
+   "a": "change",
+   "a_word": "change",
+   "a_meaning_zh": "改变",
+   "a_grade": "G6",
+   "a_source": "loader",
+   "b": "changed",
+   "b_word": "changed",
+   "b_meaning_zh": "改变（change 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "exact_sense_set"
+   ],
+   "shared": [
+    "改变"
+   ]
+  }
+ ],
+ "overlap": [
+  {
+   "a": "animal",
+   "a_word": "animal",
+   "a_meaning_zh": "动物",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "zoo",
+   "b_word": "zoo",
+   "b_meaning_zh": "动物园",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "动物⊂动物园"
+   ]
+  },
+  {
+   "a": "back",
+   "a_word": "back",
+   "a_meaning_zh": "回；后面",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "behind",
+   "b_word": "behind",
+   "b_meaning_zh": "在…后面",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "后面⊂在后面"
+   ]
+  },
+  {
+   "a": "big",
+   "a_word": "big",
+   "a_meaning_zh": "大的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "heavy",
+   "b_word": "heavy",
+   "b_meaning_zh": "（雨、雪）大的；重的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "大的"
+   ]
+  },
+  {
+   "a": "big",
+   "a_word": "big",
+   "a_meaning_zh": "大的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "bigger",
+   "b_word": "bigger",
+   "b_meaning_zh": "更大的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "大的⊂更大的"
+   ]
+  },
+  {
+   "a": "big",
+   "a_word": "big",
+   "a_meaning_zh": "大的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "older",
+   "b_word": "older",
+   "b_meaning_zh": "年龄更大的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "大的⊂年龄更大的"
+   ]
+  },
+  {
+   "a": "china",
+   "a_word": "China",
+   "a_meaning_zh": "中国",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "taikonaut",
+   "b_word": "taikonaut",
+   "b_meaning_zh": "中国航天员",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "中国⊂中国航天员"
+   ]
+  },
+  {
+   "a": "class",
+   "a_word": "class",
+   "a_meaning_zh": "班级；课",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "lesson",
+   "b_word": "lesson",
+   "b_meaning_zh": "课",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "课"
+   ]
+  },
+  {
+   "a": "cute",
+   "a_word": "cute",
+   "a_meaning_zh": "可爱的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "lovely",
+   "b_word": "lovely",
+   "b_meaning_zh": "可爱的；美丽的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "可爱的"
+   ]
+  },
+  {
+   "a": "dad",
+   "a_word": "dad",
+   "a_meaning_zh": "爸爸",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "father",
+   "b_word": "father",
+   "b_meaning_zh": "父亲；爸爸",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "爸爸"
+   ]
+  },
+  {
+   "a": "eleven",
+   "a_word": "eleven",
+   "a_meaning_zh": "十一",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "november",
+   "b_word": "November",
+   "b_meaning_zh": "十一月",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "十一⊂十一月"
+   ]
+  },
+  {
+   "a": "english",
+   "a_word": "English",
+   "a_meaning_zh": "英语；英国的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "uk",
+   "b_word": "UK",
+   "b_meaning_zh": "英国",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "英国⊂英国的"
+   ]
+  },
+  {
+   "a": "english",
+   "a_word": "English",
+   "a_meaning_zh": "英语；英国的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "britain",
+   "b_word": "Britain",
+   "b_meaning_zh": "英国（不列颠）",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "英国⊂英国的"
+   ]
+  },
+  {
+   "a": "family",
+   "a_word": "family",
+   "a_meaning_zh": "家；家庭",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "home",
+   "b_word": "home",
+   "b_meaning_zh": "家",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "家"
+   ]
+  },
+  {
+   "a": "fast",
+   "a_word": "fast",
+   "a_meaning_zh": "快的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "quick",
+   "b_word": "quick",
+   "b_meaning_zh": "快的；迅速的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "快的"
+   ]
+  },
+  {
+   "a": "father",
+   "a_word": "father",
+   "a_meaning_zh": "父亲；爸爸",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "parent",
+   "b_word": "parent",
+   "b_meaning_zh": "父亲或母亲",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "父亲⊂父亲或母亲"
+   ]
+  },
+  {
+   "a": "give",
+   "a_word": "give",
+   "a_meaning_zh": "给",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "pass",
+   "b_word": "pass",
+   "b_meaning_zh": "递；给",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "给"
+   ]
+  },
+  {
+   "a": "good",
+   "a_word": "good",
+   "a_meaning_zh": "好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "nice",
+   "b_word": "nice",
+   "b_meaning_zh": "好的；友好的",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense",
+    "R2_contains"
+   ],
+   "shared": [
+    "好的",
+    "好的⊂友好的"
+   ]
+  },
+  {
+   "a": "good",
+   "a_word": "good",
+   "a_meaning_zh": "好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "best",
+   "b_word": "best",
+   "b_meaning_zh": "最好的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂最好的"
+   ]
+  },
+  {
+   "a": "good",
+   "a_word": "good",
+   "a_meaning_zh": "好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "kind",
+   "b_word": "kind",
+   "b_meaning_zh": "友好的；善良的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂友好的"
+   ]
+  },
+  {
+   "a": "good",
+   "a_word": "good",
+   "a_meaning_zh": "好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "ready",
+   "b_word": "ready",
+   "b_meaning_zh": "准备好的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂准备好的"
+   ]
+  },
+  {
+   "a": "good",
+   "a_word": "good",
+   "a_meaning_zh": "好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "better",
+   "b_word": "better",
+   "b_meaning_zh": "（身体）好些的；更好的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂更好的"
+   ]
+  },
+  {
+   "a": "healthy",
+   "a_word": "healthy",
+   "a_meaning_zh": "健康的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "health",
+   "b_word": "health",
+   "b_meaning_zh": "健康",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "健康⊂健康的"
+   ]
+  },
+  {
+   "a": "help",
+   "a_word": "help",
+   "a_meaning_zh": "帮助",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "helpful",
+   "b_word": "helpful",
+   "b_meaning_zh": "有帮助的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "帮助⊂有帮助的"
+   ]
+  },
+  {
+   "a": "her",
+   "a_word": "her",
+   "a_meaning_zh": "她的；她",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "she",
+   "b_word": "she",
+   "b_meaning_zh": "她",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "她"
+   ]
+  },
+  {
+   "a": "in",
+   "a_word": "in",
+   "a_meaning_zh": "在…里",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "inside",
+   "b_word": "inside",
+   "b_meaning_zh": "在…里面",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "在里⊂在里面"
+   ]
+  },
+  {
+   "a": "keep",
+   "a_word": "keep",
+   "a_meaning_zh": "保存；保持",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "stay",
+   "b_word": "stay",
+   "b_meaning_zh": "待着；保持",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "保持"
+   ]
+  },
+  {
+   "a": "like",
+   "a_word": "like",
+   "a_meaning_zh": "喜欢",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "favourite",
+   "b_word": "favourite",
+   "b_meaning_zh": "最喜欢的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "喜欢⊂最喜欢的"
+   ]
+  },
+  {
+   "a": "long",
+   "a_word": "long",
+   "a_meaning_zh": "长的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "longer",
+   "b_word": "longer",
+   "b_meaning_zh": "更长的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "长的⊂更长的"
+   ]
+  },
+  {
+   "a": "love",
+   "a_word": "love",
+   "a_meaning_zh": "爱；喜爱",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "enjoy",
+   "b_word": "enjoy",
+   "b_meaning_zh": "享受；喜爱",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "喜爱"
+   ]
+  },
+  {
+   "a": "make",
+   "a_word": "make",
+   "a_meaning_zh": "做；制作",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "work",
+   "b_word": "work",
+   "b_meaning_zh": "做；工作",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "做"
+   ]
+  },
+  {
+   "a": "miss",
+   "a_word": "Miss",
+   "a_meaning_zh": "女士；老师（称呼女老师）",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "teacher",
+   "b_word": "teacher",
+   "b_meaning_zh": "老师",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "老师"
+   ]
+  },
+  {
+   "a": "miss",
+   "a_word": "Miss",
+   "a_meaning_zh": "女士；老师（称呼女老师）",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "ms",
+   "b_word": "Ms",
+   "b_meaning_zh": "女士",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "女士"
+   ]
+  },
+  {
+   "a": "mother",
+   "a_word": "mother",
+   "a_meaning_zh": "母亲；妈妈",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "mum",
+   "b_word": "mum",
+   "b_meaning_zh": "妈妈",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "妈妈"
+   ]
+  },
+  {
+   "a": "mother",
+   "a_word": "mother",
+   "a_meaning_zh": "母亲；妈妈",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "parent",
+   "b_word": "parent",
+   "b_meaning_zh": "父亲或母亲",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "母亲⊂父亲或母亲"
+   ]
+  },
+  {
+   "a": "much",
+   "a_word": "much",
+   "a_meaning_zh": "许多；非常",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "very",
+   "b_word": "very",
+   "b_meaning_zh": "很；非常",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "非常"
+   ]
+  },
+  {
+   "a": "much",
+   "a_word": "much",
+   "a_meaning_zh": "许多；非常",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "a lot of",
+   "b_word": "a lot of",
+   "b_meaning_zh": "许多",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "许多"
+   ]
+  },
+  {
+   "a": "nice",
+   "a_word": "nice",
+   "a_meaning_zh": "好的；友好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "best",
+   "b_word": "best",
+   "b_meaning_zh": "最好的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂最好的"
+   ]
+  },
+  {
+   "a": "nice",
+   "a_word": "nice",
+   "a_meaning_zh": "好的；友好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "kind",
+   "b_word": "kind",
+   "b_meaning_zh": "友好的；善良的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense",
+    "R2_contains"
+   ],
+   "shared": [
+    "友好的",
+    "好的⊂友好的"
+   ]
+  },
+  {
+   "a": "nice",
+   "a_word": "nice",
+   "a_meaning_zh": "好的；友好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "ready",
+   "b_word": "ready",
+   "b_meaning_zh": "准备好的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂准备好的"
+   ]
+  },
+  {
+   "a": "nice",
+   "a_word": "nice",
+   "a_meaning_zh": "好的；友好的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "better",
+   "b_word": "better",
+   "b_meaning_zh": "（身体）好些的；更好的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "好的⊂更好的"
+   ]
+  },
+  {
+   "a": "panda",
+   "a_word": "panda",
+   "a_meaning_zh": "熊猫",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "red panda",
+   "b_word": "red panda",
+   "b_meaning_zh": "小熊猫",
+   "b_grade": "G3",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "熊猫⊂小熊猫"
+   ]
+  },
+  {
+   "a": "put",
+   "a_word": "put",
+   "a_meaning_zh": "放",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "fly",
+   "b_word": "fly",
+   "b_meaning_zh": "放（风筝）；飞",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "放"
+   ]
+  },
+  {
+   "a": "short",
+   "a_word": "short",
+   "a_meaning_zh": "短的；矮的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "shorter",
+   "b_word": "shorter",
+   "b_meaning_zh": "更矮的；更短的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "短的⊂更短的",
+    "矮的⊂更矮的"
+   ]
+  },
+  {
+   "a": "small",
+   "a_word": "small",
+   "a_meaning_zh": "小的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "smaller",
+   "b_word": "smaller",
+   "b_meaning_zh": "更小的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "小的⊂更小的"
+   ]
+  },
+  {
+   "a": "sun",
+   "a_word": "sun",
+   "a_meaning_zh": "太阳",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "sunglasses",
+   "b_word": "sunglasses",
+   "b_meaning_zh": "太阳镜",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "太阳⊂太阳镜"
+   ]
+  },
+  {
+   "a": "sun",
+   "a_word": "sun",
+   "a_meaning_zh": "太阳",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "solar",
+   "b_word": "solar",
+   "b_meaning_zh": "太阳能的；太阳的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "太阳⊂太阳的",
+    "太阳⊂太阳能的"
+   ]
+  },
+  {
+   "a": "tall",
+   "a_word": "tall",
+   "a_meaning_zh": "高的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "taller",
+   "b_word": "taller",
+   "b_meaning_zh": "更高的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "高的⊂更高的"
+   ]
+  },
+  {
+   "a": "tall",
+   "a_word": "tall",
+   "a_meaning_zh": "高的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "top",
+   "b_word": "top",
+   "b_meaning_zh": "最高的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "高的⊂最高的"
+   ]
+  },
+  {
+   "a": "them",
+   "a_word": "them",
+   "a_meaning_zh": "他们；她们；它们",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "their",
+   "b_word": "their",
+   "b_meaning_zh": "他们的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "他们⊂他们的"
+   ]
+  },
+  {
+   "a": "thin",
+   "a_word": "thin",
+   "a_meaning_zh": "瘦的",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "thinner",
+   "b_word": "thinner",
+   "b_meaning_zh": "更瘦的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "瘦的⊂更瘦的"
+   ]
+  },
+  {
+   "a": "twelve",
+   "a_word": "twelve",
+   "a_meaning_zh": "十二",
+   "a_grade": "G3",
+   "a_source": "loader",
+   "b": "december",
+   "b_word": "December",
+   "b_meaning_zh": "十二月",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "十二⊂十二月"
+   ]
+  },
+  {
+   "a": "beautiful",
+   "a_word": "beautiful",
+   "a_meaning_zh": "美丽的",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "lovely",
+   "b_word": "lovely",
+   "b_meaning_zh": "可爱的；美丽的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "美丽的"
+   ]
+  },
+  {
+   "a": "clean",
+   "a_word": "clean",
+   "a_meaning_zh": "打扫；干净的",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "cleaned",
+   "b_word": "cleaned",
+   "b_meaning_zh": "打扫（clean 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "打扫"
+   ]
+  },
+  {
+   "a": "fall",
+   "a_word": "fall",
+   "a_meaning_zh": "落下",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "fell",
+   "b_word": "fell",
+   "b_meaning_zh": "摔倒；落下（fall 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "落下"
+   ]
+  },
+  {
+   "a": "film",
+   "a_word": "film",
+   "a_meaning_zh": "电影",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "cinema",
+   "b_word": "cinema",
+   "b_meaning_zh": "电影院",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "电影⊂电影院"
+   ]
+  },
+  {
+   "a": "go to bed",
+   "a_word": "go to bed",
+   "a_meaning_zh": "上床睡觉",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "sleep",
+   "b_word": "sleep",
+   "b_meaning_zh": "睡觉",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "睡觉⊂上床睡觉"
+   ]
+  },
+  {
+   "a": "go to bed",
+   "a_word": "go to bed",
+   "a_meaning_zh": "上床睡觉",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "slept",
+   "b_word": "slept",
+   "b_meaning_zh": "睡觉（sleep 的过去式）",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "睡觉⊂上床睡觉"
+   ]
+  },
+  {
+   "a": "his",
+   "a_word": "his",
+   "a_meaning_zh": "他的",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "else",
+   "b_word": "else",
+   "b_meaning_zh": "别的；其他的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "他的⊂其他的"
+   ]
+  },
+  {
+   "a": "job",
+   "a_word": "job",
+   "a_meaning_zh": "工作",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "work",
+   "b_word": "work",
+   "b_meaning_zh": "做；工作",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "工作"
+   ]
+  },
+  {
+   "a": "rain",
+   "a_word": "rain",
+   "a_meaning_zh": "下雨；雨",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "rainy",
+   "b_word": "rainy",
+   "b_meaning_zh": "下雨的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "下雨⊂下雨的"
+   ]
+  },
+  {
+   "a": "snow",
+   "a_word": "snow",
+   "a_meaning_zh": "雪；下雪",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "snowy",
+   "b_word": "snowy",
+   "b_meaning_zh": "下雪的",
+   "b_grade": "G4",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "下雪⊂下雪的"
+   ]
+  },
+  {
+   "a": "strong",
+   "a_word": "strong",
+   "a_meaning_zh": "强壮的",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "stronger",
+   "b_word": "stronger",
+   "b_meaning_zh": "更强壮的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "强壮的⊂更强壮的"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "friday",
+   "b_word": "Friday",
+   "b_meaning_zh": "星期五",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期五"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "monday",
+   "b_word": "Monday",
+   "b_meaning_zh": "星期一",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期一"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "saturday",
+   "b_word": "Saturday",
+   "b_meaning_zh": "星期六",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期六"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "sunday",
+   "b_word": "Sunday",
+   "b_meaning_zh": "星期日",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期日"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "thursday",
+   "b_word": "Thursday",
+   "b_meaning_zh": "星期四",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期四"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "tuesday",
+   "b_word": "Tuesday",
+   "b_meaning_zh": "星期二",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期二"
+   ]
+  },
+  {
+   "a": "week",
+   "a_word": "week",
+   "a_meaning_zh": "周；星期",
+   "a_grade": "G4",
+   "a_source": "loader",
+   "b": "wednesday",
+   "b_word": "Wednesday",
+   "b_meaning_zh": "星期三",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "星期⊂星期三"
+   ]
+  },
+  {
+   "a": "bike",
+   "a_word": "bike",
+   "a_meaning_zh": "自行车",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "cycling",
+   "b_word": "cycling",
+   "b_meaning_zh": "骑自行车运动",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "自行车⊂骑自行车运动"
+   ]
+  },
+  {
+   "a": "cup",
+   "a_word": "cup",
+   "a_meaning_zh": "杯子；一杯",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "glass",
+   "b_word": "glass",
+   "b_meaning_zh": "一杯；玻璃",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "一杯"
+   ]
+  },
+  {
+   "a": "december",
+   "a_word": "December",
+   "a_meaning_zh": "十二月",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "february",
+   "b_word": "February",
+   "b_meaning_zh": "二月",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "二月⊂十二月"
+   ]
+  },
+  {
+   "a": "different",
+   "a_word": "different",
+   "a_meaning_zh": "不同的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "difference",
+   "b_word": "difference",
+   "b_meaning_zh": "不同；差别",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "不同⊂不同的"
+   ]
+  },
+  {
+   "a": "else",
+   "a_word": "else",
+   "a_meaning_zh": "别的；其他的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "special",
+   "b_word": "special",
+   "b_meaning_zh": "特别的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "别的⊂特别的"
+   ]
+  },
+  {
+   "a": "excited",
+   "a_word": "excited",
+   "a_meaning_zh": "兴奋的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "exciting",
+   "b_word": "exciting",
+   "b_meaning_zh": "令人兴奋的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "兴奋的⊂令人兴奋的"
+   ]
+  },
+  {
+   "a": "finally",
+   "a_word": "finally",
+   "a_meaning_zh": "最后；终于",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "last",
+   "b_word": "last",
+   "b_meaning_zh": "最后的",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "最后⊂最后的"
+   ]
+  },
+  {
+   "a": "heavy",
+   "a_word": "heavy",
+   "a_meaning_zh": "（雨、雪）大的；重的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "bigger",
+   "b_word": "bigger",
+   "b_meaning_zh": "更大的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "大的⊂更大的"
+   ]
+  },
+  {
+   "a": "heavy",
+   "a_word": "heavy",
+   "a_meaning_zh": "（雨、雪）大的；重的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "heavier",
+   "b_word": "heavier",
+   "b_meaning_zh": "更重的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "重的⊂更重的"
+   ]
+  },
+  {
+   "a": "heavy",
+   "a_word": "heavy",
+   "a_meaning_zh": "（雨、雪）大的；重的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "older",
+   "b_word": "older",
+   "b_meaning_zh": "年龄更大的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "大的⊂年龄更大的"
+   ]
+  },
+  {
+   "a": "high",
+   "a_word": "high",
+   "a_meaning_zh": "高的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "taller",
+   "b_word": "taller",
+   "b_meaning_zh": "更高的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "高的⊂更高的"
+   ]
+  },
+  {
+   "a": "high",
+   "a_word": "high",
+   "a_meaning_zh": "高的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "top",
+   "b_word": "top",
+   "b_meaning_zh": "最高的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "高的⊂最高的"
+   ]
+  },
+  {
+   "a": "january",
+   "a_word": "January",
+   "a_meaning_zh": "一月",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "november",
+   "b_word": "November",
+   "b_meaning_zh": "十一月",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "一月⊂十一月"
+   ]
+  },
+  {
+   "a": "matter",
+   "a_word": "matter",
+   "a_meaning_zh": "事情；问题",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "question",
+   "b_word": "question",
+   "b_meaning_zh": "问题",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "问题"
+   ]
+  },
+  {
+   "a": "phone",
+   "a_word": "phone",
+   "a_meaning_zh": "电话",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "call",
+   "b_word": "call",
+   "b_meaning_zh": "打电话",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "电话⊂打电话"
+   ]
+  },
+  {
+   "a": "science",
+   "a_word": "science",
+   "a_meaning_zh": "科学",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "scientist",
+   "b_word": "scientist",
+   "b_meaning_zh": "科学家",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "科学⊂科学家"
+   ]
+  },
+  {
+   "a": "stand",
+   "a_word": "stand",
+   "a_meaning_zh": "站",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "station",
+   "b_word": "station",
+   "b_meaning_zh": "站；（警察）局",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R1_shared_sense"
+   ],
+   "shared": [
+    "站"
+   ]
+  },
+  {
+   "a": "suggest",
+   "a_word": "suggest",
+   "a_meaning_zh": "建议",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "tip",
+   "b_word": "tip",
+   "b_meaning_zh": "小提示；小建议",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "建议⊂小建议"
+   ]
+  },
+  {
+   "a": "visit",
+   "a_word": "visit",
+   "a_meaning_zh": "看望；参观",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "visitor",
+   "b_word": "visitor",
+   "b_meaning_zh": "参观者；游客",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "参观⊂参观者"
+   ]
+  },
+  {
+   "a": "worried",
+   "a_word": "worried",
+   "a_meaning_zh": "担心的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "worry",
+   "b_word": "worry",
+   "b_meaning_zh": "担心",
+   "b_grade": "G5",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "担心⊂担心的"
+   ]
+  },
+  {
+   "a": "young",
+   "a_word": "young",
+   "a_meaning_zh": "年轻的",
+   "a_grade": "G5",
+   "a_source": "loader",
+   "b": "younger",
+   "b_word": "younger",
+   "b_meaning_zh": "更年轻的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": true,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "年轻的⊂更年轻的"
+   ]
+  },
+  {
+   "a": "bigger",
+   "a_word": "bigger",
+   "a_meaning_zh": "更大的",
+   "a_grade": "G6",
+   "a_source": "loader",
+   "b": "older",
+   "b_word": "older",
+   "b_meaning_zh": "年龄更大的",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "更大的⊂年龄更大的"
+   ]
+  },
+  {
+   "a": "outer space",
+   "a_word": "outer space",
+   "a_meaning_zh": "外太空",
+   "a_grade": "G6",
+   "a_source": "loader",
+   "b": "space",
+   "b_word": "space",
+   "b_meaning_zh": "太空",
+   "b_grade": "G6",
+   "b_source": "loader",
+   "cross_grade": false,
+   "rules": [
+    "R2_contains"
+   ],
+   "shared": [
+    "太空⊂外太空"
+   ]
+  }
+ ]
+}

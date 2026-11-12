@@ -3,7 +3,6 @@ import {
   answerQuestion,
   startBattle,
   takeAction,
-  CHAPTER_BOSS_ID,
   type BattleState,
 } from "../../domain/battle";
 import { buildResultsView, starsFor } from "../../domain/battle-results";
@@ -13,7 +12,7 @@ import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey 
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
-import { battleWordIds, bossReady, stageById, stageCombat, stageStatuses } from "../../domain/stages";
+import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
@@ -33,6 +32,7 @@ import { FONT_BODY, INK, MUTED } from "../warm/theme";
 
 interface BattleLaunch {
   stageId?: number;
+  chapterId?: string;
 }
 
 export class BattleScene extends Phaser.Scene {
@@ -61,7 +61,10 @@ export class BattleScene extends Phaser.Scene {
 
   init(data: BattleLaunch = {}): void {
     this.launch = data ?? {};
-    this.bossFight = stageById(this.launch.stageId ?? 0)?.type === "boss";
+    const save = getSave();
+    const chapter = save ? findPlayChapter(save, data.chapterId) : null;
+    const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
+    this.bossFight = stage?.type === "boss";
   }
 
   preload(): void {
@@ -73,14 +76,15 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     const save = getSave();
-    const stage = stageById(this.launch.stageId ?? 0);
+    const chapter = save ? findPlayChapter(save, this.launch.chapterId) : null;
+    const stage = chapter?.stages.find((item) => item.id === (this.launch.stageId ?? 0));
     if (save && redirectUngraded(this, save)) return;
-    if (!save || !stage) {
+    if (!save || !chapter || !stage) {
       this.scene.start("stages");
       return;
     }
-    const status = stageStatuses(save)[stage.id - 1];
-    if (status === "locked" || (stage.type === "boss" && !bossReady(save) && !save.chapterCleared)) {
+    const status = playStatuses(save, chapter)[stage.id - 1];
+    if (status === "locked") {
       this.scene.start("stages");
       return;
     }
@@ -104,20 +108,19 @@ export class BattleScene extends Phaser.Scene {
       form?.classList.remove("open");
       this.monsterTimer?.remove(false);
     });
-    this.begin(stage.id);
+    this.begin(chapter, stage);
     listenKeys(this, (event) => this.onKey(event));
   }
 
-  private begin(stageId: number): void {
+  private begin(chapter: ReturnType<typeof findPlayChapter>, stage: ReturnType<typeof findPlayChapter>["stages"][number]): void {
     const save = getSave();
-    const stage = stageById(stageId);
-    if (!save || !stage) return;
+    if (!save) return;
     const now = studyNow(save);
     const dueWordIds = Object.values(save.memory).filter((memory) => isDue(memory, now)).map((memory) => memory.wordId);
     const litWordIds = Object.keys(save.wordCards).filter(
       (id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright",
     );
-    const combat = stageCombat(stage, save.player.classId);
+    const combat = stageCombatFor(chapter, stage, save.player.classId);
     this.openingDue = dueWordIds;
     this.toastedHints = 0;
     const padOrder = orderReviewWords(
@@ -135,6 +138,7 @@ export class BattleScene extends Phaser.Scene {
       seed: Date.now() % 100000,
       dueWordIds,
       allowedWordIds: battleWordIds(save),
+      distractorIds: unlockedWordIds(save),
       enemy: {
         name: combat.enemyName,
         maxHp: combat.enemyHp,
@@ -368,7 +372,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawMonster(): void {
-    if (this.state.encounterId === CHAPTER_BOSS_ID && this.state.enemySprite === "canopy") {
+    if (this.state.enemySprite === "canopy") {
       if (!this.bossReported) {
         reportBossLoad(this);
         this.bossReported = true;

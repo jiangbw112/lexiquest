@@ -5,10 +5,10 @@ import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades
 import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
 import { PROVISIONAL } from "./provisional";
 import { startBattle } from "./battle";
+import { battleWordIds, gradeChapters } from "./chapter-plan";
 import { skillQuestionPool } from "./skill-cast";
 import { badgeTone } from "./review";
 import {
-  battleWordIds,
   bossReady,
   bossUnlockLine,
   chapterLearnedCount,
@@ -369,17 +369,26 @@ describe("forest chapter", () => {
     expect(FOREST_CHAPTER.boss_unlock.stages_1_to_4_cleared).toBe(true);
   });
 
-  it("lets a learned official word into battle without asking it before it is learned", () => {
+  it("asks a later official word only in the chapter that contains it", () => {
     const grade3 = newSave(["G3"]);
     const allowed = battleWordIds(grade3);
-    expect(allowed).toContain("about");
     expect(allowed).toContain("tree");
+    expect(allowed).not.toContain("about");
     expect(allowed).not.toContain("explore");
     expect(skillQuestionPool([], ["tree"], { allowedIds: allowed })).toEqual(["tree"]);
-    expect(skillQuestionPool([], ["tree", "about"], { allowedIds: allowed })).toEqual(["tree", "about"]);
+    expect(skillQuestionPool([], ["tree", "about"], { allowedIds: allowed })).toEqual(["tree"]);
+    const next = gradeChapters("G3").find((chapter) => chapter.wordIds.includes("about"));
+    expect(next).toBeTruthy();
+    const standing = { ...grade3, currentChapterId: next!.id, chapterCleared: true };
+    const chapterAllowed = battleWordIds(standing);
+    expect(chapterAllowed).toContain("about");
+    expect(chapterAllowed).not.toContain("tree");
+    expect(skillQuestionPool([], ["about"], { allowedIds: chapterAllowed })).toEqual(["about"]);
+    expect(skillQuestionPool([], ["tree"], { allowedIds: chapterAllowed })).toEqual([]);
     const allGrades = battleWordIds(newSave());
-    expect(allGrades).toContain("about");
+    expect(allGrades).not.toContain("about");
     expect(allGrades).toContain("explore");
+    expect(allGrades).toContain("tree");
   });
 
   it("selects the next open stage after stage 1 is cleared", () => {
