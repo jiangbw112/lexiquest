@@ -100,7 +100,9 @@ export class CreateScene extends Phaser.Scene {
 
   private showLockTip(): void {
     this.lockTip?.destroy(true);
-    const root = this.add.container(0, 0);
+    const form = document.getElementById("name-form");
+    form?.classList.remove("open");
+    const root = this.add.container(0, 0).setDepth(20);
     const veil = this.add.rectangle(640, 400, 1280, 800, 0x24180f, 0.45).setInteractive();
     const panel = this.add.rectangle(640, 400, 980, 320, 0xfff6e4).setStrokeStyle(4, 0x3b2a20);
     const copy = this.add.text(640, 360, INVENTOR_LOCK_TIP, {
@@ -115,6 +117,7 @@ export class CreateScene extends Phaser.Scene {
     const close = () => {
       root.destroy(true);
       if (this.lockTip === root) this.lockTip = null;
+      if (this.scene.isActive()) form?.classList.add("open");
     };
     veil.on("pointerdown", close);
     button.on("pointerdown", (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
