@@ -348,14 +348,21 @@ export class GuideScene extends Phaser.Scene {
       wordWrap: cjkWrap(1000),
       lineSpacing: 4,
     });
-    warmButton(this, 360, 730, uiLabel(this.confirming ? "再按一次清除 Y" : (isDesktopShell() ? "清除这台电脑的缓存" : "清除这台浏览器的缓存")), () => {
-      if (!this.confirming) {
-        this.confirming = true;
-        this.draw();
-        return;
-      }
-      this.clearSave();
-    }, { width: 340 });
-    warmButton(this, 700, 730, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
+    warmButton(
+      this,
+      420,
+      730,
+      uiLabel(this.confirming ? "再按一次，清除这台电脑上的存档" : shellCopy(isDesktopShell()).clearCacheLabel),
+      () => {
+        if (!this.confirming) {
+          this.confirming = true;
+          this.draw();
+          return;
+        }
+        this.clearSave();
+      },
+      { width: this.confirming ? 560 : 420 },
+    );
+    warmButton(this, 1040, 730, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
   }
 }

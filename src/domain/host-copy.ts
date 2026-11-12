@@ -8,7 +8,7 @@ export interface ShellCopy {
 }
 
 const WEB_COPY: ShellCopy = {
-  clearCacheLabel: "清除这台浏览器的缓存",
+  clearCacheLabel: "清除这台电脑上的存档",
   saveCacheNotice: "进度只缓存在这台浏览器里，清掉站点数据就会消失。它不是服务器上的正式存档。",
   gradeGateNote: "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉浏览器数据后要重新设置。这不是安全登录。",
   dailyGoalNote:
@@ -17,7 +17,7 @@ const WEB_COPY: ShellCopy = {
 };
 
 const DESKTOP_COPY: ShellCopy = {
-  clearCacheLabel: "清除这台电脑的缓存",
+  clearCacheLabel: "清除这台电脑上的存档",
   saveCacheNotice: "进度只缓存在这台电脑里，清掉游戏数据就会消失。它不是服务器上的正式存档。",
   gradeGateNote: "改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉这台电脑上的数据后要重新设置。这不是安全登录。",
   dailyGoalNote:
