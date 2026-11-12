@@ -119,7 +119,7 @@ describe("save class id", () => {
     ["knight", "knight"],
     ["an empty string", ""],
     ["missing", null],
-  ] as const)("F-12 deep-equals the whole save when classId is %s", (_label, illegal) => {
+  ] as const)("F-12 deep-equals the whole save after an illegal class id", (_label, illegal) => {
     const legal = legalForestSave();
     const input = structuredClone(legal);
     if (illegal === null) delete input.player.classId;
