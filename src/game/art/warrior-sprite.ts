@@ -10,7 +10,6 @@ import {
 import { outfitExtraFrames, WARRIOR_SASH_DROP } from "./worn";
 import {
   WARRIOR_ANIMS,
-  WARRIOR_ASSET_ROOT,
   WARRIOR_LAYERS,
   WARRIOR_LOGICAL_SCALE,
   WARRIOR_ORIGIN,
@@ -19,14 +18,6 @@ import {
   warriorAnimKey,
   warriorTextureKey,
 } from "./warrior-pack";
-
-export function queueWarriorAtlases(scene: Phaser.Scene): void {
-  for (const layer of WARRIOR_LAYERS) {
-    const key = warriorTextureKey(layer.slot);
-    if (scene.textures.exists(key)) continue;
-    scene.load.atlas(key, `${WARRIOR_ASSET_ROOT}/${layer.atlasImage}`, `${WARRIOR_ASSET_ROOT}/${layer.atlasJson}`);
-  }
-}
 
 export function ensureWarriorAnims(scene: Phaser.Scene): void {
   for (const layer of WARRIOR_LAYERS) {
