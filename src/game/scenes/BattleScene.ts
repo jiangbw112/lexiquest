@@ -279,10 +279,10 @@ export class BattleScene extends Phaser.Scene {
       this.pendingLunge = { attacker: "enemy" };
       this.executeLungeSequence(before);
     } else {
-      this.spawnPendingFloaters();
       this.holdResolution(before);
       this.finishIfNeeded();
       this.draw();
+      this.spawnPendingFloaters();
     }
   }
 
@@ -318,10 +318,10 @@ export class BattleScene extends Phaser.Scene {
 
   private executeLungeSequence(before: BattleState): void {
     if (!this.pendingLunge) {
-      this.spawnPendingFloaters();
       this.holdResolution(before);
       this.finishIfNeeded();
       this.draw();
+      this.spawnPendingFloaters();
       return;
     }
 
@@ -335,10 +335,10 @@ export class BattleScene extends Phaser.Scene {
     if (!container) {
       this.lunging = false;
       this.pendingLunge = null;
-      this.spawnPendingFloaters();
       this.holdResolution(before);
       this.finishIfNeeded();
       this.draw();
+      this.spawnPendingFloaters();
       return;
     }
 
@@ -346,15 +346,14 @@ export class BattleScene extends Phaser.Scene {
       this,
       container,
       targetX,
-      () => {
-        this.spawnPendingFloaters();
-      },
+      undefined,
       () => {
         this.lunging = false;
         this.pendingLunge = null;
         this.holdResolution(before);
         this.finishIfNeeded();
         this.draw();
+        this.spawnPendingFloaters();
       },
     );
   }
