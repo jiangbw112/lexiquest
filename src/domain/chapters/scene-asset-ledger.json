@@ -1,5 +1,5 @@
 {
-  "version": "integration_v1.0",
+  "version": "integration_v1.0.2",
   "note": "WebP files were copied byte for byte. They were not recompressed. K35 (Haru 18:56): only pep_g6_01 uses the journey night set. pep_g6_03, pep_g6_04, pep_g5_08, pep_g5_09, pep_g6_05, and pep_g6_06 use the day set. The night files stay in the repo because pep_g6_01 references them.",
   "chapters": [
     {
@@ -398,53 +398,51 @@
     {
       "role": "minion-atlas",
       "referenced": true,
-      "sourcePath": "scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes.png",
-      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes.png",
-      "sourceSha256": "1adcfa2ff4558e3b120e88f081b122cc160182070b7cbe4fa91b5fa5b4fa8ed6",
-      "sourceBytes": 493994,
+      "sourcePath": "integration_v1.0.2/fix_atlas_main/atlas_monsters_scenes.png",
+      "manifestPath": "/workspace/lexiquest-art/integration_v1.0.2/fix_atlas_main/atlas_monsters_scenes.png",
+      "sourceSha256": "b2225a0c1185990969b36f3b0e65b414165c6eff35acdab89d9b908625f479ed",
+      "sourceBytes": 488544,
       "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes.png",
-      "repoSha256": "687f7434801f7e28c37889d1e52527b000c8fbfac021adfc230206167ad44423",
-      "repoBytes": 487131,
-      "recompressed": true,
-      "tool": "oxipng 9.1.5 -o max -Z"
-    },
-    {
-      "role": "minion-atlas",
-      "referenced": true,
-      "sourcePath": "scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes.json",
-      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes.json",
-      "sourceSha256": "590b03bacda9c4cbc7008ce189bc184f4250657f33f003b3831813568ea2f849",
-      "sourceBytes": 3871,
-      "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes.json",
-      "repoSha256": "590b03bacda9c4cbc7008ce189bc184f4250657f33f003b3831813568ea2f849",
-      "repoBytes": 3871,
+      "repoSha256": "b2225a0c1185990969b36f3b0e65b414165c6eff35acdab89d9b908625f479ed",
+      "repoBytes": 488544,
       "recompressed": false
     },
     {
       "role": "minion-atlas",
       "referenced": true,
-      "sourcePath": "scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes_2.png",
-      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes_2.png",
-      "sourceSha256": "56facfb118a2fa5c8d3d213f928d636a09376ef7f1549b7b3e21ec24529b440f",
-      "sourceBytes": 112456,
-      "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
-      "repoSha256": "3b77c2891fb11d2cf37add3af9b9c9b0a86f8d9c482add20ceee6d4bab813d6a",
-      "repoBytes": 110926,
-      "recompressed": true,
-      "tool": "oxipng 9.1.5 -o max -Z"
+      "sourcePath": "integration_v1.0.2/fix_atlas_main/atlas_monsters_scenes.json",
+      "manifestPath": "/workspace/lexiquest-art/integration_v1.0.2/fix_atlas_main/atlas_monsters_scenes.json",
+      "sourceSha256": "94a6991bd247aa18ad124de17e9d534bcaeec4f9b78525785a1e2e872ddadff6",
+      "sourceBytes": 4365,
+      "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes.json",
+      "repoSha256": "94a6991bd247aa18ad124de17e9d534bcaeec4f9b78525785a1e2e872ddadff6",
+      "repoBytes": 4365,
+      "recompressed": false
     },
     {
       "role": "minion-atlas",
       "referenced": true,
-      "sourcePath": "scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes_2.json",
-      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/atlas/atlas_monsters_scenes_2.json",
-      "sourceSha256": "43a9812a42c38ecdc45d2615044aa81c3eb3141eb357d0b1f9db2140a76edb44",
-      "sourceBytes": 1585,
+      "sourcePath": "integration_v1.0.2/fix_atlas_2/atlas_monsters_scenes_2.png",
+      "manifestPath": "/workspace/lexiquest-art/integration_v1.0.2/fix_atlas_2/atlas_monsters_scenes_2.png",
+      "sourceSha256": "7a131407494635d9abdb77bcfd90e60f7b0b55b53a20f630c8bde23860171a45",
+      "sourceBytes": 168756,
+      "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
+      "repoSha256": "7a131407494635d9abdb77bcfd90e60f7b0b55b53a20f630c8bde23860171a45",
+      "repoBytes": 168756,
+      "recompressed": false
+    },
+    {
+      "role": "minion-atlas",
+      "referenced": true,
+      "sourcePath": "integration_v1.0.2/fix_atlas_2/atlas_monsters_scenes_2.json",
+      "manifestPath": "/workspace/lexiquest-art/integration_v1.0.2/fix_atlas_2/atlas_monsters_scenes_2.json",
+      "sourceSha256": "79051e5042bb8043b3659e893e296f0fcb66e01cd813591789e5da60822292e5",
+      "sourceBytes": 1947,
       "repoPath": "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.json",
-      "repoSha256": "43a9812a42c38ecdc45d2615044aa81c3eb3141eb357d0b1f9db2140a76edb44",
-      "repoBytes": 1585,
+      "repoSha256": "79051e5042bb8043b3659e893e296f0fcb66e01cd813591789e5da60822292e5",
+      "repoBytes": 1947,
       "recompressed": false
     }
   ],
-  "minionNote": "PNG atlases were losslessly recompressed with oxipng 9.1.5 -o max --zopfli. Level 4 without zopfli could not shrink them. JSON files were copied as-is. The game loads only the atlas for the current chapter."
+  "minionNote": "v1.0.2 replaces both atlases in place with fix_atlas_main and fix_atlas_2. Frame names are unchanged. The delivery already ran oxipng 9.1.5 -o 6 --strip safe, and a second pass does not change the hash, so these four files are copied byte for byte. fix_atlas_main restores the pawlet, rubkin, and lampkin hit frames. fix_atlas_2 keeps knapsack inside the 1032 canvas. The game loads only the atlas for the current chapter."
 }

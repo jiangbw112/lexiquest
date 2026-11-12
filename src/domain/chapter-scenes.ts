@@ -143,8 +143,24 @@ const MINION_ATLAS: Record<string, "atlas_monsters_scenes" | "atlas_monsters_sce
   knapsack: "atlas_monsters_scenes_2",
 };
 
+/**
+ * Display names. sprout, steam, and lampkin were still 待定 in the manifest.
+ * Those three use the names given for this pass.
+ */
+const MINION_NAME: Record<string, string> = {
+  cushion: "抱枕灵",
+  pawlet: "爪爪灵",
+  sprout: "芽芽灵",
+  rubkin: "橡皮灵",
+  steam: "热气灵",
+  lampkin: "路灯灵",
+  leafkin: "风叶灵",
+  knapsack: "行囊灵",
+};
+
 export interface ChapterMinion {
   id: string;
+  name: string;
   atlasKey: string;
   imageUrl: string;
   dataUrl: string;
@@ -154,6 +170,7 @@ export interface ChapterMinion {
 
 const FOREST_MINION: ChapterMinion = {
   id: "inkling",
+  name: "",
   atlasKey: "atlas_monsters",
   imageUrl: "assets/warm/atlas/atlas_monsters.png",
   dataUrl: "assets/warm/atlas/atlas_monsters.json",
@@ -167,8 +184,11 @@ export function chapterMinion(chapterId: string): ChapterMinion {
   const id = CHAPTER_MINION_ID[chapterId];
   const atlas = id ? MINION_ATLAS[id] : undefined;
   if (!id || !atlas) throw new Error(`No minion for ${chapterId}`);
+  const name = MINION_NAME[id];
+  if (!name) throw new Error(`No minion name for ${id}`);
   return {
     id,
+    name,
     atlasKey: atlas,
     imageUrl: `assets/chapter/scenes/minions/${atlas}.png`,
     dataUrl: `assets/chapter/scenes/minions/${atlas}.json`,

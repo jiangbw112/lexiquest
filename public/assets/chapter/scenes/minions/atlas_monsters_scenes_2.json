@@ -42,8 +42,8 @@
   },
   "monster_knapsack_idle": {
    "frame": {
-    "x": 1030,
-    "y": 2,
+    "x": 2,
+    "y": 516,
     "w": 512,
     "h": 512
    },
@@ -62,8 +62,8 @@
   },
   "monster_knapsack_hit": {
    "frame": {
-    "x": 1544,
-    "y": 2,
+    "x": 516,
+    "y": 516,
     "w": 512,
     "h": 512
    },
@@ -82,8 +82,8 @@
   }
  },
  "meta": {
-  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
-  "version": "0.6-formal-g78",
+  "app": "LexiQuest integration_v1.0.1 fix_atlas (boundary repair; pixels from scenes_v0.6_formal_g78/components/monsters)",
+  "version": "1.0.1-fix-atlas",
   "image": "atlas_monsters_scenes_2.png",
   "format": "RGBA8888",
   "size": {
@@ -91,7 +91,8 @@
    "h": 1032
   },
   "scale": "2",
-  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)",
-  "layout": "2x2 of 512 frames, pad 2, sheet _2 because a fourth row would be 2058 > 2048"
+  "status": "v1.0.1 边界修复 · 画面取自 v0.6 已通过组件帧，未改绘 · code-drawn (Pillow/NumPy, no AI)",
+  "layout": "2x2 of 512 frames, pad 2 (two columns, two rows). v0.6 pack.py used 4-column x on a 1032 canvas, so knapsack was pasted off-sheet.",
+  "fix_note": "v0.6 atlas_monsters_scenes_2.png was 1032x1032 with only leafkin on row 1; JSON still used x=1030/1544. Rebuild uses the same approved component frames, placed at (2,2)/(516,2)/(2,516)/(516,516). Visual content unchanged."
  }
 }

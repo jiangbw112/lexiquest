@@ -31,10 +31,11 @@ interface LedgerChapter {
 }
 
 interface Ledger {
+  version: string;
   note: string;
   chapters: LedgerChapter[];
   files: LedgerFile[];
-  minionFiles?: LedgerFile[];
+  minionFiles?: (LedgerFile & { sourceSha256: string })[];
 }
 
 const ledger = JSON.parse(readFileSync(new URL("./chapters/scene-asset-ledger.json", import.meta.url), "utf8")) as Ledger;
@@ -134,13 +135,11 @@ describe("chapter scene groups", () => {
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.json",
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
     ]);
+    expect(ledger.version).toBe("integration_v1.0.2");
     for (const file of minionFiles) {
       expect(sha256(file.repoPath)).toBe(file.repoSha256);
-      if (file.repoPath.endsWith(".png")) expect(file.recompressed).toBe(true);
-      else {
-        expect(file.recompressed).toBe(false);
-        expect(file.repoSha256).toBe(file.sourceSha256);
-      }
+      expect(file.recompressed).toBe(false);
+      expect(file.repoSha256).toBe(file.sourceSha256);
     }
     const framesByAtlas = new Map<string, Set<string>>();
     for (const file of minionFiles.filter((item) => item.repoPath.endsWith(".json"))) {
@@ -175,8 +174,73 @@ describe("chapter scene groups", () => {
     const forest = { id: FOREST_CHAPTER.chapter_id, bossName: "林心守护者" } as PlayChapter;
     const home = { id: "pep_g3_01", bossName: "全家福守护者" } as PlayChapter;
     expect(stageCombatFor(forest, exploration, "warrior").sprite).toBe("inkling");
+    expect(stageCombatFor(forest, exploration, "warrior").enemyName).toBe(exploration.name_zh);
     expect(stageCombatFor(home, exploration, "warrior").sprite).toBe("cushion");
+    expect(stageCombatFor(home, exploration, "warrior").enemyName).toBe("抱枕灵");
+    expect(stageCombatFor({ id: "pep_g3_02", bossName: "温柔小虎灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("爪爪灵");
+    expect(stageCombatFor({ id: "pep_g4_07", bossName: "小羊碗筷灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("芽芽灵");
+    expect(stageCombatFor({ id: "pep_g3_06", bossName: "铅笔尺子灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("橡皮灵");
+    expect(stageCombatFor({ id: "pep_g5_03", bossName: "荷花湖守护者" } as PlayChapter, exploration, "warrior").enemyName).toBe("热气灵");
+    expect(stageCombatFor({ id: "pep_g4_02", bossName: "社区守望者" } as PlayChapter, exploration, "warrior").enemyName).toBe("路灯灵");
+    expect(stageCombatFor({ id: "pep_g5_07", bossName: "沙丘驼铃灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("风叶灵");
+    expect(stageCombatFor({ id: "pep_g5_09", bossName: "旅行地图灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("行囊灵");
     expect(stageCombatFor(home, boss, "mage").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
+    expect(stageCombatFor(home, boss, "mage").enemyName).toBe("全家福守护者");
     expect(stageCombat(boss, "mage", "cushion").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
+  });
+
+});
+
+/** Canvas sizes recorded by integration_v1.0.2/atlas_bounds_check.json. */
+const MINION_ATLAS_BOUNDS: Record<string, { width: number; height: number; frames: number }> = {
+  atlas_monsters_scenes: { width: 2048, height: 1544, frames: 12 },
+  atlas_monsters_scenes_2: { width: 1032, height: 1032, frames: 4 },
+};
+
+interface MinionFrameCase {
+  atlas: string;
+  name: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  width: number;
+  height: number;
+}
+
+function minionFrameCases(): MinionFrameCase[] {
+  const cases: MinionFrameCase[] = [];
+  for (const [atlas, expected] of Object.entries(MINION_ATLAS_BOUNDS)) {
+    const stem = `public/assets/chapter/scenes/minions/${atlas}`;
+    const png = readFileSync(new URL(`../../${stem}.png`, import.meta.url));
+    const width = png.readUInt32BE(16);
+    const height = png.readUInt32BE(20);
+    if (width !== expected.width || height !== expected.height) {
+      throw new Error(`${atlas} is ${width}x${height}, atlas_bounds_check.json expects ${expected.width}x${expected.height}`);
+    }
+    const packed = JSON.parse(readFileSync(new URL(`../../${stem}.json`, import.meta.url), "utf8")) as {
+      frames: Record<string, { frame: { x: number; y: number; w: number; h: number } }>;
+    };
+    const names = Object.keys(packed.frames);
+    if (names.length !== expected.frames) {
+      throw new Error(`${atlas} has ${names.length} frames, atlas_bounds_check.json expects ${expected.frames}`);
+    }
+    for (const name of names) {
+      const frame = packed.frames[name]!.frame;
+      cases.push({ atlas, name, ...frame, width, height });
+    }
+  }
+  return cases;
+}
+
+const minionFrames = minionFrameCases();
+
+describe("minion atlas frames", () => {
+  it.each(minionFrames)("$name stays inside $atlas", ({ name, x, y, w, h, width, height }) => {
+    expect(name.startsWith("monster_")).toBe(true);
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(x + w).toBeLessThanOrEqual(width);
+    expect(y + h).toBeLessThanOrEqual(height);
   });
 });
