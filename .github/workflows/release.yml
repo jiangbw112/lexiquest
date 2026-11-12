@@ -215,12 +215,12 @@ jobs:
           REPO: ${{ github.repository }}
           RELEASE_NAME: ${{ steps.pkg.outputs.name }}
         run: |
+          set -e
+          node scripts/release-notes.mjs section.md
           DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
           
           {
-            echo "$RELEASE_NAME"
-            echo ""
-            echo "## $RELEASE_NAME"
+            cat section.md
             echo ""
             
             if [ "$IS_DRAFT" = "true" ]; then
