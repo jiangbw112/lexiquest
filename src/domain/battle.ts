@@ -159,10 +159,21 @@ export interface BattleState {
   /** Learned words ordered by FSRS due, used to fill a short due list up to 4. */
   padOrder: string[];
   /**
+   * Actual HP changes from the latest answered action, in display order.
+   * Enemy damage, then the player's own heal, then the counterattack.
+   * Each amount is after shield, max HP, and zero clamps. Zero changes are omitted.
+   */
+  turnDeltas: TurnDelta[];
+  /**
    * Unlocked words a meaning question may use as distractors.
    * Null keeps the forest sample pool.
    */
   distractorIds: string[] | null;
+}
+
+export interface TurnDelta {
+  target: "player" | "enemy";
+  amount: number;
 }
 
 export function canStartBattle(learnedCount: number): boolean {
@@ -258,8 +269,15 @@ export function startBattle(input: {
     attackHintShown: 0,
     askedCount: {},
     padOrder: [...(input.padOrder ?? [])],
+    turnDeltas: [],
     distractorIds: input.distractorIds ? [...input.distractorIds] : null,
   };
+}
+
+function clampedHpDelta(before: number, after: number, max: number): number {
+  const from = Math.max(0, Math.min(max, before));
+  const to = Math.max(0, Math.min(max, after));
+  return to - from;
 }
 
 function pushLog(log: string[], line: string): string[] {
@@ -421,11 +439,15 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const phaseEnd = Boolean(state.shaken && correct && damaging && state.phases);
   const quality = correct ? "答对了，全力发动。" : "答错了，只有减弱的基础效果。";
   const note = `${quality}${applied.note}`;
+  const enemyHpForTurn = phaseEnd ? 0 : applied.enemyHp;
+  const playerHpForTurn = applied.playerHp;
+  const enemyAmount = clampedHpDelta(state.enemyHp, enemyHpForTurn, state.enemyMaxHp);
+  const playerEffect = clampedHpDelta(state.playerHp, playerHpForTurn, state.playerMaxHp);
   let finished = finishPlayerTurn(
     {
       ...state,
-      enemyHp: phaseEnd ? 0 : applied.enemyHp,
-      playerHp: applied.playerHp,
+      enemyHp: enemyHpForTurn,
+      playerHp: playerHpForTurn,
       energy,
       guard: applied.guard,
       supportStreak,
@@ -435,6 +457,12 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
     },
     note,
   );
+  const playerHit = clampedHpDelta(playerHpForTurn, finished.playerHp, state.playerMaxHp);
+  const turnDeltas: TurnDelta[] = [];
+  if (enemyAmount !== 0) turnDeltas.push({ target: "enemy", amount: enemyAmount });
+  if (playerEffect !== 0) turnDeltas.push({ target: "player", amount: playerEffect });
+  if (playerHit !== 0) turnDeltas.push({ target: "player", amount: playerHit });
+  finished = { ...finished, turnDeltas };
   if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= PROVISIONAL.chapterEnding.shakenAfterQuestions) {
     finished = { ...finished, shaken: true };
   }

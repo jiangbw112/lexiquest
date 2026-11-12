@@ -13,6 +13,7 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
@@ -28,7 +29,45 @@ import { listenKeys } from "../ui";
 import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
-import { FONT_BODY, INK, MUTED } from "../warm/theme";
+import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
+import {
+  spawnFloater,
+  activeFloaterCount,
+  floaterStackOffset,
+  emptyFloaterState,
+  pushFloater,
+  pruneFloaters,
+  FLOATER_LAYER_NAME,
+  keptAcrossDraw,
+  type FloaterState,
+} from "../battle-floater";
+import {
+  HP_BAR_TWEEN_MS,
+  hpAtMotionStart,
+  hpForHandoff,
+  takeHpStep,
+  applyHpStep,
+  type HpReadout,
+  type HpStep,
+} from "../battle-hp";
+import { noteForHandoff, planBattleNote, type BattleNotePlan } from "../battle-note";
+import {
+  actionTriggersLunge,
+  attackReach,
+  battleMotionBeats,
+  performApproach,
+  performLunge,
+  performReturn,
+  stepTargetX,
+  PLAYER_BATTLE_X,
+  MONSTER_BATTLE_X,
+  PROJECTILE_MS,
+  RANGED_RETURN_MS,
+  RANGED_STEP_MS,
+  type MotionBeat,
+} from "../battle-lunge";
+import { attachBattleShot, type BattleShotHandle } from "../battle-shot";
+import { destroyDrawn } from "../destroy-drawn";
 
 interface BattleLaunch {
   stageId?: number;
@@ -54,6 +93,26 @@ export class BattleScene extends Phaser.Scene {
   private battleHero?: Phaser.GameObjects.Container;
   private battleTitle: Phaser.GameObjects.GameObject[] = [];
   private battleHud: Phaser.GameObjects.GameObject[] = [];
+  private lunging = false;
+  private playerFloaters: FloaterState = emptyFloaterState();
+  private enemyFloaters: FloaterState = emptyFloaterState();
+  private floaterLayer?: Phaser.GameObjects.Container;
+  private battleEnemy?: Phaser.GameObjects.Container;
+  private shot: BattleShotHandle | null = null;
+  private shownFrom = { playerHp: 0, enemyHp: 0 };
+  private displayHp: HpReadout = { playerHp: 0, enemyHp: 0 };
+  private displayNote = "";
+  private notePlan: BattleNotePlan = { feedback: "", action: "", counter: "" };
+  private actionRevealed = false;
+  private counterRevealed = false;
+  private noteText?: Phaser.GameObjects.Text;
+  private hpSteps: HpStep[] = [];
+  private playerHpFill?: Phaser.GameObjects.NineSlice;
+  private enemyHpFill?: Phaser.GameObjects.NineSlice;
+  private playerHpTween?: Phaser.Tweens.Tween;
+  private enemyHpTween?: Phaser.Tweens.Tween;
+  private pendingResults: ReturnType<typeof buildResultsView> | null = null;
+  private resultsArmed = false;
 
   constructor() {
     super("battle");
@@ -97,6 +156,17 @@ export class BattleScene extends Phaser.Scene {
     this.clearedChapter = false;
     this.presenting = false;
     this.resultsOpened = false;
+    this.pendingResults = null;
+    this.resultsArmed = false;
+    this.lunging = false;
+    this.resetFloaterState();
+    this.shot = null;
+    if (import.meta.env.DEV) {
+      this.shot = attachBattleShot(this, () => this.shotRead(), {
+        act: (type) => this.act({ type }),
+        answer: (correct) => this.answerForShot(correct),
+      });
+    }
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();
@@ -150,9 +220,14 @@ export class BattleScene extends Phaser.Scene {
       litWordIds,
       padOrder,
     });
+    this.displayHp = { playerHp: this.state.playerHp, enemyHp: this.state.enemyHp };
+    this.displayNote = this.state.lastNote;
+    this.hpSteps = [];
     this.poses = ["idle"];
     this.bossPoses = ["idle"];
     this.monsterHit = false;
+    this.lunging = false;
+    this.resetFloaterState();
     this.draw();
   }
 
@@ -162,7 +237,7 @@ export class BattleScene extends Phaser.Scene {
       this.leave();
       return;
     }
-    if (!this.state || this.resolving || document.getElementById("spell-form")?.classList.contains("open")) return;
+    if (!this.state || this.resolving || this.lunging || document.getElementById("spell-form")?.classList.contains("open")) return;
     const slotIndex = skillSlotIndexForKey(event.code);
     if (slotIndex !== null) {
       this.useSkill(slotIndex, "key");
@@ -181,13 +256,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private useSkill(slotIndex: number, via: "click" | "key"): void {
+    if (this.lunging) return;
     const slot = this.state.slots[slotIndex];
     if (!slot) return;
     const face = skillCardFace({
       phase: this.state.phase,
       energy: this.state.energy,
       energyCost: slot.energyCost,
-      resolving: this.resolving,
+      resolving: this.resolving || this.lunging,
     });
     const result = skillCardInput(face, via);
     if (result === "ignore") return;
@@ -196,6 +272,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private choose(choiceId: string): void {
+    if (this.lunging) return;
     const question = this.state.question;
     if (question) {
       const correct = question.kind === "spelling"
@@ -212,6 +289,18 @@ export class BattleScene extends Phaser.Scene {
     }
     const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
+
+    const deltas = this.state.turnDeltas ?? [];
+    const enemyAmount = deltas.filter((delta) => delta.target === "enemy").reduce((sum, delta) => sum + delta.amount, 0);
+    const playerEffect = deltas.filter((delta) => delta.target === "player" && delta.amount > 0).reduce((sum, delta) => sum + delta.amount, 0);
+    const playerHit = deltas.filter((delta) => delta.target === "player" && delta.amount < 0).reduce((sum, delta) => sum + delta.amount, 0);
+    const pendingSlot = before.pendingSlot !== null ? before.slots[before.pendingSlot] : null;
+    const skillKind = pendingSlot?.kind;
+    const actionType = before.pendingBasic ?? (pendingSlot ? "skill" : undefined);
+    const shouldLungePlayer = Boolean(actionType && actionTriggersLunge(actionType, skillKind) && enemyAmount < 0);
+    const shouldLungeEnemy = playerHit < 0 && this.state.phase !== "won";
+    const reach = attackReach(this.state.classId, shouldLungePlayer);
+
     this.poses = battlePoses({
       action: "answer",
       playerHpBefore: before.playerHp,
@@ -219,9 +308,27 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
-    this.holdResolution(before);
-    this.finishIfNeeded();
-    this.draw();
+    this.shownFrom = { playerHp: before.playerHp, enemyHp: before.enemyHp };
+    const beats = battleMotionBeats({
+      playerLunge: reach === "melee",
+      playerReach: reach,
+      enemyLunge: shouldLungeEnemy,
+      enemyAmount,
+      playerEffect,
+      playerHit,
+    });
+    this.playMotion(beats, before);
+  }
+
+  private answerForShot(correct: boolean): void {
+    const question = this.state?.question;
+    if (!question || this.state.phase !== "question") return;
+    if (question.kind === "spelling") {
+      this.choose(correct ? question.answer : "miss");
+      return;
+    }
+    const wrong = question.choices.find((choice) => choice.id !== question.answerId)?.id ?? "miss";
+    this.choose(correct ? question.answerId : wrong);
   }
 
   private submitSpelling(): void {
@@ -233,17 +340,269 @@ export class BattleScene extends Phaser.Scene {
     this.choose(correct ? this.state.question.answer : "miss");
   }
 
+  private resetFloaterState(): void {
+    this.playerFloaters = emptyFloaterState();
+    this.enemyFloaters = emptyFloaterState();
+    this.floaterLayer?.removeAll(true);
+  }
+
+  private shotRead(): {
+    playerHp: number;
+    enemyHp: number;
+    displayPlayerHp: number;
+    displayEnemyHp: number;
+    playerHpBefore: number;
+    enemyHpBefore: number;
+    playerX: number;
+    enemyX: number;
+    floaters: string[];
+    lunging: boolean;
+    phase: string;
+    deltas: { target: "player" | "enemy"; amount: number }[];
+    displayNote: string;
+  } {
+    return {
+      playerHp: this.state?.playerHp ?? 0,
+      enemyHp: this.state?.enemyHp ?? 0,
+      displayPlayerHp: this.displayHp.playerHp,
+      displayEnemyHp: this.displayHp.enemyHp,
+      playerHpBefore: this.shownFrom.playerHp,
+      enemyHpBefore: this.shownFrom.enemyHp,
+      playerX: this.battleHero?.x ?? PLAYER_BATTLE_X,
+      enemyX: this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X),
+      floaters: this.floaterLabels(),
+      lunging: this.lunging,
+      phase: this.state?.phase ?? "",
+      deltas: this.state?.turnDeltas ?? [],
+      displayNote: this.displayNote,
+    };
+  }
+
+  private floaterLabels(): string[] {
+    const layer = this.floaterLayer;
+    if (!layer) return [];
+    return layer.list.flatMap((child) => {
+      if (!("text" in child)) return [];
+      const text = (child as { text?: string }).text;
+      return text ? [text] : [];
+    });
+  }
+
+  private playMotion(beats: readonly MotionBeat[], before: BattleState): void {
+    this.lunging = beats.some((beat) => beat.kind === "lunge" || beat.kind === "step" || beat.kind === "projectile" || beat.kind === "return");
+    this.displayHp = hpAtMotionStart({ playerHp: before.playerHp, enemyHp: before.enemyHp });
+    this.hpSteps = [...(this.state.turnDeltas ?? [])];
+    this.notePlan = planBattleNote(this.state.lastNote);
+    this.displayNote = this.notePlan.feedback;
+    this.actionRevealed = false;
+    this.counterRevealed = false;
+    this.holdResolution(before);
+    if (this.lunging) this.monsterHit = false;
+    this.finishIfNeeded();
+    this.draw();
+    this.playBeats(beats, 0);
+  }
+
+  private playBeats(beats: readonly MotionBeat[], index: number): void {
+    if (index === 0) this.revealReadyNotes(beats);
+    const beat = beats[index];
+    if (!beat) {
+      this.endMotion();
+      return;
+    }
+    if (beat.kind === "lunge") {
+      const hit = beats[index + 1];
+      const back = beats[index + 2];
+      if (!hit || hit.kind !== "hit" || !back || back.kind !== "return") {
+        this.playBeats(beats, index + 1);
+        return;
+      }
+      const container = beat.attacker === "player" ? this.battleHero : this.battleEnemy;
+      const targetX = beat.attacker === "player"
+        ? (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X))
+        : (this.battleHero?.x ?? PLAYER_BATTLE_X);
+      const onHit = () => {
+        this.spawnSigned(hit.target, hit.amount);
+        this.shot?.onShown(beat.attacker);
+      };
+      if (!container) {
+        onHit();
+        this.playBeats(beats, index + 3);
+        return;
+      }
+      if (beat.attacker === "player") this.shot?.onShown("approach");
+      performLunge(this, container, targetX, onHit, () => this.playBeats(beats, index + 3));
+      return;
+    }
+    if (beat.kind === "step") {
+      const container = this.battleHero;
+      const enemyX = this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+      if (!container) {
+        this.playBeats(beats, index + 1);
+        return;
+      }
+      this.shot?.onShown("approach");
+      performApproach(this, container, stepTargetX(container.x, enemyX, "ranged"), RANGED_STEP_MS, () => {
+        this.playBeats(beats, index + 1);
+      });
+      return;
+    }
+    if (beat.kind === "projectile") {
+      this.launchProjectile(() => this.playBeats(beats, index + 1));
+      return;
+    }
+    if (beat.kind === "hit") {
+      this.spawnSigned(beat.target, beat.amount);
+      this.shot?.onShown(beat.attacker);
+      this.playBeats(beats, index + 1);
+      return;
+    }
+    if (beat.kind === "return") {
+      const container = beat.attacker === "player" ? this.battleHero : this.battleEnemy;
+      const homeX = beat.attacker === "player"
+        ? PLAYER_BATTLE_X
+        : (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+      if (!container) {
+        this.playBeats(beats, index + 1);
+        return;
+      }
+      performReturn(this, container, homeX, RANGED_RETURN_MS, () => this.playBeats(beats, index + 1));
+      return;
+    }
+    if (beat.kind === "floater") {
+      this.spawnSigned(beat.target, beat.amount);
+      this.shot?.onShown(beat.target === "player" ? "heal" : beat.target);
+    }
+    this.playBeats(beats, index + 1);
+  }
+
+  private endMotion(): void {
+    this.lunging = false;
+    if (this.state) {
+      this.displayHp = hpForHandoff(this.displayHp, {
+        playerHp: this.state.playerHp,
+        enemyHp: this.state.enemyHp,
+      });
+      this.displayNote = noteForHandoff(this.displayNote, this.state.lastNote);
+    }
+    this.hpSteps = [];
+    if (!this.scene.isActive()) return;
+    this.draw();
+    if (this.pendingResults) this.armResults();
+  }
+
+  private commitHpStep(target: "player" | "enemy", amount: number): void {
+    const taken = takeHpStep(this.hpSteps, target, amount);
+    this.hpSteps = taken.rest;
+    if (!taken.step) return;
+    this.displayHp = applyHpStep(this.displayHp, taken.step);
+    if (target === "enemy" && taken.step.amount < 0) {
+      this.showMonsterHit();
+      this.revealNote("action");
+    } else if (target === "player" && taken.step.amount > 0) {
+      this.revealNote("action");
+    } else if (target === "player" && taken.step.amount < 0) {
+      this.revealNote("counter");
+    }
+    this.tweenHp(target);
+  }
+
+  private actionWaits(beats: readonly MotionBeat[]): boolean {
+    return beats.some((beat) =>
+      (beat.kind === "lunge" && beat.attacker === "player")
+      || beat.kind === "projectile"
+      || beat.kind === "step"
+      || (beat.kind === "floater" && beat.target === "player" && beat.amount > 0)
+      || (beat.kind === "hit" && beat.attacker === "player"));
+  }
+
+  private counterWaits(beats: readonly MotionBeat[]): boolean {
+    return beats.some((beat) =>
+      (beat.kind === "lunge" && beat.attacker === "enemy")
+      || (beat.kind === "hit" && beat.attacker === "enemy")
+      || (beat.kind === "floater" && beat.target === "player" && beat.amount < 0));
+  }
+
+  /** A block or a full heal has no hit to wait for, so its sentence shows before the counter. */
+  private revealReadyNotes(beats: readonly MotionBeat[]): void {
+    if (!this.actionWaits(beats)) this.revealNote("action");
+    if (!this.counterWaits(beats) && this.notePlan.counter) this.revealNote("counter");
+  }
+
+  private revealNote(part: "action" | "counter"): void {
+    if (part === "counter" && !this.actionRevealed) {
+      this.displayNote += this.notePlan.action;
+      this.actionRevealed = true;
+    }
+    if (part === "action" && !this.actionRevealed) {
+      this.displayNote += this.notePlan.action;
+      this.actionRevealed = true;
+    }
+    if (part === "counter" && !this.counterRevealed) {
+      this.displayNote += this.notePlan.counter;
+      this.counterRevealed = true;
+    }
+    this.noteText?.setText(this.displayNote);
+  }
+
+  private showMonsterHit(): void {
+    if (this.bossFight) return;
+    const child = this.battleEnemy?.list[0];
+    if (!child || !("setFrame" in child) || typeof child.setFrame !== "function") return;
+    const kind = this.state.enemySprite === "page" ? "page" : "inkling";
+    child.setFrame(`monster_${kind}_hit`);
+  }
+
+  private spawnSigned(target: "player" | "enemy", amount: number): void {
+    if (amount === 0) return;
+    this.commitHpStep(target, amount);
+    const now = Date.now();
+    const state = target === "player" ? this.playerFloaters : this.enemyFloaters;
+    const active = pruneFloaters(state, now);
+    const stackOffset = floaterStackOffset(activeFloaterCount(active, now));
+    const x = target === "player" ? PLAYER_BATTLE_X : (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+    const y = target === "player" ? 250 : 300;
+    this.ensureFloaterLayer();
+    spawnFloater(this, x, y, amount, stackOffset, this.floaterLayer);
+    const next = pushFloater(active, amount, now);
+    if (target === "player") this.playerFloaters = next;
+    else this.enemyFloaters = next;
+    if (this.floaterLayer?.scene) this.children.bringToTop(this.floaterLayer);
+  }
+
+  private ensureFloaterLayer(): Phaser.GameObjects.Container {
+    if (!this.floaterLayer?.scene) {
+      this.floaterLayer = this.add.container(0, 0);
+      this.floaterLayer.setName(FLOATER_LAYER_NAME);
+      this.floaterLayer.setDepth(4000);
+      this.floaterLayer.setScrollFactor(0);
+    }
+    return this.floaterLayer;
+  }
+
+  private clearExceptFloaters(): void {
+    const children = [...this.children.list];
+    const kept = new Set(keptAcrossDraw(children));
+    const live = this.floaterLayer?.scene && kept.has(this.floaterLayer) ? this.floaterLayer : undefined;
+    this.floaterLayer = live;
+    destroyDrawn(children.filter((child) => child !== live));
+    this.ensureFloaterLayer();
+  }
+
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
+    if (this.lunging) return;
     const before = this.state;
     const result = takeAction(this.state, action);
     if (!result.ok) {
       this.state = { ...this.state, lastNote: result.reason ?? "现在不能这么做。" };
+      this.displayNote = this.state.lastNote;
       this.poses = ["idle"];
       this.bossPoses = ["idle"];
       this.draw();
       return;
     }
     this.state = result.state;
+    this.displayNote = this.state.lastNote;
     this.poses = battlePoses({
       action: action.type,
       playerHpBefore: before.playerHp,
@@ -284,6 +643,7 @@ export class BattleScene extends Phaser.Scene {
       this.resolving = false;
       if (!this.scene.isActive()) return;
       ready();
+      if (this.lunging) return;
       this.draw();
     });
   }
@@ -337,7 +697,15 @@ export class BattleScene extends Phaser.Scene {
       bossName: this.state.enemyName,
       now,
     });
-    const delay = won && this.bossFight ? 750 : 500;
+    this.pendingResults = view;
+    if (!this.lunging) this.armResults();
+  }
+
+  private armResults(): void {
+    if (this.resultsArmed || !this.pendingResults) return;
+    this.resultsArmed = true;
+    const view = this.pendingResults;
+    const delay = view.won && view.boss ? 750 : 500;
     this.time.delayedCall(delay, () => this.openResults(view));
     this.input.once("pointerdown", () => this.openResults(view));
     this.input.keyboard?.once("keydown-SPACE", () => this.openResults(view));
@@ -345,6 +713,14 @@ export class BattleScene extends Phaser.Scene {
 
   private openResults(view: ReturnType<typeof buildResultsView>): void {
     if (this.resultsOpened || !this.scene.isActive()) return;
+    if (this.state) {
+      this.displayHp = hpForHandoff(this.displayHp, {
+        playerHp: this.state.playerHp,
+        enemyHp: this.state.enemyHp,
+      });
+      this.displayNote = noteForHandoff(this.displayNote, this.state.lastNote);
+      this.noteText?.setText(this.displayNote);
+    }
     this.resultsOpened = true;
     this.concealBattleActors();
     this.scene.pause();
@@ -354,6 +730,7 @@ export class BattleScene extends Phaser.Scene {
   /** The results hero replaces this one. Hide the battle body, title, bars, and log before the overlay opens. */
   private concealBattleActors(): void {
     this.battleHero?.setVisible(false);
+    this.floaterLayer?.setVisible(false);
     for (const node of [...this.battleTitle, ...this.battleHud]) {
       (node as { setVisible?: (shown: boolean) => void }).setVisible?.(false);
     }
@@ -363,13 +740,94 @@ export class BattleScene extends Phaser.Scene {
     this.scene.start(this.clearedChapter ? "ending" : "stages", { fromBattleEnd: this.reported });
   }
 
-  private hpBar(x: number, y: number, ratio: number, fill: "hp_fill_teal" | "hp_fill_coral"): void {
+  private hpInner(ratio: number): number {
+    const clamped = Math.max(0, Math.min(1, ratio));
+    if (clamped <= 0) return 0;
+    return Math.max(16, (270 - 24) * clamped);
+  }
+
+  private hpBar(x: number, y: number, ratio: number, fillFrame: "hp_fill_teal" | "hp_fill_coral", side: "player" | "enemy"): void {
     const width = 270;
     warmSlice(this, "atlas_battle", "hp_frame", width, 24).setPosition(x, y);
-    const clamped = Math.max(0, Math.min(1, ratio));
-    if (clamped <= 0) return;
-    const inner = Math.max(16, (width - 24) * clamped);
-    warmSlice(this, "atlas_battle", fill, inner, 16).setPosition(x - width / 2 + 12 + inner / 2, y);
+    const inner = this.hpInner(ratio);
+    const slice = inner <= 0 ? undefined : warmSlice(this, "atlas_battle", fillFrame, inner, 16);
+    if (slice) {
+      slice.setData("base", inner);
+      slice.setPosition(x - width / 2 + 12 + inner / 2, y);
+    }
+    if (side === "player") this.playerHpFill = slice;
+    else this.enemyHpFill = slice;
+  }
+
+  private tweenHp(side: "player" | "enemy"): void {
+    const fill = side === "player" ? this.playerHpFill : this.enemyHpFill;
+    const max = side === "player" ? this.state.playerMaxHp : this.state.enemyMaxHp;
+    const hp = side === "player" ? this.displayHp.playerHp : this.displayHp.enemyHp;
+    const ratio = max > 0 ? hp / max : 0;
+    const barX = side === "player" ? 305 : 885;
+    const frame = side === "player" ? "hp_fill_teal" : "hp_fill_coral";
+    if (!fill?.scene) {
+      this.hpBar(barX, 104, ratio, frame, side);
+      return;
+    }
+    const inner = this.hpInner(ratio);
+    const base = Number(fill.getData("base")) || inner || 1;
+    const scaleX = inner <= 0 ? 0 : 0.5 * (inner / base);
+    const x = barX - 270 / 2 + 12 + inner / 2;
+    if (side === "player") this.playerHpTween?.stop();
+    else this.enemyHpTween?.stop();
+    if (this.shot?.holds() || motionOff()) {
+      fill.destroy();
+      if (inner <= 0) {
+        if (side === "player") this.playerHpFill = undefined;
+        else this.enemyHpFill = undefined;
+        return;
+      }
+      const slice = warmSlice(this, "atlas_battle", frame, inner, 16);
+      slice.setData("base", inner);
+      slice.setPosition(x, 104);
+      if (side === "player") this.playerHpFill = slice;
+      else this.enemyHpFill = slice;
+      return;
+    }
+    const tween = this.tweens.add({
+      targets: fill,
+      scaleX,
+      x,
+      duration: HP_BAR_TWEEN_MS,
+      onComplete: () => fill.setVisible(inner > 0),
+    });
+    if (side === "player") this.playerHpTween = tween;
+    else this.enemyHpTween = tween;
+  }
+
+  private launchProjectile(onHit: () => void): void {
+    const fromX = (this.battleHero?.x ?? PLAYER_BATTLE_X) + 36;
+    const toX = (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X)) - 48;
+    const tint = Number.parseInt(classById(this.state.classId).color.slice(1), 16);
+    const bolt = this.state.classId === "ranger"
+      ? this.add.rectangle(fromX, 450, 36, 8, tint)
+      : this.add.circle(fromX, 450, 11, tint);
+    bolt.setStrokeStyle(4, 0xfff4dc);
+    bolt.setDepth(3500);
+    this.time.delayedCall(PROJECTILE_MS / 2, () => {
+      if (bolt.active) this.shot?.onShown("bolt");
+    });
+    const finish = () => {
+      bolt.destroy();
+      onHit();
+    };
+    if (motionOff()) {
+      finish();
+      return;
+    }
+    this.tweens.add({
+      targets: bolt,
+      x: toX,
+      duration: PROJECTILE_MS,
+      ease: "Quad.easeIn",
+      onComplete: finish,
+    });
   }
 
   private drawMonster(): void {
@@ -378,16 +836,18 @@ export class BattleScene extends Phaser.Scene {
         reportBossLoad(this);
         this.bossReported = true;
       }
-      const boss = new BossSprite(this, BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y);
+      const boss = new BossSprite(this, 0, 0);
       boss.playSequence(this.bossPoses);
+      this.battleEnemy = this.add.container(BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y, [boss.sprite]);
       return;
     }
     const kind = this.state.enemySprite === "page" ? "page" : this.state.enemySprite === "inkling" ? "inkling" : null;
     if (!kind) return;
     const frame = `monster_${kind}_${this.monsterHit ? "hit" : "idle"}`;
-    const monster = this.add.image(980, 520, "atlas_monsters", frame);
+    const monster = this.add.image(0, 0, "atlas_monsters", frame);
     monster.setOrigin(0.5, 0.977);
     monster.setScale(0.45);
+    this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
   }
 
   private flash(target: Phaser.GameObjects.Container): void {
@@ -398,7 +858,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.state) return;
     const save = getSave();
     if (!save) return;
-    this.children.removeAll(true);
+    this.clearExceptFloaters();
     if (this.state.question?.kind !== "spelling") {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
@@ -434,24 +894,24 @@ export class BattleScene extends Phaser.Scene {
         wordWrap: cjkWrap(360),
       }).setOrigin(0, 0);
     }
-    this.hpBar(305, 104, this.state.playerHp / this.state.playerMaxHp, "hp_fill_teal");
-    this.hpBar(885, 104, this.state.enemyHp / this.state.enemyMaxHp, "hp_fill_coral");
+    this.hpBar(305, 104, this.displayHp.playerHp / this.state.playerMaxHp, "hp_fill_teal", "player");
+    this.hpBar(885, 104, this.displayHp.enemyHp / this.state.enemyMaxHp, "hp_fill_coral", "enemy");
     const pips = Math.min(6, this.state.maxEnergy);
     for (let i = 0; i < pips; i += 1) {
       const on = i < this.state.energy;
       this.add.image(226 + i * 24, 128, "atlas_battle", on ? "energy_pip_on" : "energy_pip_off").setScale(0.5);
     }
     warmPanel(this, 490, 182, 680, 52);
-    this.add.text(170, 182, this.state.lastNote, {
+    this.noteText = this.add.text(170, 182, this.displayNote, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       color: INK,
       wordWrap: cjkWrap(640),
     }).setOrigin(0, 0.5);
     probeNote(`battle:${this.state.phase}:phase${this.state.phaseIndex + 1}`);
-    if (battleControlOpen(this.state.phase, "action", this.resolving)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+    const inputLocked = this.resolving || this.lunging;
+    if (battleControlOpen(this.state.phase, "action", inputLocked)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
     else {
-      // Swallow hover and clicks on the old action row. Only later answers or the leave button stay open.
       const blocker = this.add.zone(640, 686, 1200, 240);
       blocker.setInteractive();
       if (blocker.input) blocker.input.cursor = "default";
@@ -465,10 +925,10 @@ export class BattleScene extends Phaser.Scene {
         this.state.energy,
         () => this.useSkill(slot.index, "click"),
         () => this.useSkill(slot.index, "click"),
-        this.resolving,
+        inputLocked,
       ),
     }));
-    if (battleControlOpen(this.state.phase, "answer", this.resolving) && this.state.question) {
+    if (battleControlOpen(this.state.phase, "answer", inputLocked) && this.state.question) {
       warmPanel(this, 640, 696, 1100, 172);
       if (this.state.question.kind === "spelling") {
         probeQuestion(this.state.question.wordId, []);
@@ -483,6 +943,7 @@ export class BattleScene extends Phaser.Scene {
         showSpellingHint(this.state.question.answer);
         const input = document.getElementById("spell-input");
         if (input instanceof HTMLInputElement) window.setTimeout(() => input.focus(), 30);
+        this.finishDraw();
         return;
       }
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
@@ -490,22 +951,22 @@ export class BattleScene extends Phaser.Scene {
       this.state.question.choices.forEach((choice, index) => {
         warmOption(this, 280 + index * 280, 738, index, choice.id, choice.label, () => this.choose(choice.id), 250, 76);
       });
+      this.finishDraw();
       return;
     }
     const choosing = this.state.phase === "choose";
-    if (battleControlOpen(this.state.phase, "action", this.resolving) || (choosing && this.resolving)) {
-      if (!battleControlOpen(this.state.phase, "action", this.resolving)) {
+    if (battleControlOpen(this.state.phase, "action", inputLocked) || (choosing && inputLocked)) {
+      if (!battleControlOpen(this.state.phase, "action", inputLocked)) {
         warmPanel(this, 640, 686, 1056, 204, "panel_wood");
       }
-      const locked = this.resolving;
-      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: locked });
-      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: locked });
-      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: locked });
+      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: inputLocked });
+      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: inputLocked });
+      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: inputLocked });
       if (this.state.supportStreak >= 2) {
         this.add.text(360, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
         this.add.text(520, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
       }
-      if (locked) {
+      if (inputLocked) {
         const blocker = this.add.zone(640, 686, 1200, 240);
         blocker.setInteractive();
         if (blocker.input) blocker.input.cursor = "default";
@@ -528,10 +989,15 @@ export class BattleScene extends Phaser.Scene {
         }
       }
     }
-    if (!this.presenting && battleControlOpen(this.state.phase, "leave", this.resolving)) {
+    if (!this.presenting && battleControlOpen(this.state.phase, "leave", inputLocked)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
     this.battleHud = this.children.list.slice(hudAt);
+    this.finishDraw();
+  }
+
+  private finishDraw(): void {
+    if (this.floaterLayer?.scene) this.children.bringToTop(this.floaterLayer);
   }
 }

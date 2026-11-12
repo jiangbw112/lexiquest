@@ -979,8 +979,8 @@ describe("round 3 scene contracts", () => {
     expect(battle).toContain('if (this.state.phase === "choose")');
   });
 
-  it("L1 keeps disabled buttons while a turn is resolving", () => {
-    expect(battle).toContain("disabled: locked");
+  it("L1 keeps disabled buttons while a turn is resolving or lunging", () => {
+    expect(battle).toContain("disabled: inputLocked");
     expect(battle).toContain("panel_wood");
   });
 
