@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       draft:
@@ -23,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IS_DRAFT: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.draft == 'true') || (github.event_name == 'push' && github.ref != 'refs/heads/main') }}
+  IS_DRAFT: ${{ github.event_name == 'workflow_dispatch' && inputs.draft == 'true' }}
 
 jobs:
   windows:
