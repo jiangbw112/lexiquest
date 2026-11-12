@@ -8,6 +8,7 @@ import {
   skillIconFrame,
   skillLevelFrame,
   skillOrderFrame,
+  starMark,
   type SkillCardPhase,
 } from "../../domain/skill-card-face";
 import { containerHitArea } from "../hit";
@@ -53,8 +54,9 @@ export function placeSkillCard(
     plate.fillRoundedRect(-52, 40, 104, 28, 8);
     parts.push(plate);
   }
+  const label = slot.origin === "equipped" && slot.level != null ? `${slot.name} ${starMark(slot.level)}` : slot.name;
   const name = scene.add
-    .text(0, 54, slot.name, {
+    .text(0, 54, label, {
       fontFamily: FONT_BODY,
       fontSize: "16px",
       fontStyle: "700",

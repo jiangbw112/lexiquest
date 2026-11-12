@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { classById } from "../../domain/classes";
 import { equipSkill, unequipSkill } from "../../domain/progress";
 import { MAX_EQUIPPED_SKILLS, showNoDamageHint, skillEnergyCost, skillsInEquipOrder } from "../../domain/skills";
-import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame } from "../../domain/skill-card-face";
+import { skillIconFrame, skillLevelFrame, skillListFace, skillOrderFrame, starMark } from "../../domain/skill-card-face";
 import { cjkWrap, parchmentTitleY } from "../layout";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
@@ -69,7 +69,7 @@ export class SkillsScene extends Phaser.Scene {
       }
       const nameText = this.add.text(270, top + 16, skill.name, { fontFamily: FONT, fontSize: "24px", fontStyle: "700", color: unlocked ? INK : PLUM });
       if (mark.showLevel && mark.level != null) {
-        this.add.text(nameText.x + nameText.width + 10, top + 22, `Lv ${mark.level}`, { fontFamily: FONT, fontSize: "18px", color: NOTE });
+        this.add.text(nameText.x + nameText.width + 10, top + 22, starMark(mark.level), { fontFamily: FONT, fontSize: "18px", color: NOTE });
       }
       const cost = skillEnergyCost(skill, hero);
       for (let i = 0; i < cost; i += 1) {

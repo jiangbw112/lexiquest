@@ -18,7 +18,7 @@ import {
   type BattleResultsView,
   type ResultItem,
 } from "../../domain/battle-results";
-import { skillCardFrame, skillIconFrame, skillLevelFrame } from "../../domain/skill-card-face";
+import { skillCardFrame, skillIconFrame, skillLevelFrame, starMark } from "../../domain/skill-card-face";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -635,6 +635,11 @@ export class BattleResultsScene extends Phaser.Scene {
     const frame = skillLevelFrame(level);
     if (!this.textures.exists("atlas_battle") || !this.textures.get("atlas_battle").has(frame)) return;
     this.add.image(x, y, "atlas_battle", frame).setOrigin(0, 0).setDisplaySize(44, 44);
+    this.add.text(x + 22, y + 22, starMark(level), {
+      fontFamily: FONT_BODY,
+      fontSize: "14px",
+      color: INK,
+    }).setOrigin(0.5);
   }
 
   private drawItemBox(x: number, y: number, width: number, height: number, practice: boolean): void {

@@ -1,7 +1,15 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
 import { CLASSES } from "../../domain/classes";
-import { INVENTOR_LOCK_NOTE, isClassUnlocked, resolvedClassId, selectClass } from "../../domain/class-unlock";
+import {
+  INVENTOR_LOCK_NOTE,
+  INVENTOR_LOCK_TIP,
+  INVENTOR_LOCK_TIP_BUTTON,
+  INVENTOR_LOCK_TITLE,
+  isClassUnlocked,
+  resolvedClassId,
+  selectClass,
+} from "../../domain/class-unlock";
 import { createSave } from "../../domain/progress";
 import { sanitizeName } from "../../domain/appearance";
 import type { ClassId, GradeBand } from "../../domain/types";
@@ -21,6 +29,7 @@ const CARD_KEYS = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"];
 export class CreateScene extends Phaser.Scene {
   private grades: GradeBand[] = [];
   private classId: ClassId = "warrior";
+  private lockTip = false;
 
   constructor() {
     super("create");
@@ -34,6 +43,7 @@ export class CreateScene extends Phaser.Scene {
   init(data: { grades?: readonly string[] } = {}): void {
     this.grades = normalizeGrades(data.grades);
     this.classId = "warrior";
+    this.lockTip = false;
   }
 
   create(): void {
@@ -79,9 +89,17 @@ export class CreateScene extends Phaser.Scene {
   }
 
   private pick(id: ClassId): void {
-    const next = selectClass(this.classId, id, getSave());
-    if (next === this.classId) return;
+    const save = getSave();
+    const next = selectClass(this.classId, id, save);
+    if (next === this.classId) {
+      if (!isClassUnlocked(id, save)) {
+        this.lockTip = true;
+        this.draw();
+      }
+      return;
+    }
     this.classId = next;
+    this.lockTip = false;
     this.draw();
   }
 
@@ -106,9 +124,9 @@ export class CreateScene extends Phaser.Scene {
         : this.add.image(cx, 118, PORTRAIT_LOCKED_ATLAS, PORTRAIT_LOCKED_FRAME);
       portrait.setOrigin(0.5, 0.875);
       portrait.setScale(0.18);
-      this.add.text(cx, 148, `${index + 1} ${def.name}`, {
+      this.add.text(cx, 148, unlocked ? `${index + 1} ${def.name}` : INVENTOR_LOCK_TITLE, {
         fontFamily: FONT,
-        fontSize: "20px",
+        fontSize: unlocked ? "20px" : "18px",
         color: unlocked ? INK : MUTED,
       }).setOrigin(0.5, 0);
       this.add.text(cx, 176, unlocked ? def.blurb : INVENTOR_LOCK_NOTE, {
@@ -118,9 +136,9 @@ export class CreateScene extends Phaser.Scene {
         align: "center",
         wordWrap: cjkWrap(176),
       }).setOrigin(0.5, 0);
-      if (!unlocked) return;
       const zone = this.add.zone(cx, 132, 196, 220).setInteractive({ useHandCursor: true });
       zone.on("pointerdown", () => this.pick(def.id));
+      if (!unlocked) return;
     });
     const chosen = this.grades.map((id) => GRADE_BANDS.find((grade) => grade.id === id)?.label ?? id).join("、");
     this.add.text(160, 320, "选一个职业", { fontFamily: FONT, fontSize: "32px", color: INK });
@@ -130,13 +148,27 @@ export class CreateScene extends Phaser.Scene {
       color: MUTED,
       wordWrap: cjkWrap(280),
     });
-    this.add.text(160, 500, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "22px", color: INK });
-    this.add.text(160, 548, "Enter 出发。年级可以稍后在给家长里改。", {
-      fontFamily: FONT,
-      fontSize: "18px",
-      color: MUTED,
-      wordWrap: cjkWrap(280),
-    });
+    if (this.lockTip) {
+      this.add.text(160, 408, INVENTOR_LOCK_TIP, {
+        fontFamily: FONT,
+        fontSize: "15px",
+        color: INK,
+        wordWrap: cjkWrap(270),
+      });
+      warmButton(this, 250, 530, INVENTOR_LOCK_TIP_BUTTON, () => {
+        this.lockTip = false;
+        this.draw();
+      }, { width: 120, height: 44 });
+    }
+    this.add.text(160, this.lockTip ? 578 : 500, `已选年级：${chosen}`, { fontFamily: FONT, fontSize: "22px", color: INK });
+    if (!this.lockTip) {
+      this.add.text(160, 548, "Enter 出发。年级可以稍后在给家长里改。", {
+        fontFamily: FONT,
+        fontSize: "18px",
+        color: MUTED,
+        wordWrap: cjkWrap(280),
+      });
+    }
     warmButton(this, 250, 640, "重选年级", () => this.leave("grades"), { width: 180, tone: "secondary" });
   }
 }

@@ -76,6 +76,12 @@ export function skillLevelFrame(level: number): string {
   return "card_lv_badge_bronze";
 }
 
+/** Visible card level. The badge frames have no digits, so the text carries ★N. */
+export function starMark(level: number): string {
+  const safe = Math.min(3, Math.max(1, Math.round(level)));
+  return `★${safe}`;
+}
+
 /** Dot badge. The frame art has no digits. */
 export function skillOrderFrame(order: number): string {
   const safe = Math.min(3, Math.max(1, order));
