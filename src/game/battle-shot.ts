@@ -13,6 +13,7 @@ export interface BattleShotRead {
   lunging: boolean;
   phase: string;
   deltas: readonly { target: "player" | "enemy"; amount: number }[];
+  displayNote: string;
 }
 
 export interface BattleShotControls {

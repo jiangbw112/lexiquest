@@ -50,6 +50,7 @@ import {
   type HpReadout,
   type HpStep,
 } from "../battle-hp";
+import { noteForHandoff, planBattleNote, type BattleNotePlan } from "../battle-note";
 import {
   actionTriggersLunge,
   attackReach,
@@ -100,6 +101,11 @@ export class BattleScene extends Phaser.Scene {
   private shot: BattleShotHandle | null = null;
   private shownFrom = { playerHp: 0, enemyHp: 0 };
   private displayHp: HpReadout = { playerHp: 0, enemyHp: 0 };
+  private displayNote = "";
+  private notePlan: BattleNotePlan = { feedback: "", action: "", counter: "" };
+  private actionRevealed = false;
+  private counterRevealed = false;
+  private noteText?: Phaser.GameObjects.Text;
   private hpSteps: HpStep[] = [];
   private playerHpFill?: Phaser.GameObjects.NineSlice;
   private enemyHpFill?: Phaser.GameObjects.NineSlice;
@@ -215,6 +221,7 @@ export class BattleScene extends Phaser.Scene {
       padOrder,
     });
     this.displayHp = { playerHp: this.state.playerHp, enemyHp: this.state.enemyHp };
+    this.displayNote = this.state.lastNote;
     this.hpSteps = [];
     this.poses = ["idle"];
     this.bossPoses = ["idle"];
@@ -352,6 +359,7 @@ export class BattleScene extends Phaser.Scene {
     lunging: boolean;
     phase: string;
     deltas: { target: "player" | "enemy"; amount: number }[];
+    displayNote: string;
   } {
     return {
       playerHp: this.state?.playerHp ?? 0,
@@ -366,6 +374,7 @@ export class BattleScene extends Phaser.Scene {
       lunging: this.lunging,
       phase: this.state?.phase ?? "",
       deltas: this.state?.turnDeltas ?? [],
+      displayNote: this.displayNote,
     };
   }
 
@@ -383,6 +392,10 @@ export class BattleScene extends Phaser.Scene {
     this.lunging = beats.some((beat) => beat.kind === "lunge" || beat.kind === "step" || beat.kind === "projectile" || beat.kind === "return");
     this.displayHp = hpAtMotionStart({ playerHp: before.playerHp, enemyHp: before.enemyHp });
     this.hpSteps = [...(this.state.turnDeltas ?? [])];
+    this.notePlan = planBattleNote(this.state.lastNote);
+    this.displayNote = this.notePlan.feedback;
+    this.actionRevealed = false;
+    this.counterRevealed = false;
     this.holdResolution(before);
     if (this.lunging) this.monsterHit = false;
     this.finishIfNeeded();
@@ -391,6 +404,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private playBeats(beats: readonly MotionBeat[], index: number): void {
+    if (index === 0) this.revealReadyNotes(beats);
     const beat = beats[index];
     if (!beat) {
       this.endMotion();
@@ -469,6 +483,7 @@ export class BattleScene extends Phaser.Scene {
         playerHp: this.state.playerHp,
         enemyHp: this.state.enemyHp,
       });
+      this.displayNote = noteForHandoff(this.displayNote, this.state.lastNote);
     }
     this.hpSteps = [];
     if (!this.scene.isActive()) return;
@@ -481,8 +496,53 @@ export class BattleScene extends Phaser.Scene {
     this.hpSteps = taken.rest;
     if (!taken.step) return;
     this.displayHp = applyHpStep(this.displayHp, taken.step);
-    if (target === "enemy" && taken.step.amount < 0) this.showMonsterHit();
+    if (target === "enemy" && taken.step.amount < 0) {
+      this.showMonsterHit();
+      this.revealNote("action");
+    } else if (target === "player" && taken.step.amount > 0) {
+      this.revealNote("action");
+    } else if (target === "player" && taken.step.amount < 0) {
+      this.revealNote("counter");
+    }
     this.tweenHp(target);
+  }
+
+  private actionWaits(beats: readonly MotionBeat[]): boolean {
+    return beats.some((beat) =>
+      (beat.kind === "lunge" && beat.attacker === "player")
+      || beat.kind === "projectile"
+      || beat.kind === "step"
+      || (beat.kind === "floater" && beat.target === "player" && beat.amount > 0)
+      || (beat.kind === "hit" && beat.attacker === "player"));
+  }
+
+  private counterWaits(beats: readonly MotionBeat[]): boolean {
+    return beats.some((beat) =>
+      (beat.kind === "lunge" && beat.attacker === "enemy")
+      || (beat.kind === "hit" && beat.attacker === "enemy")
+      || (beat.kind === "floater" && beat.target === "player" && beat.amount < 0));
+  }
+
+  /** A block or a full heal has no hit to wait for, so its sentence shows before the counter. */
+  private revealReadyNotes(beats: readonly MotionBeat[]): void {
+    if (!this.actionWaits(beats)) this.revealNote("action");
+    if (!this.counterWaits(beats) && this.notePlan.counter) this.revealNote("counter");
+  }
+
+  private revealNote(part: "action" | "counter"): void {
+    if (part === "counter" && !this.actionRevealed) {
+      this.displayNote += this.notePlan.action;
+      this.actionRevealed = true;
+    }
+    if (part === "action" && !this.actionRevealed) {
+      this.displayNote += this.notePlan.action;
+      this.actionRevealed = true;
+    }
+    if (part === "counter" && !this.counterRevealed) {
+      this.displayNote += this.notePlan.counter;
+      this.counterRevealed = true;
+    }
+    this.noteText?.setText(this.displayNote);
   }
 
   private showMonsterHit(): void {
@@ -535,12 +595,14 @@ export class BattleScene extends Phaser.Scene {
     const result = takeAction(this.state, action);
     if (!result.ok) {
       this.state = { ...this.state, lastNote: result.reason ?? "现在不能这么做。" };
+      this.displayNote = this.state.lastNote;
       this.poses = ["idle"];
       this.bossPoses = ["idle"];
       this.draw();
       return;
     }
     this.state = result.state;
+    this.displayNote = this.state.lastNote;
     this.poses = battlePoses({
       action: action.type,
       playerHpBefore: before.playerHp,
@@ -656,6 +718,8 @@ export class BattleScene extends Phaser.Scene {
         playerHp: this.state.playerHp,
         enemyHp: this.state.enemyHp,
       });
+      this.displayNote = noteForHandoff(this.displayNote, this.state.lastNote);
+      this.noteText?.setText(this.displayNote);
     }
     this.resultsOpened = true;
     this.concealBattleActors();
@@ -838,7 +902,7 @@ export class BattleScene extends Phaser.Scene {
       this.add.image(226 + i * 24, 128, "atlas_battle", on ? "energy_pip_on" : "energy_pip_off").setScale(0.5);
     }
     warmPanel(this, 490, 182, 680, 52);
-    this.add.text(170, 182, this.state.lastNote, {
+    this.noteText = this.add.text(170, 182, this.displayNote, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       color: INK,
