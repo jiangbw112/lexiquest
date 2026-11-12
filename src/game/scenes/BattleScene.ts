@@ -13,6 +13,7 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { chapterBackdrop, type ChapterBackdrop } from "../../domain/chapter-scenes";
 import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
@@ -27,6 +28,7 @@ import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { getSave, mutate } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm/kit";
+import { paintSceneImage, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
 import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
@@ -113,6 +115,7 @@ export class BattleScene extends Phaser.Scene {
   private enemyHpTween?: Phaser.Tweens.Tween;
   private pendingResults: ReturnType<typeof buildResultsView> | null = null;
   private resultsArmed = false;
+  private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
 
   constructor() {
     super("battle");
@@ -124,12 +127,18 @@ export class BattleScene extends Phaser.Scene {
     const chapter = save ? findPlayChapter(save, data.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
     this.bossFight = stage?.type === "boss";
+    this.battleBackdrop = chapterBackdrop(chapter?.id ?? "forest_adventure");
   }
 
   preload(): void {
     queueWarriorAtlases(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"], ["bg_forest"]);
+    const atlases = ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_monsters", "atlas_ui_pages", "atlas_results"] as const;
+    if (this.battleBackdrop.groupId === "forest") queueWarm(this, atlases, ["bg_forest"]);
+    else {
+      queueWarm(this, atlases, []);
+      queueSceneImage(this, this.battleBackdrop.battleKey, this.battleBackdrop.battleUrl);
+    }
     if (this.bossFight) queueBossAtlases(this);
   }
 
@@ -863,7 +872,8 @@ export class BattleScene extends Phaser.Scene {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
     }
-    warmBackground(this, "bg_forest");
+    if (this.battleBackdrop.groupId === "forest") warmBackground(this, "bg_forest");
+    else paintSceneImage(this, this.battleBackdrop.battleKey);
     const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
     this.battleHero = hero.root;
     const titleAt = this.children.length;

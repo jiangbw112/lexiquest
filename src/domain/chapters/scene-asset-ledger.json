@@ -1,0 +1,397 @@
+{
+  "version": "integration_v1.0",
+  "note": "WebP files were copied byte for byte. They were not recompressed. Journey night files are stored and not referenced. The game uses the day set.",
+  "chapters": [
+    {
+      "chapterId": "pep_g3_01",
+      "groupId": "home",
+      "minionId": "cushion"
+    },
+    {
+      "chapterId": "pep_g3_08",
+      "groupId": "home",
+      "minionId": "cushion"
+    },
+    {
+      "chapterId": "pep_g4_05",
+      "groupId": "home",
+      "minionId": "cushion"
+    },
+    {
+      "chapterId": "pep_g3_02",
+      "groupId": "animals",
+      "minionId": "pawlet"
+    },
+    {
+      "chapterId": "pep_g4_07",
+      "groupId": "farm",
+      "minionId": "sprout"
+    },
+    {
+      "chapterId": "pep_g4_08",
+      "groupId": "farm",
+      "minionId": "sprout"
+    },
+    {
+      "chapterId": "pep_g3_03",
+      "groupId": "farm",
+      "minionId": "sprout"
+    },
+    {
+      "chapterId": "pep_g3_06",
+      "groupId": "school",
+      "minionId": "rubkin"
+    },
+    {
+      "chapterId": "pep_g3_05",
+      "groupId": "school",
+      "minionId": "rubkin"
+    },
+    {
+      "chapterId": "pep_g5_01",
+      "groupId": "school",
+      "minionId": "rubkin"
+    },
+    {
+      "chapterId": "pep_g5_02",
+      "groupId": "school",
+      "minionId": "rubkin"
+    },
+    {
+      "chapterId": "pep_g5_03",
+      "groupId": "food",
+      "minionId": "steam"
+    },
+    {
+      "chapterId": "pep_g6_02",
+      "groupId": "food",
+      "minionId": "steam"
+    },
+    {
+      "chapterId": "pep_g3_07",
+      "groupId": "food",
+      "minionId": "steam"
+    },
+    {
+      "chapterId": "pep_g4_02",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g5_05",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g3_04",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g4_01",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g4_06",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g5_06",
+      "groupId": "town",
+      "minionId": "lampkin"
+    },
+    {
+      "chapterId": "pep_g5_07",
+      "groupId": "weather",
+      "minionId": "leafkin"
+    },
+    {
+      "chapterId": "pep_g4_03",
+      "groupId": "weather",
+      "minionId": "leafkin"
+    },
+    {
+      "chapterId": "pep_g5_04",
+      "groupId": "weather",
+      "minionId": "leafkin"
+    },
+    {
+      "chapterId": "pep_g4_04",
+      "groupId": "weather",
+      "minionId": "leafkin"
+    },
+    {
+      "chapterId": "pep_g5_09",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g5_08",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g6_01",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g6_03",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g6_04",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g6_05",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    },
+    {
+      "chapterId": "pep_g6_06",
+      "groupId": "journey",
+      "minionId": "knapsack"
+    }
+  ],
+  "files": [
+    {
+      "groupId": "home",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.2_formal/backgrounds/bg_map_home_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.2_formal/backgrounds/bg_map_home_2x.webp",
+      "sourceSha256": "f4e84278ea3b4a428618bfb57411e99629f85cff31832fbeb6864557f8952b20",
+      "sourceBytes": 260498,
+      "repoPath": "public/assets/chapter/scenes/home/bg_map.webp",
+      "repoSha256": "f4e84278ea3b4a428618bfb57411e99629f85cff31832fbeb6864557f8952b20",
+      "repoBytes": 260498,
+      "recompressed": false
+    },
+    {
+      "groupId": "home",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.2_formal/backgrounds/bg_home_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.2_formal/backgrounds/bg_home_battle_2x.webp",
+      "sourceSha256": "caae80dd902a5bab770bc0fe33afb96090f5952b4d761a8c8317ae0e06effd98",
+      "sourceBytes": 87776,
+      "repoPath": "public/assets/chapter/scenes/home/bg_battle.webp",
+      "repoSha256": "caae80dd902a5bab770bc0fe33afb96090f5952b4d761a8c8317ae0e06effd98",
+      "repoBytes": 87776,
+      "recompressed": false
+    },
+    {
+      "groupId": "animals",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.2_formal/backgrounds/bg_map_animals_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.2_formal/backgrounds/bg_map_animals_2x.webp",
+      "sourceSha256": "b821f360eaf52cac5afb000121375a871488ff701af1eaecf89173874036924e",
+      "sourceBytes": 285328,
+      "repoPath": "public/assets/chapter/scenes/animals/bg_map.webp",
+      "repoSha256": "b821f360eaf52cac5afb000121375a871488ff701af1eaecf89173874036924e",
+      "repoBytes": 285328,
+      "recompressed": false
+    },
+    {
+      "groupId": "animals",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.2_formal/backgrounds/bg_animals_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.2_formal/backgrounds/bg_animals_battle_2x.webp",
+      "sourceSha256": "c008e7e5569353628faf0884c4dd8802bc37ca0c04b2587a3b12ba153e254c7c",
+      "sourceBytes": 82232,
+      "repoPath": "public/assets/chapter/scenes/animals/bg_battle.webp",
+      "repoSha256": "c008e7e5569353628faf0884c4dd8802bc37ca0c04b2587a3b12ba153e254c7c",
+      "repoBytes": 82232,
+      "recompressed": false
+    },
+    {
+      "groupId": "farm",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.4_formal_g34/backgrounds/bg_map_farm_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.4_formal_g34/backgrounds/bg_map_farm_2x.webp",
+      "sourceSha256": "5e4a780fde481e69e1331e7f1896293feabe649d3ef58b830a22e13a4e02998f",
+      "sourceBytes": 167324,
+      "repoPath": "public/assets/chapter/scenes/farm/bg_map.webp",
+      "repoSha256": "5e4a780fde481e69e1331e7f1896293feabe649d3ef58b830a22e13a4e02998f",
+      "repoBytes": 167324,
+      "recompressed": false
+    },
+    {
+      "groupId": "farm",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.4_formal_g34/backgrounds/bg_farm_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.4_formal_g34/backgrounds/bg_farm_battle_2x.webp",
+      "sourceSha256": "f13bc95e8424428b9c29784e3279aa21b4eb3efb5d13ea8fbb11956512cb52ba",
+      "sourceBytes": 92540,
+      "repoPath": "public/assets/chapter/scenes/farm/bg_battle.webp",
+      "repoSha256": "f13bc95e8424428b9c29784e3279aa21b4eb3efb5d13ea8fbb11956512cb52ba",
+      "repoBytes": 92540,
+      "recompressed": false
+    },
+    {
+      "groupId": "school",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.4_formal_g34/backgrounds/bg_map_school_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.4_formal_g34/backgrounds/bg_map_school_2x.webp",
+      "sourceSha256": "bbf7f755936cac141b3f74f0f67347e4401e533b999f2e898872f629c1494211",
+      "sourceBytes": 139846,
+      "repoPath": "public/assets/chapter/scenes/school/bg_map.webp",
+      "repoSha256": "bbf7f755936cac141b3f74f0f67347e4401e533b999f2e898872f629c1494211",
+      "repoBytes": 139846,
+      "recompressed": false
+    },
+    {
+      "groupId": "school",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.4_formal_g34/backgrounds/bg_school_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.4_formal_g34/backgrounds/bg_school_battle_2x.webp",
+      "sourceSha256": "73a395ae846cd0e77067be9cde840899fb2daf901ba100a95fba48122d073916",
+      "sourceBytes": 79946,
+      "repoPath": "public/assets/chapter/scenes/school/bg_battle.webp",
+      "repoSha256": "73a395ae846cd0e77067be9cde840899fb2daf901ba100a95fba48122d073916",
+      "repoBytes": 79946,
+      "recompressed": false
+    },
+    {
+      "groupId": "food",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_map_food_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_map_food_2x.webp",
+      "sourceSha256": "364ab1af9b6cdef49758d96c871d532371ca109430d57471b7303448ef22a1a9",
+      "sourceBytes": 140762,
+      "repoPath": "public/assets/chapter/scenes/food/bg_map.webp",
+      "repoSha256": "364ab1af9b6cdef49758d96c871d532371ca109430d57471b7303448ef22a1a9",
+      "repoBytes": 140762,
+      "recompressed": false
+    },
+    {
+      "groupId": "food",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.5_formal_g56/backgrounds/bg_food_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.5_formal_g56/backgrounds/bg_food_battle_2x.webp",
+      "sourceSha256": "615200aee65373b174d87c982ac2e5256d9009946b5be602161c09f97e155216",
+      "sourceBytes": 83228,
+      "repoPath": "public/assets/chapter/scenes/food/bg_battle.webp",
+      "repoSha256": "615200aee65373b174d87c982ac2e5256d9009946b5be602161c09f97e155216",
+      "repoBytes": 83228,
+      "recompressed": false
+    },
+    {
+      "groupId": "town",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.5_formal_g56/backgrounds/bg_map_town_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.5_formal_g56/backgrounds/bg_map_town_2x.webp",
+      "sourceSha256": "494571add8888063b294200bd0fafd01dccf7f28b394447142479079405234b8",
+      "sourceBytes": 100700,
+      "repoPath": "public/assets/chapter/scenes/town/bg_map.webp",
+      "repoSha256": "494571add8888063b294200bd0fafd01dccf7f28b394447142479079405234b8",
+      "repoBytes": 100700,
+      "recompressed": false
+    },
+    {
+      "groupId": "town",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_town_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_town_battle_2x.webp",
+      "sourceSha256": "a2168076a30e381884df7f3d45cbaa0a390c2c8e2bda58a029b9c5a8f17a8af0",
+      "sourceBytes": 105076,
+      "repoPath": "public/assets/chapter/scenes/town/bg_battle.webp",
+      "repoSha256": "a2168076a30e381884df7f3d45cbaa0a390c2c8e2bda58a029b9c5a8f17a8af0",
+      "repoBytes": 105076,
+      "recompressed": false
+    },
+    {
+      "groupId": "weather",
+      "role": "map",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_map_weather_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_map_weather_2x.webp",
+      "sourceSha256": "9824d60646783906f2b30dadbcd026d51f01a01b79875cd36a21c5532c74e4bf",
+      "sourceBytes": 106916,
+      "repoPath": "public/assets/chapter/scenes/weather/bg_map.webp",
+      "repoSha256": "9824d60646783906f2b30dadbcd026d51f01a01b79875cd36a21c5532c74e4bf",
+      "repoBytes": 106916,
+      "recompressed": false
+    },
+    {
+      "groupId": "weather",
+      "role": "battle",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_weather_battle_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_weather_battle_2x.webp",
+      "sourceSha256": "7f42a7872a4f0e7b585bb082f3a012667d69554997f887a7431afa875e514162",
+      "sourceBytes": 93410,
+      "repoPath": "public/assets/chapter/scenes/weather/bg_battle.webp",
+      "repoSha256": "7f42a7872a4f0e7b585bb082f3a012667d69554997f887a7431afa875e514162",
+      "repoBytes": 93410,
+      "recompressed": false
+    },
+    {
+      "groupId": "journey",
+      "role": "map_day",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_map_journey_day_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_map_journey_day_2x.webp",
+      "sourceSha256": "e97698570f3ad45517c045eeeb92e5d288d624018bcfad242197b48da0f6274d",
+      "sourceBytes": 107258,
+      "repoPath": "public/assets/chapter/scenes/journey/bg_map_day.webp",
+      "repoSha256": "e97698570f3ad45517c045eeeb92e5d288d624018bcfad242197b48da0f6274d",
+      "repoBytes": 107258,
+      "recompressed": false
+    },
+    {
+      "groupId": "journey",
+      "role": "map_night",
+      "referenced": false,
+      "sourcePath": "bosses_v0.7_g34/backgrounds/bg_map_journey_night_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/bosses_v0.7_g34/backgrounds/bg_map_journey_night_2x.webp",
+      "sourceSha256": "04a14633a49eca470b956e34dd4798e4e6d497dd1008f5be0bbcddcdd3a51b15",
+      "sourceBytes": 122766,
+      "repoPath": "public/assets/chapter/scenes/journey/bg_map_night.webp",
+      "repoSha256": "04a14633a49eca470b956e34dd4798e4e6d497dd1008f5be0bbcddcdd3a51b15",
+      "repoBytes": 122766,
+      "recompressed": false
+    },
+    {
+      "groupId": "journey",
+      "role": "battle_day",
+      "referenced": true,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_day_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_day_2x.webp",
+      "sourceSha256": "0300971f4459eae88f056505b999a8a62fdb2ec285123f2767fcf43a25f93595",
+      "sourceBytes": 77442,
+      "repoPath": "public/assets/chapter/scenes/journey/bg_battle_day.webp",
+      "repoSha256": "0300971f4459eae88f056505b999a8a62fdb2ec285123f2767fcf43a25f93595",
+      "repoBytes": 77442,
+      "recompressed": false
+    },
+    {
+      "groupId": "journey",
+      "role": "battle_night",
+      "referenced": false,
+      "sourcePath": "scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_night_2x.webp",
+      "manifestPath": "/workspace/lexiquest-art/scenes_v0.6_formal_g78/backgrounds/bg_journey_battle_night_2x.webp",
+      "sourceSha256": "e04fcc8565b9e7b77fc2bdeaa41dff854053f45c5fa1314fe3e4784a1adf6d60",
+      "sourceBytes": 71486,
+      "repoPath": "public/assets/chapter/scenes/journey/bg_battle_night.webp",
+      "repoSha256": "e04fcc8565b9e7b77fc2bdeaa41dff854053f45c5fa1314fe3e4784a1adf6d60",
+      "repoBytes": 71486,
+      "recompressed": false
+    }
+  ]
+}
