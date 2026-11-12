@@ -1,19 +1,19 @@
 {
  "frames": {
-  "boss_toychest_body_w_hit_00": {
+  "boss_mealmap_body_w_hit_00": {
    "frame": {
     "x": 729,
     "y": 2,
     "w": 725,
-    "h": 666
+    "h": 538
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 46,
+    "y": 172,
     "w": 725,
-    "h": 666
+    "h": 538
    },
    "sourceSize": {
     "w": 768,
@@ -24,20 +24,20 @@
     "y": 0.875
    }
   },
-  "boss_toychest_body_w_hit_01": {
+  "boss_mealmap_body_w_hit_01": {
    "frame": {
     "x": 2,
-    "y": 673,
+    "y": 547,
     "w": 725,
-    "h": 663
+    "h": 532
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 49,
+    "y": 178,
     "w": 725,
-    "h": 663
+    "h": 532
    },
    "sourceSize": {
     "w": 768,
@@ -48,20 +48,20 @@
     "y": 0.875
    }
   },
-  "boss_toychest_body_w_hit_02": {
+  "boss_mealmap_body_w_hit_02": {
    "frame": {
     "x": 2,
     "y": 2,
     "w": 725,
-    "h": 669
+    "h": 543
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 43,
+    "y": 167,
     "w": 725,
-    "h": 669
+    "h": 543
    },
    "sourceSize": {
     "w": 768,
@@ -74,16 +74,16 @@
   }
  },
  "meta": {
-  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
-  "version": "0.8-g56",
-  "image": "boss_toychest_w_hit@2x.png",
+  "app": "LexiQuest bosses_v1.0.3_g3_07 tools/pack.py (code-drawn)",
+  "version": "1.0.3-g3_07",
+  "image": "boss_mealmap_w_hit@2x.png",
   "format": "RGBA8888",
   "size": {
    "w": 1456,
-   "h": 1340
+   "h": 1084
   },
   "scale": "2",
   "premultipliedAlpha": false,
-  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+  "status": "v1.0.3 拟用、待审 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
  }
 }

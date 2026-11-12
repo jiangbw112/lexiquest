@@ -1,19 +1,19 @@
 {
  "frames": {
-  "boss_toychest_body_w_defeat_00": {
+  "boss_mealmap_body_w_attack_00": {
    "frame": {
     "x": 2,
-    "y": 2,
+    "y": 1149,
     "w": 725,
-    "h": 668
+    "h": 543
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 44,
+    "y": 167,
     "w": 725,
-    "h": 668
+    "h": 543
    },
    "sourceSize": {
     "w": 768,
@@ -24,68 +24,20 @@
     "y": 0.875
    }
   },
-  "boss_toychest_body_w_defeat_01": {
-   "frame": {
-    "x": 2,
-    "y": 672,
-    "w": 725,
-    "h": 658
-   },
-   "rotated": false,
-   "trimmed": true,
-   "spriteSourceSize": {
-    "x": 22,
-    "y": 54,
-    "w": 725,
-    "h": 658
-   },
-   "sourceSize": {
-    "w": 768,
-    "h": 768
-   },
-   "pivot": {
-    "x": 0.5,
-    "y": 0.875
-   }
-  },
-  "boss_toychest_body_w_defeat_02": {
-   "frame": {
-    "x": 2,
-    "y": 1332,
-    "w": 725,
-    "h": 648
-   },
-   "rotated": false,
-   "trimmed": true,
-   "spriteSourceSize": {
-    "x": 22,
-    "y": 64,
-    "w": 725,
-    "h": 648
-   },
-   "sourceSize": {
-    "w": 768,
-    "h": 768
-   },
-   "pivot": {
-    "x": 0.5,
-    "y": 0.875
-   }
-  },
-  "boss_toychest_body_w_defeat_03": {
+  "boss_mealmap_body_w_attack_01": {
    "frame": {
     "x": 729,
-    "y": 1332,
+    "y": 1149,
     "w": 725,
-    "h": 640
+    "h": 538
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 72,
+    "y": 172,
     "w": 725,
-    "h": 640
+    "h": 538
    },
    "sourceSize": {
     "w": 768,
@@ -96,20 +48,20 @@
     "y": 0.875
    }
   },
-  "boss_toychest_body_w_defeat_04": {
+  "boss_mealmap_body_w_attack_02": {
    "frame": {
-    "x": 729,
-    "y": 672,
+    "x": 2,
+    "y": 593,
     "w": 725,
-    "h": 653
+    "h": 554
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 59,
+    "y": 156,
     "w": 725,
-    "h": 653
+    "h": 554
    },
    "sourceSize": {
     "w": 768,
@@ -120,20 +72,68 @@
     "y": 0.875
    }
   },
-  "boss_toychest_body_w_defeat_05": {
+  "boss_mealmap_body_w_attack_03": {
    "frame": {
     "x": 729,
     "y": 2,
     "w": 725,
-    "h": 661
+    "h": 559
    },
    "rotated": false,
    "trimmed": true,
    "spriteSourceSize": {
     "x": 22,
-    "y": 51,
+    "y": 151,
     "w": 725,
-    "h": 661
+    "h": 559
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 589
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 121,
+    "w": 725,
+    "h": 589
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 593,
+    "w": 725,
+    "h": 548
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 162,
+    "w": 725,
+    "h": 548
    },
    "sourceSize": {
     "w": 768,
@@ -146,16 +146,16 @@
   }
  },
  "meta": {
-  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
-  "version": "0.8-g56",
-  "image": "boss_toychest_w_defeat@2x.png",
+  "app": "LexiQuest bosses_v1.0.3_g3_07 tools/pack.py (code-drawn)",
+  "version": "1.0.3-g3_07",
+  "image": "boss_mealmap_w_attack@2x.png",
   "format": "RGBA8888",
   "size": {
    "w": 1456,
-   "h": 1984
+   "h": 1696
   },
   "scale": "2",
   "premultipliedAlpha": false,
-  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+  "status": "v1.0.3 拟用、待审 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
  }
 }

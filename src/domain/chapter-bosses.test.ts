@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   CHAPTER_BOSS_ID,
   CHAPTER_BOSS_POSES,
+  BOSS_RESERVE,
   PEP_G3_07_BOSS,
   PEP_G3_07_BOSS_ID,
   chapterBossAsset,
@@ -33,22 +34,33 @@ describe("chapter bosses", () => {
     const source = readFileSync(new URL("./chapter-bosses.ts", import.meta.url), "utf8");
     const plan = readFileSync(new URL("./chapter-plan.ts", import.meta.url), "utf8");
     const battle = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
+    const chapters = JSON.parse(readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8")) as Array<{
+      chapter_id: string;
+      boss_name_zh: string;
+    }>;
+    expect(source.match(/mealmap/g)).toEqual(["mealmap"]);
     expect(source.match(/toychest/g)).toEqual(["toychest"]);
-    expect(source.match(/玩具箱守护者/g)).toEqual(["玩具箱守护者"]);
+    expect(source.match(/营养餐盘守护者/g)).toEqual(["营养餐盘守护者"]);
+    expect(plan).not.toContain("营养餐盘守护者");
     expect(plan).not.toContain("玩具箱守护者");
-    expect(battle).not.toContain("玩具箱守护者");
+    expect(battle).not.toContain("营养餐盘守护者");
+    expect(battle).not.toContain("mealmap");
     expect(CHAPTER_BOSS_ID.pep_g3_07).toBe(PEP_G3_07_BOSS.id);
-    expect(PEP_G3_07_BOSS_ID).toBe(PEP_G3_07_BOSS.id);
-    expect(chapterBossId("pep_g3_07")).toBe(PEP_G3_07_BOSS.id);
-    expect(chapterBossDisplayName("pep_g3_07", "食物主题新名字")).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(PEP_G3_07_BOSS_ID).toBe("mealmap");
+    expect(Object.values(CHAPTER_BOSS_ID)).not.toContain("toychest");
+    expect(BOSS_RESERVE).toEqual([{ id: "toychest", nameZh: "玩具箱守护者" }]);
+    expect(chapterBossId("pep_g3_07")).toBe("mealmap");
+    expect(chapters.find((chapter) => chapter.chapter_id === "pep_g3_07")?.boss_name_zh).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(chapterBossDisplayName("pep_g3_07", "别的名字")).toBe(PEP_G3_07_BOSS.nameZh);
     expect(chapterBossDisplayName("pep_g3_01", "全家福守护者")).toBe("全家福守护者");
     const food = gradeChapters("G3").find((chapter) => chapter.id === "pep_g3_07");
-    expect(food?.bossName).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(food?.bossName).toBe("营养餐盘守护者");
     const boss = stageById(5)!;
-    expect(stageCombatFor(food!, boss, "warrior").enemyName).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(stageCombatFor(food!, boss, "warrior").enemyName).toBe("营养餐盘守护者");
+    expect(stageCombatFor(food!, boss, "warrior").sprite).toBe("mealmap");
     for (const pose of CHAPTER_BOSS_POSES) {
       expect(chapterBossAsset(PEP_G3_07_BOSS.id, pose).imageUrl).toBe(
-        `assets/chapter/bosses/${PEP_G3_07_BOSS.id}/${PEP_G3_07_BOSS.frames[pose]}.png`,
+        `assets/chapter/bosses/mealmap/${PEP_G3_07_BOSS.frames[pose]}.png`,
       );
     }
   });

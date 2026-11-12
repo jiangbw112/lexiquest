@@ -1,16 +1,16 @@
 /**
- * Grade-chapter bosses from integration_v1.0.2.
+ * Grade-chapter bosses from integration_v1.0.4.
  * Forest stays on canopy and is not in this map.
  *
- * 好吃又健康 waits here for the scene v1.0.3 food boss.
- * Replace `PEP_G3_07_BOSS` only: id, display name, and the four frame files.
- * Other chapters keep the name in chapters_v0.2.json.
+ * 好吃又健康 is `PEP_G3_07_BOSS`: id, display name, and the four frame files.
+ * chapters_v0.2.json keeps the same display name. This object is what the battle reads.
+ * The old chest stays in `BOSS_RESERVE` and is not loaded.
  */
-const PEP_G3_07_ID = "toychest";
+const PEP_G3_07_ID = "mealmap";
 
 export const PEP_G3_07_BOSS = {
   id: PEP_G3_07_ID,
-  nameZh: "玩具箱守护者",
+  nameZh: "营养餐盘守护者",
   frames: {
     idle: `boss_${PEP_G3_07_ID}_w_idle@2x`,
     attack: `boss_${PEP_G3_07_ID}_w_attack@2x`,
@@ -19,9 +19,12 @@ export const PEP_G3_07_BOSS = {
   },
 } as const;
 
+/** Spare from the v1.0.4 reserve. No chapter id points here, and the files are not in public/. */
+export const BOSS_RESERVE = [{ id: "toychest", nameZh: "玩具箱守护者" }] as const;
+
 export const PEP_G3_07_BOSS_ID = PEP_G3_07_BOSS.id;
 
-/** The chapter file still has a boss_name_zh. This chapter does not use it. */
+/** pep_g3_07 reads the name from `PEP_G3_07_BOSS`, not from a second hardcoded string. */
 export function chapterBossDisplayName(chapterId: string, fileName: string): string {
   if (chapterId === "pep_g3_07") return PEP_G3_07_BOSS.nameZh;
   return fileName;

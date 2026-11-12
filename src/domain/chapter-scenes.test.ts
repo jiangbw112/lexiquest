@@ -135,7 +135,7 @@ describe("chapter scene groups", () => {
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.json",
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
     ]);
-    expect(ledger.version).toBe("integration_v1.0.2");
+    expect(ledger.version).toBe("integration_v1.0.4");
     for (const file of minionFiles) {
       expect(sha256(file.repoPath)).toBe(file.repoSha256);
       expect(file.recompressed).toBe(false);
