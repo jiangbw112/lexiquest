@@ -4,6 +4,8 @@
 
 进度记在这台电脑上。没有聊天功能，没有真钱商城。
 
+当前版本：1.0.0。这一版的更新写在 [更新说明](RELEASE_NOTES.md)。
+
 ## 下载安装
 
 桌面版发布在 [Releases](https://github.com/jiangbw112/lexiquest/releases)，已发布的最新一版见 [releases/latest](https://github.com/jiangbw112/lexiquest/releases/latest)。
