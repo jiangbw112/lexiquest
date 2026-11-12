@@ -37,6 +37,7 @@ describe("chapter bosses", () => {
     const chapters = JSON.parse(readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8")) as Array<{
       chapter_id: string;
       boss_name_zh: string;
+      theme_note_zh?: string;
       stages?: Array<{ name_zh: string }>;
     }>;
     expect(source.match(/mealmap/g)).toEqual(["mealmap"]);
@@ -54,6 +55,11 @@ describe("chapter bosses", () => {
     const foodFile = chapters.find((chapter) => chapter.chapter_id === "pep_g3_07");
     expect(foodFile?.boss_name_zh).toBe(PEP_G3_07_BOSS.nameZh);
     expect(foodFile?.stages?.[4]?.name_zh).toBe(PEP_G3_07_BOSS.nameZh);
+    expect(foodFile?.theme_note_zh).toContain("Healthy food");
+    expect(foodFile?.theme_note_zh).toContain(PEP_G3_07_BOSS.nameZh);
+    expect(foodFile?.theme_note_zh).not.toContain("Old toys");
+    const toys = chapters.find((chapter) => chapter.chapter_id === "pep_g3_08");
+    expect(toys?.theme_note_zh).toContain("Old toys");
     const fileText = readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8");
     expect(fileText).not.toContain("旧玩具守护");
     expect(fileText).not.toContain("玩具守护");

@@ -120,8 +120,9 @@ export class BattleScene extends Phaser.Scene {
   private battleChapterId = "forest_adventure";
   private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
   private battleMinion: ChapterMinion = chapterMinion("forest_adventure");
-  private forestBattleQueued = false;
-  private forestBattleFailed = false;
+  private battleBackdropQueued = false;
+  private battleBackdropFailed = false;
+  private battleBackdropToken = 0;
 
   constructor() {
     super("battle");
@@ -137,6 +138,9 @@ export class BattleScene extends Phaser.Scene {
     this.battleChapterId = chapterId;
     this.battleBackdrop = chapterBackdrop(chapterId);
     this.battleMinion = chapterMinion(chapterId);
+    this.battleBackdropFailed = false;
+    this.battleBackdropQueued = false;
+    this.battleBackdropToken += 1;
   }
 
   preload(): void {
@@ -895,25 +899,39 @@ export class BattleScene extends Phaser.Scene {
     this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
   }
 
-  /** Grade-chapter boots never preload bg_forest. Wait for it instead of painting the missing texture. */
-  private holdForestBattleBackdrop(): void {
-    if (this.forestBattleFailed) {
-      if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
-      else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+  private battleBackgroundKey(): string {
+    return this.battleBackdrop.groupId === "forest" ? "bg_forest" : this.battleBackdrop.battleKey;
+  }
+
+  /**
+   * A missing battle file stays a plate. The name, HP, and action buttons
+   * draw after this. The next battle entry clears the failure and retries.
+   */
+  private paintBattleBackdrop(): void {
+    const key = this.battleBackgroundKey();
+    if (this.textures.exists(key)) {
+      this.battleBackdropFailed = false;
+      if (key === "bg_forest") warmBackground(this, "bg_forest");
+      else paintSceneImage(this, key);
+      probeNote("battle:plate:image");
       return;
     }
-    if (!this.forestBattleQueued) {
-      this.forestBattleQueued = true;
-      queueMissingForestBattle(this, this.battleBackdrop);
+    if (!this.battleBackdropQueued && !this.battleBackdropFailed) {
+      this.battleBackdropQueued = true;
+      const token = this.battleBackdropToken;
+      if (this.battleBackdrop.groupId === "forest") queueMissingForestBattle(this, this.battleBackdrop);
+      else queueSceneImage(this, key, this.battleBackdrop.battleUrl);
       this.load.once("complete", () => {
-        this.forestBattleQueued = false;
-        if (!this.textures.exists("bg_forest")) this.forestBattleFailed = true;
-        if (this.scene.isActive()) this.draw();
+        if (token !== this.battleBackdropToken || !this.scene.isActive()) return;
+        this.battleBackdropQueued = false;
+        if (!this.textures.exists(key)) this.battleBackdropFailed = true;
+        this.draw();
       });
       if (!this.load.isLoading()) this.load.start();
     }
     if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
     else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+    probeNote(this.battleBackdropFailed ? "battle:plate:fallback" : "battle:plate:wait");
   }
 
   private flash(target: Phaser.GameObjects.Container): void {
@@ -929,10 +947,7 @@ export class BattleScene extends Phaser.Scene {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
     }
-    if (this.battleBackdrop.groupId === "forest" && !this.textures.exists("bg_forest")) {
-      this.holdForestBattleBackdrop();
-    } else if (this.battleBackdrop.groupId === "forest") warmBackground(this, "bg_forest");
-    else paintSceneImage(this, this.battleBackdrop.battleKey);
+    this.paintBattleBackdrop();
     const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
     this.battleHero = hero.root;
     const titleAt = this.children.length;

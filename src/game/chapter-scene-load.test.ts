@@ -55,5 +55,26 @@ describe("switching back to the forest", () => {
     expect(next).toBeGreaterThan(previous);
     expect(scene).not.toContain("paintMapFallback");
     expect(scene).toContain("this.mapLoadFailedKey = \"\"");
+    const forest = chapterBackdrop(FOREST_CHAPTER.chapter_id);
+    expect(forest.mapKey).toBe("bg_map");
+    expect(forest.mapUrl).toBe("assets/warm/backgrounds/bg_map_forest_2x.webp");
+    expect(chapterMapPlate({ textureReady: false, failed: true })).toBe("fallback");
+  });
+
+  it("keeps battle controls when the background file fails", () => {
+    const battle = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");
+    const plate = battle.indexOf("paintBattleBackdrop()");
+    const fallback = battle.indexOf("battle:plate:fallback");
+    const attack = battle.indexOf('"1 攻击"');
+    const block = battle.indexOf('"2 格挡"');
+    const heal = battle.indexOf('"3 治疗"');
+    expect(battle).toContain("this.battleBackdropFailed = false");
+    expect(plate).toBeGreaterThan(0);
+    expect(fallback).toBeGreaterThan(plate);
+    expect(attack).toBeGreaterThan(fallback);
+    expect(block).toBeGreaterThan(attack);
+    expect(heal).toBeGreaterThan(block);
+    expect(battle).toContain("bg_forest");
+    expect(battle).not.toContain("P0_CLASS_ID");
   });
 });
