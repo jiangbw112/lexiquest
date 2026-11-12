@@ -11,7 +11,10 @@ import {
   floaterStackOffset,
   FLOATER_DURATION_MS,
   FLOATER_STACK_OFFSET,
+  FLOATER_LAYER_NAME,
+  keptAcrossDraw,
 } from "./battle-floater";
+import { battleMotionBeats } from "./battle-lunge";
 
 describe("computeActualHpChange", () => {
   it("returns negative for damage", () => {
@@ -66,14 +69,11 @@ describe("formatFloaterText", () => {
 });
 
 describe("floaterColor and floaterStroke", () => {
-  it("returns coral/dark for damage", () => {
+  it("returns coral for damage and teal for healing, both with a light stroke", () => {
     expect(floaterColor(-10)).toBe("#E76F51");
-    expect(floaterStroke(-10)).toBe("#3B2A20");
-  });
-
-  it("returns teal/dark for healing", () => {
     expect(floaterColor(10)).toBe("#2A9D8F");
-    expect(floaterStroke(10)).toBe("#1F4E3D");
+    expect(floaterStroke(-10)).toBe("#FFF4DC");
+    expect(floaterStroke(10)).toBe("#FFF4DC");
   });
 });
 
@@ -132,6 +132,91 @@ describe("FloaterState management", () => {
     expect(activeFloaterCount(state, 1000)).toBe(2);
     expect(activeFloaterCount(state, 1000 + FLOATER_DURATION_MS)).toBe(1);
     expect(activeFloaterCount(state, 1500 + FLOATER_DURATION_MS)).toBe(0);
+  });
+});
+
+describe("floater appears on the hit and survives draw", () => {
+  it("spawns the defender number on the hit beat, before the return", () => {
+    const beats = battleMotionBeats({
+      playerLunge: true,
+      enemyLunge: true,
+      enemyAmount: -8,
+      playerEffect: 0,
+      playerHit: -5,
+    });
+    const log: string[] = [];
+    const layer = { name: FLOATER_LAYER_NAME, texts: [] as string[] };
+    for (const beat of beats) {
+      if (beat.kind === "lunge") log.push(`lunge:${beat.attacker}`);
+      if (beat.kind === "hit") {
+        log.push(`hit:${beat.attacker}`);
+        if (beat.amount !== 0) {
+          layer.texts.push(`${beat.target}:${formatFloaterText(beat.amount)}`);
+          log.push(`spawn:${beat.target}`);
+        }
+      }
+      if (beat.kind === "return") log.push(`return:${beat.attacker}`);
+    }
+    expect(log).toEqual([
+      "lunge:player",
+      "hit:player",
+      "spawn:enemy",
+      "return:player",
+      "lunge:enemy",
+      "hit:enemy",
+      "spawn:player",
+      "return:enemy",
+    ]);
+    const spawnEnemy = log.indexOf("spawn:enemy");
+    const returnPlayer = log.indexOf("return:player");
+    expect(spawnEnemy).toBeGreaterThan(log.indexOf("hit:player"));
+    expect(spawnEnemy).toBeLessThan(returnPlayer);
+    expect(layer.texts).toEqual(["enemy:-8", "player:-5"]);
+  });
+
+  it("keeps the floater layer after draw", () => {
+    const beats = battleMotionBeats({
+      playerLunge: true,
+      enemyLunge: false,
+      enemyAmount: -8,
+      playerEffect: 0,
+      playerHit: 0,
+    });
+    const layer = { name: FLOATER_LAYER_NAME, texts: [] as string[] };
+    const world = [{ name: "hero" }, { name: "monster" }, layer, { name: "hud" }];
+    for (const beat of beats) {
+      if (beat.kind === "hit" && beat.amount !== 0) {
+        layer.texts.push(formatFloaterText(beat.amount) ?? "");
+      }
+    }
+    expect(layer.texts).toEqual(["-8"]);
+    const kept = keptAcrossDraw(world);
+    expect(kept).toEqual([layer]);
+    expect(layer.texts).toEqual(["-8"]);
+  });
+
+  it("spawns a heal number with no lunge and skips a zero change", () => {
+    const heal = battleMotionBeats({
+      playerLunge: false,
+      enemyLunge: true,
+      enemyAmount: 0,
+      playerEffect: 8,
+      playerHit: -5,
+    });
+    expect(heal).toEqual([
+      { kind: "floater", target: "player", amount: 8 },
+      { kind: "lunge", attacker: "enemy" },
+      { kind: "hit", attacker: "enemy", target: "player", amount: -5 },
+      { kind: "return", attacker: "enemy" },
+    ]);
+    const blocked = battleMotionBeats({
+      playerLunge: false,
+      enemyLunge: false,
+      enemyAmount: 0,
+      playerEffect: 0,
+      playerHit: 0,
+    });
+    expect(blocked).toEqual([]);
   });
 });
 

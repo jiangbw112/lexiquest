@@ -57,9 +57,26 @@ export function floaterColor(amount: number): string {
   return amount < 0 ? "#E76F51" : "#2A9D8F";
 }
 
-/** Returns the stroke color for the floater outline. */
+/** Light outline so the number stays readable on the forest background. */
 export function floaterStroke(amount: number): string {
-  return amount < 0 ? "#3B2A20" : "#1F4E3D";
+  return amount === 0 ? "#FFF4DC" : "#FFF4DC";
+}
+
+/** Scene child name. `draw()` keeps this container and everything inside it. */
+export const FLOATER_LAYER_NAME = "battle-floaters";
+
+export function isFloaterLayer(node: { name?: string }): boolean {
+  return node.name === FLOATER_LAYER_NAME;
+}
+
+/** Objects `draw()` must destroy. The floater layer is not among them. */
+export function droppedAcrossDraw<T extends { name?: string }>(nodes: readonly T[]): T[] {
+  return nodes.filter((node) => !isFloaterLayer(node));
+}
+
+/** Objects `draw()` must leave on screen, including floaters already spawned. */
+export function keptAcrossDraw<T extends { name?: string }>(nodes: readonly T[]): T[] {
+  return nodes.filter((node) => isFloaterLayer(node));
 }
 
 /**
@@ -112,6 +129,7 @@ export function spawnFloater(
   y: number,
   amount: number,
   stackOffset = 0,
+  layer?: Phaser.GameObjects.Container,
 ): Phaser.GameObjects.Text | null {
   const text = formatFloaterText(amount);
   if (!text) return null;
@@ -119,15 +137,16 @@ export function spawnFloater(
   const color = floaterColor(amount);
   const stroke = floaterStroke(amount);
 
-  const floater = scene.add.text(x, y + stackOffset, text, {
+  const floater = scene.add.text(0, 0, text, {
     fontFamily: FONT_BODY,
-    fontSize: "28px",
+    fontSize: "32px",
     fontStyle: "700",
     color,
     stroke,
-    strokeThickness: 4,
+    strokeThickness: 6,
   }).setOrigin(0.5);
-
+  floater.setPosition(x, y + stackOffset);
+  if (layer) layer.add(floater);
   floater.setDepth(1000);
 
   if (motionOff()) {

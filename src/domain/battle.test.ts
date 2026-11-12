@@ -390,4 +390,37 @@ describe("word-monster battle", () => {
     expect(streak.lastNote).toContain("挡下了下一次伤害");
     expect(streak.lastNote).not.toMatch(/[0-9]/);
   });
+
+  it("records the actual HP deltas, including a capped heal, a shield, and a zero change", () => {
+    const hero = begin("warrior");
+    const answer = (state: BattleState, type: "attack" | "block" | "heal", correct: boolean) => {
+      const asked = takeAction(state, { type });
+      const question = asked.state.question;
+      if (!question || question.kind === "spelling") throw new Error("expected a choice question");
+      const choice = correct ? question.answerId : (question.choices.find((item) => item.id !== question.answerId)?.id ?? "nope");
+      return answerQuestion(asked.state, choice);
+    };
+    const attacked = answer({ ...hero, enemyHp: 40, enemyMaxHp: 40, enemyAttack: 5, playerHp: 42 }, "attack", true);
+    expect(attacked.enemyHp).toBe(32);
+    expect(attacked.playerHp).toBe(37);
+    expect(attacked.turnDeltas).toEqual([
+      { target: "enemy", amount: -8 },
+      { target: "player", amount: -5 },
+    ]);
+    const healed = answer({ ...attacked, playerHp: 37, enemyAttack: 5 }, "heal", true);
+    expect(healed.playerHp).toBe(37);
+    expect(healed.turnDeltas).toEqual([
+      { target: "player", amount: 5 },
+      { target: "player", amount: -5 },
+    ]);
+    const shielded = answer({ ...healed, playerHp: 40, enemyAttack: 5 }, "block", false);
+    const guardDelta = shielded.turnDeltas.find((delta) => delta.target === "player");
+    expect(guardDelta?.amount).toBe(shielded.playerHp - 40);
+    expect(guardDelta?.amount).toBeLessThan(0);
+    expect(guardDelta?.amount).toBeGreaterThan(-5);
+    const full = answer({ ...hero, playerHp: 42, enemyHp: 40, enemyMaxHp: 40, enemyAttack: 5 }, "heal", true);
+    expect(full.playerHp).toBe(37);
+    expect(full.turnDeltas.filter((delta) => delta.amount > 0)).toEqual([]);
+    expect(full.turnDeltas).toContainEqual({ target: "player", amount: -5 });
+  });
 });

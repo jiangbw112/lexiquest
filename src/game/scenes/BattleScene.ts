@@ -31,21 +31,26 @@ import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
 import { FONT_BODY, INK, MUTED } from "../warm/theme";
 import {
-  computeActualHpChange,
   spawnFloater,
   activeFloaterCount,
   floaterStackOffset,
   emptyFloaterState,
   pushFloater,
   pruneFloaters,
+  FLOATER_LAYER_NAME,
+  keptAcrossDraw,
   type FloaterState,
 } from "../battle-floater";
 import {
   actionTriggersLunge,
+  battleMotionBeats,
   performLunge,
   PLAYER_BATTLE_X,
   MONSTER_BATTLE_X,
+  type MotionBeat,
 } from "../battle-lunge";
+import { attachBattleShot, type BattleShotHandle } from "../battle-shot";
+import { destroyDrawn } from "../destroy-drawn";
 
 interface BattleLaunch {
   stageId?: number;
@@ -73,9 +78,10 @@ export class BattleScene extends Phaser.Scene {
   private lunging = false;
   private playerFloaters: FloaterState = emptyFloaterState();
   private enemyFloaters: FloaterState = emptyFloaterState();
-  private pendingPlayerDamage = 0;
-  private pendingEnemyDamage = 0;
-  private pendingLunge: { attacker: "player" | "enemy"; skillKind?: string } | null = null;
+  private floaterLayer?: Phaser.GameObjects.Container;
+  private battleEnemy?: Phaser.GameObjects.Container;
+  private shot: BattleShotHandle | null = null;
+  private shownFrom = { playerHp: 0, enemyHp: 0 };
 
   constructor() {
     super("battle");
@@ -116,11 +122,14 @@ export class BattleScene extends Phaser.Scene {
     this.presenting = false;
     this.resultsOpened = false;
     this.lunging = false;
-    this.playerFloaters = emptyFloaterState();
-    this.enemyFloaters = emptyFloaterState();
-    this.pendingPlayerDamage = 0;
-    this.pendingEnemyDamage = 0;
-    this.pendingLunge = null;
+    this.resetFloaterState();
+    this.shot = null;
+    if (import.meta.env.DEV) {
+      this.shot = attachBattleShot(this, () => this.shotRead(), {
+        act: (type) => this.act({ type }),
+        answer: (correct) => this.answerForShot(correct),
+      });
+    }
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();
@@ -178,11 +187,7 @@ export class BattleScene extends Phaser.Scene {
     this.bossPoses = ["idle"];
     this.monsterHit = false;
     this.lunging = false;
-    this.playerFloaters = emptyFloaterState();
-    this.enemyFloaters = emptyFloaterState();
-    this.pendingPlayerDamage = 0;
-    this.pendingEnemyDamage = 0;
-    this.pendingLunge = null;
+    this.resetFloaterState();
     this.draw();
   }
 
@@ -245,24 +250,15 @@ export class BattleScene extends Phaser.Scene {
     const before = this.state;
     this.state = answerQuestion(this.state, choiceId);
 
-    const playerHpChange = computeActualHpChange({
-      hpBefore: before.playerHp,
-      hpAfter: this.state.playerHp,
-      maxHp: this.state.playerMaxHp,
-    });
-    const enemyHpChange = computeActualHpChange({
-      hpBefore: before.enemyHp,
-      hpAfter: this.state.enemyHp,
-      maxHp: this.state.enemyMaxHp,
-    });
-    this.pendingPlayerDamage = playerHpChange;
-    this.pendingEnemyDamage = enemyHpChange;
-
+    const deltas = this.state.turnDeltas ?? [];
+    const enemyAmount = deltas.filter((delta) => delta.target === "enemy").reduce((sum, delta) => sum + delta.amount, 0);
+    const playerEffect = deltas.filter((delta) => delta.target === "player" && delta.amount > 0).reduce((sum, delta) => sum + delta.amount, 0);
+    const playerHit = deltas.filter((delta) => delta.target === "player" && delta.amount < 0).reduce((sum, delta) => sum + delta.amount, 0);
     const pendingSlot = before.pendingSlot !== null ? before.slots[before.pendingSlot] : null;
     const skillKind = pendingSlot?.kind;
     const actionType = before.pendingBasic ?? (pendingSlot ? "skill" : undefined);
-    const shouldLungePlayer = actionType && actionTriggersLunge(actionType, skillKind) && enemyHpChange < 0;
-    const shouldLungeEnemy = playerHpChange < 0 && this.state.phase !== "won";
+    const shouldLungePlayer = Boolean(actionType && actionTriggersLunge(actionType, skillKind) && enemyAmount < 0);
+    const shouldLungeEnemy = playerHit < 0 && this.state.phase !== "won";
 
     this.poses = battlePoses({
       action: "answer",
@@ -271,19 +267,26 @@ export class BattleScene extends Phaser.Scene {
       phase: this.state.phase,
     });
     this.syncBoss(before);
+    this.shownFrom = { playerHp: before.playerHp, enemyHp: before.enemyHp };
+    const beats = battleMotionBeats({
+      playerLunge: shouldLungePlayer,
+      enemyLunge: shouldLungeEnemy,
+      enemyAmount,
+      playerEffect,
+      playerHit,
+    });
+    this.playMotion(beats, before);
+  }
 
-    if (shouldLungePlayer) {
-      this.pendingLunge = { attacker: "player", skillKind };
-      this.executeLungeSequence(before);
-    } else if (shouldLungeEnemy) {
-      this.pendingLunge = { attacker: "enemy" };
-      this.executeLungeSequence(before);
-    } else {
-      this.holdResolution(before);
-      this.finishIfNeeded();
-      this.draw();
-      this.spawnPendingFloaters();
+  private answerForShot(correct: boolean): void {
+    const question = this.state?.question;
+    if (!question || this.state.phase !== "question") return;
+    if (question.kind === "spelling") {
+      this.choose(correct ? question.answer : "miss");
+      return;
     }
+    const wrong = question.choices.find((choice) => choice.id !== question.answerId)?.id ?? "miss";
+    this.choose(correct ? question.answerId : wrong);
   }
 
   private submitSpelling(): void {
@@ -295,67 +298,132 @@ export class BattleScene extends Phaser.Scene {
     this.choose(correct ? this.state.question.answer : "miss");
   }
 
-  private spawnPendingFloaters(): void {
-    const now = Date.now();
-    this.playerFloaters = pruneFloaters(this.playerFloaters, now);
-    this.enemyFloaters = pruneFloaters(this.enemyFloaters, now);
-
-    if (this.pendingPlayerDamage !== 0) {
-      const stackOffset = floaterStackOffset(activeFloaterCount(this.playerFloaters, now));
-      spawnFloater(this, PLAYER_BATTLE_X, 280, this.pendingPlayerDamage, stackOffset);
-      this.playerFloaters = pushFloater(this.playerFloaters, this.pendingPlayerDamage, now);
-      this.pendingPlayerDamage = 0;
-    }
-
-    if (this.pendingEnemyDamage !== 0) {
-      const stackOffset = floaterStackOffset(activeFloaterCount(this.enemyFloaters, now));
-      const enemyX = this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X;
-      spawnFloater(this, enemyX, 320, this.pendingEnemyDamage, stackOffset);
-      this.enemyFloaters = pushFloater(this.enemyFloaters, this.pendingEnemyDamage, now);
-      this.pendingEnemyDamage = 0;
-    }
+  private resetFloaterState(): void {
+    this.playerFloaters = emptyFloaterState();
+    this.enemyFloaters = emptyFloaterState();
+    this.floaterLayer?.removeAll(true);
   }
 
-  private executeLungeSequence(before: BattleState): void {
-    if (!this.pendingLunge) {
-      this.holdResolution(before);
-      this.finishIfNeeded();
-      this.draw();
-      this.spawnPendingFloaters();
-      return;
-    }
+  private shotRead(): {
+    playerHp: number;
+    enemyHp: number;
+    playerHpBefore: number;
+    enemyHpBefore: number;
+    playerX: number;
+    enemyX: number;
+    floaters: string[];
+    lunging: boolean;
+    phase: string;
+    deltas: { target: "player" | "enemy"; amount: number }[];
+  } {
+    return {
+      playerHp: this.state?.playerHp ?? 0,
+      enemyHp: this.state?.enemyHp ?? 0,
+      playerHpBefore: this.shownFrom.playerHp,
+      enemyHpBefore: this.shownFrom.enemyHp,
+      playerX: this.battleHero?.x ?? PLAYER_BATTLE_X,
+      enemyX: this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X),
+      floaters: this.floaterLabels(),
+      lunging: this.lunging,
+      phase: this.state?.phase ?? "",
+      deltas: this.state?.turnDeltas ?? [],
+    };
+  }
 
-    this.lunging = true;
+  private floaterLabels(): string[] {
+    const layer = this.floaterLayer;
+    if (!layer) return [];
+    return layer.list.flatMap((child) => {
+      if (!("text" in child)) return [];
+      const text = (child as { text?: string }).text;
+      return text ? [text] : [];
+    });
+  }
+
+  private playMotion(beats: readonly MotionBeat[], before: BattleState): void {
+    const lunges = beats.some((beat) => beat.kind === "lunge");
+    this.lunging = lunges;
+    this.holdResolution(before);
+    this.finishIfNeeded();
     this.draw();
+    this.playBeats(beats, 0);
+  }
 
-    const isPlayerAttacking = this.pendingLunge.attacker === "player";
-    const container = isPlayerAttacking ? this.battleHero : null;
-    const targetX = isPlayerAttacking ? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X) : PLAYER_BATTLE_X;
-
-    if (!container) {
-      this.lunging = false;
-      this.pendingLunge = null;
-      this.holdResolution(before);
-      this.finishIfNeeded();
-      this.draw();
-      this.spawnPendingFloaters();
+  private playBeats(beats: readonly MotionBeat[], index: number): void {
+    const beat = beats[index];
+    if (!beat) {
+      this.endMotion();
       return;
     }
+    if (beat.kind === "lunge") {
+      const hit = beats[index + 1];
+      const back = beats[index + 2];
+      if (!hit || hit.kind !== "hit" || !back || back.kind !== "return") {
+        this.playBeats(beats, index + 1);
+        return;
+      }
+      const container = beat.attacker === "player" ? this.battleHero : this.battleEnemy;
+      const targetX = beat.attacker === "player"
+        ? (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X))
+        : (this.battleHero?.x ?? PLAYER_BATTLE_X);
+      const onHit = () => {
+        this.spawnSigned(hit.target, hit.amount);
+        this.shot?.onShown(beat.attacker);
+      };
+      if (!container) {
+        onHit();
+        this.playBeats(beats, index + 3);
+        return;
+      }
+      performLunge(this, container, targetX, onHit, () => this.playBeats(beats, index + 3));
+      return;
+    }
+    if (beat.kind === "floater") {
+      this.spawnSigned(beat.target, beat.amount);
+      this.shot?.onShown(beat.target === "player" ? "heal" : beat.target);
+    }
+    this.playBeats(beats, index + 1);
+  }
 
-    performLunge(
-      this,
-      container,
-      targetX,
-      undefined,
-      () => {
-        this.lunging = false;
-        this.pendingLunge = null;
-        this.holdResolution(before);
-        this.finishIfNeeded();
-        this.draw();
-        this.spawnPendingFloaters();
-      },
-    );
+  private endMotion(): void {
+    this.lunging = false;
+    if (!this.scene.isActive() || this.resolving) return;
+    this.draw();
+  }
+
+  private spawnSigned(target: "player" | "enemy", amount: number): void {
+    if (amount === 0) return;
+    const now = Date.now();
+    const state = target === "player" ? this.playerFloaters : this.enemyFloaters;
+    const active = pruneFloaters(state, now);
+    const stackOffset = floaterStackOffset(activeFloaterCount(active, now));
+    const x = target === "player" ? PLAYER_BATTLE_X : (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+    const y = target === "player" ? 250 : 300;
+    this.ensureFloaterLayer();
+    spawnFloater(this, x, y, amount, stackOffset, this.floaterLayer);
+    const next = pushFloater(active, amount, now);
+    if (target === "player") this.playerFloaters = next;
+    else this.enemyFloaters = next;
+    if (this.floaterLayer?.scene) this.children.bringToTop(this.floaterLayer);
+  }
+
+  private ensureFloaterLayer(): Phaser.GameObjects.Container {
+    if (!this.floaterLayer?.scene) {
+      this.floaterLayer = this.add.container(0, 0);
+      this.floaterLayer.setName(FLOATER_LAYER_NAME);
+      this.floaterLayer.setDepth(4000);
+      this.floaterLayer.setScrollFactor(0);
+    }
+    return this.floaterLayer;
+  }
+
+  private clearExceptFloaters(): void {
+    const children = [...this.children.list];
+    const kept = new Set(keptAcrossDraw(children));
+    const live = this.floaterLayer?.scene && kept.has(this.floaterLayer) ? this.floaterLayer : undefined;
+    this.floaterLayer = live;
+    destroyDrawn(children.filter((child) => child !== live));
+    this.ensureFloaterLayer();
   }
 
   private act(action: { type: "attack" | "block" | "heal" | "skill"; slotIndex?: number }): void {
@@ -410,6 +478,7 @@ export class BattleScene extends Phaser.Scene {
       this.resolving = false;
       if (!this.scene.isActive()) return;
       ready();
+      if (this.lunging) return;
       this.draw();
     });
   }
@@ -479,6 +548,7 @@ export class BattleScene extends Phaser.Scene {
   /** The results hero replaces this one. Hide the battle body, title, bars, and log before the overlay opens. */
   private concealBattleActors(): void {
     this.battleHero?.setVisible(false);
+    this.floaterLayer?.setVisible(false);
     for (const node of [...this.battleTitle, ...this.battleHud]) {
       (node as { setVisible?: (shown: boolean) => void }).setVisible?.(false);
     }
@@ -503,16 +573,18 @@ export class BattleScene extends Phaser.Scene {
         reportBossLoad(this);
         this.bossReported = true;
       }
-      const boss = new BossSprite(this, BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y);
+      const boss = new BossSprite(this, 0, 0);
       boss.playSequence(this.bossPoses);
+      this.battleEnemy = this.add.container(BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y, [boss.sprite]);
       return;
     }
     const kind = this.state.enemySprite === "page" ? "page" : this.state.enemySprite === "inkling" ? "inkling" : null;
     if (!kind) return;
     const frame = `monster_${kind}_${this.monsterHit ? "hit" : "idle"}`;
-    const monster = this.add.image(980, 520, "atlas_monsters", frame);
+    const monster = this.add.image(0, 0, "atlas_monsters", frame);
     monster.setOrigin(0.5, 0.977);
     monster.setScale(0.45);
+    this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
   }
 
   private flash(target: Phaser.GameObjects.Container): void {
@@ -523,7 +595,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.state) return;
     const save = getSave();
     if (!save) return;
-    this.children.removeAll(true);
+    this.clearExceptFloaters();
     if (this.state.question?.kind !== "spelling") {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
@@ -608,6 +680,7 @@ export class BattleScene extends Phaser.Scene {
         showSpellingHint(this.state.question.answer);
         const input = document.getElementById("spell-input");
         if (input instanceof HTMLInputElement) window.setTimeout(() => input.focus(), 30);
+        this.finishDraw();
         return;
       }
       probeQuestion(this.state.question.answerId, this.state.question.choices.map((choice) => choice.id));
@@ -615,6 +688,7 @@ export class BattleScene extends Phaser.Scene {
       this.state.question.choices.forEach((choice, index) => {
         warmOption(this, 280 + index * 280, 738, index, choice.id, choice.label, () => this.choose(choice.id), 250, 76);
       });
+      this.finishDraw();
       return;
     }
     const choosing = this.state.phase === "choose";
@@ -657,5 +731,10 @@ export class BattleScene extends Phaser.Scene {
       warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
     }
     this.battleHud = this.children.list.slice(hudAt);
+    this.finishDraw();
+  }
+
+  private finishDraw(): void {
+    if (this.floaterLayer?.scene) this.children.bringToTop(this.floaterLayer);
   }
 }

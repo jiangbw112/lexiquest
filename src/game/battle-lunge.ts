@@ -144,3 +144,47 @@ export function actionTriggersLunge(
   }
   return true;
 }
+
+export type BattleSide = "player" | "enemy";
+
+export type MotionBeat =
+  | { kind: "lunge"; attacker: BattleSide }
+  | { kind: "hit"; attacker: BattleSide; target: BattleSide; amount: number }
+  | { kind: "return"; attacker: BattleSide }
+  | { kind: "floater"; target: BattleSide; amount: number };
+
+/**
+ * Visual order for one resolved turn.
+ * A lunge spawns the defender's number on the hit beat, before the return.
+ * Healing and other non-lunges spawn immediately, with no return beat.
+ * A zero amount never becomes a floater beat.
+ */
+export function battleMotionBeats(input: {
+  playerLunge: boolean;
+  enemyLunge: boolean;
+  /** Damage dealt to the enemy by this action. */
+  enemyAmount: number;
+  /** The player's own heal or other self effect. Not the counterattack. */
+  playerEffect: number;
+  /** Damage the enemy's counterattack actually dealt. */
+  playerHit: number;
+}): MotionBeat[] {
+  const beats: MotionBeat[] = [];
+  if (input.playerLunge) {
+    beats.push({ kind: "lunge", attacker: "player" });
+    beats.push({ kind: "hit", attacker: "player", target: "enemy", amount: input.enemyAmount });
+    beats.push({ kind: "return", attacker: "player" });
+  } else if (input.enemyAmount !== 0) {
+    beats.push({ kind: "floater", target: "enemy", amount: input.enemyAmount });
+  }
+  if (input.playerEffect !== 0) beats.push({ kind: "floater", target: "player", amount: input.playerEffect });
+  if (input.enemyLunge) {
+    beats.push({ kind: "lunge", attacker: "enemy" });
+    beats.push({ kind: "hit", attacker: "enemy", target: "player", amount: input.playerHit });
+    beats.push({ kind: "return", attacker: "enemy" });
+  } else if (input.playerHit !== 0) {
+    beats.push({ kind: "floater", target: "player", amount: input.playerHit });
+  }
+  return beats;
+}
+
