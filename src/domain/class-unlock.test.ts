@@ -118,12 +118,13 @@ describe("class unlock", () => {
     expect(scene).not.toContain("icon_lock");
   });
 
-  it("does not unlock inventor when the save only lists unlockedClassIds", () => {
+  it("C-12 ④ does not unlock inventor when the save only lists unlockedClassIds", () => {
     const raw = claimedSave("warrior");
     delete raw.inventorUnlockedAt;
     delete raw.inventorUnlockedBy;
     delete raw.examProgress;
     raw.unlockedClassIds = ["inventor"];
+    expect(raw.examProgress).toBeUndefined();
     const loaded = deserialize(JSON.stringify(raw));
     expect(loaded?.player.classId).toBe("warrior");
     expect(isClassSelectable("inventor", loaded)).toBe(false);
@@ -135,12 +136,13 @@ describe("class unlock", () => {
     expect(kept.inventorUnlockedAt).toBeUndefined();
   });
 
-  it("does not unlock inventor when only exam clears are stored, including all eight together", () => {
+  it("C-12 ⑤ does not unlock inventor when only exam clears are stored, one or all eight", () => {
     const one = claimedSave("warrior");
     delete one.unlockedClassIds;
     delete one.inventorUnlockedAt;
     delete one.inventorUnlockedBy;
-    one.player.classId = "inventor";
+    expect(one.player.classId).toBe("warrior");
+    expect(one.unlockedClassIds).toBeUndefined();
     one.examProgress = { exam_g3_s1_final: { cleared: true, bestPhase: 3 } };
     const oneLoaded = deserialize(JSON.stringify(one));
     expect(oneLoaded?.player.classId).toBe("warrior");
