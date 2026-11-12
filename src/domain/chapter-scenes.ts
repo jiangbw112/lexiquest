@@ -60,10 +60,10 @@ const FOREST_BACKDROP: ChapterBackdrop = {
 };
 
 /**
- * integration_v1.0.1 journey defaults. Night is adopted for these chapters only.
- * pep_g6_03 stays on the day set until Haru confirms it.
+ * K35, Haru 18:56. Only pep_g6_01 uses the journey night set.
+ * pep_g6_03, pep_g6_04, pep_g5_08, pep_g5_09, pep_g6_05, and pep_g6_06 stay on the day set.
  */
-export const JOURNEY_NIGHT_CHAPTERS = ["pep_g6_01", "pep_g6_04"] as const;
+export const JOURNEY_NIGHT_CHAPTERS = ["pep_g6_01"] as const;
 
 function sceneFile(group: SceneGroupId, kind: "map" | "battle", night: boolean): string {
   if (group === "journey") {
@@ -89,7 +89,7 @@ export function chapterBackdrop(chapterId: string): ChapterBackdrop {
   };
 }
 
-/** Journey night files. pep_g6_01 and pep_g6_04 load them. The other journey chapters do not. */
+/** Journey night files. Only pep_g6_01 loads them. */
 export function journeyNightUrls(): readonly string[] {
   return [
     "assets/chapter/scenes/journey/bg_map_night.webp",

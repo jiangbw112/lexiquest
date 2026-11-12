@@ -26,6 +26,7 @@ interface LedgerChapter {
 }
 
 interface Ledger {
+  note: string;
   chapters: LedgerChapter[];
   files: LedgerFile[];
 }
@@ -69,37 +70,40 @@ describe("chapter scene groups", () => {
     expect(CHAPTER_SCENE_GROUP[FOREST_CHAPTER.chapter_id]).toBeUndefined();
   });
 
-  it("follows the v1.0.1 journey day and night assignment", () => {
+  it("lets only pep_g6_01 reference the journey night set", () => {
     const nights = journeyNightUrls();
+    const dayJourney = ["pep_g5_08", "pep_g5_09", "pep_g6_03", "pep_g6_04", "pep_g6_05", "pep_g6_06"];
     expect(nights).toEqual([
       "assets/chapter/scenes/journey/bg_map_night.webp",
       "assets/chapter/scenes/journey/bg_battle_night.webp",
     ]);
-    expect([...JOURNEY_NIGHT_CHAPTERS]).toEqual(["pep_g6_01", "pep_g6_04"]);
+    expect([...JOURNEY_NIGHT_CHAPTERS]).toEqual(["pep_g6_01"]);
+    expect(ledger.note).toContain("only pep_g6_01");
+    expect(ledger.note).not.toContain("pep_g6_04 uses the journey night");
     for (const file of ledger.files) {
       expect(file.referenced).toBe(true);
       expect(file.recompressed).toBe(false);
       expect(file.repoSha256).toBe(file.sourceSha256);
       expect(sha256(file.repoPath)).toBe(file.repoSha256);
     }
-    for (const id of JOURNEY_NIGHT_CHAPTERS) {
+    const night = chapterBackdrop("pep_g6_01");
+    expect(night.mapUrl).toBe(nights[0]);
+    expect(night.battleUrl).toBe(nights[1]);
+    expect(night.mapKey).toBe("chapter_map_journey_night");
+    expect(night.battleKey).toBe("chapter_battle_journey_night");
+    for (const id of dayJourney) {
       const backdrop = chapterBackdrop(id);
-      expect(backdrop.mapUrl).toBe(nights[0]);
-      expect(backdrop.battleUrl).toBe(nights[1]);
-      expect(backdrop.mapKey).toBe("chapter_map_journey_night");
-      expect(backdrop.battleKey).toBe("chapter_battle_journey_night");
+      expect(backdrop.mapUrl).toBe("assets/chapter/scenes/journey/bg_map_day.webp");
+      expect(backdrop.battleUrl).toBe("assets/chapter/scenes/journey/bg_battle_day.webp");
+      expect(backdrop.mapKey).toBe("chapter_map_journey_day");
+      expect(backdrop.battleKey).toBe("chapter_battle_journey_day");
     }
     for (const id of Object.keys(CHAPTER_SCENE_GROUP)) {
-      if ((JOURNEY_NIGHT_CHAPTERS as readonly string[]).includes(id)) continue;
+      if (id === "pep_g6_01") continue;
       const backdrop = chapterBackdrop(id);
       expect(nights).not.toContain(backdrop.mapUrl);
       expect(nights).not.toContain(backdrop.battleUrl);
     }
-    const day = chapterBackdrop("pep_g6_06");
-    expect(day.mapUrl).toBe("assets/chapter/scenes/journey/bg_map_day.webp");
-    expect(day.battleUrl).toBe("assets/chapter/scenes/journey/bg_battle_day.webp");
-    expect(day.mapKey).toBe("chapter_map_journey_day");
-    expect(day.mapKey).not.toBe(chapterBackdrop("pep_g6_01").mapKey);
   });
 
   it("does not add chapter scenes to the boot scene", () => {
