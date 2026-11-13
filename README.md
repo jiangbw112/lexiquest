@@ -118,13 +118,13 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 | 项目 | 数值 |
 | --- | --- |
-| 探索敌人血量 / 攻击 | 44 / 6，约 3–4 次盾击、战吼或旋风斩 |
+| 探索敌人血量 / 攻击 | 非治愈师第 1–4 关依次为 40/42/44/46 HP，攻击均为 5。战士使用 ★1 盾击、战吼、旋风斩，答对时伤害分别为 11/15/19；只用这些技能造成伤害且每次答对，需 3–5 次命中（不含攒能量或辅助回合，不是总回合数） |
 | 题目间隔 | 有其他可选词时，最近 3 题内不重复 |
 | 通关奖励 | 从 `src/domain/chapters/forest-rewards.json` 读取。首次通关获得 `forest_leaf_cape` 和默认候选称号。掌握使用 `ceil(章节长度 × 0.5)` 和 `ceil(章节长度 × 1)`。名称未最终确定（`final_name_selected_by_pm` 为 false） |
 
 林心守护者是两阶段，战士每阶段 75 血量（`src/domain/provisional.ts` 的 `chapterEnding.bossPhaseHpByClass.warrior`；同表法师 90、游侠 85、治愈师 48、发明家 70、探险家 75）。`phases` 里写的 75 会被这张表按职业换掉。两阶段合计 150 血。★1 伤害来自 `skillMagnitude`：盾击 `Math.round(10 × 1.05)` = 11，14 次打完；战吼 `Math.round(14 × 1.05)` = 15，10 次；旋风斩 `Math.round(18 × 1.05)` = 19，8 次。拼写题占 Boss 题目的 30% 以下。这些数值可能在测试后调整。
 
-森林章节装饰和称号在 `src/domain/chapters/forest-rewards.json` 中，该文件在词表目录之外。首次通关和两个掌握里程碑各获得一次装饰和称号。徽章变灰不会收回，重玩不会再次获得。它们不改变 XP、FSRS 或战斗统计。每日装饰代币仍是每日目标奖励。绘制图在 `public/assets/chapter/forest/v0.1/` 下，是森林奖励 v0.1。清单状态为「暂定」。披风是 `cosmetic_back`，z 轴 6；橡果别针是 `cosmetic_chest`，z 轴 47；花环是 `cosmetic_head`，z 轴 65。槽位表 v0.2 新增 `cosmetic_chest`。别针的胸部偏移已包含在裁剪帧中。战士 v1.0 侧视有 `back` 和 `back_front`。装备林间斗篷时，`forest-rewards.json` 会藏起这两层。花环只藏 `outfit_head_plume`，不藏整个头盔。侧视时披风看起来像身后的一条树叶带。别针较小，在攻击帧 02 和 03 中大部分被近手遮挡。
+森林章节装饰和称号在 `src/domain/chapters/forest-rewards.json` 中，该文件在词表目录之外。首次通关和两个掌握里程碑各获得一次装饰和称号。徽章变灰不会收回，重玩不会再次获得。它们不改变 XP、FSRS 或战斗统计。每日装饰代币仍是每日目标奖励。绘制图在 `public/assets/chapter/forest/v0.1/` 下，是森林奖励 v0.1。清单状态为「暂定」。林叶披肩是 `cosmetic_back`（z=6），橡实别针是 `cosmetic_chest`（z=47），森语花环是 `cosmetic_head`（z=65）。当前职业 v1.0 中，林叶披肩和橡实别针只在战士侧视显示；披肩藏起 `back` 和 `back_front`，别针不藏层，俯视不画这两件。森语花环在六个职业的侧视和俯视都显示，只藏战士的头盔羽饰（侧视 `outfit_head_plume`、俯视 `outfitHeadPlume`），不藏整个头盔。林间斗篷是另一套服装，它的侧视斗篷和叶子帽也只在战士身上显示。
 
 `public/assets` 在本机量得 28,503,107 字节（约 28.5 MB），其中包含职业 v1.0 侧视和俯视。生产 JavaScript 首包在本机量得 1,614,811 字节（gzip 前，`dist/assets/index-D-tOPX4p.js`），因为包含 Phaser。
 
