@@ -13,15 +13,17 @@ import {
 } from "./battle";
 import { CLASS_IDS, classById } from "./classes";
 import { deviceTimeZone, localDayKey } from "./local-day";
-import { canLearnNewWord, newWordsLearnedToday, reviewFirstNotice, setGoalPreset } from "./parent";
-import { sampleWords } from "./catalog";
+import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, newWordsLearnedToday, reviewFirstNotice, setGoalPreset } from "./parent";
+import { lessonUnits, sampleWords } from "./catalog";
 import {
   applyBattleOutcome,
   createSave,
+  LEARN_XP,
   learnWord,
   noteBattleAnswer,
   reviewWord,
 } from "./progress";
+import { deserialize, serialize } from "./storage";
 import { fsrsScheduler, isDue } from "./review";
 import { orderReviewWords, skillQuestionPool } from "./skill-cast";
 import {
@@ -528,30 +530,48 @@ describe("round 3 review grades and real days", () => {
 });
 
 describe("round 3 new words, hints, and replay", () => {
-  it("N1 stops at 3, 5, and 8 new words", () => {
+  it("N1 keeps issuing cards after the 3, 5, and 8 new-word targets", () => {
     const now = atLocal("2026-07-01", "11:00");
     const words = sampleWords().map((word) => word.id);
-    for (const [preset, cap] of [["easy", 3], ["normal", 5], ["more", 8]] as const) {
+    for (const [preset, target] of [["easy", 3], ["normal", 5], ["more", 8]] as const) {
       let save = setGoalPreset(fresh(now), preset);
-      for (let index = 0; index < cap; index += 1) save = learnWord(save, words[index]!, now, ZONE);
-      expect(newWordsLearnedToday(save, now, ZONE)).toBe(cap);
-      const blocked = learnWord(save, words[cap]!, now, ZONE);
-      expect(blocked).toBe(save);
-      expect(canLearnNewWord(blocked, now, ZONE)).toBe(false);
+      for (let index = 0; index < target; index += 1) save = learnWord(save, words[index]!, now, ZONE);
+      expect(newWordsLearnedToday(save, now, ZONE)).toBe(target);
+      expect(dailyNewWordTargetMet(save, now, ZONE)).toBe(true);
+      expect(save.dailyGoal?.rewardClaimed).toBe(true);
+      const nextId = words[target]!;
+      const tokens = save.cosmeticTokens;
+      const learned = learnWord(save, nextId, now, ZONE);
+      expect(learned).not.toBe(save);
+      expect(learned.wordCards[nextId]).toMatchObject({ masteryBadge: false, collectedAt: now.getTime() });
+      expect(learned.memory[nextId]?.reviewInstants).toEqual([now.getTime()]);
+      expect(learned.xp).toBe(save.xp + LEARN_XP);
+      expect(newWordsLearnedToday(learned, now, ZONE)).toBe(target + 1);
+      expect(learned.cosmeticTokens).toBe(tokens);
+      expect(learned.dailyGoal?.rewardClaimed).toBe(true);
+      const duplicate = learnWord(learned, nextId, now, ZONE);
+      expect(duplicate).toBe(learned);
+      expect(newWordsLearnedToday(duplicate, now, ZONE)).toBe(target + 1);
+      expect(duplicate.xp).toBe(learned.xp);
     }
   });
 
-  it("N2 starts a new count after local midnight", () => {
+  it("N2 starts a new count after local midnight and still learns past the evening target", () => {
     const evening = atLocal("2026-07-02", "23:30");
     const morning = atLocal("2026-07-03", "03:00");
     let save = setGoalPreset(fresh(evening), "easy");
     save = learnWord(save, "tree", evening, ZONE);
     save = learnWord(save, "bird", evening, ZONE);
     save = learnWord(save, "fish", evening, ZONE);
-    expect(learnWord(save, "sun", evening, ZONE)).toBe(save);
-    save = learnWord(save, "sun", morning, ZONE);
-    expect(save.wordCards.sun).toBeTruthy();
-    expect(newWordsLearnedToday(save, morning, ZONE)).toBe(1);
+    const fourth = learnWord(save, "sun", evening, ZONE);
+    expect(fourth.wordCards.sun).toBeTruthy();
+    expect(fourth.xp).toBe(save.xp + LEARN_XP);
+    expect(newWordsLearnedToday(fourth, evening, ZONE)).toBe(4);
+    expect(newWordsLearnedToday(fourth, morning, ZONE)).toBe(0);
+    const next = learnWord(fourth, "map", morning, ZONE);
+    expect(next.wordCards.map).toBeTruthy();
+    expect(newWordsLearnedToday(next, morning, ZONE)).toBe(1);
+    expect(newWordsLearnedToday(next, evening, ZONE)).toBe(4);
     expect(localDayKey(evening, ZONE)).not.toBe(localDayKey(morning, ZONE));
   });
 
@@ -703,22 +723,64 @@ describe("round 3 new words, hints, and replay", () => {
     expect(save.rewardQueue.every((notice) => notice.title !== "对战胜利")).toBe(true);
   });
 
-  it("N8 shows the cap notice and skips the next word card once the daily cap is reached", () => {
+  it("N8 grants the sixth grade-3 word, keeps it after a save reload, and only reminds", () => {
     const now = atLocal("2026-08-09", "10:00");
-    let save = setGoalPreset(fresh(now), "normal");
+    const unit = lessonUnits(["G3"])[0];
+    if (!unit) throw new Error("missing grade 3 lesson");
+    expect(unit.wordIds.slice(0, 5)).toEqual(["tree", "bird", "fish", "sun", "map"]);
+    const sixth = unit.wordIds[5]!;
+    const seventh = unit.wordIds[6]!;
+    let save = createSave({
+      name: "小林",
+      classId: "warrior",
+      appearance: DEFAULT_APPEARANCE,
+      now: now.getTime(),
+      grades: ["G3"],
+    });
+    save = setGoalPreset(save, "normal");
     for (const id of ["tree", "bird", "fish", "sun", "map"]) save = learnWord(save, id, now, ZONE);
     expect(newWordsLearnedToday(save, now, ZONE)).toBe(5);
-    expect(canLearnNewWord(save, now, ZONE)).toBe(false);
+    expect(dailyNewWordTargetMet(save, now, ZONE)).toBe(true);
+    const tokens = save.cosmeticTokens;
+    const learned = learnWord(save, sixth, now, ZONE);
+    expect(learned.wordCards[sixth]).toMatchObject({ masteryBadge: false });
+    expect(learned.xp).toBe(save.xp + LEARN_XP);
+    expect(newWordsLearnedToday(learned, now, ZONE)).toBe(6);
+    expect(learned.cosmeticTokens).toBe(tokens);
+    expect(learnWord(learned, sixth, now, ZONE)).toBe(learned);
+    const loaded = deserialize(serialize(learned));
+    if (!loaded) throw new Error("grade 3 save did not reload");
+    expect(loaded.wordCards[sixth]).toBeTruthy();
+    expect(newWordsLearnedToday(loaded, now, ZONE)).toBe(6);
+    expect(Object.keys(loaded)).not.toContain("newWordCap");
+    const continued = learnWord(loaded, seventh, now, ZONE);
+    expect(continued.wordCards[seventh]).toBeTruthy();
+    expect(newWordsLearnedToday(continued, now, ZONE)).toBe(7);
     const nextDay = atLocal("2026-08-10", "00:05");
-    expect(canLearnNewWord(save, nextDay, ZONE)).toBe(true);
+    expect(dailyNewWordTargetMet(continued, nextDay, ZONE)).toBe(false);
+    expect(learnWord(continued, unit.wordIds[7]!, nextDay, ZONE).wordCards[unit.wordIds[7]!]).toBeTruthy();
     const learn = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
-    const capAt = learn.indexOf("if (!canLearnNewWord(save, studyNow(save)))");
+    const progress = readFileSync(new URL("./progress.ts", import.meta.url), "utf8");
+    const parent = readFileSync(new URL("./parent.ts", import.meta.url), "utf8");
+    const proposals = readFileSync(new URL("./proposals.ts", import.meta.url), "utf8");
+    expect(NEW_WORD_GOAL_NOTICE).toBe("今天的新词够啦，想继续认识新朋友也可以。");
+    expect(NEW_WORD_GOAL_NOTICE).not.toContain("明天再来");
+    expect(learn).toContain("NEW_WORD_GOAL_NOTICE");
+    expect(learn).toContain("learnWord(current, id, studyNow(current))");
+    expect(learn).toContain("uiLabel(\"选意思\")");
+    expect(learn).not.toContain("canLearnNewWord");
+    expect(learn).not.toContain("atNewWordCap");
+    expect(learn).not.toContain("NEW_WORD_CAP_NOTICE");
+    const noticeAt = learn.indexOf("dailyNewWordTargetMet(save, now)");
     const cardAt = learn.indexOf("this.meaningRow(640, studyRowY");
-    expect(capAt).toBeGreaterThan(-1);
-    expect(cardAt).toBeGreaterThan(capAt);
-    const between = learn.slice(capAt, cardAt);
-    expect(between).toContain("NEW_WORD_CAP_NOTICE");
-    expect(between).toContain("return;");
+    expect(noticeAt).toBeGreaterThan(-1);
+    expect(cardAt).toBeGreaterThan(noticeAt);
+    expect(learn.slice(noticeAt, cardAt)).not.toContain("return;");
+    expect(progress).not.toContain("canLearnNewWord");
+    expect(parent).not.toContain("function canLearnNewWord");
+    expect(parent).not.toContain("newWordCap");
+    expect(proposals).toContain("newWordTarget:");
+    expect(proposals).not.toContain("newWordCap");
   });
 
   it("G1 does not store the play timer on a save", () => {
@@ -1011,7 +1073,9 @@ describe("round 3 scene contracts", () => {
     expect(skills).toContain("带一张攻击卡会更好打哦");
     expect(battle).not.toContain("带一张攻击卡会更好打哦");
     expect(map).not.toContain("带一张攻击卡会更好打哦");
-    expect(learn).toContain("NEW_WORD_CAP_NOTICE");
+    expect(learn).toContain("NEW_WORD_GOAL_NOTICE");
+    expect(learn).not.toContain("NEW_WORD_CAP_NOTICE");
+    expect(learn).not.toContain("canLearnNewWord");
     expect(map).toContain("fromBattleEnd");
     expect(map).toContain("已经玩了一会儿啦");
     expect(map).toContain("再玩一会儿");

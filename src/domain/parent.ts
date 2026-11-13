@@ -127,15 +127,16 @@ function writeStat(save: SaveData, dayKey: string, stat: DailyStat): SaveData {
   return { ...save, dailyStats: { ...save.dailyStats, [dayKey]: stat } };
 }
 
-export const NEW_WORD_CAP_NOTICE = "今天的新词够啦，明天再来认识新朋友。可以去复习或战斗。";
+export const NEW_WORD_GOAL_NOTICE = "今天的新词够啦，想继续认识新朋友也可以。";
 export const REVIEW_FIRST_NOTICE = "今天先复习更划算";
 
 export function newWordsLearnedToday(save: SaveData, now: Date, timeZone = deviceTimeZone()): number {
   return statFor(save, localDayKey(now, timeZone)).learnedWordIds.length;
 }
 
-export function canLearnNewWord(save: SaveData, now: Date, timeZone = deviceTimeZone()): boolean {
-  return newWordsLearnedToday(save, now, timeZone) < PROPOSALS.dailyGoal.newWordCap[save.parentGoalPreset];
+/** True once today's 3/5/8 target is met. Callers may show NEW_WORD_GOAL_NOTICE. They must not refuse the card. */
+export function dailyNewWordTargetMet(save: SaveData, now: Date, timeZone = deviceTimeZone()): boolean {
+  return newWordsLearnedToday(save, now, timeZone) >= PROPOSALS.dailyGoal.newWordTarget[save.parentGoalPreset];
 }
 
 export function reviewFirstNotice(save: SaveData, now: Date): string | null {

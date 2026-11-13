@@ -107,6 +107,8 @@ describe("DES-05 parent progress and daily goal", () => {
   it("keeps the confirmed numbers in one module", () => {
     expect(PROPOSALS.label).toBe("v1");
     expect(PROPOSALS.dailyGoal.goalMax).toEqual({ easy: 8, normal: 15, more: 25 });
+    expect(PROPOSALS.dailyGoal.newWordTarget).toEqual({ easy: 3, normal: 5, more: 8 });
+    expect(PROPOSALS.dailyGoal).not.toHaveProperty("newWordCap");
     expect(PROPOSALS.dailyGoal.learnFallback).toEqual({ easy: 2, normal: 3, more: 5 });
     expect(PROPOSALS.dailyGoal.practiceQuestions).toBe(3);
     expect(PROPOSALS.dailyGoal).not.toHaveProperty("dayBoundaryHour");
