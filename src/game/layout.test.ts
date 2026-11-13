@@ -6,7 +6,7 @@ import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
 import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
-import { CARD_GOT, COLLECTION_CARD, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
+import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -113,6 +113,8 @@ describe("study card and option alignment", () => {
     };
     interface Box { x: number; y: number; w: number; h: number }
     const hits = (a: Box, b: Box) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    const inside = (inner: Box, item: Box) =>
+      item.x >= inner.x && item.y >= inner.y && item.x + item.w <= inner.x + inner.w && item.y + item.h <= inner.y + inner.h;
     const assertFit = (fitted: FittedText, box: TextBox, source: string) => {
       expect(fitted.lines.length, source).toBeGreaterThan(0);
       expect(fitted.lines.length, source).toBeLessThanOrEqual(box.maxLines);
@@ -126,13 +128,23 @@ describe("study card and option alignment", () => {
     const lineWidth = (fitted: FittedText) => fitted.lines.reduce((wide, line) => Math.max(wide, measure(fitted.fontSize)(line)), 0);
     const spellLeft = REVIEW_ROW.spellCenter - REVIEW_ROW.spellWidth / 2;
     const revealLeft = REVIEW_ROW.revealCenter - REVIEW_ROW.revealWidth / 2;
-    const reveal: Box = { x: revealLeft, y: 12 - 20, w: REVIEW_ROW.revealWidth, h: 40 };
-    const spell: Box = { x: spellLeft, y: 36 - 24, w: REVIEW_ROW.spellWidth, h: 48 };
+    const reveal: Box = {
+      x: revealLeft,
+      y: REVIEW_ROW.revealOffset - REVIEW_ROW.revealHeight / 2,
+      w: REVIEW_ROW.revealWidth,
+      h: REVIEW_ROW.revealHeight,
+    };
+    const spell: Box = {
+      x: spellLeft,
+      y: REVIEW_ROW.spellOffset - REVIEW_ROW.spellHeight / 2,
+      w: REVIEW_ROW.spellWidth,
+      h: REVIEW_ROW.spellHeight,
+    };
     const rates: Box[] = [0, 1, 2, 3].map((index) => ({
       x: REVIEW_ROW.rateCenter + index * 120 - REVIEW_ROW.rateWidth / 2,
-      y: 40 - 24,
+      y: REVIEW_ROW.rateOffset - REVIEW_ROW.rateHeight / 2,
       w: REVIEW_ROW.rateWidth,
-      h: 48,
+      h: REVIEW_ROW.rateHeight,
     }));
     expect(reviewTextRight()).toBeLessThanOrEqual(spell.x - REVIEW_ROW.gap);
     expect(spell.x).toBeLessThan(rates[0]!.x);
@@ -173,8 +185,46 @@ describe("study card and option alignment", () => {
       const gloss = fitTextBox(word.chinese, glossBox, (sample, size) => measure(size)(sample));
       assertFit(gloss, glossBox, word.chinese);
       expect(RESULTS_WORD_CHIP.glossX + lineWidth(gloss), word.id).toBeLessThanOrEqual(chipRight);
-      expect(RESULTS_WORD_CHIP.glossY + fittedBlockHeight(gloss.fontSize, gloss.lines.length), word.id).toBeLessThanOrEqual(RESULTS_WORD_CHIP.height - RESULTS_WORD_CHIP.glossBottom);
+      const glossInner: Box = {
+        x: RESULTS_WORD_CHIP.glossX,
+        y: RESULTS_WORD_CHIP.glossY,
+        w: glossBox.maxWidth,
+        h: glossBox.maxHeight,
+      };
+      const glossLines = fittedLineBoxes(RESULTS_WORD_CHIP.glossX, RESULTS_WORD_CHIP.glossY, gloss, (line) => measure(gloss.fontSize)(line));
+      expect(glossLines.length, word.id).toBe(gloss.lines.length);
+      for (const line of glossLines) expect(inside(glossInner, line), `${word.id} gloss inside`).toBe(true);
+      for (let index = 0; index < glossLines.length; index += 1) {
+        const line = glossLines[index]!;
+        expect(line.y + line.h, `${word.id} line ${index}`).toBeLessThanOrEqual(RESULTS_WORD_CHIP.height - RESULTS_WORD_CHIP.glossBottom);
+        const next = glossLines[index + 1];
+        if (!next) continue;
+        expect(hits(line, next), `${word.id} lines overlap`).toBe(false);
+        expect(next.y - (line.y + line.h), `${word.id} line gap`).toBeGreaterThanOrEqual(FITTED_LINE_GAP);
+      }
     }
+    const chipAt = (index: number): Box => ({
+      x: 477 + (index % 4) * RESULTS_WORD_CHIP.pitchX,
+      y: 220 + Math.floor(index / 4) * RESULTS_WORD_CHIP.pitchY,
+      w: RESULTS_WORD_CHIP.width,
+      h: RESULTS_WORD_CHIP.height,
+    });
+    for (let index = 0; index < 3; index += 1) {
+      const left = chipAt(index);
+      const right = chipAt(index + 1);
+      expect(hits(left, right), `chip ${index}`).toBe(false);
+      expect(right.x - (left.x + left.w), `chip gap ${index}`).toBeGreaterThanOrEqual(8);
+    }
+    const row = reviewRowSlice(0);
+    const dueStatus: Box = { x: REVIEW_ROW.textX, y: REVIEW_ROW.statusOffset, w: 180, h: 16 };
+    const toneStatus: Box = { x: 400, y: REVIEW_ROW.statusOffset, w: 140, h: REVIEW_ROW.statusFont };
+    const bottomBorder: Box = { x: 150, y: row.innerBottom, w: 980, h: row.bottom - row.innerBottom };
+    for (const [label, status] of [["unopened", dueStatus], ["opened", toneStatus]] as const) {
+      expect(status.y, label).toBeGreaterThanOrEqual(row.innerTop + REVIEW_ROW.statusPad);
+      expect(status.y + status.h, label).toBeLessThanOrEqual(row.innerBottom - REVIEW_ROW.statusPad);
+      expect(hits(status, bottomBorder), label).toBe(false);
+    }
+    expect(row.pitch).toBeGreaterThanOrEqual(row.height);
     for (const missed of [false, true]) {
       for (const scale of [1, 0.75, 0.5, 0.35]) {
         expect(studyReviewHintGap(missed, scale), `${missed} ${scale}`).toBeGreaterThanOrEqual(16);
@@ -190,10 +240,15 @@ describe("study card and option alignment", () => {
     expect(review).toContain("reviewMeaningBox");
     expect(review).toContain("REVIEW_ROW.revealCenter");
     expect(review).toContain("REVIEW_ROW.spellCenter");
+    expect(review).toContain("reviewRowSlice");
+    expect(review).toContain("REVIEW_ROW.statusOffset");
     const results = readFileSync(new URL("./scenes/BattleResultsScene.ts", import.meta.url), "utf8");
     expect(results).toContain("applyFittedText");
     expect(results).toContain("resultsGlossBox");
-    expect(results).toContain("RESULTS_WORD_CHIP");
+    expect(results).toContain("RESULTS_WORD_CHIP.pitchX");
+    expect(results).toContain("RESULTS_WORD_CHIP.pitchY");
+    const layoutSource = readFileSync(new URL("./layout.ts", import.meta.url), "utf8");
+    expect(layoutSource).not.toContain("setLineSpacing(-");
     expect(STUDY_CARD.reviewHintY).toBeLessThan(STUDY_CARD.restingRowY);
   });
 

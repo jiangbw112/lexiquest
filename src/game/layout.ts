@@ -1,3 +1,7 @@
+import { RESULTS_WORD_CHIP } from "../domain/battle-results";
+
+export { RESULTS_WORD_CHIP };
+
 export const GAME_W = 1280;
 export const GAME_H = 800;
 
@@ -198,9 +202,35 @@ export interface FittedText {
   text: string;
 }
 
-/** One line occupies one font size. Scenes set line spacing to 0 so this matches the pixels. */
+/** Clear space between wrapped lines. Never collapse this to a negative value. */
+export const FITTED_LINE_GAP = 6;
+
+/** Line boxes plus the gap between them. Scenes keep that gap; they never pull lines together. */
 export function fittedBlockHeight(fontSize: number, lines: number): number {
-  return fontSize * Math.max(1, lines);
+  if (lines <= 1) return Math.max(0, lines) * fontSize;
+  return lines * fontSize + (lines - 1) * FITTED_LINE_GAP;
+}
+
+export interface LineBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** One rectangle per wrapped line, with {@link FITTED_LINE_GAP} between them. */
+export function fittedLineBoxes(
+  x: number,
+  y: number,
+  fitted: FittedText,
+  widthOf: (line: string) => number,
+): LineBox[] {
+  return fitted.lines.map((line, index) => ({
+    x,
+    y: y + index * (fitted.fontSize + FITTED_LINE_GAP),
+    w: widthOf(line),
+    h: fitted.fontSize,
+  }));
 }
 
 /**
@@ -231,7 +261,7 @@ export function fitTextBox(
   return { fontSize: size, lines, text: lines.join("\n") };
 }
 
-/** Review desk. The meaning column stops before the 拼写 button, and the block stays above the status line. */
+/** Review desk. The meaning column stops before the 拼写 button, and the status sits inside the row. */
 export const REVIEW_ROW = {
   textX: 170,
   gap: 8,
@@ -240,15 +270,59 @@ export const REVIEW_ROW = {
   minFontSize: 13,
   maxLines: 2,
   /** Due date and tone. The fitted block must end above this. */
-  statusOffset: 52,
+  statusOffset: 50,
+  /** Taller of the two status labels (未熟练 is 18, the due date is 16). */
+  statusFont: 18,
+  /** Space between the status glyphs and the row's inner bottom. */
+  statusPad: 8,
   blockHeight: 44,
+  /**
+   * list_row nine-slice inset is 40 source pixels, drawn at 0.5,
+   * so the painted border is 20 logical pixels.
+   */
+  sliceBorder: 20,
+  /** Inner top, relative to the word text top. */
+  innerTop: -8,
+  /** Gap between one row slice and the next. */
+  rowGap: 4,
   spellCenter: 560,
   spellWidth: 96,
+  spellOffset: 36,
+  spellHeight: 48,
   revealCenter: 430,
   revealWidth: 140,
+  revealOffset: 18,
+  revealHeight: 40,
   rateCenter: 706,
   rateWidth: 112,
+  rateOffset: 40,
+  rateHeight: 48,
 } as const;
+
+/** Row slice and the padded interior the status text has to stay inside. */
+export function reviewRowSlice(textY = 0): {
+  top: number;
+  bottom: number;
+  height: number;
+  centerY: number;
+  innerTop: number;
+  innerBottom: number;
+  pitch: number;
+} {
+  const innerBottom = textY + REVIEW_ROW.statusOffset + REVIEW_ROW.statusFont + REVIEW_ROW.statusPad;
+  const top = textY + REVIEW_ROW.innerTop - REVIEW_ROW.sliceBorder;
+  const bottom = innerBottom + REVIEW_ROW.sliceBorder;
+  const height = bottom - top;
+  return {
+    top,
+    bottom,
+    height,
+    centerY: top + height / 2,
+    innerTop: textY + REVIEW_ROW.innerTop,
+    innerBottom,
+    pitch: height + REVIEW_ROW.rowGap,
+  };
+}
 
 /** Right edge of the english and meaning text. Clears the 拼写 button by `gap`. */
 export function reviewTextRight(): number {
@@ -279,19 +353,7 @@ export function reviewMeaningBox(englishWidth: number): TextBox & { x: number } 
   };
 }
 
-/** Victory word chip. The gloss uses the inner width, not the full 170. */
-export const RESULTS_WORD_CHIP = {
-  width: 170,
-  height: 64,
-  glossX: 14,
-  glossY: 32,
-  glossRight: 8,
-  glossBottom: 4,
-  fontSize: 16,
-  minFontSize: 12,
-  maxLines: 2,
-} as const;
-
+/** Gloss box inside the victory chip. Two lines have to fit here with padding. */
 export function resultsGlossBox(): TextBox {
   return {
     fontSize: RESULTS_WORD_CHIP.fontSize,
@@ -315,17 +377,22 @@ export function applyFittedText(
 ): FittedText {
   const measure = (sample: string, fontSize: number) => {
     target.setFontSize(`${fontSize}px`);
-    target.setLineSpacing(0);
+    target.setLineSpacing(FITTED_LINE_GAP);
     target.setText(sample);
     return target.width;
   };
-  const fitted = fitTextBox(content, box, measure);
-  target.setFontSize(`${fitted.fontSize}px`);
-  target.setLineSpacing(0);
-  target.setText(fitted.text);
-  if (fitted.lines.length > 1 && target.height > box.maxHeight) {
-    const extra = target.height - box.maxHeight;
-    target.setLineSpacing(-Math.ceil(extra / (fitted.lines.length - 1)));
+  let fitted = fitTextBox(content, box, measure);
+  const paint = (next: FittedText) => {
+    target.setFontSize(`${next.fontSize}px`);
+    target.setLineSpacing(FITTED_LINE_GAP);
+    target.setText(next.text);
+  };
+  paint(fitted);
+  while (target.height > box.maxHeight && fitted.fontSize > box.minFontSize) {
+    const size = fitted.fontSize - 1;
+    fitted = fitTextBox(content, { ...box, fontSize: size }, measure);
+    paint(fitted);
+    if (fitted.fontSize > size) break;
   }
   return fitted;
 }

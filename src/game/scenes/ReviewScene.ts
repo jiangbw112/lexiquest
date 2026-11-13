@@ -7,7 +7,7 @@ import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
-import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, REVIEW_ROW } from "../layout";
+import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, REVIEW_ROW } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
@@ -175,11 +175,12 @@ export class ReviewScene extends Phaser.Scene {
       const word = wordById(memory.wordId);
       const card = save.wordCards[memory.wordId];
       if (!word || !card) return;
-      const y = layout.bodyY + 38 + index * 100;
+      const y = layout.bodyY + 38 + index * reviewRowSlice().pitch;
+      const row = reviewRowSlice(y);
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
       const shown = !due || this.revealed.has(memory.wordId);
-      warmSlice(this, "atlas_ui_pages", "list_row", 980, 86).setPosition(640, y + 29);
+      warmSlice(this, "atlas_ui_pages", "list_row", 980, row.height).setPosition(640, row.centerY);
       const english = this.add.text(REVIEW_ROW.textX, y, "", { fontFamily: FONT, fontSize: "22px", color: INK });
       applyFittedText(english, word.english, reviewEnglishBox());
       if (shown) {
@@ -188,7 +189,7 @@ export class ReviewScene extends Phaser.Scene {
         applyFittedText(meaning, formatMeaning(word), box);
       }
       if (due && !shown) {
-        warmButton(this, REVIEW_ROW.revealCenter, y + 12, "翻看释义", () => {
+        warmButton(this, REVIEW_ROW.revealCenter, y + REVIEW_ROW.revealOffset, "翻看释义", () => {
           this.revealed.add(memory.wordId);
           this.draw();
         }, { width: REVIEW_ROW.revealWidth, height: 40, tone: "secondary" });
@@ -197,7 +198,7 @@ export class ReviewScene extends Phaser.Scene {
       this.add.text(REVIEW_ROW.textX, y + REVIEW_ROW.statusOffset, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: MUTED });
       if (due && shown) {
         RATINGS.forEach((item, ratingIndex) => {
-          warmButton(this, REVIEW_ROW.rateCenter + ratingIndex * 120, y + 40, item.label, () => this.rate(memory.wordId, item.rating), {
+          warmButton(this, REVIEW_ROW.rateCenter + ratingIndex * 120, y + REVIEW_ROW.rateOffset, item.label, () => this.rate(memory.wordId, item.rating), {
             width: REVIEW_ROW.rateWidth,
             height: 48,
             tone: "secondary",
@@ -206,7 +207,7 @@ export class ReviewScene extends Phaser.Scene {
       }
       const lit = tone === "bright";
       if (spellingAllowed(word, lit)) {
-        warmButton(this, REVIEW_ROW.spellCenter, y + 36, "拼写", () => {
+        warmButton(this, REVIEW_ROW.spellCenter, y + REVIEW_ROW.spellOffset, "拼写", () => {
           this.spellId = memory.wordId;
           this.draw();
           document.getElementById("spell-form")?.classList.add("open");

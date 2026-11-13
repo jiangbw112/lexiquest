@@ -7,6 +7,7 @@ import {
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
   resultsLowerShift,
+  resultsRewardDrop,
   resultsSkipHintState,
   resultsSkipKind,
   resultsStackNudge,
@@ -337,8 +338,8 @@ export class BattleResultsScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
     }
     view.words.forEach((word, index) => {
-      const x = 477 + (index % 4) * 182;
-      const y = this.wy(220 + Math.floor(index / 4) * 76);
+      const x = 477 + (index % 4) * RESULTS_WORD_CHIP.pitchX;
+      const y = this.wy(220 + Math.floor(index / 4) * RESULTS_WORD_CHIP.pitchY);
       const frame = word.correct ? "word_chip_correct" : "word_chip_plain";
       const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(RESULTS_WORD_CHIP.width, RESULTS_WORD_CHIP.height);
       chip.setInteractive({ useHandCursor: true });
@@ -368,7 +369,7 @@ export class BattleResultsScene extends Phaser.Scene {
     });
     if (view.extraWords > 0 && view.words.length > 0) {
       const rows = Math.ceil(view.words.length / 4);
-      const chipBottom = 220 + (rows - 1) * 76 + 64;
+      const chipBottom = 220 + (rows - 1) * RESULTS_WORD_CHIP.pitchY + RESULTS_WORD_CHIP.height;
       this.add.text(480, this.wy(chipBottom + 16), `还有 ${view.extraWords} 个词也练到了`, {
         fontFamily: FONT_BODY,
         fontSize: "16px",
@@ -379,7 +380,7 @@ export class BattleResultsScene extends Phaser.Scene {
 
   /** Reward and encouragement blocks sit one gap under the words, even when the list is a single row. */
   private dy(y: number): number {
-    return y - resultsLowerShift(this.view.words.length, this.view.extraWords) + this.stackNudge();
+    return y + resultsRewardDrop() - resultsLowerShift(this.view.words.length, this.view.extraWords) + this.stackNudge();
   }
 
   /** Word rows share the same nudge, so a short stack stays together while it centers. */
