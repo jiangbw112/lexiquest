@@ -4,7 +4,12 @@
 
 ## 规格在哪里
 
-仓库里找不到 CLASS_SPEC v1.0.3 的正文。`git ls-files` 没有 `CLASS_SPEC` 或 `class_spec`。代码只在注释里点到它：`src/domain/class-copy.ts`、`src/domain/class-unlock.ts`。下面的六职名单以游戏里的 `src/domain/classes.ts` 为准：战士、法师、游侠、治愈师、发明家、探险家。界面上的治疗职业叫「治愈师」，不是「治疗」。
+规格原文在仓库外，已按哈希核对。仓库里没有 `CLASS_SPEC` 或 `class_spec` 文件，规格文件也不放进仓库。对照用的两份附件：
+
+- `CLASS_SPEC_v1.0.3.md` sha256 `d6109331faa80b4600cf8968075b9287eddb90dc7526866e7e98700fa889b464`
+- `class_spec_v1.0.3.json` sha256 `512c4bb2fcccf0787b945950ff4ed8d0deaa3739459b45535654950f56c9ffd2`
+
+两份都和指定哈希一致。下面的符合、不符合按这两份原文逐项对过。界面上的治疗职业叫「治愈师」，不是「治疗」。
 
 31 个年级章没有单独的文件名。表在 `src/domain/chapters/chapters_v0.2.json`。这个文件一共 32 条。第 1 条是 `forest_adventure`（森林冒险，grade 为空）。后面 31 条是年级章：三年级 8、四年级 8、五年级 9、六年级 6。本清单的「31 章」指这 31 条。
 
@@ -31,7 +36,7 @@
 
 背景由 `src/domain/chapter-scenes.ts` 的 `chapterBackdrop` 选择。小怪由同文件的 `chapterMinion` 选择。Boss 图由 `src/domain/chapter-bosses.ts` 的 `chapterBossAsset` 选择，名字和关卡来自 `chapters_v0.2.json`，开战时 `src/domain/chapter-plan.ts` 的 `stageCombatFor` 把它们接进战斗。
 
-下表的背景和小怪路径都在 `public/assets/chapter/scenes/` 下面。Boss 图在 `public/assets/chapter/` 下面。每一章的四套 Boss 姿势（idle、attack、hit、defeat 的 png 和 json）都在磁盘上。血量不是每章一张表：所有年级章 Boss 都用 `src/domain/provisional.ts` 的 `bossPhaseHpByClass`，按玩家职业取每阶段血量。
+下表的背景和小怪路径都在 `public/assets/chapter/scenes/` 下面。Boss 图在 `public/assets/chapter/` 下面。每一章的四套 Boss 姿势（idle、attack、hit、defeat 的 png 和 json）都在磁盘上。血量不是每章一张表：所有年级章 Boss 都用 `src/domain/provisional.ts` 的 `bossPhaseHpByClass`，按玩家职业取每阶段血量。年级章 Boss 的两句阶段提示用本章显示名，在 `src/domain/chapter-plan.ts` 的 `stageCombatFor` 里把「林心守护者」换成 `chapter.bossName`。森林章提前返回，文案仍是 `provisional.ts` 里的「林心守护者挡住了去路。」和「林心守护者进入第二阶段。」
 
 | 序 | 章名 | id | 场景背景 | 小怪 | Boss 美术 | Boss 数据 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -41,7 +46,7 @@
 | 5 | 彩虹数数 | `pep_g3_04` | `town/bg_map.webp`、`town/bg_battle.webp` | 路灯灵 `lampkin`，`minions/atlas_monsters_scenes.json` 的 `monster_lampkin_idle` / `monster_lampkin_hit` | `envelope`：`bosses/envelope/boss_envelope_w_idle@2x.png` 及 attack、hit、defeat | 名「远方来信灵」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
 | 6 | 认识新朋友 | `pep_g3_05` | `school/bg_map.webp`、`school/bg_battle.webp` | 橡皮灵 `rubkin`，`minions/atlas_monsters_scenes.json` 的 `monster_rubkin_idle` / `monster_rubkin_hit` | `giftbox`：`bosses/giftbox/boss_giftbox_w_idle@2x.png` 及 attack、hit、defeat | 名「礼物盒守护者」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
 | 7 | 爱学习的我 | `pep_g3_06` | `school/bg_map.webp`、`school/bg_battle.webp` | 橡皮灵 `rubkin`，`minions/atlas_monsters_scenes.json` 的 `monster_rubkin_idle` / `monster_rubkin_hit` | `penciler`：`bosses/penciler/boss_penciler_w_idle@2x.png` 及 attack、hit、defeat | 名「铅笔尺子灵」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
-| 8 | 好吃又健康 | `pep_g3_07` | `food/bg_map.webp`、`food/bg_battle.webp` | 热气灵 `steam`，`minions/atlas_monsters_scenes.json` 的 `monster_steam_idle` / `monster_steam_hit` | `mealmap`：`bosses/mealmap/boss_mealmap_w_idle@2x.png` 及 attack、hit、defeat | 名「营养餐盘守护者」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
+| 8 | 好吃又健康 | `pep_g3_07` | `food/bg_map.webp`、`food/bg_battle.webp` | 热气灵 `steam`，`minions/atlas_monsters_scenes.json` 的 `monster_steam_idle` / `monster_steam_hit` | `mealmap`：`bosses/mealmap/boss_mealmap_w_idle@2x.png` 及 attack、hit、defeat | 名「营养餐盘守护者」（不是玩具箱守护者）。`CHAPTER_BOSS_ID.pep_g3_07` 与 `PEP_G3_07_BOSS` 都是 `mealmap`。toychest 只在 `BOSS_RESERVE`，不绑定章节 |
 | 9 | 玩具与数字 | `pep_g3_08` | `home/bg_map.webp`、`home/bg_battle.webp` | 抱枕灵 `cushion`，`minions/atlas_monsters_scenes.json` 的 `monster_cushion_idle` / `monster_cushion_hit` | `piggybank`：`bosses/piggybank/boss_piggybank_w_idle@2x.png` 及 attack、hit、defeat | 名「存钱罐守护者」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
 | 10 | 家里好帮手 | `pep_g4_01` | `town/bg_map.webp`、`town/bg_battle.webp` | 路灯灵 `lampkin`，`minions/atlas_monsters_scenes.json` 的 `monster_lampkin_idle` / `monster_lampkin_hit` | `wreath`：`bosses/wreath/boss_wreath_w_idle@2x.png` 及 attack、hit、defeat | 名「善良友谊灵」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
 | 11 | 我们的社区 | `pep_g4_02` | `town/bg_map.webp`、`town/bg_battle.webp` | 路灯灵 `lampkin`，`minions/atlas_monsters_scenes.json` 的 `monster_lampkin_idle` / `monster_lampkin_hit` | `lookout`：`bosses/lookout/boss_lookout_w_idle@2x.png` 及 attack、hit、defeat | 名「社区守望者」；id 在 `chapter-bosses.ts`；血量走 `provisional.ts` 的 `bossPhaseHpByClass` |
@@ -89,8 +94,87 @@
 
 没有别的资产清单把这三份哈希写死，所以没有改 manifest。
 
+这一支再次核对时，`rg` 在 `public/assets/warm/atlas/atlas_skills.json` 和 `src/game/warm/slices.json` 里没有 `skill_healer_cheer`，也没有技能帧名「鼓舞」。`atlas_skills.json` 现有 25 个帧，其中有 `skill_healer_beam`。旧鼓舞帧矩形（x=492，y=100，96×96）的 RGBA 极值都是 0，alpha 最大为 0。三份哈希与上表「之后」相同，这次没有再改文件。词表里的「令人鼓舞的」是单词释义，不是技能帧。
+
+## 六职业对规格
+
+职业显示名、短句、天赋、数值和 `classes.ts` 的 `ClassDef` 与 JSON `classes.ts.ClassDef` 一致。24 张技能卡的 id、中文名、说明、cost、kind、power、order、healPower 与 JSON `skills.ts.SKILLS` 逐字段一致。★1/★2/★3 和答错伤害用代码公式 `Math.round(power * skillPower * (1 + 0.3 * (level - 1)))`、答错 `Math.round(★1 × 0.5)` 对过 JSON `derived.skills`，24 张都对上。显示消耗是 `Math.max(1, cost + skillCostDelta)`，发明家因此少 1。证据：`src/domain/classes.ts`、`src/domain/skills.ts`、`src/domain/class-combat.test.ts`。
+
+| 项 | 结果 | 证据 |
+| --- | --- | --- |
+| 六职各 4 张卡，没有 `healer-cheer` | 符合 | `skills.ts` 的 `SKILLS`；治愈师顺序是光愈、治愈、守护、光击 |
+| 战士 盾击/战吼/坚守/旋风斩，power 10/14/12/18，cost 2/2/1/3 | 符合 | `skills.ts`；★ 11/14/17、15/19/24、13/16/20、19/25/30 |
+| 法师 火花/星盾/微光/星落，火花 power 10 | 符合 | `skills.ts`；火花 ★ 14/18/22 |
+| 游侠 瞄准/疾走/草药/连射 | 符合 | `skills.ts` |
+| 治愈师 光愈 power 7、healPower 10、cost 2 | 符合 | `skills.ts`；★ 伤害 7/9/11，治疗 10/13/16，答错伤害 4、治疗 5。`class-combat.test.ts` |
+| 发明家 齿轮弹 kind `delay-damage`、power 9、卡面 cost 2、显示消耗 1 | 符合 | `classes.ts` 的 `skillCostDelta: -1`；分半 ★1 5+5、★2 7+6、★3 8+8、答错 3+2。`battle.ts` 的 `splitDelayDamage` 与 `class-combat.test.ts` |
+| 探险家 探路杖/绷带/地图光/发现一击；`xpBonus` 为 1 | 符合 | `classes.ts`、`skills.ts`。胜利经验 `Math.round(20 * xpBonus)` 在 `progress.ts`，六职都是 20 |
+| 生命、攻防治疗、能量、技能倍率 | 符合 | 战士 42/8/8/6、能量 2、倍率 1.05；法师 46/7/8/4、1.35；游侠 46/7/8/5、能量 3、1.1；治愈师 40/6/10/5、1；发明家 46/7/8/5、倍率 1.1、消耗 −1；探险家 46/7/8/5、1.05。都在 `classes.ts` |
+| Boss 每阶段血量 | 符合 | `provisional.ts` 的 `bossPhaseHpByClass`：75/90/85/48/70/75。期中、期末是 `examBossPhaseHp`，战斗不读 |
+| 探索敌人血量 | 符合 | `provisional.ts`：40/42/44/46；治愈师 26/28/28/30 |
+| 解锁：起始卡、≥3 张词卡、胜场 ≥1、≥4 张词卡且胜场 ≥1 | 符合 | `progress.ts` 的 `refreshUnlocks` |
+| 升级写出 ★N 到 ★N | 符合 | `BattleResultsScene.ts` 的 `starMark` |
+| 游侠换牌、探险家下一题题型 | 符合 | `class-copy.ts` 与 `BattleScene.ts`。文案与规格 `additions.copy` 相同 |
+| 发明家硬锁与锁定文案 | 符合 | `class-unlock.ts`：`INVENTOR_UNLOCK_ENABLED = false as const`。标题「藏起来的职业」，小字「打败期末大 Boss 后解锁」，提示整句与按钮「好的」。创建页和换职业页都用 `INVENTOR_LOCK_TIP`，不用期末版的 `INVENTOR_SWITCH_LOCKED_TIP`。不读 URL、存档来解锁。`class-unlock.test.ts` |
+| 默认战士；五职可选；不出现「即将开放」 | 符合 | `CreateScene.ts` 的 `classId = "warrior"`。`rg` 没有「即将开放」「给战士起名字」 |
+| 锁定图集哈希 | 符合 | `public/assets/classes/v1.0/portrait/cls_portraits_locked@2x.png` 为 `652d28919d792b67361cc2b07a34fb54ee3605eecdf03b1a854d1779fcc4a7ea`；json 为 `043e977c6c0331a616c7dd0772da0f13c8aab48e919075838d6be0f0e9eaf522`。帧名 `portrait_inventor_locked` 在 `class-atlas.ts`。创建页和换职业页用这个帧，不叠 `icon_lock` |
+| 技能图标帧 | 符合 | `atlas_skills.json` 有六职 24 张卡的 `skill_*` 帧，含 `skill_healer_beam`。规格附的源 PNG 哈希是仓库外文件，仓库里用的是打进图集的帧 |
+| `dashRules` 含发明家 | 符合 | `public/assets/classes/v1.0/manifest.json` 的 changelog 写了补 inventor |
+| 创建页可选卡显示天赋、起始卡名，并按各职主色上色 | 不符合 | 规格 §5.1。`CreateScene.ts` 约 L163–188 只画序号、职业名和 blurb。选中描边固定 `0xc4533a`（战士的 color），没有用各职 `color`，也没有画 `talent` 和起始卡名 |
+| 锁定卡描边换成中性灰 | 不符合 | 规格 §5.4.3。`CreateScene.ts` L157 和 `SkillsScene.ts` L153 的未选中描边仍是 `0x3b2a20`。底色用了 `0xc8bfb0` |
+| 锁定卡不再用代码画问号 | 不符合 | 规格 §5.4.3 说问号已经画在图里。`CreateScene.ts` L170–175 又画了一个「?」。换职业页没有这层字 |
+| `P0_CLASS_ID` 不再写死 | 不符合 | 规格 §5.1。`src/game/p0.ts` 仍导出 `P0_CLASS_ID = "warrior"`。创建页不引用它 |
+
+以上不符合只记录，这一支没有改这些画面。
+
+## 验收口径
+
+`rg 'CH-07|D-ART-6|K42'` 在仓库源码和文档里找不到验收清单 v2.10（技术报告里的 sha256 以 `7aeb4f06` 开头）。`package-lock.json` 里只有无关的哈希片段。那份清单不在仓库，所以没有它的修改前、修改后哈希，也没有按它的行号改文件。同样的口径写在下面。L44–47 的 v2.8 变更记录不在本仓库，无从改，也按要求不动。
+
+v2.11：31/31 年级章 Boss 已采用（mealmap，D-ART-6 按口径关闭）；年级章只验胜利横幅和「继续」；结局句只验森林；K44 仅单测证据。
+
+- CH-07：v2.11：31/31 已采用。pep_g3_07 用 mealmap 营养餐盘守护者（bosses_v1.0.3_g3_07，经 integration_v1.0.4 入库，4 图集 19 帧，id 与另外 30 个都不同）。toychest 只是备用：不绑定章节，不入包（ledger reserve.toychest.boundChapter=null, shipped=false）。#17 780d58b 已实拍。
+- CH-08：pep_g3_07 的 boss_name_zh 已是『营养餐盘守护者』（chapters_v0.2.json；PEP_G3_07_BOSS.nameZh 相同）。地图节点名也是『营养餐盘守护者』，其他章是『××守护』，属数据原样，不是缺陷。年级章只验『打败了××！』横幅与『继续』按钮；结局句只验森林结局页『词灵验收 打败了林心守护者。这一章走完了。』，不新增年级章结局句。
+- §2.2 第 8 行：Boss 列「mealmap 营养餐盘守护者 · bosses_v1.0.3_g3_07（integration_v1.0.4）」；状态「已采用」；备注「#17 780d58b 已实拍；toychest 转为备用，不绑定」。
+- 原 L483 位置要补的句子：v2.11：31/31 已采用（mealmap，D-ART-6 已关闭）。
+- K42：已关闭：integration_v1.0.4 / #17 绑定 mealmap；toychest 备用。
+- D-ART-6：已到并入库（v1.0.3 素材，经 v1.0.4 集成），关闭。
+- 基线表（报告里的 L768–769、L778，对应 f7b4616）：原文若在那份清单里应保留，并加注「已过时，见 v2.11 CH-07/CH-08」。本仓库没有那张表。
+- PR 表 #17：780d58b 已验收、已合并。
+- K44：无合法触发路径（包内 18 张背景齐全），仅单测证据：chapter-scene-load.test.ts 3/3。
+
+本仓库里能对上的代码：`src/domain/chapters/chapters_v0.2.json` 的 `pep_g3_07` `boss_name_zh` 和第 5 关都是「营养餐盘守护者」；`src/domain/chapter-bosses.ts` 的 `PEP_G3_07_BOSS` id 是 `mealmap`，`BOSS_RESERVE` 只有 toychest。胜利横幅是 `src/domain/battle-results.ts` 的 `bossVictoryBanner`，即 `打败了${bossName}！`。森林结局句在 `src/game/scenes/EndingScene.ts`，模板是 `${玩家名} 打败了${ending.bossName}。这一章走完了。` 年级章没有这条结局句。
+
+## 正式发布步骤
+
+只写步骤，这一支不执行、不删、不改任何 Release，也不触发 workflow。
+
+2026-11-13 只读看到的 Release：
+
+- 草稿 id `442757802`，name `[草稿] LexiQuest v1.0.0`，`tag_name` `desktop-dryrun-5-65d0eb2`，`draft` true，`target_commitish` 是分支名 `main`，不是提交 SHA。页面地址是 `untagged-f6c2c6607367f95da33f`。
+- `git` 引用 `refs/tags/desktop-dryrun-5-65d0eb2` 返回 404，同名 tag 还没有创建。
+- 提交 `65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 存在，说明是 Merge pull request #12。tag 名里的 `65d0eb2` 指向这次草稿当时的短 SHA。现有 tag 列表里没有一条指向它，也没有 `v1.0.0`。
+- 已发布的另两个 tag 是 `desktop-r4-9613161`（`9613161c829cdab0db7001d25f6d417755a50c55`）和 `desktop-r3-ab2c554`（`ab2c554688405cdf19705ff639aec98137f76262`）。它们不是 v1.0.0。
+
+`.github/workflows/release.yml`：
+
+- 触发方式只有 `workflow_dispatch`（约 L3–13），不是 push `v*` tag。
+- 参数是 `draft`，choice `"true"` 或 `"false"`，默认 `"true"`。
+- `main-only` 在 `github.ref` 不是 `refs/heads/main` 时失败（约 L23–30）。必须从 main 手动运行。
+- tag 名不是 `v1.0.0`。`draft` 为 false 时是 `desktop-r${run_number}-${short_sha}`，为 true 时是 `desktop-dryrun-${run_number}-${short_sha}`（约 L99–118）。
+- 已有同名 Release 时不更新。非草稿先找 `desktop-r*` 加同一短 SHA 的 tag，找到就跳过（约 L126–136）。草稿再查即将使用的那个完整 tag 名是否已存在（约 L139–146）。创建步骤是 `gh release create`（约 L275–307），条件是 `steps.check_tag.outputs.exists != 'true'`。没有 `gh release edit`。tag 已存在时是跳过，不是覆盖。用到的 action 是 `actions/checkout@v4`、`actions/upload-artifact@v4`、`actions/download-artifact@v4`、`actions/setup-node@v4`、`actions/setup-python@v5`。
+- 所以旧草稿不会被 `release.yml` 覆盖。再跑一次会新建另一个 `desktop-dryrun-*` 或 `desktop-r-*` Release。
+
+要最后只留一个指向新 main 合并提交的 `v1.0.0`，按这个顺序做（现在不要做）：
+
+1. 先把本 PR 合并进 main，记下合并提交的完整 SHA。不要用 `65d0eb2`。
+2. 发布前删掉旧草稿，不要点「Publish」。它没有已创建的 tag，删 Release 不会留下 `desktop-dryrun-5-65d0eb2`。命令：`gh release delete desktop-dryrun-5-65d0eb2 --repo jiangbw112/lexiquest --yes`。然后确认 `gh api repos/jiangbw112/lexiquest/releases/442757802` 是 404，并且 `refs/tags/desktop-dryrun-5-65d0eb2` 仍是 404。
+3. 不要用现在的 `release.yml` 来做名为 `v1.0.0` 的 Release。它只会再做一个 `desktop-r*` 或 `desktop-dryrun-*`。
+4. 在新的 main 合并提交上单独建 tag 和 Release，例如 `gh release create v1.0.0 --repo jiangbw112/lexiquest --target <合并提交完整 SHA> --title "LexiQuest v1.0.0" --notes-file <从 RELEASE_NOTES.md 抽出的 ## 1.0.0>`。安装包另附。
+5. 确认只剩一个 v1.0.0：`gh release list` 里 tag 为 `v1.0.0` 的只有一条；`gh api repos/jiangbw112/lexiquest/git/ref/tags/v1.0.0` 的 SHA 等于第 1 步的合并提交；`gh api repos/jiangbw112/lexiquest/tags` 里没有指向 `65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 的 tag。若将来发现有旧 tag 指向这个 SHA，先删掉对应 Release，再 `git push origin :refs/tags/<那个 tag 名>`。现在没有这样的 tag，所以这一步只是确认。`desktop-r3-ab2c554` 和 `desktop-r4-9613161` 是更早的已发布 tag，不是 v1.0.0，不要为了这一步删掉。
+
 ## 缺口
 
 游戏内容上，六职和 31 个年级章没有缺立绘、行走、技能特效、技能卡、场景、小怪或章节 Boss 图。Boss 血量是六职共用的一张表，不是每章各写一个数。
 
-仓库里没有 CLASS_SPEC v1.0.3 文件。README 的「玩法说明」仍写着只能扮演战士、战斗图仍是暂定 v0.1。那一段不在这次改动范围内，所以没有改。
+规格原文在仓库外，已按哈希核对。上面「六职业对规格」里标不符合的四条没有改代码。验收清单 v2.10 不在本仓库。
