@@ -1399,15 +1399,6 @@
    "state": null,
    "note": "技能图标 光击（healer-light，damage）；96×96 @2x，卡面显示 64，列表显示 68"
   },
-  "skill_healer_cheer":   {
-   "file": "components/skills/skill_healer_cheer.png",
-   "atlas": "atlas_skills",
-   "w": 96,
-   "h": 96,
-   "nineslice": null,
-   "state": null,
-   "note": "技能图标 鼓舞（healer-cheer，strike-guard）；96×96 @2x，卡面显示 64，列表显示 68"
-  },
   "skill_inventor_gear":   {
    "file": "components/skills/skill_inventor_gear.png",
    "atlas": "atlas_skills",
