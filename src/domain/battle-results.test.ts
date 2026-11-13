@@ -14,7 +14,10 @@ import {
   mapStarCenter,
   moreBadgeLabel,
   practiceItemLine,
+  RESULTS_WORD_CHIP,
+  resultsFullRowsBottom,
   resultsLowerShift,
+  resultsRewardDrop,
   resultsSkipHintState,
   resultsSkipKind,
   resultsStackNudge,
@@ -388,23 +391,25 @@ describe("battle results stars and words", () => {
   });
 
   it("moves the reward block up for a one-row word list and leaves two rows in place", () => {
-    expect(resultsLowerShift(1, 0)).toBe(76);
-    expect(resultsLowerShift(4, 0)).toBe(76);
+    const oneRow = resultsFullRowsBottom() - (220 + RESULTS_WORD_CHIP.height);
+    expect(resultsLowerShift(1, 0)).toBe(oneRow);
+    expect(resultsLowerShift(4, 0)).toBe(oneRow);
     expect(resultsLowerShift(5, 0)).toBe(0);
     expect(resultsLowerShift(8, 2)).toBe(0);
-    expect(resultsLowerShift(0, 0)).toBe(174);
+    expect(resultsLowerShift(0, 0)).toBe(resultsFullRowsBottom() - 186);
+    expect(resultsRewardDrop()).toBe(resultsFullRowsBottom() - 360);
   });
 
   it("centers a short practice or XP stack and leaves a filled reward block where it is", () => {
     expect(resultsStackNudge(1, 0, "tall")).toBe(0);
     expect(resultsStackNudge(5, 0, "tall")).toBe(0);
-    expect(resultsStackNudge(5, 0, "practice")).toBe(57);
-    expect(resultsStackNudge(1, 0, "xp")).toBe(125);
-    expect(resultsStackNudge(4, 0, "xp")).toBe(125);
+    expect(resultsStackNudge(5, 0, "practice")).toBe(44);
+    expect(resultsStackNudge(1, 0, "xp")).toBe(117);
+    expect(resultsStackNudge(4, 0, "xp")).toBe(117);
     const shift = resultsLowerShift(1, 0);
     const nudge = resultsStackNudge(1, 0, "xp");
-    const wordBottom = 220 + 64 + nudge;
-    const xp = 430 - shift + nudge;
+    const wordBottom = 220 + RESULTS_WORD_CHIP.height + nudge;
+    const xp = 430 + resultsRewardDrop() - shift + nudge;
     expect(xp - wordBottom).toBe(70);
   });
 

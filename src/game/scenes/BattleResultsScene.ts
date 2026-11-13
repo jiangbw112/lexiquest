@@ -7,6 +7,7 @@ import {
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
   resultsLowerShift,
+  resultsRewardDrop,
   resultsSkipHintState,
   resultsSkipKind,
   resultsStackNudge,
@@ -30,6 +31,7 @@ import { getSave } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm } from "../warm/load";
+import { applyFittedText, RESULTS_WORD_CHIP, resultsGlossBox } from "../layout";
 import { CREAM, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, TEAL_DEEP, motionOff } from "../warm/theme";
 
 const KEY_LOCK_MS = 300;
@@ -336,10 +338,10 @@ export class BattleResultsScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
     }
     view.words.forEach((word, index) => {
-      const x = 477 + (index % 4) * 182;
-      const y = this.wy(220 + Math.floor(index / 4) * 76);
+      const x = 477 + (index % 4) * RESULTS_WORD_CHIP.pitchX;
+      const y = this.wy(220 + Math.floor(index / 4) * RESULTS_WORD_CHIP.pitchY);
       const frame = word.correct ? "word_chip_correct" : "word_chip_plain";
-      const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(170, 64);
+      const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(RESULTS_WORD_CHIP.width, RESULTS_WORD_CHIP.height);
       chip.setInteractive({ useHandCursor: true });
       chip.on("pointerup", () => speakWord(word.english, browserSpeaker()));
       const english = this.add.text(word.correct ? x + 38 : x + 14, y + 6, word.english, {
@@ -351,11 +353,12 @@ export class BattleResultsScene extends Phaser.Scene {
       if (english.width > 120) english.setScale(120 / english.width);
       if (word.correct) {
         this.add.image(x + 10, y + 8, "atlas_ui_core", "icon_check").setOrigin(0, 0).setDisplaySize(22, 22);
-        this.add.text(x + 14, y + 36, word.gloss, {
+        const gloss = this.add.text(x + RESULTS_WORD_CHIP.glossX, y + RESULTS_WORD_CHIP.glossY, "", {
           fontFamily: FONT_BODY,
           fontSize: "16px",
           color: INK,
         }).setOrigin(0, 0);
+        applyFittedText(gloss, word.gloss, resultsGlossBox());
       } else {
         this.add.text(x + 158, y + 39, "下次再见", {
           fontFamily: FONT_BODY,
@@ -366,7 +369,7 @@ export class BattleResultsScene extends Phaser.Scene {
     });
     if (view.extraWords > 0 && view.words.length > 0) {
       const rows = Math.ceil(view.words.length / 4);
-      const chipBottom = 220 + (rows - 1) * 76 + 64;
+      const chipBottom = 220 + (rows - 1) * RESULTS_WORD_CHIP.pitchY + RESULTS_WORD_CHIP.height;
       this.add.text(480, this.wy(chipBottom + 16), `还有 ${view.extraWords} 个词也练到了`, {
         fontFamily: FONT_BODY,
         fontSize: "16px",
@@ -377,7 +380,7 @@ export class BattleResultsScene extends Phaser.Scene {
 
   /** Reward and encouragement blocks sit one gap under the words, even when the list is a single row. */
   private dy(y: number): number {
-    return y - resultsLowerShift(this.view.words.length, this.view.extraWords) + this.stackNudge();
+    return y + resultsRewardDrop() - resultsLowerShift(this.view.words.length, this.view.extraWords) + this.stackNudge();
   }
 
   /** Word rows share the same nudge, so a short stack stays together while it centers. */

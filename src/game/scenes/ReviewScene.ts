@@ -7,7 +7,7 @@ import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
-import { cjkWrap } from "../layout";
+import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, REVIEW_DESK, REVIEW_ROW } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
@@ -162,12 +162,12 @@ export class ReviewScene extends Phaser.Scene {
         color: MUTED,
       });
     } else {
-      this.add.text(170, layout.bodyY, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: "16px", color: NOTE });
+      this.add.text(170, layout.bodyY, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: `${REVIEW_DESK.hintFont}px`, color: NOTE });
     }
     if (desk.hiddenDue > 0) {
       this.add.text(620, layout.bodyY, `还有 ${desk.hiddenDue} 个词也到了复习时间。先复习画面上的。`, {
         fontFamily: FONT,
-        fontSize: "16px",
+        fontSize: `${REVIEW_DESK.hintFont}px`,
         color: NOTE,
       });
     }
@@ -175,24 +175,31 @@ export class ReviewScene extends Phaser.Scene {
       const word = wordById(memory.wordId);
       const card = save.wordCards[memory.wordId];
       if (!word || !card) return;
-      const y = layout.bodyY + 38 + index * 100;
+      const y = reviewRowTextY(layout.bodyY, index);
+      const row = reviewRowSlice(y);
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
       const shown = !due || this.revealed.has(memory.wordId);
-      warmSlice(this, "atlas_ui_pages", "list_row", 980, 86).setPosition(640, y + 29);
-      this.add.text(170, y, shown ? `${word.english}  ${formatMeaning(word)}` : word.english, { fontFamily: FONT, fontSize: "22px", color: INK });
+      warmSlice(this, "atlas_ui_pages", "list_row", 980, row.height).setPosition(640, row.centerY);
+      const english = this.add.text(REVIEW_ROW.textX, y, "", { fontFamily: FONT, fontSize: "22px", color: INK });
+      applyFittedText(english, word.english, reviewEnglishBox());
+      if (shown) {
+        const box = reviewMeaningBox(english.width);
+        const meaning = this.add.text(box.x, y, "", { fontFamily: FONT, fontSize: "22px", color: INK });
+        applyFittedText(meaning, formatMeaning(word), box);
+      }
       if (due && !shown) {
-        warmButton(this, 430, y + 12, "翻看释义", () => {
+        warmButton(this, REVIEW_ROW.revealCenter, y + REVIEW_ROW.revealOffset, "翻看释义", () => {
           this.revealed.add(memory.wordId);
           this.draw();
-        }, { width: 140, height: 40, tone: "secondary" });
+        }, { width: REVIEW_ROW.revealWidth, height: 40, tone: "secondary" });
       }
-      this.add.text(400, y + 36, tone === "none" ? "未熟练" : tone === "bright" ? "熟练" : "熟练·待复习", { fontFamily: FONT, fontSize: "18px", color: NOTE });
-      this.add.text(170, y + 36, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: MUTED });
+      this.add.text(400, y + REVIEW_ROW.statusOffset, tone === "none" ? "未熟练" : tone === "bright" ? "熟练" : "熟练·待复习", { fontFamily: FONT, fontSize: "18px", color: NOTE });
+      this.add.text(REVIEW_ROW.textX, y + REVIEW_ROW.statusOffset, formatDue(new Date(memory.fsrs.due).getTime(), now.getTime()), { fontFamily: FONT, fontSize: "16px", color: MUTED });
       if (due && shown) {
         RATINGS.forEach((item, ratingIndex) => {
-          warmButton(this, 706 + ratingIndex * 120, y + 40, item.label, () => this.rate(memory.wordId, item.rating), {
-            width: 112,
+          warmButton(this, REVIEW_ROW.rateCenter + ratingIndex * 120, y + REVIEW_ROW.rateOffset, item.label, () => this.rate(memory.wordId, item.rating), {
+            width: REVIEW_ROW.rateWidth,
             height: 48,
             tone: "secondary",
           });
@@ -200,17 +207,17 @@ export class ReviewScene extends Phaser.Scene {
       }
       const lit = tone === "bright";
       if (spellingAllowed(word, lit)) {
-        warmButton(this, 560, y + 36, "拼写", () => {
+        warmButton(this, REVIEW_ROW.spellCenter, y + REVIEW_ROW.spellOffset, "拼写", () => {
           this.spellId = memory.wordId;
           this.draw();
           document.getElementById("spell-form")?.classList.add("open");
           showSpellingHint(word.english);
           const input = document.getElementById("spell-input");
           if (input instanceof HTMLInputElement) input.focus();
-        }, { width: 96, height: 48 });
+        }, { width: REVIEW_ROW.spellWidth, height: 48 });
       }
     });
     if (this.spellNote) this.add.text(170, 680, this.spellNote, { fontFamily: FONT, fontSize: "16px", color: NOTE });
-    warmButton(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
+    warmButton(this, REVIEW_DESK.backX, REVIEW_DESK.backY, "返回 Esc", () => this.scene.start("overworld"), { width: REVIEW_DESK.backWidth, tone: "secondary" });
   }
 }

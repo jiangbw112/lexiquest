@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { answerQuestion, startBattle, takeAction } from "./battle";
 import {
   CHAPTER_BOSS_ID,
   CHAPTER_BOSS_POSES,
@@ -92,6 +93,10 @@ describe("chapter bosses", () => {
     );
     expect(forest.sprite).toBe("canopy");
     expect(forest.enemyName).toBe("林心守护者");
+    expect(forest.phases?.map((phase) => phase.note)).toEqual([
+      "林心守护者挡住了去路。",
+      "林心守护者进入第二阶段。",
+    ]);
     expect(stageCombat(boss, "warrior").sprite).toBe("canopy");
     const spriteSource = readFileSync(new URL("../game/art/chapter-boss-sprite.ts", import.meta.url), "utf8");
     expect(spriteSource).not.toContain("tigerkin");
@@ -124,6 +129,52 @@ describe("chapter bosses", () => {
         }
       }
     }
+  });
+
+  it("names the current chapter boss in phase-two copy and leaves the forest lines", () => {
+    const boss = stageById(5)!;
+    const forest = stageCombat(boss, "warrior");
+    expect(forest.phases?.map((phase) => phase.note)).toEqual([
+      "林心守护者挡住了去路。",
+      "林心守护者进入第二阶段。",
+    ]);
+    const piggy = gradeChapters("G3").find((chapter) => chapter.id === "pep_g3_08");
+    const bowl = gradeChapters("G4").find((chapter) => chapter.id === "pep_g4_08");
+    const file = JSON.parse(readFileSync(new URL("./chapters/chapters_v0.2.json", import.meta.url), "utf8")) as Array<{
+      chapter_id: string;
+      boss_name_zh: string;
+    }>;
+    expect(piggy?.bossName).toBe(file.find((chapter) => chapter.chapter_id === "pep_g3_08")?.boss_name_zh);
+    expect(bowl?.bossName).toBe(file.find((chapter) => chapter.chapter_id === "pep_g4_08")?.boss_name_zh);
+    expect(piggy?.bossName).not.toBe("林心守护者");
+    expect(bowl?.bossName).not.toBe("林心守护者");
+    expect(piggy?.bossName).not.toBe(bowl?.bossName);
+    const piggyFight = stageCombatFor(piggy!, boss, "warrior");
+    const bowlFight = stageCombatFor(bowl!, boss, "mage");
+    expect(piggyFight.phases?.map((phase) => phase.note)).toEqual([
+      `${piggy!.bossName}挡住了去路。`,
+      `${piggy!.bossName}进入第二阶段。`,
+    ]);
+    expect(bowlFight.phases?.[1]?.note).toBe(`${bowl!.bossName}进入第二阶段。`);
+    expect(piggyFight.phases?.[1]?.note).not.toContain("林心守护者");
+    expect(bowlFight.phases?.[0]?.note).not.toContain("林心守护者");
+    const opened = startBattle({
+      encounterId: piggyFight.encounterId,
+      classId: "warrior",
+      learnedIds: ["tree"],
+      equippedSkillIds: [],
+      skillLevels: {},
+      seed: 8,
+      enemy: { name: piggyFight.enemyName, maxHp: 1, attack: 0, sprite: piggyFight.sprite },
+      phases: piggyFight.phases?.map((phase) => ({ hp: 1, note: phase.note })),
+    });
+    const cast = takeAction({ ...opened, shaken: true }, { type: "skill", slotIndex: 0 });
+    expect(cast.ok).toBe(true);
+    const answer = cast.state.question?.kind === "spelling" ? cast.state.question.answer : cast.state.question?.answerId;
+    const next = answerQuestion(cast.state, answer ?? "");
+    expect(next.phaseIndex).toBe(1);
+    expect(next.lastNote).toContain(`${piggy!.bossName}进入第二阶段。`);
+    expect(next.lastNote).not.toContain("林心守护者");
   });
 
   it("records boss atlas hashes that match the files on disk", () => {

@@ -376,7 +376,13 @@ export function stageCombatFor(chapter: PlayChapter, stage: ForestStage, classId
     : `chapter:${chapter.id}:stage:${stage.id}`;
   const enemyName = stage.type === "boss" ? chapter.bossName : minion?.name ?? combat.enemyName;
   const sprite = stage.type === "boss" ? chapterBossId(chapter.id) : combat.sprite;
-  return { ...combat, encounterId, enemyName, sprite };
+  const phases = stage.type === "boss" && combat.phases
+    ? combat.phases.map((phase) => ({
+        hp: phase.hp,
+        note: phase.note.replaceAll(PROVISIONAL.chapterEnding.bossName, enemyName),
+      }))
+    : combat.phases;
+  return { ...combat, encounterId, enemyName, sprite, phases };
 }
 
 export interface MapStageCounts {

@@ -311,14 +311,55 @@ export function practiceItemLine(items: readonly { id: string }[]): string {
 }
 
 /**
- * Two word rows end at y=360, and the reward block is laid out under that.
- * A shorter list moves that block up by the unused height so the gap stays put.
+ * Victory word chip. Two gloss lines need their own height plus padding,
+ * and the next card in the row starts a gap past this one.
+ */
+export const RESULTS_WORD_CHIP = {
+  width: 170,
+  height: 80,
+  pitchX: 182,
+  pitchY: 86,
+  glossX: 14,
+  glossY: 32,
+  glossRight: 8,
+  glossBottom: 10,
+  fontSize: 16,
+  minFontSize: 12,
+  maxLines: 2,
+} as const;
+
+const RESULTS_CHIP_TOP = 220;
+const RESULTS_EMPTY_BOTTOM = 186;
+/** Reward coordinates were drawn when two chip rows ended here. */
+const RESULTS_REWARD_ANCHOR = 360;
+
+function resultsRowsBottom(rows: number): number {
+  if (rows <= 0) return RESULTS_EMPTY_BOTTOM;
+  return RESULTS_CHIP_TOP + (rows - 1) * RESULTS_WORD_CHIP.pitchY + RESULTS_WORD_CHIP.height;
+}
+
+/** Two full rows of the current chip. Rewards sit under this. */
+export function resultsFullRowsBottom(): number {
+  return resultsRowsBottom(2);
+}
+
+/**
+ * How far reward blocks move down so they still clear two rows
+ * after the chip grew past the original y=360 anchor.
+ */
+export function resultsRewardDrop(): number {
+  return resultsFullRowsBottom() - RESULTS_REWARD_ANCHOR;
+}
+
+/**
+ * A shorter word list moves the reward block up by the unused height
+ * so the gap under the chips stays put. Two full rows do not move.
  */
 export function resultsLowerShift(wordCount: number, extraWords: number): number {
   const rows = wordCount <= 0 ? 0 : Math.ceil(wordCount / 4);
-  const chipBottom = rows === 0 ? 186 : 220 + (rows - 1) * 76 + 64;
+  const chipBottom = resultsRowsBottom(rows);
   const blockBottom = extraWords > 0 ? chipBottom + 28 : chipBottom;
-  return Math.max(0, 360 - blockBottom);
+  return Math.max(0, resultsFullRowsBottom() - blockBottom);
 }
 
 const RESULTS_PANEL_TOP = 116;
@@ -337,7 +378,7 @@ export function resultsStackNudge(
 ): number {
   if (mode === "tall") return 0;
   const shift = resultsLowerShift(wordCount, extraWords);
-  const bottom = (mode === "practice" ? 540 : 480) - shift;
+  const bottom = (mode === "practice" ? 540 : 480) + resultsRewardDrop() - shift;
   const pad = 36;
   const slack = RESULTS_PANEL_BOTTOM - pad - bottom;
   if (slack < 72) return 0;

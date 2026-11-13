@@ -5,8 +5,10 @@ import { CHIP_ON, TEAL_DEEP, TERRA, TITLE_PLANK } from "./warm/theme";
 import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
-import { formatMeaning, wordById } from "../domain/catalog";
-import { CARD_GOT, COLLECTION_CARD, OPTION_BADGE_CENTER, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, meaningScale, optionTextBounds, rewardDialogChrome, struggleButtonTop, struggleWindow, studyNoticeGap, wrapCjkText } from "./layout";
+import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
+import { reviewDeskLayout } from "./dev-mode";
+import { REVIEW_DESK_LIMIT } from "../domain/review";
+import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -103,6 +105,172 @@ describe("study card and option alignment", () => {
     expect(kit).toContain("cjkWrap(bounds.maxWidth)");
     const battleScene = readFileSync(new URL("./scenes/BattleScene.ts", import.meta.url), "utf8");
     expect(battleScene).toContain("250, 76");
+  });
+
+  it("fits the longest English words and meanings without covering buttons or the study hint", () => {
+    const measure = (fontSize: number) => (sample: string) => {
+      let pixels = 0;
+      for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;
+      return pixels;
+    };
+    interface Box { x: number; y: number; w: number; h: number }
+    const hits = (a: Box, b: Box) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    const inside = (inner: Box, item: Box) =>
+      item.x >= inner.x && item.y >= inner.y && item.x + item.w <= inner.x + inner.w && item.y + item.h <= inner.y + inner.h;
+    const assertFit = (fitted: FittedText, box: TextBox, source: string) => {
+      expect(fitted.lines.length, source).toBeGreaterThan(0);
+      expect(fitted.lines.length, source).toBeLessThanOrEqual(box.maxLines);
+      expect(fitted.fontSize, source).toBeGreaterThanOrEqual(box.minFontSize);
+      expect(fitted.fontSize, source).toBeLessThanOrEqual(box.fontSize);
+      expect(fitted.text, source).toBe(fitted.lines.join("\n"));
+      expect(fitted.text.replaceAll("\n", ""), source).toBe(source);
+      expect(fittedBlockHeight(fitted.fontSize, fitted.lines.length), source).toBeLessThanOrEqual(box.maxHeight);
+      for (const line of fitted.lines) expect(measure(fitted.fontSize)(line), source).toBeLessThanOrEqual(box.maxWidth);
+    };
+    const lineWidth = (fitted: FittedText) => fitted.lines.reduce((wide, line) => Math.max(wide, measure(fitted.fontSize)(line)), 0);
+    const spellLeft = REVIEW_ROW.spellCenter - REVIEW_ROW.spellWidth / 2;
+    const revealLeft = REVIEW_ROW.revealCenter - REVIEW_ROW.revealWidth / 2;
+    const reveal: Box = {
+      x: revealLeft,
+      y: REVIEW_ROW.revealOffset - REVIEW_ROW.revealHeight / 2,
+      w: REVIEW_ROW.revealWidth,
+      h: REVIEW_ROW.revealHeight,
+    };
+    const spell: Box = {
+      x: spellLeft,
+      y: REVIEW_ROW.spellOffset - REVIEW_ROW.spellHeight / 2,
+      w: REVIEW_ROW.spellWidth,
+      h: REVIEW_ROW.spellHeight,
+    };
+    const rates: Box[] = [0, 1, 2, 3].map((index) => ({
+      x: REVIEW_ROW.rateCenter + index * 120 - REVIEW_ROW.rateWidth / 2,
+      y: REVIEW_ROW.rateOffset - REVIEW_ROW.rateHeight / 2,
+      w: REVIEW_ROW.rateWidth,
+      h: REVIEW_ROW.rateHeight,
+    }));
+    expect(reviewTextRight()).toBeLessThanOrEqual(spell.x - REVIEW_ROW.gap);
+    expect(spell.x).toBeLessThan(rates[0]!.x);
+    expect(REVIEW_ROW.textX + REVIEW_ROW.englishMaxWidth).toBeLessThanOrEqual(reveal.x - REVIEW_ROW.gap);
+    expect(REVIEW_ROW.blockHeight).toBeLessThanOrEqual(REVIEW_ROW.statusOffset);
+    const byWidth = (pick: (word: (typeof CATALOG_WORDS)[number]) => string, fontSize: number) =>
+      CATALOG_WORDS.map((word) => ({ id: word.id, text: pick(word), width: measure(fontSize)(pick(word)) })).sort((a, b) => b.width - a.width);
+    const longestMeaning = byWidth((word) => formatMeaning(word), REVIEW_ROW.fontSize);
+    const longestEnglish = byWidth((word) => word.english, REVIEW_ROW.fontSize);
+    const longestGloss = byWidth((word) => word.chinese, RESULTS_WORD_CHIP.fontSize);
+    expect(longestMeaning[0]?.id).toBe("took");
+    expect(longestEnglish[0]?.id).toBe("jinggangshan revolution museum");
+    expect(longestEnglish[1]?.id).toBe("hong kong-zhuhai-macao bridge");
+    expect(longestGloss[0]?.id).toBe("took");
+    const glossBox = resultsGlossBox();
+    expect(glossBox.maxWidth).toBe(RESULTS_WORD_CHIP.width - RESULTS_WORD_CHIP.glossX - RESULTS_WORD_CHIP.glossRight);
+    expect(glossBox.maxWidth).toBeLessThanOrEqual(156);
+    const chipRight = RESULTS_WORD_CHIP.width - RESULTS_WORD_CHIP.glossRight;
+    const named = ["took", "stayed", "fell", "cleaned", "office worker", "jinggangshan revolution museum", "hong kong-zhuhai-macao bridge"];
+    for (const id of named) expect(wordById(id), id).toBeTruthy();
+    for (const word of CATALOG_WORDS) {
+      const english = fitTextBox(word.english, reviewEnglishBox(), (sample, size) => measure(size)(sample));
+      assertFit(english, reviewEnglishBox(), word.english);
+      const englishBox: Box = { x: REVIEW_ROW.textX, y: 0, w: lineWidth(english), h: fittedBlockHeight(english.fontSize, english.lines.length) };
+      const meaningBox = reviewMeaningBox(englishBox.w);
+      expect(meaningBox.x + meaningBox.maxWidth, word.id).toBeLessThanOrEqual(spell.x - REVIEW_ROW.gap);
+      expect(meaningBox.maxWidth, word.id).toBeGreaterThan(0);
+      const meaning = fitTextBox(formatMeaning(word), meaningBox, (sample, size) => measure(size)(sample));
+      assertFit(meaning, meaningBox, formatMeaning(word));
+      const meaningRect: Box = { x: meaningBox.x, y: 0, w: lineWidth(meaning), h: fittedBlockHeight(meaning.fontSize, meaning.lines.length) };
+      expect(hits(englishBox, reveal), `${word.id} unopened`).toBe(false);
+      expect(hits(englishBox, spell), `${word.id} unopened spell`).toBe(false);
+      expect(hits(meaningRect, spell), `${word.id} opened spell`).toBe(false);
+      for (const rate of rates) {
+        expect(hits(meaningRect, rate), `${word.id} opened rate`).toBe(false);
+        expect(hits(englishBox, rate), `${word.id} english rate`).toBe(false);
+      }
+      const gloss = fitTextBox(word.chinese, glossBox, (sample, size) => measure(size)(sample));
+      assertFit(gloss, glossBox, word.chinese);
+      expect(RESULTS_WORD_CHIP.glossX + lineWidth(gloss), word.id).toBeLessThanOrEqual(chipRight);
+      const glossInner: Box = {
+        x: RESULTS_WORD_CHIP.glossX,
+        y: RESULTS_WORD_CHIP.glossY,
+        w: glossBox.maxWidth,
+        h: glossBox.maxHeight,
+      };
+      const glossLines = fittedLineBoxes(RESULTS_WORD_CHIP.glossX, RESULTS_WORD_CHIP.glossY, gloss, (line) => measure(gloss.fontSize)(line));
+      expect(glossLines.length, word.id).toBe(gloss.lines.length);
+      for (const line of glossLines) expect(inside(glossInner, line), `${word.id} gloss inside`).toBe(true);
+      for (let index = 0; index < glossLines.length; index += 1) {
+        const line = glossLines[index]!;
+        expect(line.y + line.h, `${word.id} line ${index}`).toBeLessThanOrEqual(RESULTS_WORD_CHIP.height - RESULTS_WORD_CHIP.glossBottom);
+        const next = glossLines[index + 1];
+        if (!next) continue;
+        expect(hits(line, next), `${word.id} lines overlap`).toBe(false);
+        expect(next.y - (line.y + line.h), `${word.id} line gap`).toBeGreaterThanOrEqual(FITTED_LINE_GAP);
+      }
+    }
+    const chipAt = (index: number): Box => ({
+      x: 477 + (index % 4) * RESULTS_WORD_CHIP.pitchX,
+      y: 220 + Math.floor(index / 4) * RESULTS_WORD_CHIP.pitchY,
+      w: RESULTS_WORD_CHIP.width,
+      h: RESULTS_WORD_CHIP.height,
+    });
+    for (let index = 0; index < 3; index += 1) {
+      const left = chipAt(index);
+      const right = chipAt(index + 1);
+      expect(hits(left, right), `chip ${index}`).toBe(false);
+      expect(right.x - (left.x + left.w), `chip gap ${index}`).toBeGreaterThanOrEqual(8);
+    }
+    const row = reviewRowSlice(0);
+    const dueStatus: Box = { x: REVIEW_ROW.textX, y: REVIEW_ROW.statusOffset, w: 180, h: 16 };
+    const toneStatus: Box = { x: 400, y: REVIEW_ROW.statusOffset, w: 140, h: REVIEW_ROW.statusFont };
+    const bottomBorder: Box = { x: 150, y: row.innerBottom, w: 980, h: row.bottom - row.innerBottom };
+    for (const [label, status] of [["unopened", dueStatus], ["opened", toneStatus]] as const) {
+      expect(status.y, label).toBeGreaterThanOrEqual(row.innerTop + REVIEW_ROW.statusPad);
+      expect(status.y + status.h, label).toBeLessThanOrEqual(row.innerBottom - REVIEW_ROW.statusPad);
+      expect(hits(status, bottomBorder), label).toBe(false);
+    }
+    expect(row.pitch).toBeGreaterThanOrEqual(row.height);
+    const desk = reviewDeskLayout(false);
+    const hint: Box = { x: 170, y: desk.bodyY, w: 440, h: REVIEW_DESK.hintFont };
+    const firstRow = reviewRowSlice(reviewRowTextY(desk.bodyY, 0));
+    const firstSlice: Box = { x: 150, y: firstRow.top, w: 980, h: firstRow.height };
+    expect(firstRow.top, "hint pad").toBeGreaterThanOrEqual(hint.y + hint.h + REVIEW_DESK.hintPad);
+    expect(hits(hint, firstSlice), "hint vs row 1").toBe(false);
+    const lastRow = reviewRowSlice(reviewRowTextY(desk.bodyY, REVIEW_DESK_LIMIT - 1));
+    const lastSlice: Box = { x: 150, y: lastRow.top, w: 980, h: lastRow.height };
+    const back: Box = {
+      x: REVIEW_DESK.backX - REVIEW_DESK.backWidth / 2,
+      y: REVIEW_DESK.backY - REVIEW_DESK.backHeight / 2,
+      w: REVIEW_DESK.backWidth,
+      h: REVIEW_DESK.backHeight,
+    };
+    expect(lastRow.bottom, "back pad").toBeLessThanOrEqual(back.y - REVIEW_DESK.backPad);
+    expect(hits(lastSlice, back), "full page vs back").toBe(false);
+    expect(REVIEW_DESK_LIMIT).toBe(4);
+    for (const missed of [false, true]) {
+      for (const scale of [1, 0.75, 0.5, 0.35]) {
+        expect(studyReviewHintGap(missed, scale), `${missed} ${scale}`).toBeGreaterThanOrEqual(16);
+      }
+    }
+    expect(studyHintStackGap()).toBeGreaterThanOrEqual(8);
+    const learn = readFileSync(new URL("./scenes/LearnScene.ts", import.meta.url), "utf8");
+    expect(learn).toContain("STUDY_CARD.reviewHintY");
+    expect(learn).not.toContain("640, 210,");
+    const review = readFileSync(new URL("./scenes/ReviewScene.ts", import.meta.url), "utf8");
+    expect(review).toContain("applyFittedText");
+    expect(review).toContain("reviewEnglishBox");
+    expect(review).toContain("reviewMeaningBox");
+    expect(review).toContain("REVIEW_ROW.revealCenter");
+    expect(review).toContain("REVIEW_ROW.spellCenter");
+    expect(review).toContain("reviewRowSlice");
+    expect(review).toContain("reviewRowTextY");
+    expect(review).toContain("REVIEW_DESK.backY");
+    expect(review).toContain("REVIEW_ROW.statusOffset");
+    const results = readFileSync(new URL("./scenes/BattleResultsScene.ts", import.meta.url), "utf8");
+    expect(results).toContain("applyFittedText");
+    expect(results).toContain("resultsGlossBox");
+    expect(results).toContain("RESULTS_WORD_CHIP.pitchX");
+    expect(results).toContain("RESULTS_WORD_CHIP.pitchY");
+    const layoutSource = readFileSync(new URL("./layout.ts", import.meta.url), "utf8");
+    expect(layoutSource).not.toContain("setLineSpacing(-");
+    expect(STUDY_CARD.reviewHintY).toBeLessThan(STUDY_CARD.restingRowY);
   });
 
   it("scales a long Chinese line down to the card width", () => {
