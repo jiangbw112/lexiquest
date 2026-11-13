@@ -118,7 +118,7 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 | 项目 | 数值 |
 | --- | --- |
-| 探索敌人血量 / 攻击 | 44 / 6，约 3–5 次盾击、战吼或旋风斩 |
+| 探索敌人血量 / 攻击 | 44 / 6，约 3–4 次盾击、战吼或旋风斩 |
 | 题目间隔 | 有其他可选词时，最近 3 题内不重复 |
 | 通关奖励 | 从 `src/domain/chapters/forest-rewards.json` 读取。首次通关获得 `forest_leaf_cape` 和默认候选称号。掌握使用 `ceil(章节长度 × 0.5)` 和 `ceil(章节长度 × 1)`。名称未最终确定（`final_name_selected_by_pm` 为 false） |
 
@@ -126,7 +126,7 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 森林章节装饰和称号在 `src/domain/chapters/forest-rewards.json` 中，该文件在词表目录之外。首次通关和两个掌握里程碑各获得一次装饰和称号。徽章变灰不会收回，重玩不会再次获得。它们不改变 XP、FSRS 或战斗统计。每日装饰代币仍是每日目标奖励。绘制图在 `public/assets/chapter/forest/v0.1/` 下，是森林奖励 v0.1。清单状态为「暂定」。披风是 `cosmetic_back`，z 轴 6；橡果别针是 `cosmetic_chest`，z 轴 47；花环是 `cosmetic_head`，z 轴 65。槽位表 v0.2 新增 `cosmetic_chest`。别针的胸部偏移已包含在裁剪帧中。战士 v1.0 侧视有 `back` 和 `back_front`。装备林间斗篷时，`forest-rewards.json` 会藏起这两层。花环只藏 `outfit_head_plume`，不藏整个头盔。侧视时披风看起来像身后的一条树叶带。别针较小，在攻击帧 02 和 03 中大部分被近手遮挡。
 
-`public/assets` 在本机量得 28,503,107 字节（约 28.5 MB），其中包含职业 v1.0 侧视和俯视。生产 JavaScript 首包在本机量得 1,614,811 字节（gzip 前，`dist/assets/index-D-tOPX4p.js`），因为包含 Phaser。在此机器上使用无头桌面 Chrome 运行，启动到标题用时 995 ms，然后在村庄测得 45 帧后 26 fps 和 54 MB JavaScript 堆。无头帧率低于 60 fps 目标和 30 fps 下限；正常桌面窗口应更高。启动时间和堆在 2 秒和 150 MB 预算内。
+`public/assets` 在本机量得 28,503,107 字节（约 28.5 MB），其中包含职业 v1.0 侧视和俯视。生产 JavaScript 首包在本机量得 1,614,811 字节（gzip 前，`dist/assets/index-D-tOPX4p.js`），因为包含 Phaser。
 
 ## 示例数据
 
@@ -148,7 +148,7 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 - 关闭年级是否应改变 Boss 门槛。通关本身是击败 Boss。亮起徽章仍是本章词汇的计数。森林章的 Boss 图仍是暂定 v0.1 林冠（`bossSprite` 为 `canopy`）。三到六年级每一章用自己的 Boss 图。
 - 称号名称保持首选候选直到配置设置 `final_name_selected_by_pm`。v0.1 森林图在游戏中。包本身仍标记为「暂定」。
 - 最终林冠图。v0.1 是 `public/assets/boss/canopy/v0.1` 下的可集成包，文档在 `docs/art/boss-canopy/`。
-- 装扮变体。战士装备林间斗篷、别针或花环时，侧视图会换上对应的层。其他职业装备这些装饰时，这一版还不换层。
+- 装扮变体。六个职业装备森语花环时，侧视和俯视都会画上花环。`public/assets/classes/v1.0/wreath/places.json` 给战士、法师、游侠、治愈师、发明家、探险家都写了 side 和 top 的位置。花环只藏战士的 `outfit_head_plume`。林叶披肩和橡实别针只在战士侧视上换层：披肩藏 `back` 和 `back_front`，别针画在胸前。其他职业装备这两件时，这一版还不换层。俯视不画披肩和别针。林间斗篷的侧视斗篷和叶子帽也只换在战士身上。
 - 更多外观。存档仍存储马尾和雀斑。职业 v1.0 图不读这些字段，改这些字段不会改画面。
 - 行走在图集中（10 fps 6 帧），战斗中未播放，因为战斗场景不移动角色。
 - 平板触控和 iPad 应用。当前版本不针对它们。
