@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_pricetag_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1291,
+    "w": 725,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 71,
+    "w": 725,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_pricetag_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1291,
+    "w": 725,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 72,
+    "w": 725,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_pricetag_body_w_attack_02": {
+   "frame": {
+    "x": 724,
+    "y": 2,
+    "w": 725,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 68,
+    "w": 725,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_pricetag_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 720,
+    "h": 643
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 67,
+    "w": 720,
+    "h": 643
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_pricetag_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 647,
+    "w": 725,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 68,
+    "w": 725,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_pricetag_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 647,
+    "w": 725,
+    "h": 640
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 70,
+    "w": 725,
+    "h": 640
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
+  "version": "0.8-g56",
+  "image": "boss_pricetag_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1932
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

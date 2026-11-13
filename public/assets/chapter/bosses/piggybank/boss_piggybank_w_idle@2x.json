@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "boss_piggybank_body_w_idle_00": {
+   "frame": {
+    "x": 729,
+    "y": 633,
+    "w": 725,
+    "h": 624
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 86,
+    "w": 725,
+    "h": 624
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_idle_01": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 628
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 82,
+    "w": 725,
+    "h": 628
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_idle_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 629
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 81,
+    "w": 725,
+    "h": 629
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_idle_03": {
+   "frame": {
+    "x": 2,
+    "y": 633,
+    "w": 725,
+    "h": 627
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 83,
+    "w": 725,
+    "h": 627
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0_g12 tools/pack.py (code-drawn)",
+  "version": "1.0-g12",
+  "image": "boss_piggybank_w_idle@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1264
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v1.0 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

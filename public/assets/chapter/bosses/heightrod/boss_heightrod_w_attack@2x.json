@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_heightrod_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1289,
+    "w": 712,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 69,
+    "w": 712,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_attack_01": {
+   "frame": {
+    "x": 716,
+    "y": 1289,
+    "w": 711,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 70,
+    "w": 711,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_attack_02": {
+   "frame": {
+    "x": 711,
+    "y": 2,
+    "w": 710,
+    "h": 641
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 67,
+    "w": 710,
+    "h": 641
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 707,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 37,
+    "y": 66,
+    "w": 707,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 646,
+    "w": 711,
+    "h": 641
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 67,
+    "w": 711,
+    "h": 641
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_attack_05": {
+   "frame": {
+    "x": 715,
+    "y": 646,
+    "w": 712,
+    "h": 640
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 29,
+    "y": 68,
+    "w": 712,
+    "h": 640
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_heightrod_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1432,
+   "h": 1932
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

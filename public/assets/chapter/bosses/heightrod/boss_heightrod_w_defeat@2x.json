@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_heightrod_body_w_defeat_00": {
+   "frame": {
+    "x": 717,
+    "y": 2,
+    "w": 713,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 34,
+    "y": 69,
+    "w": 713,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_defeat_01": {
+   "frame": {
+    "x": 717,
+    "y": 646,
+    "w": 713,
+    "h": 634
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 31,
+    "y": 74,
+    "w": 713,
+    "h": 634
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1283,
+    "w": 713,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 78,
+    "w": 713,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_defeat_03": {
+   "frame": {
+    "x": 717,
+    "y": 1283,
+    "w": 713,
+    "h": 626
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 82,
+    "w": 713,
+    "h": 626
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 646,
+    "w": 713,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 73,
+    "w": 713,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_defeat_05": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 713,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 66,
+    "w": 713,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_heightrod_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1432,
+   "h": 1916
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

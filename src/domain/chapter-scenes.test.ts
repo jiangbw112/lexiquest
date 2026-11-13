@@ -136,7 +136,7 @@ describe("chapter scene groups", () => {
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.json",
       "public/assets/chapter/scenes/minions/atlas_monsters_scenes_2.png",
     ]);
-    expect(ledger.version).toBe("integration_v1.0.2");
+    expect(ledger.version).toBe("integration_v1.0.4");
     for (const file of minionFiles) {
       expect(sha256(file.repoPath)).toBe(file.repoSha256);
       expect(file.recompressed).toBe(false);
@@ -185,7 +185,7 @@ describe("chapter scene groups", () => {
     expect(stageCombatFor({ id: "pep_g4_02", bossName: "社区守望者" } as PlayChapter, exploration, "warrior").enemyName).toBe("路灯灵");
     expect(stageCombatFor({ id: "pep_g5_07", bossName: "沙丘驼铃灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("风叶灵");
     expect(stageCombatFor({ id: "pep_g5_09", bossName: "旅行地图灵" } as PlayChapter, exploration, "warrior").enemyName).toBe("行囊灵");
-    expect(stageCombatFor(home, boss, "mage").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
+    expect(stageCombatFor(home, boss, "mage").sprite).toBe("family_album");
     expect(stageCombatFor(home, boss, "mage").enemyName).toBe("全家福守护者");
     expect(stageCombat(boss, "mage", "cushion").sprite).toBe(PROVISIONAL.chapterEnding.bossSprite);
   });

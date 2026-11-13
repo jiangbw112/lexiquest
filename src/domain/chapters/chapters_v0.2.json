@@ -1002,7 +1002,7 @@
   "grade": "G3",
   "chapter_index_in_grade": 7,
   "name_zh": "好吃又健康",
-  "boss_name_zh": "玩具箱守护者",
+  "boss_name_zh": "营养餐盘守护者",
   "word_count": 28,
   "units_covered": [
    {
@@ -1123,7 +1123,7 @@
    },
    {
     "id": 5,
-    "name_zh": "旧玩具守护",
+    "name_zh": "营养餐盘守护者",
     "type": "boss",
     "learn_before_fight": true,
     "word_refs": [
@@ -1145,7 +1145,7 @@
    "vegetable",
    "ball"
   ],
-  "theme_note_zh": "U3 的五感词收尾，主体是 U4 Healthy food，关 5 进入 U5 Old toys（ball/boat/box/cap）。"
+  "theme_note_zh": "U3 的五感词收尾，主体是 U4 Healthy food。关 5 的词是 ball、boat、box、cap，Boss 是营养餐盘守护者。"
  },
  {
   "order": 9,

@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_warmsun_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 713,
+    "h": 606
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 34,
+    "y": 104,
+    "w": 713,
+    "h": 606
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_warmsun_body_w_defeat_01": {
+   "frame": {
+    "x": 717,
+    "y": 610,
+    "w": 713,
+    "h": 593
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 31,
+    "y": 117,
+    "w": 713,
+    "h": 593
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_warmsun_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1211,
+    "w": 713,
+    "h": 578
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 132,
+    "w": 713,
+    "h": 578
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_warmsun_body_w_defeat_03": {
+   "frame": {
+    "x": 717,
+    "y": 1211,
+    "w": 713,
+    "h": 566
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 144,
+    "w": 713,
+    "h": 566
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_warmsun_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 610,
+    "w": 713,
+    "h": 599
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 111,
+    "w": 713,
+    "h": 599
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_warmsun_body_w_defeat_05": {
+   "frame": {
+    "x": 717,
+    "y": 2,
+    "w": 713,
+    "h": 606
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 104,
+    "w": 713,
+    "h": 606
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_warmsun_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1432,
+   "h": 1792
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -28,7 +28,8 @@ import { deserialize, serialize } from "./storage";
 import { chapterWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
-const CHAPTERS_SHA256 = "f70645d8faf80032a3c938d364fe414f165aba082be062479cb020a41402807a";
+/** chapters_v0.2.json. pep_g3_07 boss is 营养餐盘守护者; its theme note no longer says Old toys. */
+const CHAPTERS_SHA256 = "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c";
 const GLOSS_SHA256 = "b894a98edae983f916ebb3d6dc10fbb7c73021303120623b5a6587876b61f047";
 
 const START = new Date("2026-03-01T02:00:00Z");

@@ -1,4 +1,5 @@
 import { isChapterExtra, wordById } from "./catalog";
+import { chapterBossDisplayName, chapterBossId } from "./chapter-bosses";
 import { chapterMinion } from "./chapter-scenes";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone } from "./review";
@@ -145,7 +146,7 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
       }
       return {
         id: stage.id,
-        name_zh: stage.name_zh,
+        name_zh: boss ? chapterBossDisplayName(source.chapter_id, stage.name_zh) : stage.name_zh,
         goal_zh: "",
         type: boss ? "boss" : "exploration",
         new_words: wordIds,
@@ -175,7 +176,7 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
     chapters.push({
       id: source.chapter_id,
       name: source.name_zh,
-      bossName: source.boss_name_zh,
+      bossName: chapterBossDisplayName(source.chapter_id, source.boss_name_zh),
       grade,
       index,
       stages,
@@ -374,7 +375,8 @@ export function stageCombatFor(chapter: PlayChapter, stage: ForestStage, classId
     ? `chapter:${chapter.id}:boss`
     : `chapter:${chapter.id}:stage:${stage.id}`;
   const enemyName = stage.type === "boss" ? chapter.bossName : minion?.name ?? combat.enemyName;
-  return { ...combat, encounterId, enemyName };
+  const sprite = stage.type === "boss" ? chapterBossId(chapter.id) : combat.sprite;
+  return { ...combat, encounterId, enemyName, sprite };
 }
 
 export interface MapStageCounts {

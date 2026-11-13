@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_penciler_body_w_attack_00": {
+   "frame": {
+    "x": 531,
+    "y": 642,
+    "w": 405,
+    "h": 633
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 184,
+    "y": 75,
+    "w": 405,
+    "h": 633
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_attack_01": {
+   "frame": {
+    "x": 938,
+    "y": 642,
+    "w": 407,
+    "h": 631
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 178,
+    "y": 77,
+    "w": 407,
+    "h": 631
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_attack_02": {
+   "frame": {
+    "x": 541,
+    "y": 2,
+    "w": 524,
+    "h": 636
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 77,
+    "y": 72,
+    "w": 524,
+    "h": 636
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 537,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 68,
+    "y": 70,
+    "w": 537,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_attack_04": {
+   "frame": {
+    "x": 1067,
+    "y": 2,
+    "w": 552,
+    "h": 636
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 49,
+    "y": 72,
+    "w": 552,
+    "h": 636
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 642,
+    "w": 527,
+    "h": 634
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 70,
+    "y": 74,
+    "w": 527,
+    "h": 634
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.4_formal_g34 tools/pack.py (code-drawn)",
+  "version": "0.4-formal-g34",
+  "image": "boss_penciler_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1624,
+   "h": 1280
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 formal g3/g4 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

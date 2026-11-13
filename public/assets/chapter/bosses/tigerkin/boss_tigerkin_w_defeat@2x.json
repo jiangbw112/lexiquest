@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_tigerkin_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 709,
+    "h": 613
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 97,
+    "w": 709,
+    "h": 613
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_defeat_01": {
+   "frame": {
+    "x": 713,
+    "y": 2,
+    "w": 709,
+    "h": 599
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 33,
+    "y": 111,
+    "w": 709,
+    "h": 599
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 617,
+    "w": 709,
+    "h": 582
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 128,
+    "w": 709,
+    "h": 582
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_defeat_03": {
+   "frame": {
+    "x": 713,
+    "y": 617,
+    "w": 709,
+    "h": 570
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 140,
+    "w": 709,
+    "h": 570
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 1201,
+    "w": 709,
+    "h": 558
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 152,
+    "w": 709,
+    "h": 558
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_defeat_05": {
+   "frame": {
+    "x": 713,
+    "y": 1201,
+    "w": 709,
+    "h": 551
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 159,
+    "w": 709,
+    "h": 551
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0.2_tigerkin tools/pack.py (code-drawn)",
+  "version": "1.0.2-tigerkin",
+  "image": "boss_tigerkin_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1424,
+   "h": 1764
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "v1.0.2 条纹修订 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}
