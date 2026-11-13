@@ -8,6 +8,12 @@ export function queueSceneImage(scene: Phaser.Scene, key: string, url: string): 
   scene.load.image(key, url);
 }
 
+/** Load one minion atlas. Skips a texture the cache already has. */
+export function queueSceneAtlas(scene: Phaser.Scene, key: string, imageUrl: string, dataUrl: string): void {
+  if (scene.textures.exists(key)) return;
+  scene.load.atlas(key, imageUrl, dataUrl);
+}
+
 /**
  * A grade chapter does not preload the forest map. Switching back must queue
  * `bg_map` before anything paints it. Returns true when a file was queued.
