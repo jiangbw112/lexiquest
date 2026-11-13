@@ -120,12 +120,8 @@
 | 锁定图集哈希 | 符合 | `public/assets/classes/v1.0/portrait/cls_portraits_locked@2x.png` 为 `652d28919d792b67361cc2b07a34fb54ee3605eecdf03b1a854d1779fcc4a7ea`；json 为 `043e977c6c0331a616c7dd0772da0f13c8aab48e919075838d6be0f0e9eaf522`。帧名 `portrait_inventor_locked` 在 `class-atlas.ts`。创建页和换职业页用这个帧，不叠 `icon_lock` |
 | 技能图标帧 | 符合 | `atlas_skills.json` 有六职 24 张卡的 `skill_*` 帧，含 `skill_healer_beam`。规格附的源 PNG 哈希是仓库外文件，仓库里用的是打进图集的帧 |
 | `dashRules` 含发明家 | 符合 | `public/assets/classes/v1.0/manifest.json` 的 changelog 写了补 inventor |
-| 创建页可选卡显示天赋、起始卡名，并按各职主色上色 | 不符合 | 规格 §5.1。`CreateScene.ts` 约 L163–188 只画序号、职业名和 blurb。选中描边固定 `0xc4533a`（战士的 color），没有用各职 `color`，也没有画 `talent` 和起始卡名 |
-| 锁定卡描边换成中性灰 | 不符合 | 规格 §5.4.3。`CreateScene.ts` L157 和 `SkillsScene.ts` L153 的未选中描边仍是 `0x3b2a20`。底色用了 `0xc8bfb0` |
-| 锁定卡不再用代码画问号 | 不符合 | 规格 §5.4.3 说问号已经画在图里。`CreateScene.ts` L170–175 又画了一个「?」。换职业页没有这层字 |
-| `P0_CLASS_ID` 不再写死 | 不符合 | 规格 §5.1。`src/game/p0.ts` 仍导出 `P0_CLASS_ID = "warrior"`。创建页不引用它 |
 
-以上不符合只记录，这一支没有改这些画面。
+创建页还有 4 条和规格不一致。它们不阻塞 1.0.0，本版不改代码，记在「1.0.1 待修」。`RELEASE_NOTES.md` 不写这些。
 
 ## 验收口径
 
@@ -145,36 +141,33 @@ v2.11：31/31 年级章 Boss 已采用（mealmap，D-ART-6 按口径关闭）；
 
 本仓库里能对上的代码：`src/domain/chapters/chapters_v0.2.json` 的 `pep_g3_07` `boss_name_zh` 和第 5 关都是「营养餐盘守护者」；`src/domain/chapter-bosses.ts` 的 `PEP_G3_07_BOSS` id 是 `mealmap`，`BOSS_RESERVE` 只有 toychest。胜利横幅是 `src/domain/battle-results.ts` 的 `bossVictoryBanner`，即 `打败了${bossName}！`。森林结局句在 `src/game/scenes/EndingScene.ts`，模板是 `${玩家名} 打败了${ending.bossName}。这一章走完了。` 年级章没有这条结局句。
 
+## 1.0.1 待修
+
+创建页这 4 条不阻塞 1.0.0。本版不改代码，`RELEASE_NOTES.md` 也不写。
+
+1. 优先级最高：可选卡要画出天赋和起始卡名，描边用各职主色。现在 `src/game/scenes/CreateScene.ts` 约 L163–188 只画序号、职业名和 blurb。选中描边固定 `0xc4533a`（战士的 color）。
+2. 顺手修：锁定卡描边换成中性灰。`CreateScene.ts` L157 和 `src/game/scenes/SkillsScene.ts` L153 的未选中描边仍是 `0x3b2a20`。底色用了 `0xc8bfb0`。
+3. 顺手修：去掉创建页锁定卡上多画的「?」。问号已经在锁定图里。`CreateScene.ts` L170–175。换职业页没有这层字。
+4. 顺手修：`src/game/p0.ts` 仍导出 `P0_CLASS_ID = "warrior"`。创建页不引用它。
+
 ## 正式发布步骤
 
 只写步骤，这一支不执行、不删、不改任何 Release，也不触发 workflow。
 
-2026-11-13 只读看到的 Release：
+2026-11-13 只读看到的旧草稿：id `442757802`，name `[草稿] LexiQuest v1.0.0`，`tag_name` `desktop-dryrun-5-65d0eb2`，`draft` true。`refs/tags/desktop-dryrun-5-65d0eb2` 是 404，tag 还没创建。`65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 是 Merge pull request #12。没有名为 `v1.0.0` 的 tag。
 
-- 草稿 id `442757802`，name `[草稿] LexiQuest v1.0.0`，`tag_name` `desktop-dryrun-5-65d0eb2`，`draft` true，`target_commitish` 是分支名 `main`，不是提交 SHA。页面地址是 `untagged-f6c2c6607367f95da33f`。
-- `git` 引用 `refs/tags/desktop-dryrun-5-65d0eb2` 返回 404，同名 tag 还没有创建。
-- 提交 `65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 存在，说明是 Merge pull request #12。tag 名里的 `65d0eb2` 指向这次草稿当时的短 SHA。现有 tag 列表里没有一条指向它，也没有 `v1.0.0`。
-- 已发布的另两个 tag 是 `desktop-r4-9613161`（`9613161c829cdab0db7001d25f6d417755a50c55`）和 `desktop-r3-ab2c554`（`ab2c554688405cdf19705ff639aec98137f76262`）。它们不是 v1.0.0。
+`release.yml` 仍只有 `workflow_dispatch`。新增可选输入 `tag`，默认空字符串（L14–18）。不填时 tag 仍是 `desktop-r${run}-${shortsha}` 或 `desktop-dryrun-${run}-${shortsha}`，名称和跳过逻辑不变（判定在 `scripts/release-tag.mjs`。不填时的生成和跳过在 workflow L132–194；填了 tag 时，创建前的拒绝在 L42–63 和 L163–168，创建在 L323–373）。填了 `v1.0.0` 时必须是 `v` 加 `package.json` 的版本；远端已有同名 tag，或已有同名 Release（含草稿，名称 `LexiQuest v1.0.0` 或 tag 相同）就失败，不覆盖。通过后创建名为 `LexiQuest v1.0.0` 的 Release，tag 为该值，target 为本次 `github.sha`。`draft` 仍决定是不是草稿。正文仍由 `scripts/release-notes.mjs` 取 `RELEASE_NOTES.md` 的 `## 1.0.0`，其中有「Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。」
 
-`.github/workflows/release.yml`：
+按这个顺序做（现在不要做）：
 
-- 触发方式只有 `workflow_dispatch`（约 L3–13），不是 push `v*` tag。
-- 参数是 `draft`，choice `"true"` 或 `"false"`，默认 `"true"`。
-- `main-only` 在 `github.ref` 不是 `refs/heads/main` 时失败（约 L23–30）。必须从 main 手动运行。
-- tag 名不是 `v1.0.0`。`draft` 为 false 时是 `desktop-r${run_number}-${short_sha}`，为 true 时是 `desktop-dryrun-${run_number}-${short_sha}`（约 L99–118）。
-- 已有同名 Release 时不更新。非草稿先找 `desktop-r*` 加同一短 SHA 的 tag，找到就跳过（约 L126–136）。草稿再查即将使用的那个完整 tag 名是否已存在（约 L139–146）。创建步骤是 `gh release create`（约 L275–307），条件是 `steps.check_tag.outputs.exists != 'true'`。没有 `gh release edit`。tag 已存在时是跳过，不是覆盖。用到的 action 是 `actions/checkout@v4`、`actions/upload-artifact@v4`、`actions/download-artifact@v4`、`actions/setup-node@v4`、`actions/setup-python@v5`。
-- 所以旧草稿不会被 `release.yml` 覆盖。再跑一次会新建另一个 `desktop-dryrun-*` 或 `desktop-r-*` Release。
-
-要最后只留一个指向新 main 合并提交的 `v1.0.0`，按这个顺序做（现在不要做）：
-
-1. 先把本 PR 合并进 main，记下合并提交的完整 SHA。不要用 `65d0eb2`。
-2. 发布前删掉旧草稿，不要点「Publish」。它没有已创建的 tag，删 Release 不会留下 `desktop-dryrun-5-65d0eb2`。命令：`gh release delete desktop-dryrun-5-65d0eb2 --repo jiangbw112/lexiquest --yes`。然后确认 `gh api repos/jiangbw112/lexiquest/releases/442757802` 是 404，并且 `refs/tags/desktop-dryrun-5-65d0eb2` 仍是 404。
-3. 不要用现在的 `release.yml` 来做名为 `v1.0.0` 的 Release。它只会再做一个 `desktop-r*` 或 `desktop-dryrun-*`。
-4. 在新的 main 合并提交上单独建 tag 和 Release，例如 `gh release create v1.0.0 --repo jiangbw112/lexiquest --target <合并提交完整 SHA> --title "LexiQuest v1.0.0" --notes-file <从 RELEASE_NOTES.md 抽出的 ## 1.0.0>`。安装包另附。
-5. 确认只剩一个 v1.0.0：`gh release list` 里 tag 为 `v1.0.0` 的只有一条；`gh api repos/jiangbw112/lexiquest/git/ref/tags/v1.0.0` 的 SHA 等于第 1 步的合并提交；`gh api repos/jiangbw112/lexiquest/tags` 里没有指向 `65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 的 tag。若将来发现有旧 tag 指向这个 SHA，先删掉对应 Release，再 `git push origin :refs/tags/<那个 tag 名>`。现在没有这样的 tag，所以这一步只是确认。`desktop-r3-ab2c554` 和 `desktop-r4-9613161` 是更早的已发布 tag，不是 v1.0.0，不要为了这一步删掉。
+1. Haru 合 #18。合并之后的 main 提交才是这次 Release 的 target。
+2. Haru 删旧草稿 `442757802`。不要点 Publish。命令：`gh release delete desktop-dryrun-5-65d0eb2 --repo jiangbw112/lexiquest --yes`。确认：`gh api repos/jiangbw112/lexiquest/releases/442757802` 是 404，并且 `refs/tags/desktop-dryrun-5-65d0eb2` 仍是 404。
+3. 从 main 跑 `release.yml`，参数 `tag=v1.0.0`、`draft=true`。命令：`gh workflow run release.yml --repo jiangbw112/lexiquest --ref main -f tag=v1.0.0 -f draft=true`。
+4. 核对这份草稿的资产哈希和正文。命令：`gh release view v1.0.0 --repo jiangbw112/lexiquest --json tagName,targetCommitish,isDraft,name,body`。`targetCommitish` 应是第 1 步的合并提交 SHA。正文要含文件级核验、没有真机启动测试那一句。再下载三个安装包，对每个文件算 sha256。
+5. 发布。命令：`gh release edit v1.0.0 --repo jiangbw112/lexiquest --draft=false`。确认 `gh api repos/jiangbw112/lexiquest/git/ref/tags/v1.0.0` 的 SHA 等于第 1 步的合并提交，并且 `gh release list` 里 tag 为 `v1.0.0` 的只有这一条。`desktop-r3-ab2c554` 和 `desktop-r4-9613161` 是更早的已发布 tag，不要为了这一步删掉。
 
 ## 缺口
 
 游戏内容上，六职和 31 个年级章没有缺立绘、行走、技能特效、技能卡、场景、小怪或章节 Boss 图。Boss 血量是六职共用的一张表，不是每章各写一个数。
 
-规格原文在仓库外，已按哈希核对。上面「六职业对规格」里标不符合的四条没有改代码。验收清单 v2.10 不在本仓库。
+规格原文在仓库外，已按哈希核对。创建页 4 条差异记在「1.0.1 待修」，不阻塞 1.0.0。验收清单 v2.10 不在本仓库。

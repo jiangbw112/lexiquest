@@ -47,6 +47,7 @@ describe("release notes", () => {
     const section = releaseNotesFromFiles(notes, pkg);
     expect(section.startsWith("## 1.0.0\n")).toBe(true);
     expect(section).toContain("清除这台电脑上的存档");
+    expect(section).toContain("Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。");
     expect(section).not.toContain("## 1.1.0");
   });
 });

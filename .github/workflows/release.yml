@@ -11,6 +11,11 @@ on:
         options:
           - "true"
           - "false"
+      tag:
+        description: "Optional tag such as v1.0.0. Leave empty to keep the desktop-r / desktop-dryrun tag."
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -22,12 +27,40 @@ concurrency:
 jobs:
   main-only:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Release only from main
         if: github.ref != 'refs/heads/main'
         run: |
           echo "Release can only be dispatched from refs/heads/main (got ${{ github.ref }}). No build, draft, release, or tag will be created."
           exit 1
+
+      - uses: actions/checkout@v4
+        if: inputs.tag != ''
+
+      - name: Reject an explicit tag that cannot be created
+        if: inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_DRAFT: ${{ inputs.draft }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          node scripts/release-tag.mjs decide \
+            --tag "$INPUT_TAG" \
+            --version "$VERSION" \
+            --draft "$INPUT_DRAFT" \
+            --run "${{ github.run_number }}" \
+            --sha "$GITHUB_SHA" > /tmp/decision.json
+          EXPLICIT="$(jq -r .explicit /tmp/decision.json)"
+          if [ "$EXPLICIT" != "true" ]; then
+            exit 0
+          fi
+          git ls-remote --tags origin | awk '{print $2}' | sed 's#refs/tags/##' | sed 's#\^{}##' | jq -R . | jq -s 'map(select(length > 0)) | unique' > /tmp/tags.json
+          gh api --paginate "repos/${{ github.repository }}/releases" --jq '.[] | {tag_name,name,draft}' | jq -s '.' > /tmp/releases.json
+          node scripts/release-tag.mjs conflict --tag "$(jq -r .tag /tmp/decision.json)" --tags /tmp/tags.json --releases /tmp/releases.json
 
   windows:
     needs: main-only
@@ -100,26 +133,41 @@ jobs:
         id: mode
         env:
           INPUT_DRAFT: ${{ inputs.draft }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-          RUN_NUM="${{ github.run_number }}"
-          # Official only when this dispatch is on main and draft is false.
-          # main-only already rejects every other ref before a build starts.
-          if [ "$INPUT_DRAFT" = "false" ]; then
-            IS_DRAFT="false"
-            TAG="desktop-r${RUN_NUM}-${SHORT_SHA}"
-          else
-            IS_DRAFT="true"
-            TAG="desktop-dryrun-${RUN_NUM}-${SHORT_SHA}"
-          fi
-          echo "is_draft=$IS_DRAFT" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
-          echo "Mode: draft=$IS_DRAFT, tag=$TAG"
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          # Empty tag: scripts/release-tag.mjs returns desktop-r or desktop-dryrun.
+          # A filled tag must be v<semver> and match package.json, or this step fails.
+          DECISION="$(node scripts/release-tag.mjs decide \
+            --tag "$INPUT_TAG" \
+            --version "$VERSION" \
+            --draft "$INPUT_DRAFT" \
+            --run "${{ github.run_number }}" \
+            --sha "$GITHUB_SHA")"
+          echo "is_draft=$(echo "$DECISION" | jq -r .isDraft)" >> "$GITHUB_OUTPUT"
+          echo "tag=$(echo "$DECISION" | jq -r .tag)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "explicit=$(echo "$DECISION" | jq -r .explicit)" >> "$GITHUB_OUTPUT"
+          echo "title=$(echo "$DECISION" | jq -r .title)" >> "$GITHUB_OUTPUT"
+          echo "target=$(echo "$DECISION" | jq -r .target)" >> "$GITHUB_OUTPUT"
+          echo "$DECISION"
 
       - name: Check for existing release with same SHA
         id: check_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+          TAG="${{ steps.mode.outputs.tag }}"
+          if [ "${{ steps.mode.outputs.explicit }}" = "true" ]; then
+            git ls-remote --tags origin | awk '{print $2}' | sed 's#refs/tags/##' | sed 's#\^{}##' | jq -R . | jq -s 'map(select(length > 0)) | unique' > /tmp/tags.json
+            gh api --paginate "repos/${{ github.repository }}/releases" --jq '.[] | {tag_name,name,draft}' | jq -s '.' > /tmp/releases.json
+            node scripts/release-tag.mjs conflict --tag "$TAG" --tags /tmp/tags.json --releases /tmp/releases.json
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           SHORT_SHA="${{ steps.mode.outputs.short_sha }}"
           IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
           
@@ -277,10 +325,17 @@ jobs:
         run: |
           TAG="${{ steps.mode.outputs.tag }}"
           IS_DRAFT="${{ steps.mode.outputs.is_draft }}"
-          TITLE="${{ steps.pkg.outputs.name }}"
+          EXPLICIT="${{ steps.mode.outputs.explicit }}"
+          if [ "$EXPLICIT" = "true" ]; then
+            TITLE="${{ steps.mode.outputs.title }}"
+          else
+            TITLE="${{ steps.pkg.outputs.name }}"
+            if [ "$IS_DRAFT" = "true" ]; then
+              TITLE="[草稿] $TITLE"
+            fi
+          fi
           
           if [ "$IS_DRAFT" = "true" ]; then
-            TITLE="[草稿] $TITLE"
             DRAFT_FLAG="--draft"
           else
             DRAFT_FLAG=""
@@ -297,11 +352,22 @@ jobs:
           echo "Creating release with tag: $TAG"
           echo "Title: $TITLE"
           echo "Draft: $IS_DRAFT"
+          echo "Explicit: $EXPLICIT"
           echo "Artifacts:$ARTIFACTS"
           
-          # Never create prerelease - only draft or regular release
-          gh release create "$TAG" \
-            --title "$TITLE" \
-            --notes-file release_notes.md \
-            $DRAFT_FLAG \
-            $ARTIFACTS
+          # Never create prerelease - only draft or regular release.
+          # An explicit tag is created at github.sha. An empty tag keeps the previous command.
+          if [ "$EXPLICIT" = "true" ]; then
+            gh release create "$TAG" \
+              --target "${{ steps.mode.outputs.target }}" \
+              --title "$TITLE" \
+              --notes-file release_notes.md \
+              $DRAFT_FLAG \
+              $ARTIFACTS
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes-file release_notes.md \
+              $DRAFT_FLAG \
+              $ARTIFACTS
+          fi
