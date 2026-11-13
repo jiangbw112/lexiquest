@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { BATTLE_CARD_H, BATTLE_CARD_W, battleCardLayout, cardBoxCenter, type CardBox } from "../../domain/battle-card-layout";
 import type { SkillSlot } from "../../domain/skills";
 import {
   skillCardFace,
@@ -14,8 +15,8 @@ import {
 import { containerHitArea } from "../hit";
 import { DIS_TEXT, FONT_BODY, FONT_LATIN, INK } from "./theme";
 
-const CARD_W = 140;
-const CARD_H = 176;
+const CARD_W = BATTLE_CARD_W;
+const CARD_H = BATTLE_CARD_H;
 const MUTED_TINT = 0xcfc4b2;
 /** Measured key-circle fill from SPEC B3.1. Not a new palette entry. */
 const KEY_CIRCLE = 0xe5dac5;
@@ -48,23 +49,25 @@ export function placeSkillCard(
     if (muted) icon.setTint(MUTED_TINT);
     parts.push(icon);
   }
+  const equipped = slot.origin === "equipped" && slot.level != null;
+  const layout = battleCardLayout({
+    name: slot.name,
+    star: slot.origin === "equipped" && slot.level != null ? starMark(slot.level) : null,
+    energy: slot.energyCost,
+    equipped,
+  });
   if (!muted) {
     const plate = scene.add.graphics();
     plate.fillStyle(CREAM_FILL, 1);
-    plate.fillRoundedRect(-52, 40, 104, 28, 8);
+    const top = layout.name.y - 2;
+    const bottom = (layout.star ? layout.star.y + layout.star.h : layout.name.y + layout.name.h) + 2;
+    plate.fillRoundedRect(8 - CARD_W / 2, top - CARD_H / 2, CARD_W - 16, bottom - top, 8);
     parts.push(plate);
   }
-  const label = slot.origin === "equipped" && slot.level != null ? `${slot.name} ${starMark(slot.level)}` : slot.name;
-  const name = scene.add
-    .text(0, 54, label, {
-      fontFamily: FONT_BODY,
-      fontSize: "16px",
-      fontStyle: "700",
-      color: muted ? DIS_TEXT : INK,
-    })
-    .setOrigin(0.5);
-  if (name.width > 96) name.setScale(96 / name.width);
-  parts.push(name);
+  parts.push(fitLabel(scene, layout.name, slot.name, muted));
+  if (layout.star && slot.origin === "equipped" && slot.level != null) {
+    parts.push(fitLabel(scene, layout.star, starMark(slot.level), muted));
+  }
   const circle = scene.add.graphics();
   circle.fillStyle(muted ? KEY_CIRCLE : CREAM_FILL, 1);
   circle.fillCircle(-CARD_W / 2 + 22, -CARD_H / 2 + 22, 14);
@@ -79,19 +82,20 @@ export function placeSkillCard(
       })
       .setOrigin(0.5),
   );
-  if (slot.origin === "equipped" && slot.level != null) {
-    const level = scene.add.image(CARD_W / 2 - 22, CARD_H / 2 - 22, "atlas_battle", skillLevelFrame(slot.level)).setScale(32 / 80);
-    const order = scene.add
-      .image(CARD_W / 2 - 26, -CARD_H / 2 + 26, "atlas_battle", skillOrderFrame(slot.index + 1))
-      .setScale(44 / 88);
+  if (slot.origin === "equipped" && slot.level != null && layout.badge && layout.order) {
+    const badgeAt = cardBoxCenter(layout.badge);
+    const orderAt = cardBoxCenter(layout.order);
+    const level = scene.add.image(badgeAt.x, badgeAt.y, "atlas_battle", skillLevelFrame(slot.level)).setScale(layout.badge.w / 80);
+    const order = scene.add.image(orderAt.x, orderAt.y, "atlas_battle", skillOrderFrame(slot.index + 1)).setScale(layout.order.w / 88);
     if (muted) {
       level.setTint(MUTED_TINT);
       order.setTint(MUTED_TINT);
     }
     parts.push(level, order);
   }
-  for (let i = 0; i < slot.energyCost; i += 1) {
-    const pip = scene.add.image(-CARD_W / 2 + 18 + i * 20, CARD_H / 2 - 36, "atlas_battle", "energy_pip_cost").setScale(18 / 40);
+  for (const diamond of layout.diamonds) {
+    const at = cardBoxCenter(diamond);
+    const pip = scene.add.image(at.x, at.y, "atlas_battle", "energy_pip_cost").setScale(diamond.w / 40);
     if (muted) pip.setTint(MUTED_TINT);
     parts.push(pip);
   }
@@ -128,4 +132,19 @@ export function placeSkillCard(
     if (result === "low-energy") onLowEnergy();
   });
   return root;
+}
+
+function fitLabel(scene: Phaser.Scene, box: CardBox, label: string, muted: boolean): Phaser.GameObjects.Text {
+  const at = cardBoxCenter(box);
+  const text = scene.add
+    .text(at.x, at.y, label, {
+      fontFamily: FONT_BODY,
+      fontSize: "16px",
+      fontStyle: "700",
+      color: muted ? DIS_TEXT : INK,
+    })
+    .setOrigin(0.5);
+  const scale = Math.min(1, box.w / Math.max(1, text.width), box.h / Math.max(1, text.height));
+  if (scale < 1) text.setScale(scale);
+  return text;
 }
