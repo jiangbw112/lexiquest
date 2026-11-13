@@ -25,9 +25,11 @@ import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { chapterBossId, isChapterBossId } from "../../domain/chapter-bosses";
 import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
+import { ChapterBossSprite, chapterBossReactionMs, queueChapterBoss } from "../art/chapter-boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { ClassSideSprite } from "../art/class-sprite";
@@ -140,10 +142,12 @@ export class BattleScene extends Phaser.Scene {
   private enemyHpTween?: Phaser.Tweens.Tween;
   private pendingResults: ReturnType<typeof buildResultsView> | null = null;
   private resultsArmed = false;
+  private battleChapterId = "forest_adventure";
   private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
   private battleMinion: ChapterMinion = chapterMinion("forest_adventure");
-  private forestBattleQueued = false;
-  private forestBattleFailed = false;
+  private battleBackdropQueued = false;
+  private battleBackdropFailed = false;
+  private battleBackdropToken = 0;
 
   constructor() {
     super("battle");
@@ -156,8 +160,12 @@ export class BattleScene extends Phaser.Scene {
     const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
     this.bossFight = stage?.type === "boss";
     const chapterId = chapter?.id ?? "forest_adventure";
+    this.battleChapterId = chapterId;
     this.battleBackdrop = chapterBackdrop(chapterId);
     this.battleMinion = chapterMinion(chapterId);
+    this.battleBackdropFailed = false;
+    this.battleBackdropQueued = false;
+    this.battleBackdropToken += 1;
   }
 
   preload(): void {
@@ -171,7 +179,8 @@ export class BattleScene extends Phaser.Scene {
       queueSceneImage(this, this.battleBackdrop.battleKey, this.battleBackdrop.battleUrl);
       if (!this.bossFight) queueSceneAtlas(this, this.battleMinion.atlasKey, this.battleMinion.imageUrl, this.battleMinion.dataUrl);
     }
-    if (this.bossFight) queueBossAtlases(this);
+    if (this.bossFight && this.battleBackdrop.groupId === "forest") queueBossAtlases(this);
+    else if (this.bossFight) queueChapterBoss(this, chapterBossId(this.battleChapterId));
   }
 
   create(): void {
@@ -702,7 +711,7 @@ export class BattleScene extends Phaser.Scene {
       (this.state.enemyHits > before.enemyHits ||
         this.state.enemyHp < before.enemyHp ||
         this.state.phaseIndex > before.phaseIndex);
-    const ms = enemyMoved ? (this.bossFight ? bossReactionMs(this.bossPoses) : 200) : 0;
+    const ms = enemyMoved ? (this.bossFight ? this.reactionMs() : 200) : 0;
     this.monsterHit = !this.bossFight && this.state.enemyHp < before.enemyHp;
     this.resolving = ms > 0;
     this.monsterTimer?.remove(false);
@@ -721,6 +730,12 @@ export class BattleScene extends Phaser.Scene {
       if (this.lunging) return;
       this.draw();
     });
+  }
+
+  private reactionMs(): number {
+    if (this.state.enemySprite === "canopy") return bossReactionMs(this.bossPoses);
+    if (isChapterBossId(this.state.enemySprite)) return chapterBossReactionMs(this, this.state.enemySprite, this.bossPoses);
+    return 200;
   }
 
   private syncBoss(before: BattleState): void {
@@ -914,6 +929,12 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawMonster(): void {
+    if (isChapterBossId(this.state.enemySprite)) {
+      const boss = new ChapterBossSprite(this, 0, 0, this.state.enemySprite);
+      boss.playSequence(this.bossPoses);
+      this.battleEnemy = this.add.container(BOSS_BATTLE_POS.x, BOSS_BATTLE_POS.y, [boss.sprite]);
+      return;
+    }
     if (this.state.enemySprite === "canopy") {
       if (!this.bossReported) {
         reportBossLoad(this);
@@ -932,25 +953,39 @@ export class BattleScene extends Phaser.Scene {
     this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
   }
 
-  /** Grade-chapter boots never preload bg_forest. Wait for it instead of painting the missing texture. */
-  private holdForestBattleBackdrop(): void {
-    if (this.forestBattleFailed) {
-      if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
-      else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+  private battleBackgroundKey(): string {
+    return this.battleBackdrop.groupId === "forest" ? "bg_forest" : this.battleBackdrop.battleKey;
+  }
+
+  /**
+   * A missing battle file stays a plate. The name, HP, and action buttons
+   * draw after this. The next battle entry clears the failure and retries.
+   */
+  private paintBattleBackdrop(): void {
+    const key = this.battleBackgroundKey();
+    if (this.textures.exists(key)) {
+      this.battleBackdropFailed = false;
+      if (key === "bg_forest") warmBackground(this, "bg_forest");
+      else paintSceneImage(this, key);
+      probeNote("battle:plate:image");
       return;
     }
-    if (!this.forestBattleQueued) {
-      this.forestBattleQueued = true;
-      queueMissingForestBattle(this, this.battleBackdrop);
+    if (!this.battleBackdropQueued && !this.battleBackdropFailed) {
+      this.battleBackdropQueued = true;
+      const token = this.battleBackdropToken;
+      if (this.battleBackdrop.groupId === "forest") queueMissingForestBattle(this, this.battleBackdrop);
+      else queueSceneImage(this, key, this.battleBackdrop.battleUrl);
       this.load.once("complete", () => {
-        this.forestBattleQueued = false;
-        if (!this.textures.exists("bg_forest")) this.forestBattleFailed = true;
-        if (this.scene.isActive()) this.draw();
+        if (token !== this.battleBackdropToken || !this.scene.isActive()) return;
+        this.battleBackdropQueued = false;
+        if (!this.textures.exists(key)) this.battleBackdropFailed = true;
+        this.draw();
       });
       if (!this.load.isLoading()) this.load.start();
     }
     if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
     else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+    probeNote(this.battleBackdropFailed ? "battle:plate:fallback" : "battle:plate:wait");
   }
 
   private flash(target: Phaser.GameObjects.Container): void {
@@ -966,10 +1001,7 @@ export class BattleScene extends Phaser.Scene {
       document.getElementById("spell-form")?.classList.remove("open");
       showSpellingHint(null);
     }
-    if (this.battleBackdrop.groupId === "forest" && !this.textures.exists("bg_forest")) {
-      this.holdForestBattleBackdrop();
-    } else if (this.battleBackdrop.groupId === "forest") warmBackground(this, "bg_forest");
-    else paintSceneImage(this, this.battleBackdrop.battleKey);
+    this.paintBattleBackdrop();
     const hero = new ClassSideSprite(this, 300, 520, savedClassId(save), 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
     if (import.meta.env.DEV) {
       (window as unknown as { __LEXI_HERO__?: ClassSideSprite }).__LEXI_HERO__ = hero;
@@ -1000,8 +1032,8 @@ export class BattleScene extends Phaser.Scene {
     }).setOrigin(0, 0.5);
     if (this.state.shaken && this.state.phases) {
       const shakenCopy = this.state.phaseIndex === 0
-        ? "林心守护者动摇了！答对并出手攻击，就能突破！"
-        : "林心守护者动摇了！答对并出手攻击，就能赢！";
+        ? `${this.state.enemyName}动摇了！答对并出手攻击，就能突破！`
+        : `${this.state.enemyName}动摇了！答对并出手攻击，就能赢！`;
       this.add.text(750, 148, shakenCopy, {
         fontFamily: FONT_BODY,
         fontSize: "16px",

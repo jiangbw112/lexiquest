@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_envelope_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 642,
+    "w": 725,
+    "h": 623
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 89,
+    "w": 725,
+    "h": 623
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_envelope_body_w_defeat_01": {
+   "frame": {
+    "x": 729,
+    "y": 642,
+    "w": 725,
+    "h": 618
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 94,
+    "w": 725,
+    "h": 618
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_envelope_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1267,
+    "w": 725,
+    "h": 614
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 98,
+    "w": 725,
+    "h": 614
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_envelope_body_w_defeat_03": {
+   "frame": {
+    "x": 729,
+    "y": 1267,
+    "w": 725,
+    "h": 610
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 102,
+    "w": 725,
+    "h": 610
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_envelope_body_w_defeat_04": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 631
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 81,
+    "w": 725,
+    "h": 631
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_envelope_body_w_defeat_05": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 74,
+    "w": 725,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
+  "version": "0.8-g56",
+  "image": "boss_envelope_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1884
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

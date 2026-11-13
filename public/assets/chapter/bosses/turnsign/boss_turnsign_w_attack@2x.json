@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_turnsign_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1296,
+    "w": 722,
+    "h": 629
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 83,
+    "w": 722,
+    "h": 629
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_attack_01": {
+   "frame": {
+    "x": 726,
+    "y": 1296,
+    "w": 721,
+    "h": 623
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 89,
+    "w": 721,
+    "h": 623
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_attack_02": {
+   "frame": {
+    "x": 719,
+    "y": 2,
+    "w": 720,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 70,
+    "w": 720,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 715,
+    "h": 648
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 64,
+    "w": 715,
+    "h": 648
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 652,
+    "w": 720,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 70,
+    "w": 720,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_attack_05": {
+   "frame": {
+    "x": 724,
+    "y": 652,
+    "w": 722,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 24,
+    "y": 77,
+    "w": 722,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
+  "version": "0.8-g56",
+  "image": "boss_turnsign_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1452,
+   "h": 1928
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

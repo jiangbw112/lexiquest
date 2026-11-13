@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_family_album_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 712,
+    "h": 620
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 35,
+    "y": 90,
+    "w": 712,
+    "h": 620
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_defeat_01": {
+   "frame": {
+    "x": 716,
+    "y": 2,
+    "w": 712,
+    "h": 608
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 31,
+    "y": 102,
+    "w": 712,
+    "h": 608
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1225,
+    "w": 712,
+    "h": 586
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 124,
+    "w": 712,
+    "h": 586
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_defeat_03": {
+   "frame": {
+    "x": 716,
+    "y": 1225,
+    "w": 712,
+    "h": 576
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 134,
+    "w": 712,
+    "h": 576
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_defeat_04": {
+   "frame": {
+    "x": 716,
+    "y": 624,
+    "w": 712,
+    "h": 594
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 113,
+    "w": 712,
+    "h": 594
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_family_album_body_w_defeat_05": {
+   "frame": {
+    "x": 2,
+    "y": 624,
+    "w": 712,
+    "h": 599
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 107,
+    "w": 712,
+    "h": 599
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.2_formal tools/pack.py (code-drawn)",
+  "version": "0.2-formal",
+  "image": "boss_family_album_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1432,
+   "h": 1816
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.2 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

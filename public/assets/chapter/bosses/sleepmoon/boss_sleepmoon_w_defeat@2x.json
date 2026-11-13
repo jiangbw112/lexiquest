@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_sleepmoon_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 618
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 94,
+    "w": 725,
+    "h": 618
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleepmoon_body_w_defeat_01": {
+   "frame": {
+    "x": 2,
+    "y": 622,
+    "w": 725,
+    "h": 612
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 100,
+    "w": 725,
+    "h": 612
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleepmoon_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1236,
+    "w": 725,
+    "h": 605
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 107,
+    "w": 725,
+    "h": 605
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleepmoon_body_w_defeat_03": {
+   "frame": {
+    "x": 729,
+    "y": 1236,
+    "w": 725,
+    "h": 600
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 112,
+    "w": 725,
+    "h": 600
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleepmoon_body_w_defeat_04": {
+   "frame": {
+    "x": 729,
+    "y": 622,
+    "w": 725,
+    "h": 611
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 101,
+    "w": 725,
+    "h": 611
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleepmoon_body_w_defeat_05": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 96,
+    "w": 725,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_sleepmoon_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1844
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

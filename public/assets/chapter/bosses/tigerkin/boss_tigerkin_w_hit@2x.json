@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_tigerkin_body_w_hit_00": {
+   "frame": {
+    "x": 713,
+    "y": 2,
+    "w": 709,
+    "h": 610
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 40,
+    "y": 100,
+    "w": 709,
+    "h": 610
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 620,
+    "w": 707,
+    "h": 605
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 44,
+    "y": 105,
+    "w": 707,
+    "h": 605
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_tigerkin_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 709,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 35,
+    "y": 94,
+    "w": 709,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0.2_tigerkin tools/pack.py (code-drawn)",
+  "version": "1.0.2-tigerkin",
+  "image": "boss_tigerkin_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1424,
+   "h": 1228
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "v1.0.2 条纹修订 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "boss_lotusk_body_w_idle_00": {
+   "frame": {
+    "x": 720,
+    "y": 648,
+    "w": 709,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 71,
+    "w": 709,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_idle_01": {
+   "frame": {
+    "x": 726,
+    "y": 2,
+    "w": 718,
+    "h": 643
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 67,
+    "w": 718,
+    "h": 643
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_idle_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 722,
+    "h": 644
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 66,
+    "w": 722,
+    "h": 644
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_idle_03": {
+   "frame": {
+    "x": 2,
+    "y": 648,
+    "w": 716,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 68,
+    "w": 716,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_lotusk_w_idle@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1448,
+   "h": 1292
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}
