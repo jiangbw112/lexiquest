@@ -341,7 +341,7 @@ export class LearnScene extends Phaser.Scene {
       const now = studyNow(save);
       const reviewNote = reviewFirstNotice(save, now);
       if (this.capNote || reviewNote) {
-        this.add.text(640, 210, [this.capNote, reviewNote].filter(Boolean).join(" "), {
+        this.add.text(640, STUDY_CARD.reviewHintY, [this.capNote, reviewNote].filter(Boolean).join(" "), {
           fontFamily: FONT,
           fontSize: "18px",
           color: NOTE,

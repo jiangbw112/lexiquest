@@ -156,14 +156,14 @@ v2.11：31/31 年级章 Boss 已采用（mealmap，D-ART-6 按口径关闭）；
 
 2026-11-13 只读看到的旧草稿：id `442757802`，name `[草稿] LexiQuest v1.0.0`，`tag_name` `desktop-dryrun-5-65d0eb2`，`draft` true。`refs/tags/desktop-dryrun-5-65d0eb2` 是 404，tag 还没创建。`65d0eb2cb20d58727abe3aa5cc709ffe50623f56` 是 Merge pull request #12。没有名为 `v1.0.0` 的 tag。
 
-`release.yml` 仍只有 `workflow_dispatch`。新增可选输入 `tag`，默认空字符串（L14–18）。不填时 tag 仍是 `desktop-r${run}-${shortsha}` 或 `desktop-dryrun-${run}-${shortsha}`，名称和跳过逻辑不变（判定在 `scripts/release-tag.mjs`。不填时的生成和跳过在 workflow L132–194；填了 tag 时，创建前的拒绝在 L42–63 和 L163–168，创建在 L323–373）。填了 `v1.0.0` 时必须是 `v` 加 `package.json` 的版本；远端已有同名 tag，或已有同名 Release（含草稿，名称 `LexiQuest v1.0.0` 或 tag 相同）就失败，不覆盖。通过后创建名为 `LexiQuest v1.0.0` 的 Release，tag 为该值，target 为本次 `github.sha`。`draft` 仍决定是不是草稿。正文仍由 `scripts/release-notes.mjs` 取 `RELEASE_NOTES.md` 的 `## 1.0.0`，其中有「Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。」
+`release.yml` 仍只有 `workflow_dispatch`。新增可选输入 `tag`，默认空字符串（L14–18）。不填时 tag 仍是 `desktop-r${run}-${shortsha}` 或 `desktop-dryrun-${run}-${shortsha}`，名称和跳过逻辑不变（判定在 `scripts/release-tag.mjs`。不填时的生成和跳过在 workflow L132–194；填了 tag 时，创建前的拒绝在 L42–63 和 L163–168，创建在 L326–376。草稿提示在 Generate release notes，约 L275–280）。填了 `v1.0.0` 时必须是 `v` 加 `package.json` 的版本；远端已有同名 tag，或已有同名 Release（含草稿，名称 `LexiQuest v1.0.0` 或 tag 相同）就失败，不覆盖。通过后创建名为 `LexiQuest v1.0.0` 的 Release，tag 为该值，target 为本次 `github.sha`。`draft` 仍决定是不是草稿。正文仍由 `scripts/release-notes.mjs` 取 `RELEASE_NOTES.md` 的 `## 1.0.0`，其中有「Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。」显式 tag 即使 `draft=true` 也不写入「这是草稿 Release，仅用于测试验证，请勿使用。」`gh release edit --draft=false` 不改正文，所以这句不能留到发布后再删。不填 tag 时，草稿仍写这句，正式 `desktop-r` 不写。判定是 `scripts/release-tag.mjs` 的 `draftNoticeFor`。
 
 按这个顺序做（现在不要做）：
 
 1. Haru 合 #18。合并之后的 main 提交才是这次 Release 的 target。
 2. Haru 删旧草稿 `442757802`。不要点 Publish。命令：`gh release delete desktop-dryrun-5-65d0eb2 --repo jiangbw112/lexiquest --yes`。确认：`gh api repos/jiangbw112/lexiquest/releases/442757802` 是 404，并且 `refs/tags/desktop-dryrun-5-65d0eb2` 仍是 404。
 3. 从 main 跑 `release.yml`，参数 `tag=v1.0.0`、`draft=true`。命令：`gh workflow run release.yml --repo jiangbw112/lexiquest --ref main -f tag=v1.0.0 -f draft=true`。
-4. 核对这份草稿的资产哈希和正文。命令：`gh release view v1.0.0 --repo jiangbw112/lexiquest --json tagName,targetCommitish,isDraft,name,body`。`targetCommitish` 应是第 1 步的合并提交 SHA。正文要含文件级核验、没有真机启动测试那一句。再下载三个安装包，对每个文件算 sha256。
+4. 核对这份草稿的资产哈希和正文。命令：`gh release view v1.0.0 --repo jiangbw112/lexiquest --json tagName,targetCommitish,isDraft,name,body`。`targetCommitish` 应是第 1 步的合并提交 SHA。正文要含文件级核验、没有真机启动测试那一句，并且没有「请勿使用」。再下载三个安装包，对每个文件算 sha256。
 5. 发布。命令：`gh release edit v1.0.0 --repo jiangbw112/lexiquest --draft=false`。确认 `gh api repos/jiangbw112/lexiquest/git/ref/tags/v1.0.0` 的 SHA 等于第 1 步的合并提交，并且 `gh release list` 里 tag 为 `v1.0.0` 的只有这一条。`desktop-r3-ab2c554` 和 `desktop-r4-9613161` 是更早的已发布 tag，不要为了这一步删掉。
 
 ## 缺口

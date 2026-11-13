@@ -259,6 +259,7 @@ jobs:
           FULL_SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           IS_DRAFT: ${{ steps.mode.outputs.is_draft }}
+          EXPLICIT: ${{ steps.mode.outputs.explicit }}
           PR_INFO: ${{ steps.pr_info.outputs.pr_info }}
           REPO: ${{ github.repository }}
           RELEASE_NAME: ${{ steps.pkg.outputs.name }}
@@ -271,9 +272,11 @@ jobs:
             cat section.md
             echo ""
             
-            if [ "$IS_DRAFT" = "true" ]; then
-              echo "> **注意**: 这是草稿 Release，仅用于测试验证，请勿使用。"
-              echo ""
+            # Explicit tags never get this line: publishing with gh release edit does not rewrite the body.
+            # An empty tag still prints it only for a draft.
+            NOTICE="$(node scripts/release-tag.mjs notice --explicit "$EXPLICIT" --draft "$IS_DRAFT")"
+            if [ -n "$NOTICE" ]; then
+              printf '%s\n\n' "$NOTICE"
             fi
             
             echo "### 版本信息"

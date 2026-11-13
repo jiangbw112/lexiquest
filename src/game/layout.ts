@@ -83,10 +83,14 @@ export function struggleWindow(total: number, expanded: boolean, page: number): 
 export const STUDY_CARD = {
   noticeY: 178,
   noticeFont: 18,
+  /** 「今天先复习更划算」. It sits under the miss notice and above the English word. */
+  reviewHintY: 204,
+  reviewHintFont: 18,
   englishSize: 88,
   /** meaningRow y. The English word is drawn 70px above it. */
   missedRowY: 348,
-  restingRowY: 300,
+  /** Same row as a missed card, so the hint above the word stays clear at full 88px. */
+  restingRowY: 348,
   meaningMaxWidth: 640,
 } as const;
 
@@ -103,6 +107,23 @@ export function studyNoticeGap(): number {
   const englishTop = studyEnglishCenterY(true) - STUDY_CARD.englishSize / 2;
   const noticeBottom = STUDY_CARD.noticeY + STUDY_CARD.noticeFont / 2;
   return englishTop - noticeBottom;
+}
+
+/**
+ * Gap between the review hint and the English word.
+ * Scale 1 is the tallest word. A smaller scale only pulls the top down, away from the hint.
+ */
+export function studyReviewHintGap(missed: boolean, englishScale = 1): number {
+  const hintBottom = STUDY_CARD.reviewHintY + STUDY_CARD.reviewHintFont / 2;
+  const englishTop = studyEnglishCenterY(missed) - (STUDY_CARD.englishSize * englishScale) / 2;
+  return englishTop - hintBottom;
+}
+
+/** Gap between 「再看一次」 and the review hint when both are on the card. */
+export function studyHintStackGap(): number {
+  const missBottom = STUDY_CARD.noticeY + STUDY_CARD.noticeFont / 2;
+  const hintTop = STUDY_CARD.reviewHintY - STUDY_CARD.reviewHintFont / 2;
+  return hintTop - missBottom;
 }
 
 /** Logical inset of the option index. The yellow badge center is texture x=44, shown at half scale. */
@@ -161,6 +182,152 @@ export const COLLECTION_CARD = {
 export function meaningScale(width: number, max = STUDY_CARD.meaningMaxWidth): number {
   if (width <= max) return 1;
   return max / width;
+}
+
+export interface TextBox {
+  fontSize: number;
+  minFontSize: number;
+  maxWidth: number;
+  maxHeight: number;
+  maxLines: number;
+}
+
+export interface FittedText {
+  fontSize: number;
+  lines: string[];
+  text: string;
+}
+
+/** One line occupies one font size. Scenes set line spacing to 0 so this matches the pixels. */
+export function fittedBlockHeight(fontSize: number, lines: number): number {
+  return fontSize * Math.max(1, lines);
+}
+
+/**
+ * Fit a label into a box: shrink from fontSize down to minFontSize while it stays one line.
+ * If it still does not fit, wrap to at most maxLines, preferring the larger size.
+ */
+export function fitTextBox(
+  text: string,
+  box: TextBox,
+  measure: (sample: string, fontSize: number) => number,
+): FittedText {
+  for (let size = box.fontSize; size >= box.minFontSize; size -= 1) {
+    if (measure(text, size) <= box.maxWidth && fittedBlockHeight(size, 1) <= box.maxHeight) {
+      return { fontSize: size, lines: [text], text };
+    }
+  }
+  for (let size = box.fontSize; size >= box.minFontSize; size -= 1) {
+    if (fittedBlockHeight(size, box.maxLines) > box.maxHeight) continue;
+    const wrapped = wrapCjkText(text, box.maxWidth, (sample) => measure(sample, size));
+    const lines = wrapped.split("\n");
+    if (lines.length <= box.maxLines && lines.every((line) => measure(line, size) <= box.maxWidth)) {
+      return { fontSize: size, lines, text: lines.join("\n") };
+    }
+  }
+  const size = box.minFontSize;
+  const wrapped = wrapCjkText(text, box.maxWidth, (sample) => measure(sample, size));
+  const lines = wrapped.split("\n").slice(0, box.maxLines);
+  return { fontSize: size, lines, text: lines.join("\n") };
+}
+
+/** Review desk. The meaning column stops before the 拼写 button, and the block stays above the status line. */
+export const REVIEW_ROW = {
+  textX: 170,
+  gap: 8,
+  englishMaxWidth: 168,
+  fontSize: 22,
+  minFontSize: 13,
+  maxLines: 2,
+  /** Due date and tone. The fitted block must end above this. */
+  statusOffset: 52,
+  blockHeight: 44,
+  spellCenter: 560,
+  spellWidth: 96,
+  revealCenter: 430,
+  revealWidth: 140,
+  rateCenter: 706,
+  rateWidth: 112,
+} as const;
+
+/** Right edge of the english and meaning text. Clears the 拼写 button by `gap`. */
+export function reviewTextRight(): number {
+  return REVIEW_ROW.spellCenter - REVIEW_ROW.spellWidth / 2 - REVIEW_ROW.gap;
+}
+
+export function reviewEnglishBox(): TextBox {
+  return {
+    fontSize: REVIEW_ROW.fontSize,
+    minFontSize: REVIEW_ROW.minFontSize,
+    maxWidth: REVIEW_ROW.englishMaxWidth,
+    maxHeight: REVIEW_ROW.blockHeight,
+    maxLines: REVIEW_ROW.maxLines,
+  };
+}
+
+/** Meaning starts after the fitted english word and ends at {@link reviewTextRight}. */
+export function reviewMeaningBox(englishWidth: number): TextBox & { x: number } {
+  const width = Math.min(englishWidth, REVIEW_ROW.englishMaxWidth);
+  const x = REVIEW_ROW.textX + width + REVIEW_ROW.gap;
+  return {
+    x,
+    fontSize: REVIEW_ROW.fontSize,
+    minFontSize: REVIEW_ROW.minFontSize,
+    maxWidth: reviewTextRight() - x,
+    maxHeight: REVIEW_ROW.blockHeight,
+    maxLines: REVIEW_ROW.maxLines,
+  };
+}
+
+/** Victory word chip. The gloss uses the inner width, not the full 170. */
+export const RESULTS_WORD_CHIP = {
+  width: 170,
+  height: 64,
+  glossX: 14,
+  glossY: 32,
+  glossRight: 8,
+  glossBottom: 4,
+  fontSize: 16,
+  minFontSize: 12,
+  maxLines: 2,
+} as const;
+
+export function resultsGlossBox(): TextBox {
+  return {
+    fontSize: RESULTS_WORD_CHIP.fontSize,
+    minFontSize: RESULTS_WORD_CHIP.minFontSize,
+    maxWidth: RESULTS_WORD_CHIP.width - RESULTS_WORD_CHIP.glossX - RESULTS_WORD_CHIP.glossRight,
+    maxHeight: RESULTS_WORD_CHIP.height - RESULTS_WORD_CHIP.glossY - RESULTS_WORD_CHIP.glossBottom,
+    maxLines: RESULTS_WORD_CHIP.maxLines,
+  };
+}
+
+export function applyFittedText(
+  target: {
+    setFontSize(size: string): unknown;
+    setText(value: string): unknown;
+    setLineSpacing(padding: number): unknown;
+    width: number;
+    height: number;
+  },
+  content: string,
+  box: TextBox,
+): FittedText {
+  const measure = (sample: string, fontSize: number) => {
+    target.setFontSize(`${fontSize}px`);
+    target.setLineSpacing(0);
+    target.setText(sample);
+    return target.width;
+  };
+  const fitted = fitTextBox(content, box, measure);
+  target.setFontSize(`${fitted.fontSize}px`);
+  target.setLineSpacing(0);
+  target.setText(fitted.text);
+  if (fitted.lines.length > 1 && target.height > box.maxHeight) {
+    const extra = target.height - box.maxHeight;
+    target.setLineSpacing(-Math.ceil(extra / (fitted.lines.length - 1)));
+  }
+  return fitted;
 }
 
 /** Phaser's basic wrap does not break Chinese. Advanced wrap honors `width`. */

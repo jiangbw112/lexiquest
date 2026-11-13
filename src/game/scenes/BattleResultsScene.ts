@@ -30,6 +30,7 @@ import { getSave } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm } from "../warm/load";
+import { applyFittedText, RESULTS_WORD_CHIP, resultsGlossBox } from "../layout";
 import { CREAM, FONT_BODY, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, TEAL_DEEP, motionOff } from "../warm/theme";
 
 const KEY_LOCK_MS = 300;
@@ -339,7 +340,7 @@ export class BattleResultsScene extends Phaser.Scene {
       const x = 477 + (index % 4) * 182;
       const y = this.wy(220 + Math.floor(index / 4) * 76);
       const frame = word.correct ? "word_chip_correct" : "word_chip_plain";
-      const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(170, 64);
+      const chip = this.add.image(x, y, "atlas_results", frame).setOrigin(0, 0).setDisplaySize(RESULTS_WORD_CHIP.width, RESULTS_WORD_CHIP.height);
       chip.setInteractive({ useHandCursor: true });
       chip.on("pointerup", () => speakWord(word.english, browserSpeaker()));
       const english = this.add.text(word.correct ? x + 38 : x + 14, y + 6, word.english, {
@@ -351,11 +352,12 @@ export class BattleResultsScene extends Phaser.Scene {
       if (english.width > 120) english.setScale(120 / english.width);
       if (word.correct) {
         this.add.image(x + 10, y + 8, "atlas_ui_core", "icon_check").setOrigin(0, 0).setDisplaySize(22, 22);
-        this.add.text(x + 14, y + 36, word.gloss, {
+        const gloss = this.add.text(x + RESULTS_WORD_CHIP.glossX, y + RESULTS_WORD_CHIP.glossY, "", {
           fontFamily: FONT_BODY,
           fontSize: "16px",
           color: INK,
         }).setOrigin(0, 0);
+        applyFittedText(gloss, word.gloss, resultsGlossBox());
       } else {
         this.add.text(x + 158, y + 39, "下次再见", {
           fontFamily: FONT_BODY,

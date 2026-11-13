@@ -8,6 +8,19 @@ export function releaseTitle(tag) {
   return `LexiQuest ${tag}`;
 }
 
+/** Written only for a generated desktop-* draft. An explicit tag never includes it. */
+export const DRAFT_ONLY_NOTICE = "> **注意**: 这是草稿 Release，仅用于测试验证，请勿使用。";
+
+/**
+ * `gh release edit --draft=false` does not change the body.
+ * An explicit tag (v1.0.0) stays silent so publishing the draft keeps a clean body.
+ * An empty tag keeps the old rule: the line is present only when draft is true.
+ */
+export function draftNoticeFor(decision) {
+  if (!decision?.ok || decision.explicit || !decision.isDraft) return "";
+  return DRAFT_ONLY_NOTICE;
+}
+
 /**
  * An empty tag keeps the generated desktop-r / desktop-dryrun name.
  * A filled tag must be v<semver> and equal v + package.json version.
@@ -100,6 +113,15 @@ function main() {
     }));
     return;
   }
+  if (command === "notice") {
+    const line = draftNoticeFor({
+      ok: true,
+      explicit: arg("--explicit") === "true",
+      isDraft: arg("--draft") !== "false",
+    });
+    if (line) process.stdout.write(`${line}\n`);
+    return;
+  }
   if (command === "conflict") {
     const tag = arg("--tag");
     const conflict = findReleaseConflict(tag, {
@@ -116,7 +138,7 @@ function main() {
     process.stdout.write("ok\n");
     return;
   }
-  console.error("usage: release-tag.mjs decide|conflict");
+  console.error("usage: release-tag.mjs decide|notice|conflict");
   process.exit(2);
 }
 

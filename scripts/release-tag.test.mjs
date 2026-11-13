@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideReleaseTag, findReleaseConflict } from "./release-tag.mjs";
+import { DRAFT_ONLY_NOTICE, decideReleaseTag, draftNoticeFor, findReleaseConflict } from "./release-tag.mjs";
 
 const sha = "7e54d811465ca8368f5f54b05505ca6e1fffad39";
 
@@ -52,6 +52,18 @@ describe("release tag decision", () => {
     const prerelease = decideReleaseTag({ tag: "v1.0.0-beta", version: "1.0.0", draft: "true", runNumber: 1, sha });
     expect(prerelease.ok).toBe(false);
     expect(prerelease.code).toBe("version");
+  });
+
+  it("omits the draft warning when the tag is set, and keeps it only for an empty-tag draft", () => {
+    const base = { version: "1.0.0", runNumber: 4, sha };
+    const explicitDraft = decideReleaseTag({ ...base, tag: "v1.0.0", draft: "true" });
+    const explicitPublish = decideReleaseTag({ ...base, tag: "v1.0.0", draft: "false" });
+    const emptyDraft = decideReleaseTag({ ...base, tag: "", draft: "true" });
+    const emptyPublish = decideReleaseTag({ ...base, tag: "   ", draft: "false" });
+    expect(draftNoticeFor(explicitDraft)).toBe("");
+    expect(draftNoticeFor(explicitPublish)).toBe("");
+    expect(draftNoticeFor(emptyDraft)).toBe(DRAFT_ONLY_NOTICE);
+    expect(draftNoticeFor(emptyPublish)).toBe("");
   });
 
   it("fails when the same tag or the same release name already exists", () => {
