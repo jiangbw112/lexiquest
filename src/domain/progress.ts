@@ -53,8 +53,21 @@ function pushReward(queue: RewardNotice[], notice: RewardNotice): RewardNotice[]
   return [...queue, notice].slice(-6);
 }
 
+/** Retired healer card. Old saves may still have it equipped. */
+const RETIRED_HEALER_CHEER = "healer-cheer";
+const HEALER_BEAM = "healer-beam";
+
 export function syncUnlocks(save: SaveData): SaveData {
   return refreshUnlocks(save);
+}
+
+/**
+ * Retired healer-cheer becomes healer-beam in the same index when that card is unlocked.
+ * Other ids stay where they are. A second pass finds no retired id.
+ */
+export function migrateHealerDeck(ids: readonly string[], beamUnlocked: boolean): string[] {
+  if (!beamUnlocked) return [...ids];
+  return ids.map((id) => (id === RETIRED_HEALER_CHEER ? HEALER_BEAM : id));
 }
 
 function refreshUnlocks(save: SaveData): SaveData {
@@ -69,12 +82,22 @@ function refreshUnlocks(save: SaveData): SaveData {
   for (const id of unlocked) {
     if (!skillLevels[id]) skillLevels[id] = 1;
   }
-  const equipped = save.equippedSkillIds.filter((id) => unlocked.has(id)).slice(0, MAX_EQUIPPED_SKILLS);
+  const beamUnlocked = unlocked.has(HEALER_BEAM);
+  let equipped = migrateHealerDeck(save.equippedSkillIds, beamUnlocked)
+    .filter((id) => unlocked.has(id))
+    .slice(0, MAX_EQUIPPED_SKILLS);
+  if (save.player.classId === "healer" && equipped.length === 0 && beamUnlocked) equipped = [HEALER_BEAM];
+  let equippedByClass = save.equippedByClass;
+  const parkedHealer = equippedByClass?.healer;
+  if (parkedHealer?.includes(RETIRED_HEALER_CHEER)) {
+    equippedByClass = { ...equippedByClass, healer: migrateHealerDeck(parkedHealer, true) };
+  }
   return {
     ...save,
     unlockedSkillIds: [...unlocked],
     equippedSkillIds: equipped,
     skillLevels,
+    equippedByClass,
   };
 }
 
@@ -328,7 +351,9 @@ export function switchClass(save: SaveData, nextId: ClassId, inBattle = false): 
     [save.player.classId]: [...save.equippedSkillIds],
   };
   const known = new Set(skillsForClass(nextId).map((skill) => skill.id));
-  const stored = (equippedByClass[nextId] ?? []).filter((id) => known.has(id)).slice(0, MAX_EQUIPPED_SKILLS);
+  const remembered = equippedByClass[nextId] ?? [];
+  const prepared = nextId === "healer" ? migrateHealerDeck(remembered, true) : remembered;
+  const stored = prepared.filter((id) => known.has(id)).slice(0, MAX_EQUIPPED_SKILLS);
   const equippedSkillIds = stored.length > 0 ? stored : [starterSkillId(nextId)];
   const refreshed = refreshUnlocks({
     ...save,
