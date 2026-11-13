@@ -344,7 +344,7 @@ export interface StageCombat {
   spellingCap: number | null;
 }
 
-export function stageCombat(stage: ForestStage, classId: ClassId = "warrior"): StageCombat {
+export function stageCombat(stage: ForestStage, classId: ClassId = "warrior", minionId = "inkling"): StageCombat {
   if (stage.type === "boss") {
     const hp = PROVISIONAL.chapterEnding.bossPhaseHpByClass[classId];
     const phases = PROVISIONAL.chapterEnding.phases.map((phase) => ({ hp, note: phase.note }));
@@ -367,7 +367,7 @@ export function stageCombat(stage: ForestStage, classId: ClassId = "warrior"): S
     enemyName: stage.name_zh,
     enemyHp: table[index] ?? table[0],
     enemyAttack: PROVISIONAL.chapterBattle.explorationEnemyAttack,
-    sprite: "inkling",
+    sprite: minionId,
     phases: null,
     spellingCap: null,
   };

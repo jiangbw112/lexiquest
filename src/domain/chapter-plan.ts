@@ -1,4 +1,5 @@
 import { isChapterExtra, wordById } from "./catalog";
+import { chapterMinion } from "./chapter-scenes";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone } from "./review";
 import {
@@ -366,12 +367,13 @@ export function parseChapterEncounter(encounterId: string | undefined): ChapterE
 }
 
 export function stageCombatFor(chapter: PlayChapter, stage: ForestStage, classId: ClassId = "warrior"): StageCombat {
-  const combat = stageCombat(stage, classId);
+  const minion = chapter.id === FOREST_CHAPTER.chapter_id ? null : chapterMinion(chapter.id);
+  const combat = stageCombat(stage, classId, minion?.id ?? "inkling");
   if (chapter.id === FOREST_CHAPTER.chapter_id) return combat;
   const encounterId = stage.type === "boss"
     ? `chapter:${chapter.id}:boss`
     : `chapter:${chapter.id}:stage:${stage.id}`;
-  const enemyName = stage.type === "boss" ? chapter.bossName : combat.enemyName;
+  const enemyName = stage.type === "boss" ? chapter.bossName : minion?.name ?? combat.enemyName;
   return { ...combat, encounterId, enemyName };
 }
 
