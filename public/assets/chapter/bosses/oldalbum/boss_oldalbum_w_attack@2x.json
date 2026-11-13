@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_oldalbum_body_w_attack_00": {
+   "frame": {
+    "x": 729,
+    "y": 618,
+    "w": 725,
+    "h": 612
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 98,
+    "w": 725,
+    "h": 612
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_oldalbum_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1233,
+    "w": 725,
+    "h": 611
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 99,
+    "w": 725,
+    "h": 611
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_oldalbum_body_w_attack_02": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 613
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 97,
+    "w": 725,
+    "h": 613
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_oldalbum_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 614
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 96,
+    "w": 725,
+    "h": 614
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_oldalbum_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 618,
+    "w": 725,
+    "h": 613
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 97,
+    "w": 725,
+    "h": 613
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_oldalbum_body_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 1233,
+    "w": 725,
+    "h": 612
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 98,
+    "w": 725,
+    "h": 612
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_oldalbum_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1848
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

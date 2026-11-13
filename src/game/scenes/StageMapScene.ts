@@ -23,7 +23,7 @@ import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
-import { paintSceneImage, queueMissingChapterMap, queueSceneImage } from "../chapter-scene-load";
+import { chapterMapPlate, paintSceneImage, queueMissingChapterMap, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
 import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
@@ -49,6 +49,8 @@ export class StageMapScene extends Phaser.Scene {
   init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
     this.retryStageId = this.restPrompt ? data.retryStageId ?? null : null;
+    this.mapLoadFailedKey = "";
+    this.chapterMapToken += 1;
   }
 
   constructor() {
@@ -154,6 +156,7 @@ export class StageMapScene extends Phaser.Scene {
     const openAt = statuses.findIndex((status) => status === "open");
     this.selected = next.stages[openAt >= 0 ? openAt : 0]!.id;
     this.lookedAt = null;
+    this.mapLoadFailedKey = "";
     this.draw();
   }
 
@@ -176,15 +179,22 @@ export class StageMapScene extends Phaser.Scene {
     }
     const save = getSave();
     if (!save) return;
-    const backdrop = chapterBackdrop(activeChapter(save).id);
-    if (!this.chapterMapReady(backdrop)) {
-      if (this.mapLoadFailedKey === backdrop.mapKey) this.paintMapFallback();
-      return;
-    }
+    const chapterId = activeChapter(save).id;
+    const backdrop = chapterBackdrop(chapterId);
+    this.chapterMapReady(backdrop);
+    const plate = chapterMapPlate({
+      textureReady: this.textures.exists(backdrop.mapKey),
+      failed: this.mapLoadFailedKey === backdrop.mapKey,
+    });
+    if (plate === "wait") return;
     this.tweens.killAll();
     this.children.removeAll(true);
-    if (backdrop.groupId === "forest") warmBackground(this, "bg_map");
-    else paintSceneImage(this, backdrop.mapKey);
+    probeNote(`map:plate:${plate}:${chapterId}`);
+    if (plate === "image") {
+      if (backdrop.groupId === "forest") warmBackground(this, "bg_map");
+      else paintSceneImage(this, backdrop.mapKey);
+    } else if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
+    else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
     const now = studyNow(save);
     const chapter = activeChapter(save);
     const statuses = playStatuses(save, chapter);
@@ -395,14 +405,6 @@ export class StageMapScene extends Phaser.Scene {
     warmButton(this, 160, 748, uiLabel("回村子"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
     probeNote("stages:ready");
     if (this.restPrompt) this.drawRest();
-  }
-
-  /** A failed forest (or chapter) load uses the village plate instead of the missing texture. */
-  private paintMapFallback(): void {
-    this.tweens.killAll();
-    this.children.removeAll(true);
-    if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
-    else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
   }
 
   private drawRest(): void {
