@@ -324,6 +324,29 @@ export function reviewRowSlice(textY = 0): {
   };
 }
 
+/** Keyboard hint and the back button on the review desk. */
+export const REVIEW_DESK = {
+  hintFont: 16,
+  /** Clear space between the hint glyphs and the first row's top border. */
+  hintPad: 8,
+  backX: 250,
+  backY: 730,
+  backWidth: 180,
+  backHeight: 56,
+  /** Clear space between the last row's bottom border and the back button. */
+  backPad: 8,
+} as const;
+
+/**
+ * Word-text top for one review row. Row 0 starts below the hint at `bodyY`,
+ * and later rows step by the slice pitch.
+ */
+export function reviewRowTextY(bodyY: number, index: number): number {
+  const firstTop = bodyY + REVIEW_DESK.hintFont + REVIEW_DESK.hintPad;
+  const textInset = REVIEW_ROW.sliceBorder - REVIEW_ROW.innerTop;
+  return firstTop + textInset + index * reviewRowSlice().pitch;
+}
+
 /** Right edge of the english and meaning text. Clears the 拼写 button by `gap`. */
 export function reviewTextRight(): number {
   return REVIEW_ROW.spellCenter - REVIEW_ROW.spellWidth / 2 - REVIEW_ROW.gap;

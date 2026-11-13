@@ -7,7 +7,7 @@ import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
 import { showSpellingHint } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
-import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, REVIEW_ROW } from "../layout";
+import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, REVIEW_DESK, REVIEW_ROW } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter } from "../probe";
 import { getSave, mutate } from "../session";
@@ -162,12 +162,12 @@ export class ReviewScene extends Phaser.Scene {
         color: MUTED,
       });
     } else {
-      this.add.text(170, layout.bodyY, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: "16px", color: NOTE });
+      this.add.text(170, layout.bodyY, "键盘 1–4 复习第一个到时间的词。", { fontFamily: FONT, fontSize: `${REVIEW_DESK.hintFont}px`, color: NOTE });
     }
     if (desk.hiddenDue > 0) {
       this.add.text(620, layout.bodyY, `还有 ${desk.hiddenDue} 个词也到了复习时间。先复习画面上的。`, {
         fontFamily: FONT,
-        fontSize: "16px",
+        fontSize: `${REVIEW_DESK.hintFont}px`,
         color: NOTE,
       });
     }
@@ -175,7 +175,7 @@ export class ReviewScene extends Phaser.Scene {
       const word = wordById(memory.wordId);
       const card = save.wordCards[memory.wordId];
       if (!word || !card) return;
-      const y = layout.bodyY + 38 + index * reviewRowSlice().pitch;
+      const y = reviewRowTextY(layout.bodyY, index);
       const row = reviewRowSlice(y);
       const tone = badgeTone(card, memory, now);
       const due = isDue(memory, now);
@@ -218,6 +218,6 @@ export class ReviewScene extends Phaser.Scene {
       }
     });
     if (this.spellNote) this.add.text(170, 680, this.spellNote, { fontFamily: FONT, fontSize: "16px", color: NOTE });
-    warmButton(this, 250, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
+    warmButton(this, REVIEW_DESK.backX, REVIEW_DESK.backY, "返回 Esc", () => this.scene.start("overworld"), { width: REVIEW_DESK.backWidth, tone: "secondary" });
   }
 }

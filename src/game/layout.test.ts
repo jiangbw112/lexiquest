@@ -6,7 +6,9 @@ import { gradeGate, setSelectedGrades, createSave } from "../domain/progress";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
 import { redirectUngraded } from "./grade-route";
 import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
-import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
+import { reviewDeskLayout } from "./dev-mode";
+import { REVIEW_DESK_LIMIT } from "../domain/review";
+import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -225,6 +227,23 @@ describe("study card and option alignment", () => {
       expect(hits(status, bottomBorder), label).toBe(false);
     }
     expect(row.pitch).toBeGreaterThanOrEqual(row.height);
+    const desk = reviewDeskLayout(false);
+    const hint: Box = { x: 170, y: desk.bodyY, w: 440, h: REVIEW_DESK.hintFont };
+    const firstRow = reviewRowSlice(reviewRowTextY(desk.bodyY, 0));
+    const firstSlice: Box = { x: 150, y: firstRow.top, w: 980, h: firstRow.height };
+    expect(firstRow.top, "hint pad").toBeGreaterThanOrEqual(hint.y + hint.h + REVIEW_DESK.hintPad);
+    expect(hits(hint, firstSlice), "hint vs row 1").toBe(false);
+    const lastRow = reviewRowSlice(reviewRowTextY(desk.bodyY, REVIEW_DESK_LIMIT - 1));
+    const lastSlice: Box = { x: 150, y: lastRow.top, w: 980, h: lastRow.height };
+    const back: Box = {
+      x: REVIEW_DESK.backX - REVIEW_DESK.backWidth / 2,
+      y: REVIEW_DESK.backY - REVIEW_DESK.backHeight / 2,
+      w: REVIEW_DESK.backWidth,
+      h: REVIEW_DESK.backHeight,
+    };
+    expect(lastRow.bottom, "back pad").toBeLessThanOrEqual(back.y - REVIEW_DESK.backPad);
+    expect(hits(lastSlice, back), "full page vs back").toBe(false);
+    expect(REVIEW_DESK_LIMIT).toBe(4);
     for (const missed of [false, true]) {
       for (const scale of [1, 0.75, 0.5, 0.35]) {
         expect(studyReviewHintGap(missed, scale), `${missed} ${scale}`).toBeGreaterThanOrEqual(16);
@@ -241,6 +260,8 @@ describe("study card and option alignment", () => {
     expect(review).toContain("REVIEW_ROW.revealCenter");
     expect(review).toContain("REVIEW_ROW.spellCenter");
     expect(review).toContain("reviewRowSlice");
+    expect(review).toContain("reviewRowTextY");
+    expect(review).toContain("REVIEW_DESK.backY");
     expect(review).toContain("REVIEW_ROW.statusOffset");
     const results = readFileSync(new URL("./scenes/BattleResultsScene.ts", import.meta.url), "utf8");
     expect(results).toContain("applyFittedText");

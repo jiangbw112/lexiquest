@@ -126,7 +126,7 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 森林章节装饰和称号在 `src/domain/chapters/forest-rewards.json` 中，该文件在词表目录之外。首次通关和两个掌握里程碑各获得一次装饰和称号。徽章变灰不会收回，重玩不会再次获得。它们不改变 XP、FSRS 或战斗统计。每日装饰代币仍是每日目标奖励。绘制图在 `public/assets/chapter/forest/v0.1/` 下，是森林奖励 v0.1。清单状态为「暂定」。披风是 `cosmetic_back`，z 轴 6；橡果别针是 `cosmetic_chest`，z 轴 47；花环是 `cosmetic_head`，z 轴 65。槽位表 v0.2 新增 `cosmetic_chest`。别针的胸部偏移已包含在裁剪帧中。战士 v1.0 侧视有 `back` 和 `back_front`。装备林间斗篷时，`forest-rewards.json` 会藏起这两层。花环只藏 `outfit_head_plume`，不藏整个头盔。侧视时披风看起来像身后的一条树叶带。别针较小，在攻击帧 02 和 03 中大部分被近手遮挡。
 
-`public/assets` 在本机量得 28,503,107 字节（约 28.5 MB），其中包含职业 v1.0 侧视和俯视。生产 JavaScript 首包在本机量得 1,614,600 字节（gzip 前，`dist/assets/index-BGDj41wn.js`），因为包含 Phaser。在此机器上使用无头桌面 Chrome 运行，启动到标题用时 995 ms，然后在村庄测得 45 帧后 26 fps 和 54 MB JavaScript 堆。无头帧率低于 60 fps 目标和 30 fps 下限；正常桌面窗口应更高。启动时间和堆在 2 秒和 150 MB 预算内。
+`public/assets` 在本机量得 28,503,107 字节（约 28.5 MB），其中包含职业 v1.0 侧视和俯视。生产 JavaScript 首包在本机量得 1,614,811 字节（gzip 前，`dist/assets/index-D-tOPX4p.js`），因为包含 Phaser。在此机器上使用无头桌面 Chrome 运行，启动到标题用时 995 ms，然后在村庄测得 45 帧后 26 fps 和 54 MB JavaScript 堆。无头帧率低于 60 fps 目标和 30 fps 下限；正常桌面窗口应更高。启动时间和堆在 2 秒和 150 MB 预算内。
 
 ## 示例数据
 

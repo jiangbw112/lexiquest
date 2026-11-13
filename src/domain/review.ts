@@ -123,10 +123,13 @@ export function masteryDecision(
   return { award: true, distinctDays, stability, reason: "eligible" };
 }
 
+/** How many due rows the desk draws. The rest stay off the page. */
+export const REVIEW_DESK_LIMIT = 4;
+
 export function reviewDesk(
   memories: readonly MemoryRecord[],
   now: Date,
-  limit = 4,
+  limit = REVIEW_DESK_LIMIT,
 ): { shown: MemoryRecord[]; hiddenDue: number; keyTargetId?: string } {
   const sorted = [...memories].sort((a, b) => new Date(a.fsrs.due).getTime() - new Date(b.fsrs.due).getTime());
   const due = sorted.filter((memory) => isDue(memory, now));
