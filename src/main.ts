@@ -75,4 +75,7 @@ if (!webglAvailable()) {
   });
 
   installRuntime(game);
+  if (import.meta.env.DEV) {
+    (window as unknown as { __LEXI_GAME__?: Phaser.Game }).__LEXI_GAME__ = game;
+  }
 }

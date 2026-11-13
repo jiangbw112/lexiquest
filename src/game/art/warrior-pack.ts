@@ -1,11 +1,8 @@
-// Vite cannot import files from public/, so the client reads this copy.
-// public/assets/warrior/v0.1/manifest.json is the same file and is checked in tests.
+// Layer metadata for the old battle-view pack. The game draws classes from v1.0.
 import manifest from "./data/manifest.json";
 
-/** Provisional v0.1 battle-view warrior. Outfit garments stay their own layers. */
+/** Outfit garments stay their own layers. The atlas files are not in the package. */
 export const WARRIOR_PACK = manifest;
-
-export const WARRIOR_ASSET_ROOT = "assets/warrior/v0.1";
 
 /** Pack display scale: one logical pixel per screen pixel (@2x source). */
 export const WARRIOR_LOGICAL_SCALE = 0.5;

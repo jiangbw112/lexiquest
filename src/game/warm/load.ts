@@ -11,6 +11,7 @@ const ATLASES = {
   atlas_wardrobe: ["assets/warm/atlas/atlas_wardrobe.png", "assets/warm/atlas/atlas_wardrobe.json"],
   atlas_ui_pages: ["assets/warm/atlas/atlas_ui_pages.png", "assets/warm/atlas/atlas_ui_pages.json"],
   atlas_results: ["assets/warm/atlas/atlas_results.png", "assets/warm/atlas/atlas_results.json"],
+  atlas_fx_projectiles: ["assets/warm/atlas/atlas_fx_projectiles.png", "assets/warm/atlas/atlas_fx_projectiles.json"],
   atlas_map_results: ["assets/warm/atlas/atlas_map_results.png", "assets/warm/atlas/atlas_map_results.json"],
 } as const;
 

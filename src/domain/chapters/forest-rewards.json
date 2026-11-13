@@ -63,8 +63,8 @@
     "forest_wreath": "cosmetic_head"
   },
   "hide_rules": [
-    { "when_equipped": "forest_leaf_cape", "hide_slots": ["back"] },
-    { "when_equipped": "forest_wreath", "hide_slots": ["outfit_head"] }
+    { "when_equipped": "forest_leaf_cape", "hide_slots": ["back", "back_front"] },
+    { "when_equipped": "forest_wreath", "hide_slots": ["outfit_head_plume", "outfitHeadPlume"] }
   ],
   "art_priority": "after_canopy_boss_remaining"
 }

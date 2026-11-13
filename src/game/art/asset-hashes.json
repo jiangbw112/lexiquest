@@ -1,0 +1,11 @@
+{
+  "public/assets/classes/v1.0/side/cls_warrior_side@2x.png": "a69838847ce1b229382ffe8dd52509f78d2eb1be98ac5e58ac2822be72393f73",
+  "public/assets/classes/v1.0/side/cls_warrior_side@2x.json": "fc19b8f1794a431f669dbb5891d3bc5180995b93135fd9d1579bff69620e60d2",
+  "public/assets/classes/v1.0/portrait/cls_portraits@2x.png": "458290a5b5c1c2e139bdb734f2e3154b89b511f1ed5dc0ad4125f1f7b66fb142",
+  "public/assets/classes/v1.0/portrait/cls_portraits@2x.json": "65d3ed8e4ef8993de1fa2628581a3c493af5f0925a6caffb03e1ec329dbb245c",
+  "public/assets/classes/v1.0/portrait/cls_portraits_locked@2x.png": "652d28919d792b67361cc2b07a34fb54ee3605eecdf03b1a854d1779fcc4a7ea",
+  "public/assets/classes/v1.0/portrait/cls_portraits_locked@2x.json": "043e977c6c0331a616c7dd0772da0f13c8aab48e919075838d6be0f0e9eaf522",
+  "public/assets/warm/atlas/atlas_fx_projectiles.png": "a9d577744f6d547b582beef97d63c57146a928bcc4189d3b78d9e00ffc2671eb",
+  "public/assets/warm/atlas/atlas_fx_projectiles.json": "cb07c98c8784278d4b24719fd602e2ffba078e9698f48eb58b022598c406de4f",
+  "public/assets/classes/v1.0/manifest.json": "d7d83c464a013d6a6ec49b90176d01bbbc9aba16203cc5cb08bd586bc522a3be"
+}

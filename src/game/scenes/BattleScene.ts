@@ -15,14 +15,21 @@ import { orderReviewWords } from "../../domain/skill-cast";
 import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
 import { chapterBossId, isChapterBossId } from "../../domain/chapter-bosses";
 import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
-import { classById } from "../../domain/classes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
 import { BossSprite, queueBossAtlases, reportBossLoad } from "../art/boss-sprite";
 import { ChapterBossSprite, chapterBossReactionMs, queueChapterBoss } from "../art/chapter-boss-sprite";
 import { battlePoses, type WarriorAnim } from "../art/warrior-pack";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
+import { ClassSideSprite } from "../art/class-sprite";
+import {
+  hasProjectileArt,
+  playProjectileHit,
+  registerProjectileAnims,
+  spawnOffset,
+  spawnProjectile,
+} from "../art/projectile-art";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { drawEquippedTitle } from "../art/title-bar";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
 import { redirectUngraded } from "../grade-route";
 import { ATTACK_HINT_TOAST, cjkWrap } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
@@ -62,6 +69,7 @@ import {
   performApproach,
   performLunge,
   performReturn,
+  stepFractionFor,
   stepTargetX,
   PLAYER_BATTLE_X,
   MONSTER_BATTLE_X,
@@ -95,6 +103,8 @@ export class BattleScene extends Phaser.Scene {
   private presenting = false;
   private resultsOpened = false;
   private battleHero?: Phaser.GameObjects.Container;
+  private classHero?: ClassSideSprite;
+  private dashOpen = false;
   private battleTitle: Phaser.GameObjects.GameObject[] = [];
   private battleHud: Phaser.GameObjects.GameObject[] = [];
   private lunging = false;
@@ -144,9 +154,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
-    const shared = ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_ui_pages", "atlas_results"] as const;
+    const shared = ["atlas_ui_core", "atlas_battle", "atlas_skills", "atlas_ui_pages", "atlas_results", "atlas_fx_projectiles"] as const;
     if (this.battleBackdrop.groupId === "forest") queueWarm(this, [...shared, "atlas_monsters"], ["bg_forest"]);
     else {
       queueWarm(this, shared, []);
@@ -158,6 +169,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(): void {
+    registerProjectileAnims(this);
     const save = getSave();
     const chapter = save ? findPlayChapter(save, this.launch.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (this.launch.stageId ?? 0));
@@ -414,6 +426,7 @@ export class BattleScene extends Phaser.Scene {
 
   private playMotion(beats: readonly MotionBeat[], before: BattleState): void {
     this.lunging = beats.some((beat) => beat.kind === "lunge" || beat.kind === "step" || beat.kind === "projectile" || beat.kind === "return");
+    this.dashOpen = beats.some((beat) => (beat.kind === "lunge" || beat.kind === "step") && beat.attacker === "player");
     this.displayHp = hpAtMotionStart({ playerHp: before.playerHp, enemyHp: before.enemyHp });
     this.hpSteps = [...(this.state.turnDeltas ?? [])];
     this.notePlan = planBattleNote(this.state.lastNote);
@@ -446,6 +459,7 @@ export class BattleScene extends Phaser.Scene {
         ? (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X))
         : (this.battleHero?.x ?? PLAYER_BATTLE_X);
       const onHit = () => {
+        if (beat.attacker === "player") this.classHero?.playSequence(this.poses);
         this.spawnSigned(hit.target, hit.amount);
         this.shot?.onShown(beat.attacker);
       };
@@ -466,12 +480,14 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
       this.shot?.onShown("approach");
-      performApproach(this, container, stepTargetX(container.x, enemyX, "ranged"), RANGED_STEP_MS, () => {
+      const fraction = stepFractionFor(this.state.classId);
+      performApproach(this, container, stepTargetX(container.x, enemyX, "ranged", fraction), RANGED_STEP_MS, () => {
         this.playBeats(beats, index + 1);
       });
       return;
     }
     if (beat.kind === "projectile") {
+      this.classHero?.playSequence(this.poses);
       this.launchProjectile(() => this.playBeats(beats, index + 1));
       return;
     }
@@ -846,31 +862,39 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private launchProjectile(onHit: () => void): void {
-    const fromX = (this.battleHero?.x ?? PLAYER_BATTLE_X) + 36;
-    const toX = (this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X)) - 48;
-    const tint = Number.parseInt(classById(this.state.classId).color.slice(1), 16);
-    const bolt = this.state.classId === "ranger"
-      ? this.add.rectangle(fromX, 450, 36, 8, tint)
-      : this.add.circle(fromX, 450, 11, tint);
-    bolt.setStrokeStyle(4, 0xfff4dc);
-    bolt.setDepth(3500);
+    const classId = this.state.classId;
+    const hero = this.battleHero;
+    const enemyX = this.battleEnemy?.x ?? (this.bossFight ? BOSS_BATTLE_POS.x : MONSTER_BATTLE_X);
+    if (!hero || !hasProjectileArt(classId)) {
+      onHit();
+      return;
+    }
+    const displayScale = Math.abs(hero.scaleY) || Math.abs(hero.scaleX) || 1;
+    const off = spawnOffset(classId, displayScale);
+    const facing = hero.scaleX < 0 ? -1 : 1;
+    const fromX = hero.x + off.x * facing;
+    const fromY = hero.y + off.y;
+    const toX = enemyX - 48 * facing;
+    const toY = fromY;
+    const bolt = spawnProjectile(this, classId, fromX, fromY, toX, toY).setDepth(3500);
+    if (motionOff()) {
+      bolt.destroy();
+      onHit();
+      return;
+    }
     this.time.delayedCall(PROJECTILE_MS / 2, () => {
       if (bolt.active) this.shot?.onShown("bolt");
     });
-    const finish = () => {
-      bolt.destroy();
-      onHit();
-    };
-    if (motionOff()) {
-      finish();
-      return;
-    }
     this.tweens.add({
       targets: bolt,
       x: toX,
+      y: toY,
       duration: PROJECTILE_MS,
       ease: "Quad.easeIn",
-      onComplete: finish,
+      onComplete: () => {
+        if (bolt.active) playProjectileHit(bolt, classId);
+        onHit();
+      },
     });
   }
 
@@ -948,12 +972,21 @@ export class BattleScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     this.paintBattleBackdrop();
-    const hero = new WarriorSprite(this, 300, 520, 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    const hero = new ClassSideSprite(this, 300, 520, savedClassId(save), 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    if (import.meta.env.DEV) {
+      (window as unknown as { __LEXI_HERO__?: ClassSideSprite }).__LEXI_HERO__ = hero;
+    }
+    this.classHero = hero;
     this.battleHero = hero.root;
     const titleAt = this.children.length;
     drawEquippedTitle(this, 300, 250, save.equippedTitleId);
     this.battleTitle = this.children.list.slice(titleAt);
-    hero.playSequence(this.poses);
+    if (this.dashOpen) {
+      hero.play("dash");
+      this.dashOpen = false;
+    } else {
+      hero.playSequence(this.poses);
+    }
     this.drawMonster();
     const hudAt = this.children.length;
     warmPanel(this, 350, 92, 400, 104);

@@ -7,7 +7,9 @@ import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { containerHitArea, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "../hit";
 import { listenKeys } from "../ui";
-import { LayeredActor } from "../actors";
+import { directionFromDelta } from "../art/class-atlas";
+import { queueClassTop, queueClassWreath, savedClassId } from "../art/class-load";
+import { ClassTopSprite } from "../art/class-top";
 import { DIALOG_HEADER, PLACES, REWARD_DIALOG, SAFE, cjkWrap, rewardDialogChrome, type Place } from "../layout";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
@@ -15,7 +17,7 @@ import { CREAM, FONT_BODY, FONT_TITLE, INK, TEAL_DEEP } from "../warm/theme";
 
 export class OverworldScene extends Phaser.Scene {
   private toast = "";
-  private heroRoot?: Phaser.GameObjects.Container;
+  private hero?: ClassTopSprite;
   private traveling = false;
 
   constructor() {
@@ -23,6 +25,9 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   preload(): void {
+    const id = savedClassId(getSave());
+    queueClassTop(this, id);
+    queueClassWreath(this);
     queueWarm(this, ["atlas_ui_core", "atlas_village"], ["bg_village"]);
   }
 
@@ -50,9 +55,32 @@ export class OverworldScene extends Phaser.Scene {
       this.draw();
       return;
     }
-    if (this.traveling) return;
+    if (this.traveling || save.rewardQueue[0] || this.toast) return;
     const place = PLACES.find((item) => item.code === event.code);
     if (place) this.go(place.scene);
+    const step = { ArrowLeft: [-80, 0], ArrowRight: [80, 0], ArrowUp: [0, -80], ArrowDown: [0, 80] } as const;
+    const delta = step[event.code as keyof typeof step];
+    if (delta) this.step(delta[0], delta[1]);
+  }
+
+  private step(dx: number, dy: number): void {
+    const root = this.hero?.root;
+    if (!root || this.traveling) return;
+    this.traveling = true;
+    this.hero?.setDirection(directionFromDelta(dx, dy));
+    this.hero?.play("walk");
+    this.tweens.killTweensOf(root);
+    this.tweens.add({
+      targets: root,
+      x: Math.max(80, Math.min(1200, root.x + dx)),
+      y: Math.max(360, Math.min(720, root.y + dy)),
+      duration: 280,
+      ease: "Sine.easeInOut",
+      onComplete: () => {
+        this.traveling = false;
+        this.hero?.play("idle");
+      },
+    });
   }
 
   private go(scene: string): void {
@@ -69,12 +97,16 @@ export class OverworldScene extends Phaser.Scene {
       }
     }
     const place = PLACES.find((item) => item.scene === scene);
-    const root = this.heroRoot;
+    const root = this.hero?.root;
     if (!place || !root) {
       this.scene.start(scene);
       return;
     }
     this.traveling = true;
+    const dx = place.x - root.x;
+    const dy = place.y + 48 - root.y;
+    this.hero?.setDirection(directionFromDelta(dx, dy));
+    this.hero?.play("walk");
     this.tweens.killTweensOf(root);
     this.tweens.add({
       targets: root,
@@ -89,6 +121,7 @@ export class OverworldScene extends Phaser.Scene {
   private draw(): void {
     const save = getSave();
     if (!save) return;
+    this.hero?.stop();
     destroyDrawn(this.children.list);
     warmBackground(this, "bg_village");
     warmPanel(this, SAFE.x + SAFE.width / 2, 62, SAFE.width - 24, 96);
@@ -114,18 +147,8 @@ export class OverworldScene extends Phaser.Scene {
     });
     for (const place of PLACES) this.building(place);
     // SPEC Part A puts the hero on the plaza. Buildings stay where layout.ts placed them.
-    const hero = new LayeredActor(this, 640, 520, "top");
-    hero.applyAppearance(save.equippedOutfitId, save.equippedCosmeticIds);
-    hero.root.setScale(0.85);
-    this.heroRoot = hero.root;
-    this.tweens.add({
-      targets: hero.floatingLayers(),
-      y: 508 - 520,
-      duration: 900,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
+    const hero = new ClassTopSprite(this, 640, 520, savedClassId(save), save.equippedCosmeticIds);
+    this.hero = hero;
     if (save.chapterCleared) {
       warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }

@@ -11,9 +11,32 @@ import {
   skillListFace,
   skillOrderFrame,
   skillSlotIndexForKey,
+  starMark,
 } from "./skill-card-face";
 
 describe("skill card faces", () => {
+  it("writes a card level as a star, not Lv", () => {
+    expect(starMark(1)).toBe("★1");
+    expect(starMark(2)).toBe("★2");
+    expect(starMark(3)).toBe("★3");
+    const page = readFileSync(new URL("../game/scenes/SkillsScene.ts", import.meta.url), "utf8");
+    const battleCard = readFileSync(new URL("../game/warm/skill-card.ts", import.meta.url), "utf8");
+    const results = readFileSync(new URL("../game/scenes/BattleResultsScene.ts", import.meta.url), "utf8");
+    expect(page).toContain("starMark(mark.level)");
+    expect(battleCard).toContain("starMark(slot.level)");
+    expect(battleCard).toContain("skillLevelFrame(slot.level)");
+    expect(results).toContain("starMark(level)");
+    expect(results).toContain("skillLevelFrame(level)");
+    expect(results).toContain("starMark(card.from)");
+    expect(results).toContain("starMark(card.to)");
+    expect(results).toContain("if (!card) return;");
+    expect(page).not.toContain("Lv ");
+    expect(battleCard).not.toContain("Lv ");
+    expect(results).not.toContain("Lv ");
+    expect(battleCard).toContain('slot.origin === "equipped"');
+    expect(battleCard).toContain("slot.level != null");
+  });
+
   it("keeps a low-energy card clickable and ignores a disabled card", () => {
     const low = skillCardFace({ phase: "choose", energy: 0, energyCost: 2 });
     const blocked = skillCardFace({ phase: "question", energy: 6, energyCost: 1 });

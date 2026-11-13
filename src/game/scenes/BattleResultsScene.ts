@@ -18,13 +18,15 @@ import {
   type BattleResultsView,
   type ResultItem,
 } from "../../domain/battle-results";
-import { skillCardFrame, skillIconFrame, skillLevelFrame } from "../../domain/skill-card-face";
+import { skillCardFrame, skillIconFrame, skillLevelFrame, starMark } from "../../domain/skill-card-face";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
-import { queueWarriorAtlases, WarriorSprite } from "../art/warrior-sprite";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { restPromptDue } from "../play-timer";
 import { probeNote } from "../probe";
+import { getSave } from "../session";
 import { listenKeys } from "../ui";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { queueWarm } from "../warm/load";
@@ -71,7 +73,8 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   preload(): void {
-    queueWarriorAtlases(this);
+    queueClassSide(this, savedClassId(getSave()));
+    queueClassWreath(this);
     queueChapterCosmetics(this);
     queueWarm(this, ["atlas_ui_core", "atlas_ui_pages", "atlas_battle", "atlas_skills", "atlas_results"], []);
   }
@@ -196,7 +199,15 @@ export class BattleResultsScene extends Phaser.Scene {
 
   private drawHero(): void {
     // Feet on the art mark. Outfit pieces come from the actor sheet; cosmetics stay on this pack.
-    const hero = new WarriorSprite(this, 235, 646, 0.7, this.view.equippedCosmeticIds, this.view.equippedOutfitId);
+    const hero = new ClassSideSprite(
+      this,
+      235,
+      646,
+      savedClassId(getSave()),
+      0.7,
+      this.view.equippedCosmeticIds,
+      this.view.equippedOutfitId,
+    );
     hero.play(this.view.won ? "victory" : "idle");
     this.finishing.push(hero.root);
   }
@@ -599,9 +610,15 @@ export class BattleResultsScene extends Phaser.Scene {
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
-    this.add.text(649, this.dy(528), card.name, {
+    const name = this.add.text(649, this.dy(528), card.name, {
       fontFamily: FONT_BODY,
       fontSize: "26px",
+      fontStyle: "700",
+      color: INK,
+    }).setOrigin(0, 0);
+    this.add.text(649 + name.width + 12, this.dy(534), `${starMark(card.from)} 到 ${starMark(card.to)}`, {
+      fontFamily: FONT_BODY,
+      fontSize: "22px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0);
@@ -610,20 +627,27 @@ export class BattleResultsScene extends Phaser.Scene {
       fontSize: "20px",
       color: TEAL_DEEP,
     }).setOrigin(0, 0);
-    this.levelBadge(653, this.dy(608), card.from);
-    this.levelBadge(733, this.dy(608), card.to);
+    this.levelBadge(653, this.dy(592), card.from);
+    this.levelBadge(733, this.dy(592), card.to);
     const arrow = this.add.graphics();
     arrow.lineStyle(3, 0x3b2a20, 1);
     arrow.beginPath();
-    arrow.moveTo(705, this.dy(630));
-    arrow.lineTo(725, this.dy(630));
+    arrow.moveTo(705, this.dy(614));
+    arrow.lineTo(725, this.dy(614));
     arrow.strokePath();
   }
 
   private levelBadge(x: number, y: number, level: number): void {
     const frame = skillLevelFrame(level);
-    if (!this.textures.exists("atlas_battle") || !this.textures.get("atlas_battle").has(frame)) return;
-    this.add.image(x, y, "atlas_battle", frame).setOrigin(0, 0).setDisplaySize(44, 44);
+    if (this.textures.exists("atlas_battle") && this.textures.get("atlas_battle").has(frame)) {
+      this.add.image(x, y, "atlas_battle", frame).setOrigin(0, 0).setDisplaySize(44, 44);
+    }
+    this.add.text(x + 22, y + 46, starMark(level), {
+      fontFamily: FONT_BODY,
+      fontSize: "16px",
+      fontStyle: "700",
+      color: INK,
+    }).setOrigin(0.5, 0);
   }
 
   private drawItemBox(x: number, y: number, width: number, height: number, practice: boolean): void {

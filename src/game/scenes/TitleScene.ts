@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { WarriorSprite } from "../art/warrior-sprite";
+import { ClassSideSprite } from "../art/class-sprite";
+import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { probeEnter, probeNote } from "../probe";
 import { redirectUngraded } from "../grade-route";
 import { getSave } from "../session";
@@ -14,6 +15,12 @@ export class TitleScene extends Phaser.Scene {
     super("title");
   }
 
+  preload(): void {
+    const id = savedClassId(getSave());
+    queueClassSide(this, id);
+    queueClassWreath(this);
+  }
+
   create(): void {
     probeEnter("title");
     warmInBackground(this, ["atlas_village"], ["bg_village"]);
@@ -24,7 +31,7 @@ export class TitleScene extends Phaser.Scene {
       fontSize: "22px",
       color: INK,
     }, { height: 46, padX: 28, radius: 23 });
-    const hero = new WarriorSprite(this, 250, 640, 0.5);
+    const hero = new ClassSideSprite(this, 250, 640, savedClassId(getSave()), 0.5);
     hero.play("idle");
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
