@@ -96,3 +96,103 @@ export function journeyNightUrls(): readonly string[] {
     "assets/chapter/scenes/journey/bg_battle_night.webp",
   ];
 }
+
+/** Grade chapter id to the manifest minion. Forest is not in this map. */
+export const CHAPTER_MINION_ID: Record<string, string> = {
+  pep_g3_01: "cushion",
+  pep_g3_08: "cushion",
+  pep_g4_05: "cushion",
+  pep_g3_02: "pawlet",
+  pep_g4_07: "sprout",
+  pep_g4_08: "sprout",
+  pep_g3_03: "sprout",
+  pep_g3_06: "rubkin",
+  pep_g3_05: "rubkin",
+  pep_g5_01: "rubkin",
+  pep_g5_02: "rubkin",
+  pep_g5_03: "steam",
+  pep_g6_02: "steam",
+  pep_g3_07: "steam",
+  pep_g4_02: "lampkin",
+  pep_g5_05: "lampkin",
+  pep_g3_04: "lampkin",
+  pep_g4_01: "lampkin",
+  pep_g4_06: "lampkin",
+  pep_g5_06: "lampkin",
+  pep_g5_07: "leafkin",
+  pep_g4_03: "leafkin",
+  pep_g5_04: "leafkin",
+  pep_g4_04: "leafkin",
+  pep_g5_09: "knapsack",
+  pep_g5_08: "knapsack",
+  pep_g6_01: "knapsack",
+  pep_g6_03: "knapsack",
+  pep_g6_04: "knapsack",
+  pep_g6_05: "knapsack",
+  pep_g6_06: "knapsack",
+};
+
+const MINION_ATLAS: Record<string, "atlas_monsters_scenes" | "atlas_monsters_scenes_2"> = {
+  cushion: "atlas_monsters_scenes",
+  pawlet: "atlas_monsters_scenes",
+  sprout: "atlas_monsters_scenes",
+  rubkin: "atlas_monsters_scenes",
+  steam: "atlas_monsters_scenes",
+  lampkin: "atlas_monsters_scenes",
+  leafkin: "atlas_monsters_scenes_2",
+  knapsack: "atlas_monsters_scenes_2",
+};
+
+/**
+ * Display names. sprout, steam, and lampkin were still 待定 in the manifest.
+ * Those three use the names given for this pass.
+ */
+const MINION_NAME: Record<string, string> = {
+  cushion: "抱枕灵",
+  pawlet: "爪爪灵",
+  sprout: "芽芽灵",
+  rubkin: "橡皮灵",
+  steam: "热气灵",
+  lampkin: "路灯灵",
+  leafkin: "风叶灵",
+  knapsack: "行囊灵",
+};
+
+export interface ChapterMinion {
+  id: string;
+  name: string;
+  atlasKey: string;
+  imageUrl: string;
+  dataUrl: string;
+  idleFrame: string;
+  hitFrame: string;
+}
+
+const FOREST_MINION: ChapterMinion = {
+  id: "inkling",
+  name: "",
+  atlasKey: "atlas_monsters",
+  imageUrl: "assets/warm/atlas/atlas_monsters.png",
+  dataUrl: "assets/warm/atlas/atlas_monsters.json",
+  idleFrame: "monster_inkling_idle",
+  hitFrame: "monster_inkling_hit",
+};
+
+/** The minion for one chapter. Forest keeps inkling on the warm atlas. */
+export function chapterMinion(chapterId: string): ChapterMinion {
+  if (chapterId === FOREST_CHAPTER.chapter_id) return FOREST_MINION;
+  const id = CHAPTER_MINION_ID[chapterId];
+  const atlas = id ? MINION_ATLAS[id] : undefined;
+  if (!id || !atlas) throw new Error(`No minion for ${chapterId}`);
+  const name = MINION_NAME[id];
+  if (!name) throw new Error(`No minion name for ${id}`);
+  return {
+    id,
+    name,
+    atlasKey: atlas,
+    imageUrl: `assets/chapter/scenes/minions/${atlas}.png`,
+    dataUrl: `assets/chapter/scenes/minions/${atlas}.json`,
+    idleFrame: `monster_${id}_idle`,
+    hitFrame: `monster_${id}_hit`,
+  };
+}
