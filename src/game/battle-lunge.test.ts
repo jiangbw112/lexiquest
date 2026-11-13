@@ -176,4 +176,21 @@ describe("attack reach by class", () => {
     expect(hit).toBeLessThan(back);
     expect(beats[hit]).toEqual({ kind: "hit", attacker: "player", target: "enemy", amount: -7 });
   });
+
+  it("shows the rest of a delayed hit after the enemy has returned", () => {
+    const beats = battleMotionBeats({
+      playerLunge: false,
+      playerReach: "ranged",
+      enemyLunge: true,
+      enemyAmount: -5,
+      playerEffect: 0,
+      playerHit: -4,
+      enemyFollowup: -5,
+    });
+    const returned = beats.map((beat) => beat.kind).lastIndexOf("return");
+    const follow = beats.findIndex((beat) => beat.kind === "floater" && beat.target === "enemy");
+    expect(follow).toBe(beats.length - 1);
+    expect(returned).toBeLessThan(follow);
+    expect(beats[follow]).toEqual({ kind: "floater", target: "enemy", amount: -5 });
+  });
 });

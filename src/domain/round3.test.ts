@@ -133,7 +133,7 @@ function pick(state: BattleState, policy: "greedy" | "first" | "heal" | "block" 
   }
   const button = classById(state.classId).attack;
   const hit = [...state.slots]
-    .filter((slot) => (slot.kind === "damage" || slot.kind === "strike-guard") && state.energy >= slot.energyCost)
+    .filter((slot) => (slot.kind === "damage" || slot.kind === "strike-guard" || slot.kind === "strike-heal" || slot.kind === "delay-damage") && state.energy >= slot.energyCost)
     .sort((a, b) => b.fullPower - a.fullPower)[0];
   if (hit && hit.fullPower > button) return { type: "skill", slotIndex: hit.index };
   return { type: "attack" };
@@ -595,7 +595,7 @@ describe("round 3 new words, hints, and replay", () => {
     expect(showNoDamageHint("warrior", ["warrior-hold", "warrior-bash"])).toBe(false);
     expect(hasDamageCard(["warrior-bash"])).toBe(true);
     expect(hasDamageCard(["healer-cure"])).toBe(false);
-    expect(showNoDamageHint("healer", ["healer-cure"])).toBe(false);
+    expect(showNoDamageHint("healer", ["healer-cure"])).toBe(true);
     expect(showNoDamageHint("healer", ["healer-guard"])).toBe(true);
     expect(showNoDamageHint("healer", ["healer-guard", "healer-light"])).toBe(false);
   });
@@ -848,8 +848,8 @@ describe("round 3 remaining assertions", () => {
       encounterId: "inkling",
       classId: "healer",
       learnedIds: LEARNED,
-      equippedSkillIds: ["healer-cure", "healer-guard", "healer-cheer"],
-      skillLevels: { "healer-cure": 1, "healer-guard": 1, "healer-cheer": 1 },
+      equippedSkillIds: ["healer-cure", "healer-guard", "healer-light"],
+      skillLevels: { "healer-cure": 1, "healer-guard": 1, "healer-light": 1 },
       seed: 6,
       enemy: { name: "x", maxHp: 500, attack: 0, sprite: "inkling" },
     });
@@ -909,7 +909,8 @@ describe("round 3 remaining assertions", () => {
     for (const classId of CLASS_IDS) {
       expect(showNoDamageHint(classId, [starterSkillId(classId)])).toBe(false);
     }
-    expect(deckChangedFromDefault("healer", ["healer-cure"])).toBe(false);
+    expect(deckChangedFromDefault("healer", ["healer-beam"])).toBe(false);
+    expect(deckChangedFromDefault("healer", ["healer-cure"])).toBe(true);
     expect(deckChangedFromDefault("healer", [])).toBe(true);
     expect(deckChangedFromDefault("healer", ["healer-guard"])).toBe(true);
     expect(deckChangedFromDefault("healer", ["healer-cure", "healer-guard"])).toBe(true);

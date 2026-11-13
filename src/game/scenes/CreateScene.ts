@@ -1,7 +1,16 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
 import { CLASSES } from "../../domain/classes";
-import { INVENTOR_LOCK_BUTTON, INVENTOR_LOCK_NOTE, INVENTOR_LOCK_TIP, isClassUnlocked, lockedCardTip, resolvedClassId, selectClass } from "../../domain/class-unlock";
+import {
+  INVENTOR_LOCK_BUTTON,
+  INVENTOR_LOCK_NOTE,
+  INVENTOR_LOCK_TIP,
+  INVENTOR_LOCK_TITLE,
+  isClassUnlocked,
+  lockedCardTip,
+  resolvedClassId,
+  selectClass,
+} from "../../domain/class-unlock";
 import { createSave } from "../../domain/progress";
 import { sanitizeName } from "../../domain/appearance";
 import type { ClassId, GradeBand } from "../../domain/types";
@@ -35,6 +44,7 @@ export class CreateScene extends Phaser.Scene {
   init(data: { grades?: readonly string[] } = {}): void {
     this.grades = normalizeGrades(data.grades);
     this.classId = "warrior";
+    this.lockTip = null;
   }
 
   create(): void {
@@ -163,6 +173,11 @@ export class CreateScene extends Phaser.Scene {
           color: "#fff6e4",
           fontStyle: "700",
         }).setOrigin(0.5).setDepth(4);
+        this.add.text(cx, 148, INVENTOR_LOCK_TITLE, {
+          fontFamily: FONT,
+          fontSize: "18px",
+          color: MUTED,
+        }).setOrigin(0.5, 0);
       }
       this.add.text(cx, 176, unlocked ? def.blurb : INVENTOR_LOCK_NOTE, {
         fontFamily: FONT,

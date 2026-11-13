@@ -6,6 +6,12 @@ import {
   INVENTOR_LOCK_BUTTON,
   INVENTOR_LOCK_NOTE,
   INVENTOR_LOCK_TIP,
+  INVENTOR_LOCK_TITLE,
+  INVENTOR_SWITCH_LOCKED_TIP,
+  INVENTOR_UNLOCK_GO,
+  INVENTOR_UNLOCK_LATER,
+  INVENTOR_UNLOCK_MAIN,
+  INVENTOR_UNLOCK_SUB,
   INVENTOR_UNLOCK_ENABLED,
   isClassSelectable,
   isClassUnlocked,
@@ -92,7 +98,16 @@ describe("class unlock", () => {
     expect(scene).toContain("selectClass");
     expect(scene).toContain("this.pick(CLASSES[index].id)");
     expect(scene).toContain("INVENTOR_LOCK_NOTE");
-    expect(INVENTOR_LOCK_NOTE).toBe("通关任意一个期末 Boss 后解锁");
+    expect(INVENTOR_LOCK_TITLE).toBe("藏起来的职业");
+    expect(INVENTOR_LOCK_NOTE).toBe("打败期末大 Boss 后解锁");
+    expect(INVENTOR_LOCK_TIP).toContain("期末大 Boss 还在准备中");
+    expect(INVENTOR_SWITCH_LOCKED_TIP).toBe("打败期末大 Boss 后才能换成它。");
+    expect(INVENTOR_UNLOCK_MAIN).toContain("发明家来找你了");
+    expect(INVENTOR_UNLOCK_SUB).toBe("可以在技能页换成发明家。");
+    expect(INVENTOR_UNLOCK_GO).toBe("去看看");
+    expect(INVENTOR_UNLOCK_LATER).toBe("等会儿");
+    expect(scene).toContain("INVENTOR_LOCK_TITLE");
+    expect(scene).toContain("INVENTOR_LOCK_TIP");
     expect(scene).toContain("lockedCardTip");
     expect(scene).toContain("showLockTip");
     expect(scene).not.toContain("if (!unlocked) return");
@@ -103,7 +118,7 @@ describe("class unlock", () => {
 
   it("keeps the current class and shows the full lock tip when the inventor card is chosen", () => {
     expect(INVENTOR_UNLOCK_ENABLED).toBe(false);
-    expect(INVENTOR_LOCK_NOTE).toBe("通关任意一个期末 Boss 后解锁");
+    expect(INVENTOR_LOCK_NOTE).toBe("打败期末大 Boss 后解锁");
     expect(INVENTOR_LOCK_TIP).toBe(
       "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。期末大 Boss 还在准备中，先和大家一起去冒险吧！",
     );

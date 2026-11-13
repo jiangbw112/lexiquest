@@ -70,16 +70,16 @@ export function skillCardFrame(face: SkillCardFace, origin: SkillSlot["origin"],
   return "card_frame_bronze";
 }
 
-/** Card level on the skill page. The word "Lv" is not part of the face. */
-export function starMark(level: number): string {
-  const safe = Number.isFinite(level) ? Math.max(1, Math.round(level)) : 1;
-  return `★${safe}`;
-}
-
 export function skillLevelFrame(level: number): string {
   if (level >= 3) return "card_lv_badge_gold";
   if (level === 2) return "card_lv_badge_silver";
   return "card_lv_badge_bronze";
+}
+
+/** Visible card level. The badge frames have no digits, so the text carries ★N. */
+export function starMark(level: number): string {
+  const safe = Math.min(3, Math.max(1, Math.round(level)));
+  return `★${safe}`;
 }
 
 /** Dot badge. The frame art has no digits. */

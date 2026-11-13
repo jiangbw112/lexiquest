@@ -262,10 +262,10 @@ describe("forest chapter", () => {
     expect(PROVISIONAL.chapterEnding.bossPhaseHpByClass).toEqual({
       warrior: 75,
       mage: 90,
-      ranger: 75,
-      healer: 30,
-      inventor: 65,
-      explorer: 65,
+      ranger: 85,
+      healer: 48,
+      inventor: 70,
+      explorer: 75,
     });
     expect(stageCombat(stageById(1)!, "warrior").enemyHp).toBe(40);
     expect(stageCombat(stageById(1)!, "healer").enemyHp).toBe(26);
