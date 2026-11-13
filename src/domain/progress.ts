@@ -25,7 +25,7 @@ import { isChapterExtra, normalizeGrades, sampleWords, wordById, wordsForGrades 
 import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
 import { deviceTimeZone, localDayKey } from "./local-day";
-import { canLearnNewWord, ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
+import { ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
 import { applyReview, badgeTone, calendarDay, introduceMemory, isDue, masteryDecision } from "./review";
 import {
   equipSkillIds,
@@ -174,7 +174,6 @@ export function learnWord(save: SaveData, wordId: string, now: Date, timeZone = 
   if (!word) return save;
   if (!gradeIsOpen(save, wordId)) return save;
   if (save.wordCards[wordId]) return save;
-  if (!canLearnNewWord(save, now, timeZone)) return save;
   const wordCards = grantWordCard(save.wordCards, wordId, now.getTime());
   const memory: Record<string, MemoryRecord> = {
     ...save.memory,

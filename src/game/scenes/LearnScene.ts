@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { activeChapter, isChapterUnlocked, unlockedWordIds } from "../../domain/chapter-plan";
 import { GRADE_BANDS, lessonUnits, posGloss, wordById, type UnitDef, type WordDef } from "../../domain/catalog";
 import { uiLabel } from "../../domain/ui-label";
-import { NEW_WORD_CAP_NOTICE, canLearnNewWord, reviewFirstNotice } from "../../domain/parent";
+import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
@@ -41,7 +41,6 @@ export class LearnScene extends Phaser.Scene {
   private busy = false;
   private fontSample = "";
   private answerTimer = 0;
-  private capNote = "";
 
   constructor() {
     super("learn");
@@ -151,19 +150,9 @@ export class LearnScene extends Phaser.Scene {
     this.draw();
   }
 
-  private atNewWordCap(): boolean {
-    const save = getSave();
-    if (!save || canLearnNewWord(save, studyNow(save))) return false;
-    this.capNote = NEW_WORD_CAP_NOTICE;
-    this.phase = "study";
-    this.question = null;
-    this.draw();
-    return true;
-  }
-
   private startMeaning(): void {
     const id = this.currentId();
-    if (!id || this.atNewWordCap()) return;
+    if (!id) return;
     const save = getSave();
     this.question = quizForWord(id, hashSeed(`${id}:${this.retry}`), "zh-to-en", save ? this.distractors(save) : undefined);
     this.phase = "quiz";
@@ -172,7 +161,7 @@ export class LearnScene extends Phaser.Scene {
 
   private startListening(): void {
     const id = this.currentId();
-    if (!id || this.atNewWordCap()) return;
+    if (!id) return;
     const save = getSave();
     this.question = listeningQuestion(id, hashSeed(`listen:${id}:${this.retry}`), save ? this.distractors(save) : undefined);
     this.phase = "listen";
@@ -184,7 +173,7 @@ export class LearnScene extends Phaser.Scene {
     const id = this.currentId();
     const save = getSave();
     const word = id ? wordById(id) : undefined;
-    if (!id || !word || !save || this.atNewWordCap() || !spellingAllowed(word, this.badgeLit(id))) return;
+    if (!id || !word || !save || !spellingAllowed(word, this.badgeLit(id))) return;
     this.phase = "spell";
     this.question = null;
     this.draw();
@@ -231,8 +220,6 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private grant(id: string): void {
-    const save = getSave();
-    if (!save || this.atNewWordCap()) return;
     mutate((current) => learnWord(current, id, studyNow(current)));
     this.justId = id;
     this.missed = false;
@@ -316,18 +303,6 @@ export class LearnScene extends Phaser.Scene {
       });
       return;
     }
-    if (!canLearnNewWord(save, studyNow(save))) {
-      this.capNote = NEW_WORD_CAP_NOTICE;
-      warmPanel(this, 640, 400, 900, 280);
-      this.add.text(640, 400, NEW_WORD_CAP_NOTICE, {
-        fontFamily: FONT,
-        fontSize: "22px",
-        color: NOTE,
-        wordWrap: cjkWrap(760),
-        align: "center",
-      }).setOrigin(0.5);
-      return;
-    }
     if (this.phase === "study") {
       warmPanel(this, 640, 400, 900, 460);
       if (this.missed) {
@@ -340,8 +315,9 @@ export class LearnScene extends Phaser.Scene {
       }
       const now = studyNow(save);
       const reviewNote = reviewFirstNotice(save, now);
-      if (this.capNote || reviewNote) {
-        this.add.text(640, STUDY_CARD.reviewHintY, [this.capNote, reviewNote].filter(Boolean).join(" "), {
+      const goalNote = dailyNewWordTargetMet(save, now) ? NEW_WORD_GOAL_NOTICE : "";
+      if (goalNote || reviewNote) {
+        this.add.text(640, STUDY_CARD.reviewHintY, [goalNote, reviewNote].filter(Boolean).join(" "), {
           fontFamily: FONT,
           fontSize: "18px",
           color: NOTE,

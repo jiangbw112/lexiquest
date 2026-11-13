@@ -46,8 +46,8 @@ function learnAll(save: SaveData): SaveData {
     }
     next = learned;
   }
-  // The daily cap spreads learning over later days. Park every card just before START
-  // so a review at START is after last_review and the card is not due yet.
+  // Park every card just before START so a review at START is after last_review
+  // and the card is not due yet. A word the open grades cannot collect waits one day and tries once more.
   const due = new Date(START.getTime() + 60_000).toISOString();
   const last = new Date(START.getTime() - 60_000).toISOString();
   const memory = Object.fromEntries(Object.entries(next.memory).map(([id, record]) => [id, {
