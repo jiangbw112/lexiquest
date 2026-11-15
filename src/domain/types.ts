@@ -151,8 +151,31 @@ export interface SaveData {
    * Forest progress stays in `chapterCleared` and `stageWins`. Missing on older saves.
    */
   chapterProgress?: Record<string, { cleared: boolean; stageWins: Record<string, number> }>;
-  /** Chapter the child is standing on. Missing means the forest. */
+  /**
+   * Last battle chapter that was actually entered.
+   * Map browsing does not write it. Missing means the forest.
+   */
   currentChapterId?: string;
+  /**
+   * Academy lesson L. The grade and chapter are stored together.
+   * A paused grade keeps the pair, but the academy does not load those words.
+   * Choosing a lesson or collecting a card does not write battle progress.
+   */
+  learnSelection?: {
+    grade: GradeBand | "mixed";
+    chapterId: string;
+  };
+  /**
+   * Battle grade the child last chose. Missing until a grade fight or the grade picker.
+   * When the parent turns that grade off, it stays so the map can ask instead of switching.
+   */
+  battleGrade?: GradeBand;
+  /**
+   * Continue chapter P, one id per grade.
+   * Written when a legal open chapter fight starts, or when that chapter's boss is really cleared.
+   * Browsing, page turns, and previews do not write it.
+   */
+  battleChapterByGrade?: Partial<Record<GradeBand, string>>;
   /** Display names already granted. The id list is `unlockedTitleIds`. */
   titles: string[];
   /** Chapter cosmetics granted once. They stay after a badge goes grey. */

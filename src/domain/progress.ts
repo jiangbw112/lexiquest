@@ -2,6 +2,7 @@ import { sanitizeName } from "./appearance";
 import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
+import { advanceBattleAnchor } from "./chapter-route";
 import { chapterBossReady, parseChapterEncounter, spellingSkipIds, starKey } from "./chapter-plan";
 import { PROVISIONAL } from "./provisional";
 import {
@@ -567,5 +568,9 @@ export function applyBattleOutcome(
     replayWinsByDay,
     bestStars,
   };
-  return settleChapterRewards(refreshUnlocks(next), new Date(now), false);
+  const settled = settleChapterRewards(refreshUnlocks(next), new Date(now), false);
+  const clearedNow = Boolean(
+    chapterHit?.boss && priorEntry && !priorEntry.cleared && settled.chapterProgress?.[chapterHit.chapterId]?.cleared,
+  );
+  return clearedNow && chapterHit ? advanceBattleAnchor(settled, chapterHit.chapterId) : settled;
 }

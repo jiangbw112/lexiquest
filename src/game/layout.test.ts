@@ -394,7 +394,7 @@ describe("boot and renderer guards", () => {
     expect(probe).not.toContain("Phaser.CANVAS");
     const map = readFileSync(new URL("./scenes/StageMapScene.ts", import.meta.url), "utf8");
     expect(map).toContain("playStatuses");
-    expect(map).toContain("activeChapter");
+    expect(map).toContain("battleReturn");
     expect(map).toContain("上一章");
     expect(map).toContain("this.tweens.killAll()");
     expect(map).toContain("learnedRequiredCount(save)");

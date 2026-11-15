@@ -2,9 +2,19 @@ import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
 import { mapResultsFramesReady, mapStarCenter } from "../../domain/battle-results";
 import { chapterBackdrop, type ChapterBackdrop } from "../../domain/chapter-scenes";
-import { activeChapter, mapCounts, playStatuses, starKey, visibleChapters } from "../../domain/chapter-plan";
+import { findPlayChapter, isChapterUnlocked, mapCounts, playStatuses, starKey, visibleChapters } from "../../domain/chapter-plan";
+import {
+  BATTLE_NONE,
+  BATTLE_PICK_GRADE,
+  BATTLE_RETURN_PROGRESS,
+  BATTLE_REVIEW,
+  battleReturn,
+  commitBattleEntry,
+  selectBattleGrade,
+} from "../../domain/chapter-route";
+import { GRADE_BANDS } from "../../domain/catalog";
 import { mapPanel } from "../../domain/map-panel";
-import { studyNow } from "../../domain/progress";
+import { selectionBattleNotice, studyNow } from "../../domain/progress";
 import { badgeTone, isDue } from "../../domain/review";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
@@ -22,7 +32,7 @@ import { resetPlayTimer, restPromptDue, snoozeRest } from "../play-timer";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmBar, warmButton, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
+import { warmBar, warmButton, warmChip, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
 import { chapterMapPlate, paintSceneImage, queueMissingChapterMap, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
@@ -45,12 +55,36 @@ export class StageMapScene extends Phaser.Scene {
   private waitingForMapArt = false;
   private chapterMapToken = 0;
   private mapLoadFailedKey = "";
+  /** Map preview V. It lives on this visit and is not written to the save. */
+  private viewChapterId = "forest_adventure";
+  private anchorChapterId = "";
+  private landedReview = false;
+  private pickingGrade = false;
+  private blockedReason: "" | "no-grade" | "no-chapter" = "";
 
   init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
     this.retryStageId = this.restPrompt ? data.retryStageId ?? null : null;
     this.mapLoadFailedKey = "";
     this.chapterMapToken += 1;
+    this.placeFromSave();
+  }
+
+  /** Re-enter from the saved battle grade and P. A locked preview is not restored. */
+  private placeFromSave(): void {
+    const save = getSave();
+    const entry = save ? battleReturn(save) : null;
+    this.pickingGrade = entry?.kind === "pick-grade";
+    this.blockedReason = entry?.kind === "blocked" ? entry.reason : "";
+    if (entry?.kind === "ready") {
+      this.viewChapterId = entry.spot.chapter.id;
+      this.anchorChapterId = entry.spot.chapter.id;
+      this.landedReview = entry.spot.review;
+      return;
+    }
+    this.viewChapterId = "forest_adventure";
+    this.anchorChapterId = "";
+    this.landedReview = false;
   }
 
   constructor() {
@@ -58,8 +92,7 @@ export class StageMapScene extends Phaser.Scene {
   }
 
   preload(): void {
-    const save = getSave();
-    const backdrop = chapterBackdrop(save ? activeChapter(save).id : "forest_adventure");
+    const backdrop = chapterBackdrop(this.viewChapterId);
     if (backdrop.groupId === "forest") {
       queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], ["bg_map"]);
       return;
@@ -76,13 +109,14 @@ export class StageMapScene extends Phaser.Scene {
     }
     if (redirectUngraded(this, save)) return;
     probeEnter("stages");
-    const opened = playStatuses(save, activeChapter(save));
+    const opened = playStatuses(save, findPlayChapter(save, this.viewChapterId));
     const openAt = opened.findIndex((status) => status === "open");
-    this.selected = activeChapter(save).stages[openAt >= 0 ? openAt : 0]!.id;
+    this.selected = findPlayChapter(save, this.viewChapterId).stages[openAt >= 0 ? openAt : 0]!.id;
     this.lookedAt = null;
     listenKeys(this, (event) => {
       if (this.restPrompt) return;
       if (event.code === "Escape") this.scene.start("overworld");
+      if (this.pickingGrade || this.blockedReason) return;
       if (event.code === "BracketLeft") {
         this.shiftChapter(-1);
         return;
@@ -94,7 +128,7 @@ export class StageMapScene extends Phaser.Scene {
       const saveNow = getSave();
       if (!saveNow) return;
       const index = Number(event.code.replace("Digit", "")) - 1;
-      const stage = activeChapter(saveNow).stages[index];
+      const stage = findPlayChapter(saveNow, this.viewChapterId).stages[index];
       if (!stage) return;
       this.selected = stage.id;
       this.lookedAt = null;
@@ -144,15 +178,13 @@ export class StageMapScene extends Phaser.Scene {
 
   private shiftChapter(delta: number): void {
     const save = getSave();
-    if (!save) return;
+    if (!save || this.pickingGrade || this.blockedReason) return;
     const list = visibleChapters(save.selectedGrades);
-    const index = list.findIndex((item) => item.id === activeChapter(save).id);
+    const index = list.findIndex((item) => item.id === this.viewChapterId);
     const next = list[index + delta];
     if (!next) return;
-    mutate((current) => ({ ...current, currentChapterId: next.id }));
-    const updated = getSave();
-    if (!updated) return;
-    const statuses = playStatuses(updated, next);
+    this.viewChapterId = next.id;
+    const statuses = playStatuses(save, next);
     const openAt = statuses.findIndex((status) => status === "open");
     this.selected = next.stages[openAt >= 0 ? openAt : 0]!.id;
     this.lookedAt = null;
@@ -160,15 +192,30 @@ export class StageMapScene extends Phaser.Scene {
     this.draw();
   }
 
+  private returnToProgress(): void {
+    if (!this.anchorChapterId) return;
+    const save = getSave();
+    if (!save) return;
+    this.viewChapterId = this.anchorChapterId;
+    const chapter = findPlayChapter(save, this.anchorChapterId);
+    const statuses = playStatuses(save, chapter);
+    const openAt = statuses.findIndex((status) => status === "open");
+    this.selected = chapter.stages[openAt >= 0 ? openAt : 0]!.id;
+    this.lookedAt = null;
+    this.mapLoadFailedKey = "";
+    this.draw();
+  }
+
   private fight(stageId: number): void {
     const save = getSave();
-    if (!save || this.restPrompt) return;
-    const chapter = activeChapter(save);
+    if (!save || this.restPrompt || this.pickingGrade || this.blockedReason) return;
+    const chapter = findPlayChapter(save, this.viewChapterId);
     const stage = chapter.stages.find((item) => item.id === stageId);
-    if (!stage) return;
+    if (!stage || !isChapterUnlocked(save, chapter)) return;
     const status = playStatuses(save, chapter)[stage.id - 1];
     if (status !== "open" && status !== "cleared") return;
     probeNote(`stage:fight:${stage.id}`);
+    mutate((current) => commitBattleEntry(current, chapter));
     this.scene.start("battle", { stageId: stage.id, chapterId: chapter.id });
   }
 
@@ -179,7 +226,19 @@ export class StageMapScene extends Phaser.Scene {
     }
     const save = getSave();
     if (!save) return;
-    const chapterId = activeChapter(save).id;
+    if (this.pickingGrade) {
+      this.tweens.killAll();
+      this.children.removeAll(true);
+      this.drawGradePick(save);
+      return;
+    }
+    if (this.blockedReason) {
+      this.tweens.killAll();
+      this.children.removeAll(true);
+      this.drawBlocked();
+      return;
+    }
+    const chapterId = this.viewChapterId;
     const backdrop = chapterBackdrop(chapterId);
     this.chapterMapReady(backdrop);
     const plate = chapterMapPlate({
@@ -196,7 +255,7 @@ export class StageMapScene extends Phaser.Scene {
     } else if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
     else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
     const now = studyNow(save);
-    const chapter = activeChapter(save);
+    const chapter = findPlayChapter(save, this.viewChapterId);
     const statuses = playStatuses(save, chapter);
     if (!chapter.stages.some((stage) => stage.id === this.selected)) {
       const open = statuses.findIndex((status) => status === "open");
@@ -215,7 +274,8 @@ export class StageMapScene extends Phaser.Scene {
       });
     }
 
-    warmTitlePlank(this, 300, 48, 420, chapter.name);
+    const title = this.landedReview && chapter.id === this.anchorChapterId ? `${chapter.name} · ${BATTLE_REVIEW}` : chapter.name;
+    warmTitlePlank(this, 300, 48, 420, title);
     const chapters = visibleChapters(save.selectedGrades);
     const chapterIndex = Math.max(0, chapters.findIndex((item) => item.id === chapter.id));
     warmButton(this, 150, 118, "上一章", () => this.shiftChapter(-1), { width: 140, tone: "secondary", disabled: chapterIndex <= 0 });
@@ -402,9 +462,53 @@ export class StageMapScene extends Phaser.Scene {
         else this.fight(stage.id);
       }, { width: panel.buttons.length === 1 ? 240 : 132, tone: button.tone, disabled: !button.enabled });
     });
+    const chapterLocked = !isChapterUnlocked(save, chapter);
+    if (chapterLocked) {
+      warmButton(this, 420, 748, BATTLE_RETURN_PROGRESS, () => this.returnToProgress(), { width: 220, tone: "secondary" });
+    }
     warmButton(this, 160, 748, uiLabel("回村子"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
     probeNote("stages:ready");
     if (this.restPrompt) this.drawRest();
+  }
+
+  private drawGradePick(save: NonNullable<ReturnType<typeof getSave>>): void {
+    const entry = battleReturn(save);
+    if (entry.kind !== "pick-grade") {
+      this.placeFromSave();
+      this.draw();
+      return;
+    }
+    if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
+    else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+    warmPanel(this, 640, 400, 920, 420);
+    this.add.text(640, 250, BATTLE_PICK_GRADE, { fontFamily: FONT, fontSize: "28px", color: INK }).setOrigin(0.5);
+    entry.grades.forEach((grade, index) => {
+      const label = GRADE_BANDS.find((item) => item.id === grade)?.label ?? grade;
+      const x = 640 - ((entry.grades.length - 1) * 180) / 2 + index * 180;
+      warmChip(this, x, 360, label, false, () => {
+        mutate((current) => selectBattleGrade(current, grade));
+        this.placeFromSave();
+        this.draw();
+      }, { width: 160 });
+    });
+    warmButton(this, 640, 500, "取消", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
+    probeNote("stages:pick-grade");
+  }
+
+  private drawBlocked(): void {
+    const line = this.blockedReason === "no-grade" ? (selectionBattleNotice(0) ?? BATTLE_NONE) : BATTLE_NONE;
+    if (this.textures.exists("bg_village")) warmBackground(this, "bg_village");
+    else this.add.rectangle(640, 400, 1280, 800, 0xf6efe2);
+    warmPanel(this, 640, 400, 860, 280);
+    this.add.text(640, 360, line, {
+      fontFamily: FONT,
+      fontSize: "22px",
+      color: INK,
+      wordWrap: cjkWrap(740),
+      align: "center",
+    }).setOrigin(0.5);
+    warmButton(this, 640, 470, uiLabel("回村子"), () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
+    probeNote(`stages:blocked:${this.blockedReason}`);
   }
 
   private drawRest(): void {
@@ -430,7 +534,7 @@ export class StageMapScene extends Phaser.Scene {
       this.restPrompt = false;
       this.retryStageId = null;
       if (retry) {
-        this.scene.start("battle", { stageId: retry });
+        this.scene.start("battle", { stageId: retry, chapterId: getSave()?.currentChapterId });
         return;
       }
       this.draw();

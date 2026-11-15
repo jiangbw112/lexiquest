@@ -1,5 +1,20 @@
 import Phaser from "phaser";
-import { activeChapter, isChapterUnlocked, unlockedWordIds } from "../../domain/chapter-plan";
+import { unlockedWordIds } from "../../domain/chapter-plan";
+import type { PlayChapter } from "../../domain/chapter-plan";
+import {
+  LEARN_GRADE_EMPTY,
+  LEARN_LOAD_FAILED,
+  LEARN_PICK,
+  LEARN_RESELECT,
+  assessLearnSelection,
+  changeLearnDraftGrade,
+  confirmLearnSelection,
+  initialLearnDraft,
+  learnGradeLabel,
+  learnGradeOptions,
+  legalLearnChapters,
+  type LearnDraft,
+} from "../../domain/chapter-route";
 import { GRADE_BANDS, posGloss, wordById, type WordDef } from "../../domain/catalog";
 import {
   LEARN_BACK_VILLAGE,
@@ -39,7 +54,7 @@ import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmButton, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
+import { warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, whenGlyphsReady } from "../warm/theme";
 
@@ -57,6 +72,8 @@ export class LearnScene extends Phaser.Scene {
   private busy = false;
   private fontSample = "";
   private answerTimer = 0;
+  private picking = false;
+  private draft: LearnDraft = { grade: "mixed", chapterId: null };
 
   constructor() {
     super("learn");
@@ -76,8 +93,11 @@ export class LearnScene extends Phaser.Scene {
     probeEnter("learn");
     this.input.setDefaultCursor("default");
     this.phase = "study";
+    this.draft = initialLearnDraft(save);
+    const assessed = assessLearnSelection(save);
+    this.picking = assessed.status !== "ready";
     const resume = resumeChapterLearn(save);
-    this.batchIds = resume.batchIds;
+    this.batchIds = assessed.status === "ready" ? resume.batchIds : [];
     this.learnedThisBatch = [];
     listenKeys(this, (event) => this.onKey(event));
     const form = document.getElementById("spell-form");
@@ -223,7 +243,14 @@ export class LearnScene extends Phaser.Scene {
     }
     this.justId = id;
     this.missed = false;
-    const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, activeChapter(after));
+    const chapter = this.lessonChapter(after);
+    if (!chapter) {
+      this.picking = true;
+      this.phase = "study";
+      this.draw();
+      return;
+    }
+    const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, chapter);
     this.phase = view.kind === "continue-batch" ? "got" : "settle";
     probeNote("learn:got");
     document.getElementById("spell-form")?.classList.remove("open");
@@ -247,7 +274,9 @@ export class LearnScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     if (confirmLearnSettlement(save) !== save) return;
-    const view = learnBatchView(save, this.batchIds, this.learnedThisBatch, activeChapter(save));
+    const chapter = this.lessonChapter(save);
+    if (!chapter) return;
+    const view = learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter);
     if (view.kind === "continue-batch") {
       this.showStudy();
       return;
@@ -313,20 +342,19 @@ export class LearnScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     warmBackground(this, "bg_learn");
-    const chapter = activeChapter(save);
-    warmButton(this, 180, 48, uiLabel("返回"), () => this.backToVillage(), { width: 140, tone: "secondary" });
-    if (!isChapterUnlocked(save, chapter)) {
-      warmPanel(this, 640, 400, 860, 360);
-      this.add.text(280, 320, "所选年级里没有这一章的词。", { fontFamily: FONT, fontSize: "28px", color: INK });
-      this.add.text(280, 380, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
-        fontFamily: FONT,
-        fontSize: "20px",
-        color: MUTED,
-        wordWrap: cjkWrap(760),
-      });
+    warmButton(this, 160, 48, uiLabel("返回"), () => this.backToVillage(), { width: 140, tone: "secondary" });
+    const assessed = assessLearnSelection(save);
+    if (assessed.status !== "ready") {
+      this.drawLearnGate(save, assessed.status, assessed.status === "reselect" ? assessed.remembered : null);
       return;
     }
-    warmTitlePlank(this, 500, 48, 440, uiLabel(`学堂 · ${chapter.name}`));
+    const chapter = assessed.chapter;
+    this.drawLessonHeading(chapter);
+    warmButton(this, 980, 48, LEARN_PICK, () => this.openPicker(save), { width: 140, tone: "secondary" });
+    if (this.picking) {
+      this.drawPicker(save);
+      return;
+    }
     const word = wordById(this.currentId() ?? "");
     probeNote(`learn:word:${word?.id ?? "none"}`);
     const sample = [word?.chinese, this.question?.prompt, ...(this.question?.choices.map((choice) => choice.label) ?? [])].filter(Boolean).join("");
@@ -447,6 +475,114 @@ export class LearnScene extends Phaser.Scene {
         window.setTimeout(() => input.focus(), 30);
       }
     }
+  }
+
+  private lessonChapter(save: NonNullable<ReturnType<typeof getSave>>): PlayChapter | null {
+    const assessed = assessLearnSelection(save);
+    return assessed.status === "ready" ? assessed.chapter : null;
+  }
+
+  private drawLessonHeading(chapter: PlayChapter): void {
+    const grade = chapter.grade === "mixed" ? "mixed" : chapter.grade;
+    warmTitlePlank(this, 560, 48, 560, this.lessonTitle(grade, chapter.name));
+  }
+
+  /** Static pieces stay inside uiLabel so the title font subset does not drop 学堂. */
+  private lessonTitle(grade: PlayChapter["grade"], name: string): string {
+    return uiLabel(`学堂 · ${learnGradeLabel(grade)} · ${name}`);
+  }
+
+  private openPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
+    this.draft = initialLearnDraft(save);
+    this.picking = true;
+    this.draw();
+  }
+
+  private cancelPick(save: NonNullable<ReturnType<typeof getSave>>): void {
+    this.draft = initialLearnDraft(save);
+    this.picking = assessLearnSelection(save).status !== "ready";
+    this.draw();
+  }
+
+  private confirmPick(save: NonNullable<ReturnType<typeof getSave>>): void {
+    const chapterId = this.draft.chapterId;
+    if (!chapterId) return;
+    const next = confirmLearnSelection(save, this.draft.grade, chapterId);
+    const rejected = next === save && (save.learnSelection?.grade !== this.draft.grade || save.learnSelection?.chapterId !== chapterId);
+    if (rejected) return;
+    if (next !== save) mutate(() => next);
+    const updated = getSave();
+    if (!updated) return;
+    const assessed = assessLearnSelection(updated);
+    if (assessed.status !== "ready") return;
+    this.picking = false;
+    this.batchIds = resumeChapterLearn(updated).batchIds;
+    this.learnedThisBatch = [];
+    this.justId = null;
+    this.missed = false;
+    this.phase = this.batchIds.some((id) => !updated.wordCards[id]) ? "study" : "settle";
+    this.draw();
+  }
+
+  private drawLearnGate(
+    save: NonNullable<ReturnType<typeof getSave>>,
+    status: "choose" | "reselect" | "load-failed",
+    remembered: { grade: LearnDraft["grade"]; name: string } | null,
+  ): void {
+    if (remembered) warmTitlePlank(this, 560, 48, 560, this.lessonTitle(remembered.grade, remembered.name));
+    else warmTitlePlank(this, 560, 48, 360, uiLabel("学堂"));
+    const message = status === "load-failed" ? LEARN_LOAD_FAILED : status === "reselect" ? LEARN_RESELECT : LEARN_PICK;
+    probeNote(`learn:gate:${status}`);
+    if (!this.picking) {
+      warmPanel(this, 640, 400, 860, 280);
+      this.add.text(640, 360, message, {
+        fontFamily: FONT,
+        fontSize: "28px",
+        color: INK,
+        align: "center",
+      }).setOrigin(0.5);
+      warmButton(this, 640, 460, LEARN_PICK, () => this.openPicker(save), { width: 220 });
+      return;
+    }
+    this.add.text(640, 150, message, { fontFamily: FONT, fontSize: "22px", color: INK }).setOrigin(0.5);
+    this.drawPicker(save);
+  }
+
+  private drawPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
+    const grades = learnGradeOptions(save);
+    const gradeChoices: LearnDraft["grade"][] = ["mixed", ...grades];
+    gradeChoices.forEach((grade, index) => {
+      const x = 640 - ((gradeChoices.length - 1) * 180) / 2 + index * 180;
+      warmChip(this, x, 210, learnGradeLabel(grade), this.draft.grade === grade, () => {
+        this.draft = changeLearnDraftGrade(this.draft, grade);
+        this.draw();
+      }, { width: 160 });
+    });
+    const chapters = legalLearnChapters(save, this.draft.grade);
+    const picked = chapters.find((chapter) => chapter.id === this.draft.chapterId);
+    const pair = picked ? `${learnGradeLabel(this.draft.grade)} · ${picked.name}` : `${learnGradeLabel(this.draft.grade)} · ${LEARN_PICK}`;
+    this.add.text(640, 270, pair, { fontFamily: FONT, fontSize: "20px", color: INK }).setOrigin(0.5);
+    if (chapters.length === 0) {
+      this.add.text(640, 360, LEARN_GRADE_EMPTY, { fontFamily: FONT, fontSize: "22px", color: MUTED }).setOrigin(0.5);
+    }
+    chapters.forEach((chapter, index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      const x = column === 0 ? 460 : 820;
+      const y = 330 + row * 62;
+      warmButton(this, x, y, chapter.name, () => {
+        if (!legalLearnChapters(save, this.draft.grade).some((item) => item.id === chapter.id)) return;
+        this.draft = { grade: this.draft.grade, chapterId: chapter.id };
+        this.draw();
+      }, {
+        width: 320,
+        height: 52,
+        tone: this.draft.chapterId === chapter.id ? "primary" : "secondary",
+      });
+    });
+    const canConfirm = Boolean(picked);
+    warmButton(this, 500, 730, "确认", () => this.confirmPick(save), { width: 200, disabled: !canConfirm });
+    warmButton(this, 780, 730, "取消", () => this.cancelPick(save), { width: 200, tone: "secondary" });
   }
 
   private meaningRow(x: number, y: number, english: string, pos: string | undefined, chinese: string, englishSize: number): void {

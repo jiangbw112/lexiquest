@@ -1,3 +1,4 @@
+import { assessLearnSelection } from "./chapter-route";
 import { activeChapter, isChapterCleared, type PlayChapter } from "./chapter-plan";
 import { requiredWordIds } from "./stages";
 import type { SaveData } from "./types";
@@ -89,9 +90,23 @@ export function chapterWordsRemaining(save: SaveData, chapter: PlayChapter = act
   return chapterLearnScope(save, chapter).filter((id) => !save.wordCards[id]).length;
 }
 
-/** What the academy shows again after a village round-trip. Progress stays on the save. */
+/**
+ * What the academy shows again after a village round-trip.
+ * Only a still-legal lesson L is loaded. Battle progress and map preview do not fill it in.
+ * An invalid lesson keeps its id on the save and returns no word ids.
+ */
 export function resumeChapterLearn(save: SaveData): ChapterLearnResume {
-  const chapter = activeChapter(save);
+  const assessed = assessLearnSelection(save);
+  if (assessed.status !== "ready") {
+    return {
+      chapterId: save.learnSelection?.chapterId ?? "",
+      chapterName: "",
+      remaining: 0,
+      batchIds: [],
+      nextWordId: null,
+    };
+  }
+  const chapter = assessed.chapter;
   const batchIds = openLearnBatch(save, chapter);
   return {
     chapterId: chapter.id,
