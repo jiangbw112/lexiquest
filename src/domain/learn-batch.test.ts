@@ -50,6 +50,7 @@ describe("academy batch settlement", () => {
     ...fresh(["G3"]),
     chapterCleared: true,
     currentChapterId: chapter.id,
+    learnSelection: { grade: "G3" as const, chapterId: chapter.id },
   };
   const batches = learnStageBatches(standing, chapter);
 
@@ -211,6 +212,11 @@ describe("learn scene settlement wiring", () => {
     expect(scene).toContain("LEARN_GO_MAP");
     expect(scene).toContain("LEARN_CARDS_DONE");
     expect(scene).toContain("resumeChapterLearn");
+    expect(scene).toContain("confirmLearnSelection");
+    expect(scene).toContain("LEARN_RESELECT");
+    expect(scene).toContain("LEARN_LOAD_FAILED");
     expect(scene).not.toContain("已开放章节");
+    expect(scene).not.toContain("所选年级里没有这一章的词");
+    expect(scene).not.toContain("所选年级没有这一章的词");
   });
 });

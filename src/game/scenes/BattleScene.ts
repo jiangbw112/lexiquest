@@ -24,7 +24,8 @@ import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey 
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
-import { battleWordIds, findPlayChapter, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { battleWordIds, findPlayChapter, isChapterUnlocked, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { commitBattleEntry } from "../../domain/chapter-route";
 import { chapterBossId, isChapterBossId } from "../../domain/chapter-bosses";
 import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
 import { BOSS_BATTLE_POS, bossReactionMs, canopyPoses, type BossAnim } from "../art/boss-pack";
@@ -194,10 +195,11 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
     const status = playStatuses(save, chapter)[stage.id - 1];
-    if (status === "locked") {
+    if (status === "locked" || !isChapterUnlocked(save, chapter)) {
       this.scene.start("stages");
       return;
     }
+    mutate((current) => commitBattleEntry(current, chapter));
     probeEnter("battle");
     this.reported = false;
     this.bossReported = false;
@@ -262,7 +264,7 @@ export class BattleScene extends Phaser.Scene {
       skillLevels: save.skillLevels,
       seed: Date.now() % 100000,
       dueWordIds,
-      allowedWordIds: battleWordIds(save),
+      allowedWordIds: battleWordIds(save.currentChapterId === chapter.id ? save : { ...save, currentChapterId: chapter.id }),
       distractorIds: unlockedWordIds(save),
       enemy: {
         name: combat.enemyName,

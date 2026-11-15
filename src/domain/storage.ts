@@ -10,7 +10,7 @@ import { CLASS_IDS } from "./classes";
 import { resolvedClassId } from "./class-unlock";
 import { withParentDefaults } from "./parent";
 import { skillsForClass, starterSkillId } from "./skills";
-import type { ClassId, SaveData } from "./types";
+import type { ClassId, GradeBand, SaveData } from "./types";
 
 export const SAVE_KEY = "lexiquest.save.v1";
 
@@ -65,6 +65,36 @@ function parkLockedInventorDeck(save: SaveData, rawClassId: unknown): void {
   save.equippedSkillIds = deck.length > 0 ? [...deck] : [starterSkillId("warrior")];
 }
 
+const GRADE_BANDS: readonly GradeBand[] = ["G3", "G4", "G5", "G6"];
+
+function readGradeBand(value: unknown): GradeBand | undefined {
+  return GRADE_BANDS.find((grade) => grade === value);
+}
+
+function readChapterKey(value: unknown): string | undefined {
+  return typeof value === "string" && /^[a-z0-9_-]+$/.test(value) ? value : undefined;
+}
+
+/** Keeps a well-formed pair even when the grade is later paused. The academy decides if it can load. */
+function readLearnSelection(value: unknown): SaveData["learnSelection"] {
+  if (!isRecord(value)) return undefined;
+  const chapterId = readChapterKey(value.chapterId);
+  if (!chapterId) return undefined;
+  if (value.grade === "mixed") return { grade: "mixed", chapterId };
+  const grade = readGradeBand(value.grade);
+  return grade ? { grade, chapterId } : undefined;
+}
+
+function readBattleChapterByGrade(value: unknown): SaveData["battleChapterByGrade"] {
+  if (!isRecord(value)) return undefined;
+  const chapters: Partial<Record<GradeBand, string>> = {};
+  for (const grade of GRADE_BANDS) {
+    const chapterId = readChapterKey(value[grade]);
+    if (chapterId) chapters[grade] = chapterId;
+  }
+  return chapters;
+}
+
 function readStageWins(value: unknown): Record<string, number> {
   if (!isRecord(value)) return {};
   const wins: Record<string, number> = {};
@@ -98,9 +128,16 @@ export function deserialize(raw: string): SaveData | null {
     save.stageWins = readStageWins(value.stageWins);
     save.bestStars = readBestStars(value.bestStars);
     save.chapterProgress = readChapterProgress(value.chapterProgress);
-    save.currentChapterId = typeof value.currentChapterId === "string" && /^[a-z0-9_-]+$/.test(value.currentChapterId)
-      ? value.currentChapterId
-      : undefined;
+    save.currentChapterId = readChapterKey(value.currentChapterId);
+    const learnSelection = readLearnSelection(value.learnSelection);
+    if (learnSelection) save.learnSelection = learnSelection;
+    else delete save.learnSelection;
+    const battleGrade = readGradeBand(value.battleGrade);
+    if (battleGrade) save.battleGrade = battleGrade;
+    else delete save.battleGrade;
+    const battleChapterByGrade = readBattleChapterByGrade(value.battleChapterByGrade);
+    if (battleChapterByGrade && Object.keys(battleChapterByGrade).length > 0) save.battleChapterByGrade = battleChapterByGrade;
+    else delete save.battleChapterByGrade;
     save.titles = Array.isArray(value.titles) ? value.titles.filter((item): item is string => typeof item === "string") : [];
     const grades = Array.isArray(value.selectedGrades)
       ? value.selectedGrades.filter((grade): grade is string => typeof grade === "string")
