@@ -1,6 +1,21 @@
 import Phaser from "phaser";
 import { activeChapter, isChapterUnlocked, unlockedWordIds } from "../../domain/chapter-plan";
-import { GRADE_BANDS, lessonUnits, posGloss, wordById, type UnitDef, type WordDef } from "../../domain/catalog";
+import { GRADE_BANDS, posGloss, wordById, type WordDef } from "../../domain/catalog";
+import {
+  LEARN_BACK_VILLAGE,
+  LEARN_CARDS_DONE,
+  LEARN_CARDS_DONE_CLEARED,
+  LEARN_CONTINUE_BATCH,
+  LEARN_CONTINUE_CHAPTER,
+  LEARN_GO_MAP,
+  chapterLearnScope,
+  chapterWordsRemaining,
+  confirmLearnSettlement,
+  learnBatchView,
+  learnRemainingLine,
+  resumeChapterLearn,
+  type LearnBatchView,
+} from "../../domain/learn-batch";
 import { uiLabel } from "../../domain/ui-label";
 import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
@@ -24,14 +39,15 @@ import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
+import { warmButton, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, whenGlyphsReady } from "../warm/theme";
 
-type Phase = "study" | "quiz" | "listen" | "spell" | "got";
+type Phase = "study" | "quiz" | "listen" | "spell" | "got" | "settle";
 
 export class LearnScene extends Phaser.Scene {
-  private unitIndex = 0;
+  private batchIds: string[] = [];
+  private learnedThisBatch: string[] = [];
   private phase: Phase = "study";
   private retry = 0;
   private missed = false;
@@ -60,6 +76,9 @@ export class LearnScene extends Phaser.Scene {
     probeEnter("learn");
     this.input.setDefaultCursor("default");
     this.phase = "study";
+    const resume = resumeChapterLearn(save);
+    this.batchIds = resume.batchIds;
+    this.learnedThisBatch = [];
     listenKeys(this, (event) => this.onKey(event));
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
@@ -76,23 +95,6 @@ export class LearnScene extends Phaser.Scene {
     probeNote("learn:ready");
   }
 
-  private units(): UnitDef[] {
-    const save = getSave();
-    if (!save) return [];
-    const chapter = activeChapter(save);
-    if (!isChapterUnlocked(save, chapter)) return [];
-    if (chapter.grade === "mixed") return lessonUnits(save.selectedGrades);
-    return [{
-      id: chapter.id,
-      grade: chapter.grade,
-      semester: 1,
-      index: chapter.index,
-      title: chapter.name,
-      status: "sample",
-      wordIds: chapter.wordIds,
-    }];
-  }
-
   private distractors(save: NonNullable<ReturnType<typeof getSave>>): WordDef[] {
     return unlockedWordIds(save).map((id) => wordById(id)).filter((word): word is WordDef => Boolean(word));
   }
@@ -104,28 +106,25 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private currentId(): string | undefined {
-    const unit = this.units()[this.unitIndex];
     const save = getSave();
-    if (!unit || !save) return undefined;
-    return unit.wordIds.find((id) => !save.wordCards[id]);
+    if (!save) return undefined;
+    return this.batchIds.find((id) => !save.wordCards[id]);
   }
 
   private onKey(event: KeyboardEvent): void {
     if (event.code === "Escape") {
-      if (this.phase === "study") this.scene.start("overworld");
-      else this.showStudy();
+      if (this.phase === "quiz" || this.phase === "listen" || this.phase === "spell") this.showStudy();
+      else this.backToVillage();
       return;
     }
-    if (this.phase === "got" && event.code === "Enter") {
-      this.showStudy();
+    if ((this.phase === "got" || this.phase === "settle") && event.code === "Enter") {
+      this.chooseSettlement();
       return;
     }
     if (this.phase === "study") {
       if (event.code === "Enter") this.startMeaning();
       if (event.code === "KeyL") this.startListening();
       if (event.code === "KeyP") this.startSpelling();
-      if (event.code === "BracketLeft") this.shiftUnit(-1);
-      if (event.code === "BracketRight") this.shiftUnit(1);
       return;
     }
     if ((this.phase === "quiz" || this.phase === "listen") && this.question) {
@@ -133,13 +132,6 @@ export class LearnScene extends Phaser.Scene {
       const choice = this.question.choices[index];
       if (choice) this.answer(choice.id);
     }
-  }
-
-  private shiftUnit(delta: number): void {
-    const count = this.units().length;
-    if (count === 0) return;
-    this.unitIndex = (this.unitIndex + delta + count) % count;
-    this.showStudy();
   }
 
   private showStudy(): void {
@@ -220,14 +212,94 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private grant(id: string): void {
+    const before = getSave();
     mutate((current) => learnWord(current, id, studyNow(current)));
+    const after = getSave();
+    const added = Boolean(before && after && !before.wordCards[id] && after.wordCards[id]);
+    if (added && !this.learnedThisBatch.includes(id)) this.learnedThisBatch.push(id);
+    if (!added || !after) {
+      this.showStudy();
+      return;
+    }
     this.justId = id;
     this.missed = false;
-    this.phase = "got";
+    const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, activeChapter(after));
+    this.phase = view.kind === "continue-batch" ? "got" : "settle";
     probeNote("learn:got");
     document.getElementById("spell-form")?.classList.remove("open");
     showSpellingHint(null);
     this.draw();
+  }
+
+  private backToVillage(): void {
+    const save = getSave();
+    if (save && confirmLearnSettlement(save) !== save) return;
+    this.scene.start("overworld");
+  }
+
+  private goToChapterMap(): void {
+    const save = getSave();
+    if (save && confirmLearnSettlement(save) !== save) return;
+    this.scene.start("stages");
+  }
+
+  private chooseSettlement(): void {
+    const save = getSave();
+    if (!save) return;
+    if (confirmLearnSettlement(save) !== save) return;
+    const view = learnBatchView(save, this.batchIds, this.learnedThisBatch, activeChapter(save));
+    if (view.kind === "continue-batch") {
+      this.showStudy();
+      return;
+    }
+    if (view.kind === "continue-chapter") {
+      this.batchIds = view.nextBatchIds;
+      this.learnedThisBatch = [];
+      this.justId = null;
+      this.showStudy();
+      return;
+    }
+    this.scene.start("stages");
+  }
+
+  private drawSettlement(view: LearnBatchView): void {
+    probeNote(`learn:settle:${view.kind}`);
+    warmPanel(this, 640, 420, 860, 420);
+    let y = 280;
+    const headline = view.kind === "cards-done"
+      ? (view.chapterCleared ? LEARN_CARDS_DONE_CLEARED : LEARN_CARDS_DONE)
+      : null;
+    if (headline) {
+      this.add.text(640, y, headline, {
+        fontFamily: FONT,
+        fontSize: "28px",
+        color: INK,
+        wordWrap: cjkWrap(760),
+        align: "center",
+      }).setOrigin(0.5);
+      y += 72;
+    }
+    if (view.completed > 0) {
+      this.add.text(640, y, view.completedLine, {
+        fontFamily: FONT,
+        fontSize: "24px",
+        color: INK,
+      }).setOrigin(0.5);
+      y += 40;
+    }
+    this.add.text(640, y, view.remainingLine, {
+      fontFamily: FONT,
+      fontSize: "24px",
+      color: INK,
+    }).setOrigin(0.5);
+    y += 88;
+    if (view.kind === "cards-done") {
+      warmButton(this, 500, y, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
+      warmButton(this, 780, y, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
+      return;
+    }
+    const label = view.kind === "continue-chapter" ? LEARN_CONTINUE_CHAPTER : LEARN_CONTINUE_BATCH;
+    warmButton(this, 640, y, label, () => this.chooseSettlement(), { width: 280 });
   }
 
   private draw(): void {
@@ -241,11 +313,9 @@ export class LearnScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     warmBackground(this, "bg_learn");
-    const units = this.units();
-    if (this.unitIndex >= units.length) this.unitIndex = 0;
-    const unit = units[this.unitIndex];
-    warmButton(this, 180, 48, uiLabel("返回"), () => this.scene.start("overworld"), { width: 140, tone: "secondary" });
-    if (!unit) {
+    const chapter = activeChapter(save);
+    warmButton(this, 180, 48, uiLabel("返回"), () => this.backToVillage(), { width: 140, tone: "secondary" });
+    if (!isChapterUnlocked(save, chapter)) {
       warmPanel(this, 640, 400, 860, 360);
       this.add.text(280, 320, "所选年级里没有这一章的词。", { fontFamily: FONT, fontSize: "28px", color: INK });
       this.add.text(280, 380, "去给家长再选一个年级。已经收下的词卡和复习都还在。", {
@@ -256,14 +326,7 @@ export class LearnScene extends Phaser.Scene {
       });
       return;
     }
-    warmTitlePlank(this, 500, 48, 440, uiLabel(`学堂 · ${unit.title}`));
-    units.forEach((item, index) => {
-      const gradeLabel = GRADE_BANDS.find((grade) => grade.id === item.grade)?.label ?? item.grade;
-      warmChip(this, 280 + index * 180, 116, gradeLabel, index === this.unitIndex, () => {
-        this.unitIndex = index;
-        this.showStudy();
-      }, { width: 160 });
-    });
+    warmTitlePlank(this, 500, 48, 440, uiLabel(`学堂 · ${chapter.name}`));
     const word = wordById(this.currentId() ?? "");
     probeNote(`learn:word:${word?.id ?? "none"}`);
     const sample = [word?.chinese, this.question?.prompt, ...(this.question?.choices.map((choice) => choice.label) ?? [])].filter(Boolean).join("");
@@ -273,9 +336,11 @@ export class LearnScene extends Phaser.Scene {
         if (this.scene.isActive()) this.draw();
       });
     }
-    const collected = `${unit.wordIds.filter((id) => save.wordCards[id]).length}/${unit.wordIds.length}`;
+    const scope = chapterLearnScope(save, chapter);
+    const collected = `${scope.filter((id) => save.wordCards[id]).length}/${scope.length}`;
     this.add.text(1100, 36, collected, { fontFamily: FONT_LATIN, fontSize: "22px", fontStyle: "800", color: INK }).setOrigin(0.5);
-    if (this.phase === "got") {
+    const batchView = learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter);
+    if (this.phase === "got" && batchView.kind === "continue-batch") {
       const got = wordById(this.justId ?? "");
       warmPanel(this, 640, 400, 860, 420);
       this.add.text(640, CARD_GOT.titleY, uiLabel("词卡入手"), {
@@ -289,18 +354,17 @@ export class LearnScene extends Phaser.Scene {
         fontSize: "20px",
         color: MUTED,
       }).setOrigin(0.5);
-      warmButton(this, 640, CARD_GOT.buttonY, uiLabel("继续"), () => this.showStudy(), { width: 200 });
+      this.add.text(640, 514, `${batchView.completedLine}，${batchView.remainingLine}`, {
+        fontFamily: FONT,
+        fontSize: "16px",
+        color: INK,
+      }).setOrigin(0.5);
+      warmButton(this, 640, CARD_GOT.buttonY, LEARN_CONTINUE_BATCH, () => this.chooseSettlement(), { width: 220 });
       return;
     }
-    if (!word) {
-      warmPanel(this, 640, 420, 860, 320);
-      this.add.text(280, 340, "这一组词卡都收集了。", { fontFamily: FONT, fontSize: "28px", color: INK });
-      this.add.text(280, 400, "点上面选中的年级，或按 ]。要学别的年级，去给家长里再选。已经收下的词卡还在。", {
-        fontFamily: FONT,
-        fontSize: "20px",
-        color: MUTED,
-        wordWrap: cjkWrap(760),
-      });
+    if (this.phase === "settle" || this.phase === "got" || !word) {
+      this.phase = "settle";
+      this.drawSettlement(batchView);
       return;
     }
     if (this.phase === "study") {
@@ -331,6 +395,11 @@ export class LearnScene extends Phaser.Scene {
       const spellingLine = spellingChildLabel(word.spelling, this.badgeLit(word.id));
       const meta = [gloss, gradeLabel, spellingLine].filter(Boolean).join(" · ");
       this.add.text(640, 430, meta, { fontFamily: FONT, fontSize: "18px", color: MUTED }).setOrigin(0.5);
+      this.add.text(640, 472, learnRemainingLine(chapterWordsRemaining(save, chapter)), {
+        fontFamily: FONT,
+        fontSize: "18px",
+        color: MUTED,
+      }).setOrigin(0.5);
       warmButton(this, 360, 540, uiLabel("听一听"), () => this.startListening(), { width: 180, tone: "secondary" });
       warmButton(this, 580, 540, uiLabel("选意思"), () => this.startMeaning(), { width: 180 });
       if (spellingAllowed(word, this.badgeLit(word.id))) {
