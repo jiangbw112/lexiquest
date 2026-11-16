@@ -52,7 +52,8 @@ describe("release notes", () => {
     expect(section).toContain("先打完森林冒险，这一年级就会开启");
     expect(section).toContain("就是职业原本的衣服");
     expect(section).toContain("还要学几个新词才能通过这一关");
-    expect(section).toContain("去学堂学新词，对战会出现更多词");
+    expect(section).toContain("对战从这一关的词里出题，也包括还没在学堂学过的词");
+    expect(section).toContain("在对战里见到或答对，不会变成已学");
     expect(section).toContain("安装方式没有变");
     expect(section).not.toContain("## 1.0.2");
     expect(section).not.toContain("## 1.0.1");
