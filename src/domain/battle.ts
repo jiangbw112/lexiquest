@@ -24,10 +24,10 @@ import {
   type SkillDef,
   type SkillSlot,
 } from "./skills";
-import { EXAM_NO_QUESTION, noteExamAsk, pickExamQuestion, type ExamSchedule } from "./exam-questions";
+import { EXAM_NO_QUESTION, noteExamAsk, pendingExamQuestion, pickExamQuestion, type ExamSchedule, type ExamWord } from "./exam-questions";
 import { PROVISIONAL } from "./provisional";
 import { FOREST_CHAPTER } from "./stages";
-import type { ClassId } from "./types";
+import type { ClassId, ExamPhaseRunRecord } from "./types";
 
 export const MIN_LEARNED_FOR_BATTLE = 4;
 export const MAX_ENERGY = 6;
@@ -487,7 +487,27 @@ function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
 /**
  * Exam only. Call after the settlement snapshot and before the next question.
  * The 10th answer itself stays unshaken. The following question sees the flag.
- * Shaken is battle memory. Leaving and re-entering a phase starts a new battle.
+ * Shaken is battle memory. A resumed phase restores it from the saved answer count.
+ */
+export function resumeExamBattle(state: BattleState, run: ExamPhaseRunRecord, words: ExamWord[]): BattleState {
+  const answered = run.phaseQuestions - (run.pending ? 1 : 0);
+  const threshold = state.examTuning?.shakenAfter;
+  const next: BattleState = {
+    ...state,
+    casts: run.casts,
+    questionsAsked: run.phaseQuestions,
+    spellingAsked: run.phaseSpelling,
+    shaken: threshold != null && answered >= threshold,
+  };
+  if (!run.pending) return next;
+  const question = pendingExamQuestion(run, words);
+  if (!question) return next;
+  return { ...next, phase: "question", question, pendingBasic: "attack", pendingSlot: null };
+}
+
+/**
+ * Exam only. Call after the settlement snapshot and before the next question.
+ * The 10th answer itself stays unshaken. The following question sees the flag.
  */
 export function armExamShaken(state: BattleState): BattleState {
   const threshold = state.examTuning?.shakenAfter;

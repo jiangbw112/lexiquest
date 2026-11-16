@@ -132,6 +132,27 @@ export interface ExamSessionRecord {
   fightSpelling: number;
 }
 
+/** One phase still in progress. Settlement clears it. It never grants XP. */
+export interface ExamPhaseRunRecord {
+  phaseNo: number;
+  seed: number;
+  casts: number;
+  pending: { wordId: string; kind: "meaning" | "spelling" } | null;
+  phaseQuestions: number;
+  phaseSpelling: number;
+  phaseWords: string[];
+  committedQuestions: number;
+  committedSpelling: number;
+  asks: Record<string, ExamAskRecord>;
+  nextIndex: number;
+  fightQuestions: number;
+  fightSpelling: number;
+  fightShare: number;
+  fightSpellingMax: number;
+  relief: boolean;
+  phaseSpellingMax: number;
+}
+
 export interface ExamPhaseRecord {
   passed: true;
   xpDisposition: "paid" | "legacyNoGrant";
@@ -155,6 +176,8 @@ export interface ExamProgressEntry {
   firstClearProof?: FirstClearProof;
   phaseRecords?: Record<string, ExamPhaseRecord>;
   session?: ExamSessionRecord;
+  /** Question order for the phase that is open. Absent after settlement. */
+  phaseRun?: ExamPhaseRunRecord;
   rewardMigration?: {
     version: 1;
     legacyPassedThrough: number;

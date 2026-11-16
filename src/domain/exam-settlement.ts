@@ -262,10 +262,11 @@ export function settleExamAttempt(
   const prior = save.examProgress?.[exam.id];
   const passed = prior?.phaseRecords?.[String(input.phaseNo)]?.passed === true;
   const session = sessionFromSchedule(input.schedule, input.won && !passed);
+  const keptSession = passed ? keepPaidCounts(prior?.session, session) : session;
   if (passed) {
     return {
       ok: true,
-      save: writeEntry(save, exam, prior, { session, attempts: (prior?.attempts ?? 0) + 1 }),
+      save: writeEntry(save, exam, prior, { session: keptSession, attempts: (prior?.attempts ?? 0) + 1 }),
       xpGained: 0,
       titleNewIds: [],
       inventorFresh: false,
@@ -359,6 +360,17 @@ function bumpLoss(losses: Record<string, number> | undefined, phaseNo: number): 
   return { ...(losses ?? {}), [key]: (losses?.[key] ?? 0) + 1 };
 }
 
+/** A second settlement must not pay the phase again, and must not wipe the count already paid. */
+function keepPaidCounts(saved: ExamSession | undefined, next: ExamSession): ExamSession {
+  const questions = typeof saved?.fightQuestions === "number" && Number.isFinite(saved.fightQuestions) ? saved.fightQuestions : 0;
+  const spelling = typeof saved?.fightSpelling === "number" && Number.isFinite(saved.fightSpelling) ? saved.fightSpelling : 0;
+  return {
+    ...next,
+    fightQuestions: Math.max(questions, next.fightQuestions),
+    fightSpelling: Math.max(spelling, next.fightSpelling),
+  };
+}
+
 function phaseKey(profileId: string, examId: string, phaseNo: number): string {
   return `examPhase:${profileId}:${examId}:${phaseNo}:firstPass`;
 }
@@ -416,6 +428,7 @@ function writeEntry(
     entry.firstTryClear = prior?.sawLoss !== true && patch.sawLoss !== true;
   }
   if (entry.cleared === true && entry.bestPhase !== undefined && entry.bestPhase < exam.phases) entry.bestPhase = exam.phases;
+  delete entry.phaseRun;
   return {
     ...save,
     examRewardSchemaVersion: 1,

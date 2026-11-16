@@ -11,7 +11,7 @@ import { deviceTimeZone, localDayKey } from "./local-day";
 import { quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import { isDue } from "./review";
 import { excludedFromUnpromptedSpelling, maskedSpellingFace } from "./spelling-leak";
-import type { SaveData } from "./types";
+import type { ExamPhaseRunRecord, SaveData } from "./types";
 
 export const EXAM_NO_QUESTION = "当前没有可用题目，请返回学堂学习或稍后再试";
 
@@ -252,4 +252,143 @@ export function storedSession(save: SaveData, examId: string, practice: boolean)
 
 export function examDefOrNull(id: string): ExamDef | undefined {
   return examById(id);
+}
+
+export function phaseRunFromSchedule(
+  schedule: ExamSchedule,
+  input: { phaseNo: number; seed: number; casts: number; pending: ExamPhaseRunRecord["pending"] },
+): ExamPhaseRunRecord {
+  return {
+    phaseNo: input.phaseNo,
+    seed: input.seed,
+    casts: input.casts,
+    pending: input.pending ? { wordId: input.pending.wordId, kind: input.pending.kind } : null,
+    phaseQuestions: schedule.phaseQuestions,
+    phaseSpelling: schedule.phaseSpelling,
+    phaseWords: [...schedule.phaseWords],
+    committedQuestions: schedule.committedQuestions,
+    committedSpelling: schedule.committedSpelling,
+    asks: Object.fromEntries(Object.entries(schedule.sessionAsks).map(([id, ask]) => [id, { ...ask }])),
+    nextIndex: schedule.sessionIndex,
+    fightQuestions: schedule.committedQuestions,
+    fightSpelling: schedule.committedSpelling,
+    fightShare: schedule.fightShare,
+    fightSpellingMax: schedule.fightSpellingMax,
+    relief: schedule.relief,
+    phaseSpellingMax: schedule.phaseSpellingMax,
+  };
+}
+
+export function writePhaseRun(save: SaveData, examId: string, run: ExamPhaseRunRecord): SaveData {
+  const prior = save.examProgress?.[examId];
+  return {
+    ...save,
+    examProgress: {
+      ...(save.examProgress ?? {}),
+      [examId]: { ...(prior ?? {}), phaseRun: run },
+    },
+  };
+}
+
+/** A broken run is discarded. A run for another phase is ignored. */
+export function readPhaseRun(save: SaveData, examId: string, phaseNo: number): ExamPhaseRunRecord | null {
+  const raw = save.examProgress?.[examId]?.phaseRun;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (wholeNumber(raw.phaseNo) !== phaseNo || phaseNo < 1) return null;
+  const seed = wholeNumber(raw.seed);
+  const casts = wholeNumber(raw.casts);
+  const phaseQuestions = wholeNumber(raw.phaseQuestions);
+  const phaseSpelling = wholeNumber(raw.phaseSpelling);
+  const committedQuestions = wholeNumber(raw.committedQuestions);
+  const committedSpelling = wholeNumber(raw.committedSpelling);
+  const nextIndex = wholeNumber(raw.nextIndex);
+  const fightQuestions = wholeNumber(raw.fightQuestions);
+  const fightSpelling = wholeNumber(raw.fightSpelling);
+  const fightSpellingMax = wholeNumber(raw.fightSpellingMax);
+  const phaseSpellingMax = wholeNumber(raw.phaseSpellingMax);
+  const fightShare = typeof raw.fightShare === "number" && Number.isFinite(raw.fightShare) && raw.fightShare > 0 && raw.fightShare <= 1
+    ? raw.fightShare
+    : null;
+  if (
+    seed === null || casts === null || phaseQuestions === null || phaseSpelling === null
+    || committedQuestions === null || committedSpelling === null || nextIndex === null
+    || fightQuestions === null || fightSpelling === null || fightSpellingMax === null
+    || phaseSpellingMax === null || fightShare === null || typeof raw.relief !== "boolean"
+    || !Array.isArray(raw.phaseWords) || casts !== phaseQuestions || phaseSpelling > phaseQuestions
+    || committedQuestions !== fightQuestions || committedSpelling !== fightSpelling
+    || nextIndex < phaseQuestions
+  ) return null;
+  if (!raw.asks || typeof raw.asks !== "object" || Array.isArray(raw.asks)) return null;
+  const asks: ExamPhaseRunRecord["asks"] = {};
+  for (const [id, ask] of Object.entries(raw.asks)) {
+    const kept = keptAsk(ask);
+    if (kept) asks[id] = kept;
+  }
+  const phaseWords: string[] = [];
+  for (const id of raw.phaseWords) {
+    if (typeof id !== "string" || id.length < 1 || !asks[id]) return null;
+    if (!phaseWords.includes(id)) phaseWords.push(id);
+  }
+  if (phaseWords.length > phaseQuestions) return null;
+  let pending: ExamPhaseRunRecord["pending"] = null;
+  if (raw.pending !== null && raw.pending !== undefined) {
+    if (!raw.pending || typeof raw.pending !== "object" || Array.isArray(raw.pending)) return null;
+    const wordId = raw.pending.wordId;
+    const kind = raw.pending.kind;
+    if (typeof wordId !== "string" || wordId.length < 1 || (kind !== "meaning" && kind !== "spelling")) return null;
+    if (!phaseWords.includes(wordId) || phaseQuestions < 1) return null;
+    pending = { wordId, kind };
+  }
+  return {
+    phaseNo,
+    seed,
+    casts,
+    pending,
+    phaseQuestions,
+    phaseSpelling,
+    phaseWords,
+    committedQuestions,
+    committedSpelling,
+    asks,
+    nextIndex,
+    fightQuestions,
+    fightSpelling,
+    fightShare,
+    fightSpellingMax,
+    relief: raw.relief,
+    phaseSpellingMax,
+  };
+}
+
+export function scheduleFromPhaseRun(run: ExamPhaseRunRecord, words: ExamWord[]): ExamSchedule {
+  return {
+    words,
+    phaseQuestions: run.phaseQuestions,
+    phaseSpelling: run.phaseSpelling,
+    phaseWords: [...run.phaseWords],
+    committedQuestions: run.fightQuestions,
+    committedSpelling: run.fightSpelling,
+    sessionAsks: Object.fromEntries(Object.entries(run.asks).map(([id, ask]) => [id, { ...ask }])),
+    sessionIndex: run.nextIndex,
+    fightShare: run.fightShare,
+    fightSpellingMax: run.fightSpellingMax,
+    relief: run.relief,
+    phaseSpellingMax: run.phaseSpellingMax,
+  };
+}
+
+/** The question on screen, rebuilt from the saved seed. A waiting attack has none. */
+export function pendingExamQuestion(run: ExamPhaseRunRecord, words: ExamWord[]): QuizQuestion | SpellingQuestion | null {
+  if (!run.pending || run.casts < 1) return null;
+  const word = words.find((item) => item.id === run.pending?.wordId);
+  const askedAt = run.nextIndex - 1;
+  if (run.pending.kind === "spelling") {
+    return spellingQuestion(run.pending.wordId, word?.badgeLit === true, spellingSkipIds());
+  }
+  const pickSeed = run.seed + (run.casts - 1) * 13;
+  const direction = askedAt % 2 === 0 ? "zh-to-en" : "en-to-zh";
+  const defs = words.map((item) => wordById(item.id)).filter((item): item is WordDef => Boolean(item));
+  const pendingDef = wordById(run.pending.wordId);
+  const pool = pendingDef && !defs.some((item) => item.id === pendingDef.id) ? [...defs, pendingDef] : defs;
+  return presentExamMeaning(quizForWord(run.pending.wordId, pickSeed + askedAt * 17, direction, pool));
 }

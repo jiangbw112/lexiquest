@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { answerQuestion, armExamShaken, startBattle, takeAction, type BattleState } from "../../domain/battle";
+import { answerQuestion, armExamShaken, resumeExamBattle, startBattle, takeAction, type BattleState } from "../../domain/battle";
 import {
   INVENTOR_UNLOCK_GO,
   INVENTOR_UNLOCK_LATER,
@@ -10,8 +10,12 @@ import {
   EXAM_NO_QUESTION,
   examCardPool,
   lossesForPhase,
+  phaseRunFromSchedule,
+  readPhaseRun,
   scheduleForPhase,
+  scheduleFromPhaseRun,
   storedSession,
+  writePhaseRun,
   type ExamSchedule,
   type ExamSession,
   type ExamWord,
@@ -29,6 +33,7 @@ import {
   settleExamAttempt,
   type ExamStore,
 } from "../../domain/exam-settlement";
+import type { ExamPhaseRunRecord } from "../../domain/types";
 import {
   EXAM_ATTACK,
   EXAM_BOSS_X,
@@ -89,6 +94,7 @@ export class ExamBattleScene extends Phaser.Scene {
   private state: BattleState | null = null;
   private schedule: ExamSchedule | null = null;
   private session: ExamSession | null = null;
+  private phaseSeed = 0;
   private words: ExamWord[] = [];
   private draft: SaveData | null = null;
   private checkpoint: SaveData | null = null;
@@ -113,6 +119,7 @@ export class ExamBattleScene extends Phaser.Scene {
     this.state = null;
     this.schedule = null;
     this.session = null;
+    this.phaseSeed = 0;
     this.words = [];
     this.draft = null;
     this.checkpoint = null;
@@ -216,7 +223,9 @@ export class ExamBattleScene extends Phaser.Scene {
     this.session = this.freshSitting ? storedSession(save, exam.id, cleared) : this.session ?? storedSession(save, exam.id, false);
     const losses = lossesForPhase(save, exam.id, this.phaseNo);
     const hp = examPhaseHp(save.player.classId, exam.kind, losses);
-    this.schedule = scheduleForPhase(exam, this.session, losses, this.words);
+    const run = readPhaseRun(save, exam.id, this.phaseNo);
+    this.phaseSeed = run ? run.seed : (Date.now() + this.phaseNo * 17) % 1_000_000;
+    this.schedule = run ? scheduleFromPhaseRun(run, this.words) : scheduleForPhase(exam, this.session, losses, this.words);
     this.state = startBattle({
       encounterId: exam.id,
       classId: save.player.classId,
@@ -224,12 +233,17 @@ export class ExamBattleScene extends Phaser.Scene {
       equippedSkillIds: save.equippedSkillIds,
       skillLevels: save.skillLevels,
       unlockedSkillIds: save.unlockedSkillIds,
-      seed: (Date.now() + this.phaseNo * 17) % 1_000_000,
+      seed: this.phaseSeed,
       enemy: { name: examEnemyName(exam.kind), maxHp: hp, attack: EXAM_ATTACK, sprite: exam.id },
       phases: [{ hp, note: "" }],
       examTuning: { shakenAfter: EXAM_SHAKEN_AFTER, spellingCounter: examSpellingCounter(exam.grade) },
       examSchedule: this.schedule,
     });
+    if (run) this.state = resumeExamBattle(this.state, run, this.words);
+    else {
+      this.persistPhase(null);
+      if (this.draft) this.persist(this.draft);
+    }
     this.introOpen = true;
     this.drawIntro();
     this.time.delayedCall(EXAM_INTRO_MS, () => this.closeIntro());
@@ -349,6 +363,9 @@ export class ExamBattleScene extends Phaser.Scene {
     }
     this.state = asked.state;
     this.schedule = asked.state.examSchedule;
+    const question = this.state.question;
+    this.persistPhase(question ? { wordId: question.wordId, kind: question.kind === "spelling" ? "spelling" : "meaning" } : null);
+    if (this.draft) this.persist(this.draft);
     this.drawFight();
   }
 
@@ -365,6 +382,7 @@ export class ExamBattleScene extends Phaser.Scene {
       dueAtStart: this.words.filter((word) => word.due).map((word) => word.id),
       spelling: question.kind === "spelling",
     });
+    this.persistPhase(null);
     this.persist(this.draft);
     document.getElementById("spell-form")?.classList.remove("open");
     showSpellingHint(null);
@@ -416,6 +434,19 @@ export class ExamBattleScene extends Phaser.Scene {
       return;
     }
     this.intermission();
+  }
+
+  private persistPhase(pending: ExamPhaseRunRecord["pending"]): void {
+    const exam = this.exam;
+    const draft = this.draft;
+    const schedule = this.schedule;
+    if (!exam || !draft || !schedule) return;
+    this.draft = writePhaseRun(draft, exam.id, phaseRunFromSchedule(schedule, {
+      phaseNo: this.phaseNo,
+      seed: this.phaseSeed,
+      casts: this.state?.casts ?? 0,
+      pending,
+    }));
   }
 
   private persist(next: SaveData): boolean {
