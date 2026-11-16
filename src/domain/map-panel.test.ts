@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { createSave, learnWord, setSelectedGrades } from "./progress";
-import { RESULTS_LEARN_REPEAT, buildResultsView } from "./battle-results";
+import { buildResultsView } from "./battle-results";
 import { mapPanel } from "./map-panel";
 import { bossUnlockLine, FOREST_CHAPTER, requiredWordIds, stageCleared, stageLearnMoreLine, stageStatuses, stageWordIds, stageWordsStillToLearn } from "./stages";
 
@@ -156,7 +156,7 @@ describe("forest map panel", () => {
       now: START.getTime(),
     });
     expect(view.learnMoreLine).toBe(panel.note);
-    expect(view.repeatLine).toBe(RESULTS_LEARN_REPEAT);
+    expect(view.repeatLine).toBeNull();
     const scene = readFileSync(new URL("../game/scenes/BattleResultsScene.ts", import.meta.url), "utf8");
     expect(scene).toContain("learnMoreLine");
     expect(scene).toContain("repeatLine");

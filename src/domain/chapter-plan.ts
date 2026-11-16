@@ -413,7 +413,7 @@ export function mapCounts(save: SaveData, chapter: PlayChapter, stage: ForestSta
 
 /**
  * A fight draws from the chapter the child is standing on.
- * Unlearned ids may be listed here; the question pool still requires a card.
+ * Unlearned ids in this list can be asked. Seeing them does not create a card.
  */
 export function battleWordIds(save: SaveData): string[] {
   const chapter = activeChapter(save);

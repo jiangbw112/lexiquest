@@ -34,8 +34,8 @@ export interface ForestChapter {
   };
   question_pool: {
     prefer_due: true;
-    fallback: "learned_in_chapter";
-    never: "unlearned_or_outside_chapter";
+    fallback: "allowed_pool";
+    never: "outside_allowed";
   };
 }
 
@@ -90,10 +90,10 @@ function readChapter(value: unknown): ForestChapter {
   if (file.boss_v1?.phases !== 2 || file.boss_v1.spelling_ratio_cap !== 0.3) throw new Error("boss v1");
   const band = file.boss_v1.successful_skill_casts_to_clear;
   if (!Array.isArray(band) || band[0] !== 8 || band[1] !== 12) throw new Error("boss cast band");
-  if (file.question_pool?.prefer_due !== true || file.question_pool.fallback !== "learned_in_chapter") {
+  if (file.question_pool?.prefer_due !== true || file.question_pool.fallback !== "allowed_pool") {
     throw new Error("question pool");
   }
-  if (file.question_pool.never !== "unlearned_or_outside_chapter") throw new Error("question pool never");
+  if (file.question_pool.never !== "outside_allowed") throw new Error("question pool never");
   const ids = file.stages.flatMap((stage) => stage.new_words);
   if (new Set(ids).size !== ids.length) throw new Error("a forest word is in two stages");
   for (const id of ids) {
@@ -274,6 +274,7 @@ export function stageWins(save: SaveData, stageId: number): number {
   return save.stageWins[String(stageId)] ?? 0;
 }
 
+/** The only stage-clear check. A later change to the win or word rule belongs here. */
 export function stageCleared(save: SaveData, stage: ForestStage): boolean {
   if (stage.type === "boss") return save.chapterCleared;
   const ids = stageWordIds(save, stage);

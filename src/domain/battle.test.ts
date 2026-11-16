@@ -277,13 +277,14 @@ describe("word-monster battle", () => {
       seed: 3,
       allowedWordIds: ["explore"],
     };
-    const empty = takeAction(startBattle(shared), { type: "skill", slotIndex: 0 });
-    expect(empty.ok).toBe(false);
-    expect(empty.reason).toContain("所选年级");
-    const due = takeAction(startBattle({ ...shared, dueWordIds: ["tree"] }), { type: "skill", slotIndex: 0 });
-    expect(due.ok).toBe(false);
-    expect(due.reason).toContain("所选年级");
-    expect(due.state.question).toBeNull();
+    const cast = takeAction(startBattle({ ...shared, spellingCap: 0.3 }), { type: "skill", slotIndex: 0 });
+    expect(cast.ok).toBe(true);
+    expect(cast.state.question?.wordId).toBe("explore");
+    expect(cast.state.question?.kind).not.toBe("spelling");
+    const due = takeAction(startBattle({ ...shared, dueWordIds: ["tree"], spellingCap: 0.3 }), { type: "skill", slotIndex: 0 });
+    expect(due.ok).toBe(true);
+    expect(due.state.question?.wordId).toBe("explore");
+    expect(due.state.question?.kind).not.toBe("spelling");
   });
 
   it("keeps the chapter boss locked until every sample card is collected", () => {
@@ -334,8 +335,51 @@ describe("word-monster battle", () => {
     expect(mix.spelling).toBeLessThanOrEqual(4);
     expect(askBoss(["big"], [], 12).spelling).toBe(0);
     expect(askBoss(["treasure"], ["treasure"], 12).spelling).toBe(0);
-    const onlyTree = askBoss(["tree"], [], 8, sampleWords().map((word) => word.id));
-    expect(onlyTree.words.every((id) => id === "tree")).toBe(true);
+    const wide = askBoss(["tree"], [], 8, sampleWords().map((word) => word.id));
+    const sampleIds = new Set(sampleWords().map((word) => word.id));
+    expect(new Set(wide.words).size).toBeGreaterThan(1);
+    expect(wide.words.every((id) => sampleIds.has(id))).toBe(true);
+  });
+
+  it("asks more than one allowed word when zero or one word is learned, and does not spell an unlearned word", () => {
+    const allowed = ["tree", "bird", "fish", "sun", "map", "run"];
+    const ask = (learned: string[], due: string[]) => {
+      let state = startBattle({
+        encounterId: "inkling",
+        classId: "warrior",
+        learnedIds: learned,
+        equippedSkillIds: [],
+        skillLevels: {},
+        seed: 11,
+        allowedWordIds: allowed,
+        dueWordIds: due,
+        spellingCap: 0.3,
+        enemy: { name: "词灵", maxHp: 9000, attack: 0, sprite: "page" },
+      });
+      const asked: { wordId: string; kind: string }[] = [];
+      for (let turn = 0; turn < 8; turn += 1) {
+        const cast = takeAction(state, { type: "skill", slotIndex: 0 });
+        expect(cast.ok).toBe(true);
+        const question = cast.state.question;
+        if (!question) throw new Error("missing question");
+        asked.push({ wordId: question.wordId, kind: question.kind });
+        const answer = question.kind === "spelling" ? "nope" : question.answerId;
+        state = answerQuestion(cast.state, answer);
+      }
+      return asked;
+    };
+    for (const learned of [[], ["tree"]]) {
+      const asked = ask(learned, learned);
+      expect(new Set(asked.map((item) => item.wordId)).size).toBeGreaterThan(1);
+      expect(asked.every((item) => allowed.includes(item.wordId))).toBe(true);
+      for (const item of asked) {
+        if (!learned.includes(item.wordId)) expect(item.kind).not.toBe("spelling");
+      }
+    }
+    expect(ask(["tree"], ["tree"])[0]?.wordId).toBe("tree");
+    const outside = ask(["about", "tree"], ["about"]);
+    expect(outside.every((item) => allowed.includes(item.wordId))).toBe(true);
+    expect(outside.some((item) => item.wordId === "about")).toBe(false);
   });
 
   it("keeps a word out of the last three questions when another word is available", () => {

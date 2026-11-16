@@ -23,6 +23,7 @@ export function emptySkillDeck(): SkillQuestionDeck {
  * If none of those are due, the pool is every learned word.
  * Unlearned ids are dropped even when a due list names them.
  * `allowedIds` limits both the due list and the fallback, so a deselected grade is not asked.
+ * Fights use `battleQuestionPool` instead, which may ask an unlearned word inside the allowed list.
  */
 export function skillQuestionPool(
   dueIds: readonly string[],
@@ -118,6 +119,30 @@ export function buildSharedDuel(input: {
     sideB: slots.map((slot) => ({ ...slot })),
     questions,
   };
+}
+
+/**
+ * A fight asks `allowedIds` (the stage or chapter pool already filtered by grade).
+ * A due card inside that pool comes first. Words without a card stay in the list.
+ * Ids outside the pool are dropped. With no pool, this is the learned-only list.
+ */
+export function battleQuestionPool(
+  dueIds: readonly string[],
+  learnedIds: readonly string[],
+  allowedIds: readonly string[] | null | undefined,
+  options?: { padOrder?: readonly string[] },
+): string[] {
+  if (!allowedIds) return skillQuestionPool(dueIds, learnedIds, { padOrder: options?.padOrder });
+  const allowedList = unique(allowedIds.filter((id) => Boolean(wordById(id))));
+  const allowed = new Set(allowedList);
+  const learned = new Set(learnedIds);
+  const due = unique(dueIds.filter((id) => allowed.has(id) && learned.has(id)));
+  const padSource = options?.padOrder && options.padOrder.length > 0 ? options.padOrder : allowedList;
+  const rest = unique([
+    ...padSource.filter((id) => allowed.has(id) && !due.includes(id)),
+    ...allowedList.filter((id) => !due.includes(id)),
+  ]);
+  return [...due, ...rest];
 }
 
 function unique(ids: readonly string[]): string[] {

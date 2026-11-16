@@ -289,7 +289,10 @@ export function meaningLoggedToday(save: SaveData, wordId: string, now: Date, ti
   );
 }
 
-/** Scheme B. A due first meaning answer in battle writes FSRS. Everything else is practice. */
+/**
+ * Scheme B. A due first meaning answer on a card writes FSRS. Other answers on a card are practice.
+ * A word with no card is only a battle question: no card, no mastery, no review, no daily new word.
+ */
 export function noteBattleAnswer(
   save: SaveData,
   input: {
@@ -301,6 +304,7 @@ export function noteBattleAnswer(
     timeZone?: string;
   },
 ): SaveData {
+  if (!save.wordCards[input.wordId]) return save;
   const zone = input.timeZone ?? deviceTimeZone();
   const memory = save.memory[input.wordId];
   const write = input.dueAtStart.includes(input.wordId)
