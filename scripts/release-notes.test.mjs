@@ -48,12 +48,12 @@ describe("release notes", () => {
     const section = releaseNotesFromFiles(notes, pkg);
     expect(section.startsWith("## 1.0.2\n")).toBe(true);
     expect(section).toContain("已有装备");
+    expect(section).toContain("所有可选职业都能穿");
     expect(section).toContain("只给战士");
     expect(section).toContain("设置密码");
     expect(section).toContain("起始卡");
     expect(section).toContain("错误提示会清掉");
-    expect(section).toContain("刚出发的词境新人");
-    expect(section).toContain("奖励账本");
+    expect(section).toContain("称号在后台改为前后两部分保存，已获得的称号和奖励会可靠保存、不会重复发放，这一版还不能在画面上自己搭配。");
     expect(section).toContain("学习工具");
     expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
     expect(section).not.toContain("## 1.0.1");
@@ -64,6 +64,10 @@ describe("release notes", () => {
     expect(section).not.toContain("发明家");
     expect(section).not.toContain("Boss");
     expect(section).not.toContain("考试");
+    expect(section).not.toContain("六个");
+    expect(section).not.toContain("账本");
+    expect(section).not.toContain("学习记录");
+    expect(section).not.toContain("自由搭配");
   });
 
   it("selects 1.0.0, 1.0.1, and 1.0.2 separately and fails when that section is missing", () => {
@@ -75,13 +79,15 @@ describe("release notes", () => {
     expect(current).not.toContain("## 1.0.1");
     expect(current).not.toContain("## 1.0.0");
     expect(current).not.toContain("取消每日新词硬上限");
-    expect(current).toContain("刚出发的词境新人");
+    expect(current).toContain("前后两部分保存");
+    expect(current).not.toContain("六个");
+    expect(current).not.toContain("自由搭配");
     expect(previous.startsWith("## 1.0.1\n")).toBe(true);
     expect(previous).toContain("取消每日新词硬上限");
     expect(previous).toContain("Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。");
     expect(previous).not.toContain("## 1.0.2");
     expect(previous).not.toContain("## 1.0.0");
-    expect(previous).not.toContain("刚出发的词境新人");
+    expect(previous).not.toContain("前后两部分保存");
     expect(first.startsWith("## 1.0.0\n")).toBe(true);
     expect(first).toContain("清除这台电脑上的存档");
     expect(first).not.toContain("## 1.0.2");
