@@ -1,18 +1,19 @@
 import { CLASS_IDS } from "./classes";
+import { hasClearedAnyFinal } from "./exams";
 import type { ClassId } from "./types";
 
 /**
- * K22 hard lock for 1.0.0. This is a source literal. A later version turns it
- * on by editing this line and shipping a new build. Nothing at runtime may set it.
+ * Source literal for the final-exam build. Nothing at runtime may set it.
+ * Selection reads examProgress through hasClearedAnyFinal, not the reserved fields.
  */
-export const INVENTOR_UNLOCK_ENABLED = false as const;
+export const INVENTOR_UNLOCK_ENABLED = true as const;
 
 export const INVENTOR_LOCK_TITLE = "藏起来的职业";
 /** Subtitle under the locked card. It is not the click dialog. */
 export const INVENTOR_LOCK_NOTE = "打败期末大 Boss 后解锁";
 /** CLASS_SPEC v1.0.3 §5.4.3 `lock.tip`. The dialog uses this whole sentence. */
 export const INVENTOR_LOCK_TIP =
-  "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。期末大 Boss 还在准备中，先和大家一起去冒险吧！";
+  "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。";
 export const INVENTOR_LOCK_TIP_BUTTON = "好的";
 /** Same label as `INVENTOR_LOCK_TIP_BUTTON`. The dialog has this one button. */
 export const INVENTOR_LOCK_BUTTON = INVENTOR_LOCK_TIP_BUTTON;
@@ -24,16 +25,17 @@ export const INVENTOR_UNLOCK_LATER = "等会儿";
 
 export interface ClassUnlockSave {
   unlockedClassIds?: readonly string[];
+  examProgress?: Record<string, { cleared?: boolean } | undefined>;
 }
 
 /**
- * Inventor is not selectable while the constant is false, and that path does not
- * read the save. The other five classes are always open.
+ * Inventor is selectable only after a whitelist final is cleared.
+ * The other five classes are always open. The constant is not a runtime switch.
  */
 export function isClassSelectable(id: ClassId, save: ClassUnlockSave | null | undefined): boolean {
   if (id !== "inventor") return true;
   if (!INVENTOR_UNLOCK_ENABLED) return false;
-  return save?.unlockedClassIds?.includes(id) === true;
+  return hasClearedAnyFinal(save);
 }
 
 /** Same gate as isClassSelectable. Create and load both use it. */

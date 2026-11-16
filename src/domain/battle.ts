@@ -23,6 +23,7 @@ import {
   type SkillDef,
   type SkillSlot,
 } from "./skills";
+import { EXAM_NO_QUESTION, noteExamAsk, pickExamQuestion, type ExamSchedule } from "./exam-questions";
 import { PROVISIONAL } from "./provisional";
 import { FOREST_CHAPTER } from "./stages";
 import type { ClassId } from "./types";
@@ -189,6 +190,10 @@ export interface BattleState {
   heldDraw: HeldDraw | null;
   /** Kind name only. The scene must not read the held question's prompt or answer. */
   previewLabel: string | null;
+  /** Exam fights only. Null keeps chapter and forest rules. */
+  examTuning: { shakenAfter: number; spellingCounter: number | null } | null;
+  /** Exam fights only. Null keeps the chapter question draw. */
+  examSchedule: ExamSchedule | null;
 }
 
 export interface HeldDraw {
@@ -234,6 +239,8 @@ export function startBattle(input: {
   distractorIds?: readonly string[];
   /** Unlocked skill ids of this class. Omitted means only the equipped cards are unlocked. */
   unlockedSkillIds?: readonly string[];
+  examTuning?: { shakenAfter: number; spellingCounter: number | null } | null;
+  examSchedule?: ExamSchedule | null;
 }): BattleState {
   const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
   const enemy = input.enemy ?? (known
@@ -305,6 +312,8 @@ export function startBattle(input: {
     heldQuestion: null,
     heldDraw: null,
     previewLabel: null,
+    examTuning: input.examTuning ?? null,
+    examSchedule: input.examSchedule ?? null,
   });
 }
 
@@ -516,6 +525,7 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const playerHpForTurn = applied.playerHp;
   const enemyAmount = clampedHpDelta(state.enemyHp, enemyHpForTurn, state.enemyMaxHp);
   const playerEffect = clampedHpDelta(state.playerHp, playerHpForTurn, state.playerMaxHp);
+  const softCounter = state.examTuning?.spellingCounter != null && state.question.kind === "spelling";
   let finished = finishPlayerTurn(
     {
       ...state,
@@ -527,10 +537,12 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
       pendingSlot: null,
       pendingBasic: null,
       lastNote: note,
+      enemyAttack: softCounter ? state.examTuning!.spellingCounter! : state.enemyAttack,
     },
     note,
     whiff,
   );
+  if (softCounter) finished = { ...finished, enemyAttack: state.enemyAttack };
   if (finished.phase === "lost") later = 0;
   let laterAmount = 0;
   if (later > 0 && finished.phase !== "won" && finished.phase !== "lost" && finished.enemyHp > 0) {
@@ -551,7 +563,8 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   if (playerHit !== 0) turnDeltas.push({ target: "player", amount: playerHit });
   if (laterAmount !== 0) turnDeltas.push({ target: "enemy", amount: laterAmount });
   finished = { ...finished, turnDeltas };
-  if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= PROVISIONAL.chapterEnding.shakenAfterQuestions) {
+  const shakenAfter = state.examTuning?.shakenAfter ?? PROVISIONAL.chapterEnding.shakenAfterQuestions;
+  if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= shakenAfter) {
     finished = { ...finished, shaken: true };
   }
   const hintNow = supportive && supportStreak === 3 && finished.phase !== "won" && finished.phase !== "lost";
@@ -676,6 +689,7 @@ export function swapCard(
 }
 
 function composeQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
+  if (state.examSchedule) return composeExamQuestion(state);
   const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
     allowedIds: state.allowedWordIds ?? undefined,
     padOrder: state.padOrder,
@@ -709,9 +723,28 @@ function composeQuestion(state: BattleState): { ok: true; question: BattleQuesti
   return { ok: true, question, drawn };
 }
 
+function composeExamQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
+  const schedule = state.examSchedule;
+  if (!schedule) return { ok: false, reason: "这道题现在出不了" };
+  const question = pickExamQuestion(schedule, state.seed + state.casts * 13);
+  if (!question) return { ok: false, reason: EXAM_NO_QUESTION };
+  return {
+    ok: true,
+    question,
+    drawn: {
+      wordId: question.wordId,
+      deck: state.deck,
+      recent: state.recentQuestionIds,
+      askedCount: state.askedCount,
+    },
+  };
+}
+
 function commitQuestion(state: BattleState, slot: SkillSlot, basic: BasicAction | null, question: BattleQuestion, drawn: ReturnType<typeof drawBattleWord>): BattleState {
+  const examSchedule = state.examSchedule ? noteExamAsk(state.examSchedule, question.wordId, question.kind === "spelling") : state.examSchedule;
   return {
     ...state,
+    examSchedule,
     energy: state.energy - slot.energyCost,
     phase: "question",
     pendingSlot: basic ? null : slot.index,

@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_exam_midterm_g5_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 505
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 185,
+    "w": 725,
+    "h": 505
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g5_body_w_defeat_01": {
+   "frame": {
+    "x": 2,
+    "y": 509,
+    "w": 725,
+    "h": 493
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 197,
+    "w": 725,
+    "h": 493
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g5_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 1004,
+    "w": 725,
+    "h": 481
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 209,
+    "w": 725,
+    "h": 481
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g5_body_w_defeat_03": {
+   "frame": {
+    "x": 729,
+    "y": 1004,
+    "w": 725,
+    "h": 472
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 218,
+    "w": 725,
+    "h": 472
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g5_body_w_defeat_04": {
+   "frame": {
+    "x": 729,
+    "y": 509,
+    "w": 725,
+    "h": 484
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 206,
+    "w": 725,
+    "h": 484
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g5_body_w_defeat_05": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 499
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 191,
+    "w": 725,
+    "h": 499
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_midterm_palettes_v1 tools/pack.py (code-drawn)",
+  "version": "palettes-v1",
+  "image": "boss_exam_midterm_g5_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1488
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_midterm_palettes_v1 · 半程试炼守护者 G3–G6 配色正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

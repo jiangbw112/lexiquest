@@ -289,7 +289,7 @@ describe("D-19 deck persistence", () => {
     expect(again?.equippedByClass?.inventor).toEqual(["inventor-gear"]);
     expect(again?.skillLevels["inventor-gear"]).toBe(2);
     expect(switchClass(again!, "inventor")).toBe(again);
-    expect(INVENTOR_UNLOCK_ENABLED).toBe(false);
+    expect(INVENTOR_UNLOCK_ENABLED).toBe(true);
   });
 });
 
@@ -316,6 +316,6 @@ describe("batch 2 scene locks", () => {
     expect(skills).not.toContain("INVENTOR_SWITCH_LOCKED_TIP");
     expect(INVENTOR_LOCK_TIP.startsWith("这里藏着一位新朋友")).toBe(true);
     expect(INVENTOR_LOCK_BUTTON).toBe("好的");
-    expect(unlock).toContain("INVENTOR_UNLOCK_ENABLED = false as const");
+    expect(unlock).toContain("INVENTOR_UNLOCK_ENABLED = true as const");
   });
 });

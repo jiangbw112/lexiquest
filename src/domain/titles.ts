@@ -330,6 +330,10 @@ export function equipTitleParts(save: SaveData, prefixId: string | null, suffixI
   };
 }
 
+export function titlePartText(id: string): string | null {
+  return BY_ID.get(id)?.text ?? null;
+}
+
 export function equippedTitleText(save: SaveData): string | null {
   const equipped = save.titleParts?.equipped;
   if (!equipped?.suffixId) return null;

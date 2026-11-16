@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_exam_midterm_g4_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 511
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 179,
+    "w": 725,
+    "h": 511
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g4_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 511
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 179,
+    "w": 725,
+    "h": 511
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g4_body_w_attack_02": {
+   "frame": {
+    "x": 2,
+    "y": 1024,
+    "w": 725,
+    "h": 504
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 186,
+    "w": 725,
+    "h": 504
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g4_body_w_attack_03": {
+   "frame": {
+    "x": 729,
+    "y": 1024,
+    "w": 725,
+    "h": 504
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 186,
+    "w": 725,
+    "h": 504
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g4_body_w_attack_04": {
+   "frame": {
+    "x": 729,
+    "y": 515,
+    "w": 725,
+    "h": 506
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 184,
+    "w": 725,
+    "h": 506
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_midterm_g4_body_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 515,
+    "w": 725,
+    "h": 507
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 183,
+    "w": 725,
+    "h": 507
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_midterm_palettes_v1 tools/pack.py (code-drawn)",
+  "version": "palettes-v1",
+  "image": "boss_exam_midterm_g4_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1532
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_midterm_palettes_v1 · 半程试炼守护者 G3–G6 配色正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

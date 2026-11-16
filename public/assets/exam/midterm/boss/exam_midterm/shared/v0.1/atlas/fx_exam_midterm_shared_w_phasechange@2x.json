@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "fx_exam_midterm_shared_phasechange_w_00": {
+   "frame": {
+    "x": 562,
+    "y": 2,
+    "w": 135,
+    "h": 135
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 393,
+    "w": 135,
+    "h": 135
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "fx_exam_midterm_shared_phasechange_w_01": {
+   "frame": {
+    "x": 224,
+    "y": 2,
+    "w": 179,
+    "h": 179
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 145,
+    "y": 371,
+    "w": 179,
+    "h": 179
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "fx_exam_midterm_shared_phasechange_w_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 220,
+    "h": 215
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 122,
+    "y": 353,
+    "w": 220,
+    "h": 215
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "fx_exam_midterm_shared_phasechange_w_03": {
+   "frame": {
+    "x": 405,
+    "y": 2,
+    "w": 155,
+    "h": 155
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 157,
+    "y": 383,
+    "w": 155,
+    "h": 155
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_midterm_palettes_v1 tools/pack.py (code-drawn)",
+  "version": "palettes-v1",
+  "image": "fx_exam_midterm_shared_w_phasechange@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 700,
+   "h": 220
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_midterm_palettes_v1 · 半程试炼守护者 G3–G6 配色正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_idle_00": {
+   "frame": {
+    "x": 2,
+    "y": 425,
+    "w": 597,
+    "h": 415
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 180,
+    "w": 597,
+    "h": 415
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_idle_01": {
+   "frame": {
+    "x": 607,
+    "y": 2,
+    "w": 601,
+    "h": 419
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 87,
+    "y": 176,
+    "w": 601,
+    "h": 419
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_idle_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 603,
+    "h": 421
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 83,
+    "y": 174,
+    "w": 603,
+    "h": 421
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_idle_03": {
+   "frame": {
+    "x": 1210,
+    "y": 2,
+    "w": 599,
+    "h": 418
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 82,
+    "y": 177,
+    "w": 599,
+    "h": 418
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_cover_gold_p3_EBC873_w_idle@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1812,
+   "h": 844
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

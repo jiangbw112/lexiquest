@@ -48,20 +48,20 @@ function claimedSave(classId: "warrior" | "inventor") {
 describe("class unlock", () => {
   it("hard-locks inventor with a literal false and keeps unlock fields on the next save", () => {
     const source = readFileSync(new URL("./class-unlock.ts", import.meta.url), "utf8");
-    expect(source).toContain("export const INVENTOR_UNLOCK_ENABLED = false as const;");
+    expect(source).toContain("export const INVENTOR_UNLOCK_ENABLED = true as const;");
     expect(source).not.toContain("import.meta.env");
     expect(source).not.toContain("localStorage");
     expect(source).not.toContain("URLSearchParams");
     expect(source).not.toContain("unlockClasses");
     expect(source).not.toContain("VITE_");
-    const enabled: false = INVENTOR_UNLOCK_ENABLED;
-    expect(enabled).toBe(false);
+    const enabled: true = INVENTOR_UNLOCK_ENABLED;
+    expect(enabled).toBe(true);
 
     const loaded = deserialize(JSON.stringify(claimedSave("warrior")));
     expect(loaded).not.toBeNull();
-    expect(isClassSelectable("inventor", loaded)).toBe(false);
-    expect(isClassUnlocked("inventor", loaded)).toBe(false);
-    expect(selectClass("warrior", "inventor", loaded)).toBe("warrior");
+    expect(isClassSelectable("inventor", loaded)).toBe(true);
+    expect(isClassUnlocked("inventor", loaded)).toBe(true);
+    expect(selectClass("warrior", "inventor", loaded)).toBe("inventor");
     expect(loaded?.player.classId).toBe("warrior");
     expect(loaded?.unlockedClassIds).toEqual(["inventor"]);
     const written = JSON.parse(serialize(loaded!)) as typeof loaded & {
@@ -70,18 +70,19 @@ describe("class unlock", () => {
     expect(written.unlockedClassIds).toEqual(["inventor"]);
     expect(written.inventorUnlockedAt).toBe(UNLOCK_AT);
     expect(written.inventorUnlockedBy).toBe(EXAM_ID);
-    expect(written.examProgress).toEqual({ [EXAM_ID]: { cleared: true, bestPhase: 3 } });
+    expect(written.examProgress?.[EXAM_ID]?.cleared).toBe(true);
+    expect(written.examProgress?.[EXAM_ID]?.bestPhase).toBe(3);
     expect(written.player.classId).toBe("warrior");
 
     const asInventor = deserialize(JSON.stringify(claimedSave("inventor")));
-    expect(asInventor?.player.classId).toBe("warrior");
-    expect(isClassSelectable("inventor", asInventor)).toBe(false);
-    expect(resolvedClassId("inventor", asInventor)).toBe("warrior");
+    expect(asInventor?.player.classId).toBe("inventor");
+    expect(isClassSelectable("inventor", asInventor)).toBe(true);
+    expect(resolvedClassId("inventor", asInventor)).toBe("inventor");
     const kept = JSON.parse(serialize(asInventor!)) as typeof written;
     expect(kept.unlockedClassIds).toEqual(["inventor"]);
     expect(kept.inventorUnlockedAt).toBe(UNLOCK_AT);
     expect(kept.inventorUnlockedBy).toBe(EXAM_ID);
-    expect(kept.examProgress).toEqual({ [EXAM_ID]: { cleared: true, bestPhase: 3 } });
+    expect(kept.examProgress?.[EXAM_ID]?.cleared).toBe(true);
 
     for (const id of CLASS_IDS) {
       if (id === "inventor") continue;
@@ -100,7 +101,7 @@ describe("class unlock", () => {
     expect(scene).toContain("INVENTOR_LOCK_NOTE");
     expect(INVENTOR_LOCK_TITLE).toBe("藏起来的职业");
     expect(INVENTOR_LOCK_NOTE).toBe("打败期末大 Boss 后解锁");
-    expect(INVENTOR_LOCK_TIP).toContain("期末大 Boss 还在准备中");
+    expect(INVENTOR_LOCK_TIP).not.toContain("还在准备中");
     expect(INVENTOR_SWITCH_LOCKED_TIP).toBe("打败期末大 Boss 后才能换成它。");
     expect(INVENTOR_UNLOCK_MAIN).toContain("发明家来找你了");
     expect(INVENTOR_UNLOCK_SUB).toBe("可以在技能页换成发明家。");
@@ -117,11 +118,9 @@ describe("class unlock", () => {
   });
 
   it("keeps the current class and shows the full lock tip when the inventor card is chosen", () => {
-    expect(INVENTOR_UNLOCK_ENABLED).toBe(false);
+    expect(INVENTOR_UNLOCK_ENABLED).toBe(true);
     expect(INVENTOR_LOCK_NOTE).toBe("打败期末大 Boss 后解锁");
-    expect(INVENTOR_LOCK_TIP).toBe(
-      "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。期末大 Boss 还在准备中，先和大家一起去冒险吧！",
-    );
+    expect(INVENTOR_LOCK_TIP).toBe("这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。");
     expect(INVENTOR_LOCK_TIP).not.toBe(INVENTOR_LOCK_NOTE);
     expect(INVENTOR_LOCK_BUTTON).toBe("好的");
     expect(lockedCardTip("inventor", null)).toBe(INVENTOR_LOCK_TIP);
@@ -151,7 +150,7 @@ describe("class unlock", () => {
     expect(kept.inventorUnlockedAt).toBeUndefined();
   });
 
-  it("C-12 case 5 does not unlock inventor when only exam clears are stored, one or all eight", () => {
+  it("F-1 unlocks inventor from one whitelist final and backfills the record without a popup", () => {
     const one = claimedSave("warrior");
     delete one.unlockedClassIds;
     delete one.inventorUnlockedAt;
@@ -161,9 +160,13 @@ describe("class unlock", () => {
     one.examProgress = { exam_g3_s1_final: { cleared: true, bestPhase: 3 } };
     const oneLoaded = deserialize(JSON.stringify(one));
     expect(oneLoaded?.player.classId).toBe("warrior");
-    expect(isClassSelectable("inventor", oneLoaded)).toBe(false);
-    expect(JSON.parse(serialize(oneLoaded!)).examProgress).toEqual(one.examProgress);
-    expect(JSON.parse(serialize(oneLoaded!)).unlockedClassIds).toBeUndefined();
+    expect(isClassSelectable("inventor", oneLoaded)).toBe(true);
+    expect(isClassUnlocked("inventor", oneLoaded)).toBe(true);
+    expect(oneLoaded?.unlockedClassIds).toEqual(["inventor"]);
+    expect(oneLoaded?.inventorUnlockedBy).toBe("exam_g3_s1_final");
+    expect(oneLoaded?.inventorUnlockedAt).toBeUndefined();
+    expect(oneLoaded?.inventorUnlockReceipt).toBeUndefined();
+    expect(JSON.parse(serialize(oneLoaded!)).examProgress.exam_g3_s1_final.cleared).toBe(true);
 
     const exams = [
       "exam_g3_s1_final",
@@ -182,9 +185,9 @@ describe("class unlock", () => {
     all.examProgress = Object.fromEntries(exams.map((id) => [id, { cleared: true, bestPhase: 3 }]));
     const allLoaded = deserialize(JSON.stringify(all));
     expect(allLoaded?.player.classId).toBe("warrior");
-    expect(isClassSelectable("inventor", allLoaded)).toBe(false);
-    expect(selectClass("warrior", "inventor", allLoaded)).toBe("warrior");
-    expect(JSON.parse(serialize(allLoaded!)).examProgress).toEqual(all.examProgress);
-    expect(JSON.parse(serialize(allLoaded!)).unlockedClassIds).toBeUndefined();
+    expect(isClassSelectable("inventor", allLoaded)).toBe(true);
+    expect(selectClass("warrior", "inventor", allLoaded)).toBe("inventor");
+    expect(allLoaded?.unlockedClassIds).toEqual(["inventor"]);
+    expect(allLoaded?.inventorUnlockReceipt).toBeUndefined();
   });
 });

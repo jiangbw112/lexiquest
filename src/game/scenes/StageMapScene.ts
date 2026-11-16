@@ -14,6 +14,7 @@ import {
 } from "../../domain/chapter-route";
 import { GRADE_BANDS } from "../../domain/catalog";
 import { mapPanel } from "../../domain/map-panel";
+import { examNodeStatus, examsOnChapter } from "../../domain/exams";
 import { selectionBattleNotice, studyNow } from "../../domain/progress";
 import { badgeTone, isDue } from "../../domain/review";
 import { browserSpeaker, speakWord } from "../../domain/speech";
@@ -34,9 +35,10 @@ import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmChip, warmPanel, warmSlice, warmTitlePlank } from "../warm/kit";
 import { chapterMapPlate, paintSceneImage, queueMissingChapterMap, queueSceneImage } from "../chapter-scene-load";
+import { queueExamUi } from "../art/exam-art";
 import { queueWarm, warmBackground } from "../warm/load";
 import { BOSS_NODE_ORIGIN, bossMapFrame } from "../warm/frames";
-import { FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
+import { FONT_BODY, FONT_LATIN, FONT_TITLE, INK, MUTED, whenGlyphsReady } from "../warm/theme";
 
 const NODE_AT = [
   { x: 230, y: 620 },
@@ -61,6 +63,7 @@ export class StageMapScene extends Phaser.Scene {
   private landedReview = false;
   private pickingGrade = false;
   private blockedReason: "" | "no-grade" | "no-chapter" = "";
+  private examNotice = "";
 
   init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
@@ -95,9 +98,11 @@ export class StageMapScene extends Phaser.Scene {
     const backdrop = chapterBackdrop(this.viewChapterId);
     if (backdrop.groupId === "forest") {
       queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], ["bg_map"]);
+      queueExamUi(this);
       return;
     }
     queueWarm(this, ["atlas_ui_core", "atlas_map", "atlas_map_results", "atlas_battle"], []);
+    queueExamUi(this);
     queueSceneImage(this, backdrop.mapKey, backdrop.mapUrl);
   }
 
@@ -184,6 +189,7 @@ export class StageMapScene extends Phaser.Scene {
     const next = list[index + delta];
     if (!next) return;
     this.viewChapterId = next.id;
+    this.examNotice = "";
     const statuses = playStatuses(save, next);
     const openAt = statuses.findIndex((status) => status === "open");
     this.selected = next.stages[openAt >= 0 ? openAt : 0]!.id;
@@ -204,6 +210,36 @@ export class StageMapScene extends Phaser.Scene {
     this.lookedAt = null;
     this.mapLoadFailedKey = "";
     this.draw();
+  }
+
+  private drawExamNode(save: NonNullable<ReturnType<typeof getSave>>, chapterId: string): void {
+    if (!this.textures.exists("atlas_exam_ui")) return;
+    const exams = examsOnChapter(chapterId);
+    exams.forEach((exam, index) => {
+      const status = examNodeStatus(save, exam);
+      if (status === "hidden") return;
+      const kind = exam.kind === "mid" ? "midterm" : "final";
+      const frame = `map_node_exam_${kind}_${status}`;
+      const node = this.add.image(980, 200 + index * 110, "atlas_exam_ui", frame).setScale(0.5).setOrigin(0.5, 0.78);
+      node.setInteractive({ useHandCursor: true });
+      node.on("pointerup", () => {
+        if (status === "locked") {
+          this.examNotice = "先打败前面的章节守护者。";
+          this.draw();
+          return;
+        }
+        this.scene.start("exam-battle", { examId: exam.id });
+      });
+    });
+    if (this.examNotice) {
+      this.add.text(980, 80, this.examNotice, {
+        fontFamily: FONT_BODY,
+        fontSize: "16px",
+        color: INK,
+        align: "center",
+        wordWrap: { width: 240 },
+      }).setOrigin(0.5);
+    }
   }
 
   private fight(stageId: number): void {
@@ -354,9 +390,11 @@ export class StageMapScene extends Phaser.Scene {
       node.on("pointerup", () => {
         this.selected = item.id;
         this.lookedAt = null;
+        this.examNotice = "";
         this.draw();
       });
     });
+    this.drawExamNode(save, chapter.id);
 
     const panelX = 1024;
     const panelY = 450;
