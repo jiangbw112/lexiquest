@@ -446,9 +446,7 @@ function draftFrom(save: SaveData, now: number): { draft: Draft; repaired: boole
   };
   let repaired = false;
   const equipped = isRecord(rawParts.equipped) ? rawParts.equipped : {};
-  for (const id of [equipped.prefixId, equipped.suffixId]) {
-    if (typeof id === "string") pushOwned(draft, id);
-  }
+  // Worn ids are not ownership. An unowned or illegal part clears both slots.
   draft.equipped = legalEquip(
     draft,
     typeof equipped.prefixId === "string" ? equipped.prefixId : null,
