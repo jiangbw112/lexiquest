@@ -56,6 +56,7 @@ import type { SaveData } from "../../domain/types";
 import { ExamBossSprite } from "../art/exam-boss-sprite";
 import { examBackground, queueExamArt, EXAM_UI_KEY } from "../art/exam-art";
 import { cjkWrap } from "../layout";
+import { attachExamDev, detachExamDev } from "./exam-battle-dev";
 import { commit, getSave } from "../session";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { FONT_BODY, INK } from "../warm/theme";
@@ -78,13 +79,6 @@ function tabId(): string {
   const next = `tab-${Math.random().toString(36).slice(2)}`;
   sessionStorage.setItem(TAB_KEY, next);
   return next;
-}
-
-interface ExamShot {
-  closeIntro: () => void;
-  answerCorrect: () => void;
-  act: () => void;
-  continuePhase: () => void;
 }
 
 export class ExamBattleScene extends Phaser.Scene {
@@ -173,13 +167,17 @@ export class ExamBattleScene extends Phaser.Scene {
     this.phaseNo = resumeExamPhase(this.checkpoint!, exam);
     this.beginPhase();
     if (import.meta.env.DEV) {
-      const shot: ExamShot = {
+      attachExamDev({
         closeIntro: () => this.closeIntro(),
-        answerCorrect: () => this.answerCorrect(),
         act: () => this.act(),
         continuePhase: () => this.continuePhase(),
-      };
-      (window as unknown as { __LEXI_EXAM__?: ExamShot }).__LEXI_EXAM__ = shot;
+        answerCorrect: () => {
+          const question = this.state?.question;
+          if (!question || this.introOpen) return;
+          if (question.kind === "spelling") this.choose(question.answer);
+          else this.choose(question.answerId);
+        },
+      });
     }
   }
 
@@ -252,7 +250,7 @@ export class ExamBattleScene extends Phaser.Scene {
     this.view?.add(title);
     const zone = this.add.zone(640, 400, 1280, 800).setInteractive();
     zone.on("pointerup", () => {
-      deliverExamPointer(this.introOpen, () => this.closeIntro(), () => this.answerCorrect());
+      deliverExamPointer(this.introOpen, () => this.closeIntro());
     });
     this.view?.add(zone);
   }
@@ -360,6 +358,7 @@ export class ExamBattleScene extends Phaser.Scene {
       dueAtStart: this.words.filter((word) => word.due).map((word) => word.id),
       spelling: question.kind === "spelling",
     });
+    this.persist(this.draft);
     document.getElementById("spell-form")?.classList.remove("open");
     showSpellingHint(null);
     if (this.state.phase === "won" || this.state.phase === "lost" || this.state.playerHp <= 0) {
@@ -368,13 +367,6 @@ export class ExamBattleScene extends Phaser.Scene {
     }
     this.state = armExamShaken(this.state);
     this.drawFight();
-  }
-
-  private answerCorrect(): void {
-    const question = this.state?.question;
-    if (!question || this.introOpen) return;
-    if (question.kind === "spelling") this.choose(question.answer);
-    else this.choose(question.answerId);
   }
 
   private submitSpelling(): void {
@@ -607,8 +599,7 @@ export class ExamBattleScene extends Phaser.Scene {
     showSpellingHint(null);
     if (this.lockToken) releaseExamLock(browserStore, this.lockToken);
     if (import.meta.env.DEV) {
-      const slot = window as unknown as { __LEXI_EXAM__?: ExamShot };
-      delete slot.__LEXI_EXAM__;
+      detachExamDev();
     }
   }
 }

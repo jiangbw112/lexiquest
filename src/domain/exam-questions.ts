@@ -202,7 +202,7 @@ export function lossesForPhase(save: SaveData, examId: string, phaseNo: number):
 export function storedSession(save: SaveData, examId: string, practice: boolean): ExamSession {
   if (practice) return emptySession();
   const session = save.examProgress?.[examId]?.session;
-  if (!session) return emptySession();
+  if (!session?.asks || typeof session.asks !== "object" || Array.isArray(session.asks)) return emptySession();
   return {
     asks: Object.fromEntries(Object.entries(session.asks).map(([id, ask]) => [id, { count: ask.count, lastIndex: ask.lastIndex }])),
     nextIndex: session.nextIndex,

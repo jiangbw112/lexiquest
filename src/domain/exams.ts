@@ -140,13 +140,9 @@ export function examShakenLine(enemyName: string, lastPhase: boolean): string {
     : `${enemyName}动摇了！答对并出手攻击，就能突破！`;
 }
 
-/** A click that closes the banner is consumed. It is not delivered as an answer. */
-export function deliverExamPointer(open: boolean, onClose: () => void, onAnswer: () => void): void {
-  if (open) {
-    onClose();
-    return;
-  }
-  onAnswer();
+/** A banner click only closes the banner. It never answers the question. */
+export function deliverExamPointer(open: boolean, onClose: () => void): void {
+  if (open) onClose();
 }
 
 /** Next phase to play. A cleared exam replays from phase 1. bestPhase is the next unpassed phase. */

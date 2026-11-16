@@ -14,6 +14,7 @@ import {
   scheduleForPhase,
   sessionFromSchedule,
   spellingExclusionIds,
+  storedSession,
   emptySession,
 } from "./exam-questions";
 import {
@@ -44,10 +45,10 @@ import {
 import { examAtlases, examLayers } from "../game/art/exam-art";
 import { applyBattleOutcome, createSave, gradeIsOpen, learnWord } from "./progress";
 import { PROVISIONAL } from "./provisional";
-import { deserialize, serialize } from "./storage";
+import { SAVE_KEY, deserialize, serialize } from "./storage";
 import { configuredPartIds, migrateTitleSave } from "./titles";
 import { wordById } from "./catalog";
-import type { SaveData } from "./types";
+import type { ExamSessionRecord, SaveData } from "./types";
 
 const NOW = Date.parse("2026-03-01T02:00:00Z");
 const YESTERDAY = NOW - 24 * 60 * 60 * 1000;
@@ -67,6 +68,32 @@ function settleSaved(
   input: Omit<Parameters<typeof settleExamAttempt>[1], "persistedRaw">,
 ) {
   return settleExamAttempt(save, { ...input, persistedRaw: serialize(save) });
+}
+
+function withoutDev(source: string): string {
+  const marker = "if (import.meta.env.DEV)";
+  let next = source;
+  let at = next.indexOf(marker);
+  while (at >= 0) {
+    const open = next.indexOf("{", at);
+    if (open < at) break;
+    let depth = 0;
+    let end = open;
+    for (; end < next.length; end += 1) {
+      const char = next[end];
+      if (char === "{") depth += 1;
+      else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          end += 1;
+          break;
+        }
+      }
+    }
+    next = `${next.slice(0, at)}${next.slice(end)}`;
+    at = next.indexOf(marker);
+  }
+  return next;
 }
 
 function memoryStore(): ExamStore & { map: Map<string, string> } {
@@ -588,14 +615,95 @@ describe("exam bosses", () => {
     expect(battleEnemyName("期末守护者", 0, 1, true)).toBe("期末守护者");
     expect(examIntroParts(true)).toEqual({ hud: false, phase: false, question: false, answers: false });
     let closed = 0;
-    let answered = 0;
-    deliverExamPointer(true, () => { closed += 1; }, () => { answered += 1; });
+    deliverExamPointer(true, () => { closed += 1; });
     expect(closed).toBe(1);
-    expect(answered).toBe(0);
-    deliverExamPointer(false, () => { closed += 1; }, () => { answered += 1; });
-    expect(answered).toBe(1);
+    deliverExamPointer(false, () => { closed += 1; });
+    expect(closed).toBe(1);
     const scene = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
     expect(scene).toContain("battleEnemyName(this.state.enemyName, this.state.phaseIndex, phaseCount, false)");
+  });
+
+  it("a banner click leaves the question and the score untouched", () => {
+    const score = { asked: 0, xp: 10, cleared: false };
+    let closed = 0;
+    deliverExamPointer(true, () => { closed += 1; });
+    expect(closed).toBe(1);
+    expect(score).toEqual({ asked: 0, xp: 10, cleared: false });
+    deliverExamPointer(false, () => { closed += 1; });
+    expect(closed).toBe(1);
+    expect(score).toEqual({ asked: 0, xp: 10, cleared: false });
+    const scene = readFileSync(new URL("../game/scenes/ExamBattleScene.ts", import.meta.url), "utf8");
+    const handler = scene.slice(scene.indexOf("zone.on"), scene.indexOf("this.view?.add(zone)"));
+    expect(handler).toContain("deliverExamPointer(this.introOpen");
+    expect(handler).toContain("this.closeIntro()");
+    expect(handler).not.toContain("answerCorrect");
+    expect(withoutDev(scene)).not.toContain("answerCorrect");
+    expect(scene).toContain("answerCorrect");
+  });
+
+  it("keeps answered learning notes when the window closes before the phase pays", () => {
+    let save = fresh();
+    save = learnWord(save, "tree", new Date(YESTERDAY));
+    save = learnWord(save, "bird", new Date(YESTERDAY));
+    const bird = save.memory.bird;
+    if (!bird) throw new Error("bird");
+    save = {
+      ...save,
+      memory: {
+        ...save.memory,
+        bird: { ...bird, fsrs: { ...bird.fsrs, due: "2020-01-01T00:00:00.000Z" } },
+      },
+    };
+    const xp = save.xp;
+    const store = memoryStore();
+    const base = serialize(save);
+    store.set(SAVE_KEY, base);
+    let draft = noteExamAnswer(save, {
+      wordId: "tree",
+      correct: true,
+      now: new Date(NOW),
+      dueAtStart: ["bird"],
+      spelling: true,
+    });
+    draft = noteExamAnswer(draft, {
+      wordId: "bird",
+      correct: true,
+      now: new Date(NOW),
+      dueAtStart: ["bird"],
+      spelling: false,
+    });
+    expect(commitExamSnapshot(store, SAVE_KEY, base, serialize(draft))).toBe(true);
+    const reloaded = deserialize(store.get(SAVE_KEY) ?? "");
+    if (!reloaded) throw new Error("reload");
+    expect(reloaded.wordCards.tree?.spelledAloneAt).toBe(NOW);
+    expect(reloaded.dueAnswers.some((answer) => answer.wordId === "bird")).toBe(true);
+    expect(reloaded.xp).toBe(xp);
+    expect(reloaded.examProgress?.exam_g3_s1_mid?.cleared).not.toBe(true);
+    expect(reloaded.examProgress?.exam_g3_s1_mid?.phaseRecords).toBeUndefined();
+    const scene = readFileSync(new URL("../game/scenes/ExamBattleScene.ts", import.meta.url), "utf8");
+    const noteAt = scene.indexOf("this.draft = noteExamAnswer");
+    expect(scene.indexOf("this.persist(this.draft)", noteAt)).toBeGreaterThan(noteAt);
+  });
+
+  it("drops an exam session that has no asks", () => {
+    const save = fresh();
+    save.examProgress = {
+      exam_g3_s1_mid: {
+        session: { nextIndex: 4, fightQuestions: 2, fightSpelling: 1 } as unknown as ExamSessionRecord,
+      },
+    };
+    expect(storedSession(save, "exam_g3_s1_mid", false)).toEqual(emptySession());
+    save.examProgress = {
+      exam_g3_s1_mid: {
+        session: {
+          asks: { tree: { count: 1, lastIndex: 0 } },
+          nextIndex: 1,
+          fightQuestions: 1,
+          fightSpelling: 0,
+        },
+      },
+    };
+    expect(storedSession(save, "exam_g3_s1_mid", false).asks.tree).toEqual({ count: 1, lastIndex: 0 });
   });
 
   it("grants level words when a normal win crosses a level and leaves them unequipped", () => {
