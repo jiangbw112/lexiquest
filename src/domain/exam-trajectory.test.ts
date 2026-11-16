@@ -28,9 +28,9 @@ import type { ClassId, SaveData } from "./types";
 
 /**
  * Engine replay of IMPL_SPEC v0.2.1 items 13 and 14.
- * The paper gold file exam_r2prime_v2_trajectories.json is not in this repo,
- * so these tests do not diff against that JSON. They rerun the specified matrix
- * on the game battle and the exam save, with a fixed seed and clock.
+ * The full paper file is not in this repo. Twelve extracted rows are compared
+ * turn by turn in exam-golden.test.ts. This file reruns the whole matrix on
+ * the game battle and the exam save, with a fixed seed and clock.
  */
 const NOW = Date.parse("2026-03-01T02:00:00Z");
 const CLASSES: readonly ClassId[] = ["warrior", "mage", "ranger", "healer", "inventor", "explorer"];
