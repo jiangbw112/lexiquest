@@ -383,6 +383,41 @@ describe("title migration", () => {
     expect(migrateTitleSave(repaired, NOW + 8)).toBe(repaired);
   });
 
+  function loadWorn(equipped: { prefixId: string | null; suffixId: string | null }): SaveData {
+    const save = fresh();
+    save.titleParts = { ...save.titleParts!, equipped };
+    const loaded = deserialize(serialize(save));
+    expect(loaded).not.toBeNull();
+    return loaded!;
+  }
+
+  it("load clears a graduation equip that was not owned", () => {
+    const via = fresh().titleParts!.via;
+    const loaded = loadWorn({ prefixId: "p_075", suffixId: "s_044" });
+    expect(loaded.titleParts?.unlockedPrefixIds).toEqual(["p_000"]);
+    expect(loaded.titleParts?.unlockedSuffixIds).toEqual(["s_000"]);
+    expect(loaded.titleParts?.equipped).toEqual({ prefixId: null, suffixId: null });
+    expect(loaded.titleParts?.newIds).toEqual([]);
+    expect(loaded.titleParts?.via).toEqual(via);
+    expect(equippedTitleText(loaded)).toBeNull();
+  });
+
+  it("load clears unknown equipped ids", () => {
+    const loaded = loadWorn({ prefixId: "not-a-part", suffixId: "not-a-suffix" });
+    expect(loaded.titleParts?.unlockedPrefixIds).toEqual(["p_000"]);
+    expect(loaded.titleParts?.unlockedSuffixIds).toEqual(["s_000"]);
+    expect(loaded.titleParts?.equipped).toEqual({ prefixId: null, suffixId: null });
+    expect(loaded.titleParts?.unlockedPrefixIds).not.toContain("not-a-part");
+  });
+
+  it("load clears both slots when one side is not owned", () => {
+    const loaded = loadWorn({ prefixId: "p_000", suffixId: "s_044" });
+    expect(loaded.titleParts?.unlockedPrefixIds).toEqual(["p_000"]);
+    expect(loaded.titleParts?.unlockedSuffixIds).toEqual(["s_000"]);
+    expect(loaded.titleParts?.unlockedSuffixIds).not.toContain("s_044");
+    expect(loaded.titleParts?.equipped).toEqual({ prefixId: null, suffixId: null });
+  });
+
   it("clears a prefix-only equip and still migrates a string version mark", () => {
     const migrated = migrateTitleSave(oldSave({
       xp: 0,
