@@ -44,32 +44,53 @@ describe("release notes", () => {
   it("uses the version in package.json for the committed notes", () => {
     const notes = readFileSync(new URL("../RELEASE_NOTES.md", import.meta.url), "utf8");
     const pkg = readFileSync(new URL("../package.json", import.meta.url), "utf8");
-    expect(JSON.parse(pkg).version).toBe("1.0.1");
+    expect(JSON.parse(pkg).version).toBe("1.0.2");
     const section = releaseNotesFromFiles(notes, pkg);
-    expect(section.startsWith("## 1.0.1\n")).toBe(true);
-    expect(section).toContain("取消每日新词硬上限");
-    expect(section).toContain("只作为每日目标");
-    expect(section).toContain("只温和提醒");
-    expect(section).toContain("Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。");
+    expect(section.startsWith("## 1.0.2\n")).toBe(true);
+    expect(section).toContain("已有装备");
+    expect(section).toContain("只给战士");
+    expect(section).toContain("设置密码");
+    expect(section).toContain("起始卡");
+    expect(section).toContain("错误提示会清掉");
+    expect(section).toContain("刚出发的词境新人");
+    expect(section).toContain("奖励账本");
+    expect(section).toContain("学习工具");
+    expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(section).not.toContain("## 1.0.1");
     expect(section).not.toContain("## 1.0.0");
+    expect(section).not.toContain("取消每日新词硬上限");
     expect(section).not.toContain("清除这台电脑上的存档");
+    expect(section).not.toContain("游戏");
+    expect(section).not.toContain("发明家");
+    expect(section).not.toContain("Boss");
+    expect(section).not.toContain("考试");
   });
 
-  it("selects 1.0.0 and 1.0.1 separately and fails when that section is missing", () => {
+  it("selects 1.0.0, 1.0.1, and 1.0.2 separately and fails when that section is missing", () => {
     const notes = readFileSync(new URL("../RELEASE_NOTES.md", import.meta.url), "utf8");
-    const current = extractReleaseSection(notes, "1.0.1");
-    const previous = extractReleaseSection(notes, "1.0.0");
-    expect(current.startsWith("## 1.0.1\n")).toBe(true);
+    const current = extractReleaseSection(notes, "1.0.2");
+    const previous = extractReleaseSection(notes, "1.0.1");
+    const first = extractReleaseSection(notes, "1.0.0");
+    expect(current.startsWith("## 1.0.2\n")).toBe(true);
+    expect(current).not.toContain("## 1.0.1");
     expect(current).not.toContain("## 1.0.0");
-    expect(current).not.toContain("发明家先锁着");
-    expect(previous.startsWith("## 1.0.0\n")).toBe(true);
-    expect(previous).toContain("清除这台电脑上的存档");
+    expect(current).not.toContain("取消每日新词硬上限");
+    expect(current).toContain("刚出发的词境新人");
+    expect(previous.startsWith("## 1.0.1\n")).toBe(true);
+    expect(previous).toContain("取消每日新词硬上限");
     expect(previous).toContain("Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。");
-    expect(previous).not.toContain("## 1.0.1");
-    expect(previous).not.toContain("取消每日新词硬上限");
-    expect(() => extractReleaseSection(notes, "1.0.2")).toThrow(
-      "RELEASE_NOTES.md 没有与版本 1.0.2 对应的「## 1.0.2」一节，已停止，不会创建 Release。",
+    expect(previous).not.toContain("## 1.0.2");
+    expect(previous).not.toContain("## 1.0.0");
+    expect(previous).not.toContain("刚出发的词境新人");
+    expect(first.startsWith("## 1.0.0\n")).toBe(true);
+    expect(first).toContain("清除这台电脑上的存档");
+    expect(first).not.toContain("## 1.0.2");
+    expect(first).not.toContain("## 1.0.1");
+    expect(first).not.toContain("取消每日新词硬上限");
+    expect(() => extractReleaseSection(notes, "1.0.3")).toThrow(
+      "RELEASE_NOTES.md 没有与版本 1.0.3 对应的「## 1.0.3」一节，已停止，不会创建 Release。",
     );
     expect(() => extractReleaseSection("## 1.0.10\n\n- 别的版本。\n", "1.0.1")).toThrow("不会创建 Release");
+    expect(() => extractReleaseSection("## 1.0.20\n\n- 别的版本。\n", "1.0.2")).toThrow("不会创建 Release");
   });
 });
