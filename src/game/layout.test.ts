@@ -8,7 +8,8 @@ import { redirectUngraded } from "./grade-route";
 import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
 import { reviewDeskLayout } from "./dev-mode";
 import { REVIEW_DESK_LIMIT } from "../domain/review";
-import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, OPTION_BADGE_CENTER, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type TextBox } from "./layout";
+import { shellCopy } from "../domain/host-copy";
+import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, parentGateLayout, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -467,5 +468,115 @@ describe("Chinese line wrap", () => {
       expect(line.startsWith("览器")).toBe(false);
     }
     expect(wrapped).toContain("浏览器");
+  });
+});
+
+describe("parent gate columns", () => {
+  const safeRight = SAFE.x + SAFE.width;
+  const safeBottom = SAFE.y + SAFE.height;
+  const noteFont = 20;
+
+  function measure(sample: string): number {
+    let pixels = 0;
+    for (const char of sample) pixels += char.charCodeAt(0) <= 0x7e ? noteFont * 0.55 : noteFont;
+    return pixels;
+  }
+
+  function overlaps(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function inside(box: { x: number; y: number; w: number; h: number }, outer: { x: number; y: number; w: number; h: number }): boolean {
+    return box.x >= outer.x && box.y >= outer.y && box.x + box.w <= outer.x + outer.w && box.y + box.h <= outer.y + outer.h;
+  }
+
+  function noteBottom(layout: ParentGateLayout, text: string): number {
+    const lines = wrapCjkText(text, layout.note.wrap, measure).split("\n");
+    return layout.note.y + lines.length * 32;
+  }
+
+  it("uses the desktop minimum window as the fitted-canvas cutoff", () => {
+    const main = readFileSync(new URL("../../desktop/main.mjs", import.meta.url), "utf8");
+    expect(main).toContain(`const MIN_WIDTH = ${PARENT_GATE_SIDE_BY_SIDE_MIN}`);
+    expect(parentGateLayout(PARENT_GATE_SIDE_BY_SIDE_MIN).mode).toBe("columns");
+    expect(parentGateLayout(PARENT_GATE_SIDE_BY_SIDE_MIN - 1).mode).toBe("stack");
+    expect(parentGateLayout(0).mode).toBe("columns");
+  });
+
+  it("puts the note on the left and the password card on the right, both inside the safe area", () => {
+    const layout = parentGateLayout(1280);
+    const back = {
+      x: layout.back.x - PARENT_GATE_BACK.width / 2,
+      y: layout.back.y - PARENT_GATE_BACK.height / 2,
+      w: PARENT_GATE_BACK.width,
+      h: PARENT_GATE_BACK.height,
+    };
+    expect(layout.mode).toBe("columns");
+    expect(layout.pin.x).toBeGreaterThanOrEqual(layout.dialog.x + layout.dialog.w + 24);
+    expect(inside(layout.dialog, { x: SAFE.x, y: SAFE.y, w: SAFE.width, h: SAFE.height })).toBe(true);
+    expect(inside(layout.pin, { x: SAFE.x, y: SAFE.y, w: SAFE.width, h: SAFE.height })).toBe(true);
+    expect(inside(back, layout.dialog)).toBe(true);
+    expect(overlaps(layout.dialog, layout.pin)).toBe(false);
+    expect(overlaps(back, layout.pin)).toBe(false);
+    for (const text of [shellCopy(false).gradeGateNote, shellCopy(true).gradeGateNote]) {
+      const wrapped = wrapCjkText(text, layout.note.wrap, measure);
+      for (const line of wrapped.split("\n")) expect(measure(line)).toBeLessThanOrEqual(layout.note.wrap);
+      expect(noteBottom(layout, text) + 16).toBeLessThanOrEqual(back.y);
+      expect(layout.note.x).toBeGreaterThanOrEqual(layout.dialog.x + 20);
+      expect(layout.note.x + layout.note.wrap).toBeLessThanOrEqual(layout.dialog.x + layout.dialog.w - 20);
+    }
+  });
+
+  it("stacks the note above the password card without leaving the canvas", () => {
+    const layout = parentGateLayout(800);
+    const back = {
+      x: layout.back.x - PARENT_GATE_BACK.width / 2,
+      y: layout.back.y - PARENT_GATE_BACK.height / 2,
+      w: PARENT_GATE_BACK.width,
+      h: PARENT_GATE_BACK.height,
+    };
+    expect(layout.mode).toBe("stack");
+    expect(layout.pin.y).toBeGreaterThanOrEqual(layout.dialog.y + layout.dialog.h + 16);
+    expect(layout.dialog.y).toBeLessThan(layout.pin.y);
+    expect(inside(layout.dialog, { x: SAFE.x, y: SAFE.y, w: SAFE.width, h: SAFE.height })).toBe(true);
+    expect(inside(layout.pin, { x: SAFE.x, y: SAFE.y, w: SAFE.width, h: SAFE.height })).toBe(true);
+    expect(inside(back, layout.dialog)).toBe(true);
+    expect(overlaps(layout.dialog, layout.pin)).toBe(false);
+    expect(back.x).toBeGreaterThanOrEqual(layout.note.x + layout.note.wrap + 16);
+    for (const text of [shellCopy(false).gradeGateNote, shellCopy(true).gradeGateNote]) {
+      expect(noteBottom(layout, text)).toBeLessThanOrEqual(layout.dialog.y + layout.dialog.h - 8);
+    }
+    expect(layout.pin.y + layout.pin.h).toBeLessThanOrEqual(safeBottom);
+    expect(layout.pin.x + layout.pin.w).toBeLessThanOrEqual(safeRight);
+  });
+
+  it("shrinks the password card only when its height would leave the canvas", () => {
+    const pin = parentGateLayout(800).pin;
+    const canvas = { left: 12, top: 40, width: 800 };
+    const fitted = pinFormPlacement(canvas, pin, pin.h);
+    expect(fitted.scale).toBeCloseTo(800 / GAME_W);
+    expect(fitted.left).toBeCloseTo(12 + pin.x * (800 / GAME_W));
+    expect(fitted.top).toBeCloseTo(40 + pin.y * (800 / GAME_W));
+    expect(fitted.width).toBe(pin.w);
+    const tall = pinFormPlacement(canvas, pin, 900);
+    expect(tall.scale).toBeLessThan(fitted.scale);
+    const visualBottom = tall.top + 900 * tall.scale;
+    expect(visualBottom).toBeLessThanOrEqual(40 + (GAME_H - 16) * (800 / GAME_W) + 0.01);
+    expect(pinFormPlacement(canvas, pin, 0).scale).toBeCloseTo(800 / GAME_W);
+  });
+
+  it("does not draw the protected parent page before the password card closes", () => {
+    const guide = readFileSync(new URL("./scenes/GuideScene.ts", import.meta.url), "utf8");
+    const start = guide.indexOf("if (!this.pinSession.unlocked)");
+    const locked = guide.slice(start, guide.indexOf("warmTab", start));
+    expect(locked).toContain("parentGateLayout");
+    expect(locked).toContain("gradeGateNote");
+    expect(locked).toContain("positionPinForm");
+    expect(locked).toContain("return;");
+    expect(locked).not.toContain("drawProgress");
+    expect(locked).not.toContain("drawNotes");
+    expect(guide).toContain("每日目标从明天的新一天起改档。今天的数量不会变多。");
+    expect(guide).toContain("applyIfParentUnlocked");
+    expect(guide).toContain('width: PARENT_GATE_BACK.width');
   });
 });
