@@ -13,6 +13,40 @@ export const SPELLING_EXCLUSION_SHA256 = "516cc9da9ac457e400b71530ec77174179e13a
 /** A Latin word, including an internal hyphen or apostrophe. Digits stay out. */
 const LATIN_WORD = /[A-Za-z]+(?:[-'][A-Za-z]+)*/g;
 
+/**
+ * Part-of-speech marks, without the trailing period. Dual marks such as
+ * adv./prep. are two of these. int. is the short form of interj.
+ */
+const POS_ABBREVIATIONS = new Set([
+  "n",
+  "v",
+  "adj",
+  "adv",
+  "prep",
+  "pron",
+  "conj",
+  "num",
+  "art",
+  "int",
+  "interj",
+  "phr",
+  "modal",
+]);
+
+/** A pos mark is one of the abbreviations followed by a period, or the word modal in "modal v." */
+function isPosMark(token: string, after: string): boolean {
+  const folded = token.toLowerCase();
+  if (!POS_ABBREVIATIONS.has(folded)) return false;
+  if (folded === "modal") return true;
+  return after.startsWith(".");
+}
+
+function maskLatin(text: string, hide: (token: string) => boolean): string {
+  return text.replace(LATIN_WORD, (token, offset: number) =>
+    isPosMark(token, text.slice(offset + token.length)) || !hide(token) ? token : SPELLING_MASK,
+  );
+}
+
 /** Longer suffixes first so -es is not peeled as -s. */
 const SUFFIXES = ["ing", "es", "ed", "s", "d"] as const;
 
@@ -100,9 +134,9 @@ export function promptLeaksAnswer(word: Pick<WordDef, "english" | "chinese" | "p
   return latinWords(text).some((token) => sharesStem(word.english, token));
 }
 
-/** Replace same-stem Latin words. Other letters, including a part-of-speech mark, stay. */
+/** Replace same-stem Latin words. A part-of-speech mark stays even when the letters match. */
 export function maskSpellingFace(face: string, answer: string): string {
-  return face.replace(LATIN_WORD, (token) => (sharesStem(answer, token) ? SPELLING_MASK : token));
+  return maskLatin(face, (token) => sharesStem(answer, token));
 }
 
 /** Mask the face that spelling questions interpolate into the prompt. */
@@ -144,8 +178,9 @@ export function reviewDeskEnglish(english: string, spellingPanelOpen: boolean): 
 /**
  * Gloss on a review row. An open spelling panel hides every Latin word, including
  * stems that are not the answer and single letters such as the T in T恤.
+ * Part-of-speech marks stay, so the row reads "v. 打扫（～ 的过去式）".
  */
 export function reviewDeskMeaning(meaning: string, spellingPanelOpen: boolean): string {
   if (!spellingPanelOpen) return meaning;
-  return meaning.replace(LATIN_WORD, SPELLING_MASK);
+  return maskLatin(meaning, () => true);
 }

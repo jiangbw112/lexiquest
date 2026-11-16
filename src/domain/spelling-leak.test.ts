@@ -163,14 +163,43 @@ describe("spelling answer leaks", () => {
     expect(reviewDeskEnglish(next.english, true)).toBe("");
     expect(reviewDeskEnglish(shirt.english, true)).toBe("");
     expect(reviewDeskMeaning(formatMeaning(cleaned), false)).toBe(formatMeaning(cleaned));
-    for (const word of [cleaned, next, shirt, wordById("bought")!]) {
-      expect(reviewDeskMeaning(formatMeaning(word), true)).not.toMatch(/[A-Za-z]/);
-    }
+    expect(reviewDeskMeaning(formatMeaning(next), true)).toBe(formatMeaning(next).replace(/[A-Za-z]+/g, SPELLING_MASK));
+    expect(reviewDeskMeaning(formatMeaning(shirt), true)).not.toMatch(/T/i);
+    expect(reviewDeskMeaning(formatMeaning(cleaned), true)).not.toMatch(/clean/i);
+    expect(reviewDeskMeaning(formatMeaning(wordById("bought")!), true)).not.toMatch(/buy/i);
     const scene = readFileSync(new URL("../game/scenes/ReviewScene.ts", import.meta.url), "utf8");
     expect(scene).toContain("reviewDeskEnglish");
     expect(scene).toContain("reviewDeskMeaning");
     expect(scene).toContain("this.spellingPanel = true");
     expect(scene).toContain("showSpellingPrompt");
+  });
+
+  it("keeps part-of-speech abbreviations on the review list and the spelling face", () => {
+    const cleaned = wordById("cleaned");
+    const next = wordById("next");
+    if (!cleaned || !next) throw new Error("missing word");
+    const stem = formatMeaning(cleaned).replace(/^v\.\s*/, "");
+    const marks = ["n.", "v.", "adj.", "adv.", "prep.", "pron.", "conj.", "num.", "art.", "int."];
+    for (const mark of marks) {
+      const face = `${mark} ${stem}`;
+      const kept = face.replace("clean", SPELLING_MASK);
+      expect(maskSpellingFace(face, cleaned.english)).toBe(kept);
+      expect(reviewDeskMeaning(face, true)).toBe(kept);
+      expect(kept.startsWith(`${mark} `)).toBe(true);
+      expect(kept).not.toMatch(/clean/i);
+    }
+    expect(maskSpellingFace(`modal v. ${stem.replace("clean", "can")}`, "can")).toBe(`modal v. ${stem.replace("clean", SPELLING_MASK)}`);
+    expect(reviewDeskMeaning(`interj. ${stem.replace("clean", "oh")}`, true)).toBe(`interj. ${stem.replace("clean", SPELLING_MASK)}`);
+    expect(maskSpellingFace("art. art", "art")).toBe(`art. ${SPELLING_MASK}`);
+    const cleanedKept = formatMeaning(cleaned).replace("clean", SPELLING_MASK);
+    expect(cleanedKept.startsWith("v. ")).toBe(true);
+    expect(reviewDeskMeaning(formatMeaning(cleaned), true)).toBe(cleanedKept);
+    expect(maskSpellingFace(formatMeaning(cleaned), cleaned.english)).toBe(cleanedKept);
+    const nextKept = formatMeaning(next).replace(/[A-Za-z]+/g, SPELLING_MASK);
+    expect(nextKept).toBe(formatMeaning(next).replace("next", SPELLING_MASK).replace("to", SPELLING_MASK));
+    expect(reviewDeskMeaning(formatMeaning(next), true)).toBe(nextKept);
+    expect(nextKept).not.toMatch(/[A-Za-z]/);
+    expect(reviewDeskEnglish(cleaned.english, true)).toBe("");
   });
 
   it("keeps excluded words out of battle spelling, including a heal", () => {
