@@ -623,3 +623,117 @@ export function rewardDialogChrome(): RewardDialogChrome {
     headerBottom: top + 48,
   };
 }
+
+/**
+ * Locked parent page. The parchment note is the dialog; the password card sits beside it.
+ *
+ * The canvas is 1280×800 and Phaser.Scale.FIT scales it uniformly, centered.
+ * Pass `scale.displaySize.width` (the fitted canvas CSS width), not the raw
+ * window width: a short window letterboxes, and the canvas is then narrower
+ * than the window.
+ *
+ * 1024 is the desktop window's minimum content width (`MIN_WIDTH` in
+ * desktop/main.mjs). At that fitted width the 420px password card is still
+ * 336 CSS pixels wide. Below it, the note is placed above the card so the
+ * two regions keep dialog-then-password order and do not overlap.
+ */
+export const PARENT_GATE_SIDE_BY_SIDE_MIN = 1024;
+
+export const PARENT_GATE_BACK = { width: 160, height: 56 } as const;
+
+const PARENT_GATE_LEFT = 112;
+const PARENT_GATE_RIGHT = 1168;
+const PARENT_GATE_GAP = 32;
+const PARENT_GATE_PIN_W = 420;
+/** Matches `#pin-form` min-height. The card can grow; placement shrinks it to stay on the canvas. */
+const PARENT_GATE_PIN_H = 520;
+
+export interface ParentGateBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface ParentGateLayout {
+  mode: "columns" | "stack";
+  /** Parchment panel, top-left in game pixels. */
+  dialog: ParentGateBox;
+  /** Password card, top-left in game pixels. */
+  pin: ParentGateBox;
+  note: { x: number; y: number; wrap: number };
+  /** Center of 返回. */
+  back: { x: number; y: number };
+}
+
+export function parentGateLayout(canvasDisplayWidth: number): ParentGateLayout {
+  const columns = !(canvasDisplayWidth > 0) || canvasDisplayWidth >= PARENT_GATE_SIDE_BY_SIDE_MIN;
+  if (columns) {
+    const y = 132;
+    const dialogW = PARENT_GATE_RIGHT - PARENT_GATE_LEFT - PARENT_GATE_GAP - PARENT_GATE_PIN_W;
+    const dialog: ParentGateBox = { x: PARENT_GATE_LEFT, y, w: dialogW, h: 300 };
+    const pin: ParentGateBox = {
+      x: dialog.x + dialog.w + PARENT_GATE_GAP,
+      y,
+      w: PARENT_GATE_PIN_W,
+      h: PARENT_GATE_PIN_H,
+    };
+    return {
+      mode: "columns",
+      dialog,
+      pin,
+      note: { x: dialog.x + 40, y: dialog.y + 44, wrap: dialog.w - 80 },
+      back: {
+        x: dialog.x + 40 + PARENT_GATE_BACK.width / 2,
+        y: dialog.y + dialog.h - 36 - PARENT_GATE_BACK.height / 2,
+      },
+    };
+  }
+  const dialog: ParentGateBox = {
+    x: PARENT_GATE_LEFT,
+    y: 96,
+    w: PARENT_GATE_RIGHT - PARENT_GATE_LEFT,
+    h: 144,
+  };
+  const back = {
+    x: dialog.x + dialog.w - 32 - PARENT_GATE_BACK.width / 2,
+    y: dialog.y + dialog.h / 2,
+  };
+  const noteX = dialog.x + 36;
+  return {
+    mode: "stack",
+    dialog,
+    pin: {
+      x: Math.round((GAME_W - PARENT_GATE_PIN_W) / 2),
+      y: dialog.y + dialog.h + 16,
+      w: PARENT_GATE_PIN_W,
+      h: PARENT_GATE_PIN_H,
+    },
+    note: { x: noteX, y: dialog.y + 40, wrap: back.x - PARENT_GATE_BACK.width / 2 - 24 - noteX },
+    back,
+  };
+}
+
+export interface PinFormPlacement {
+  left: number;
+  top: number;
+  width: number;
+  scale: number;
+}
+
+/** Map the password card onto the fitted canvas. Shrink only if the card would pass the bottom margin. */
+export function pinFormPlacement(
+  canvas: { left: number; top: number; width: number },
+  pin: Pick<ParentGateBox, "x" | "y" | "w">,
+  formHeight: number,
+): PinFormPlacement {
+  const raw = canvas.width > 0 ? canvas.width / GAME_W : 1;
+  const maxLogical = Math.max(1, GAME_H - 16 - pin.y);
+  const fit = formHeight > maxLogical ? maxLogical / formHeight : 1;
+  return {
+    left: canvas.left + pin.x * raw,
+    top: canvas.top + pin.y * raw,
+    width: pin.w,
+    scale: raw * fit,
+  };
+}
