@@ -330,7 +330,12 @@ describe("title migration", () => {
     const loadedAgain = deserialize(loadedRaw);
     expect(loadedAgain).not.toBeNull();
     expect(serialize(loadedAgain!)).toBe(loadedRaw);
-    expect(loaded?.examProgress).toEqual(examProgress);
+    expect(loaded?.examProgress).toEqual({
+      ...examProgress,
+      exam_g3_s1_mid: { ...examProgress.exam_g3_s1_mid, migrationReviewRequired: true },
+      exam_g3_s2_mid: { ...examProgress.exam_g3_s2_mid, migrationReviewRequired: true },
+      exam_g6_s2_final: { ...examProgress.exam_g6_s2_final, migrationReviewRequired: true },
+    });
     expect(loaded?.titleParts?.unlockedPrefixIds).toEqual(migrated.titleParts?.unlockedPrefixIds);
   });
 
