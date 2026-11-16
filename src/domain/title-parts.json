@@ -1,0 +1,50 @@
+{
+  "levels": [
+    { "level": 1, "prefixId": "p_000", "prefix": "刚出发", "suffixId": "s_000", "suffix": "词境新人", "join": "de" },
+    { "level": 2, "prefixId": "p_001", "prefix": "好奇", "suffixId": "s_001", "suffix": "小学徒", "join": "de" },
+    { "level": 3, "prefixId": "p_002", "prefix": "认真", "suffixId": "s_002", "suffix": "小书虫", "join": "de" },
+    { "level": 5, "prefixId": "p_003", "prefix": "勇敢", "suffixId": "s_003", "suffix": "开拓者", "join": "de" },
+    { "level": 8, "prefixId": "p_004", "prefix": "耐心", "suffixId": "s_004", "suffix": "小向导", "join": "de" },
+    { "level": 10, "prefixId": "p_005", "prefix": "闪亮", "suffixId": "s_005", "suffix": "冒险家", "join": "de" },
+    { "level": 12, "prefixId": "p_006", "prefix": "机灵", "suffixId": "s_006", "suffix": "寻宝人", "join": "de" },
+    { "level": 15, "prefixId": "p_007", "prefix": "不放弃", "suffixId": "s_007", "suffix": "追光者", "join": "de" },
+    { "level": 20, "prefixId": "p_008", "prefix": "温暖", "suffixId": "s_008", "suffix": "好伙伴", "join": "de" },
+    { "level": 25, "prefixId": "p_009", "prefix": "沉着", "suffixId": "s_009", "suffix": "领航员", "join": "de" },
+    { "level": 30, "prefixId": "p_010", "prefix": "用心", "suffixId": "s_010", "suffix": "小学者", "join": "de" },
+    { "level": 35, "prefixId": "p_011", "prefix": "远途", "suffixId": "s_011", "suffix": "旅行家", "join": "direct" },
+    { "level": 40, "prefixId": "p_012", "prefix": "热心", "suffixId": "s_012", "suffix": "引路人", "join": "de" },
+    { "level": 45, "prefixId": "p_013", "prefix": "从容", "suffixId": "s_013", "suffix": "故事家", "join": "de" },
+    { "level": 50, "prefixId": "p_014", "prefix": "词境", "suffixId": "s_014", "suffix": "旅人", "join": "direct" }
+  ],
+  "mids": [
+    { "examId": "exam_g3_s1_mid", "prefixId": "p_060", "prefix": "晨光" },
+    { "examId": "exam_g3_s2_mid", "prefixId": "p_061", "prefix": "新叶" },
+    { "examId": "exam_g4_s1_mid", "prefixId": "p_062", "prefix": "微风" },
+    { "examId": "exam_g4_s2_mid", "prefixId": "p_063", "prefix": "溪流" },
+    { "examId": "exam_g5_s1_mid", "prefixId": "p_064", "prefix": "山风" },
+    { "examId": "exam_g5_s2_mid", "prefixId": "p_065", "prefix": "云帆" },
+    { "examId": "exam_g6_s1_mid", "prefixId": "p_066", "prefix": "远航" }
+  ],
+  "finals": [
+    { "examId": "exam_g3_s1_final", "prefixId": "p_067", "prefix": "金秋" },
+    { "examId": "exam_g3_s2_final", "prefixId": "p_068", "prefix": "盛夏" },
+    { "examId": "exam_g4_s1_final", "prefixId": "p_069", "prefix": "丰收" },
+    { "examId": "exam_g4_s2_final", "prefixId": "p_070", "prefix": "繁花" },
+    { "examId": "exam_g5_s1_final", "prefixId": "p_071", "prefix": "群山" },
+    { "examId": "exam_g5_s2_final", "prefixId": "p_072", "prefix": "长河" },
+    { "examId": "exam_g6_s1_final", "prefixId": "p_073", "prefix": "星河" },
+    { "examId": "exam_g6_s2_final", "prefixId": "p_074", "prefix": "启程" }
+  ],
+  "graduation": {
+    "bossId": "grad_primary",
+    "prefixId": "p_075",
+    "prefix": "圆满",
+    "prefixJoin": "de",
+    "suffixId": "s_044",
+    "suffix": "毕业生"
+  },
+  "sharedSuffixes": {
+    "anyMid": { "id": "s_042", "text": "半程勇者" },
+    "anyFinal": { "id": "s_043", "text": "学期英雄" }
+  }
+}
