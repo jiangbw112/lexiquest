@@ -5,7 +5,8 @@ import { resetClock, reviewWord, shiftClock, studyNow } from "../../domain/progr
 import { reviewWordIds } from "../../domain/chapter-plan";
 import { badgeTone, formatDue, isDue, reviewDesk } from "../../domain/review";
 import { checkSpelling, spellingAllowed, spellingQuestion } from "../../domain/questions";
-import { showSpellingHint } from "../spelling-form";
+import { reviewDeskEnglish, reviewDeskMeaning } from "../../domain/spelling-leak";
+import { showSpellingHint, showSpellingPrompt } from "../spelling-form";
 import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout } from "../dev-mode";
 import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, REVIEW_DESK, REVIEW_ROW } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
@@ -26,6 +27,8 @@ const RATINGS: { rating: Grade; label: string; code: string }[] = [
 
 export class ReviewScene extends Phaser.Scene {
   private spellId: string | null = null;
+  /** True only for the draw that opens the spelling panel. The next draw restores the list. */
+  private spellingPanel = false;
   private spellNote = "";
   private dev = false;
   private revealed = new Set<string>();
@@ -124,9 +127,13 @@ export class ReviewScene extends Phaser.Scene {
   private draw(): void {
     const save = getSave();
     if (!save) return;
+    const spellingPanel = this.spellingPanel;
+    this.spellingPanel = false;
     this.children.removeAll(true);
-    document.getElementById("spell-form")?.classList.remove("open");
-    showSpellingHint(null);
+    if (!spellingPanel) {
+      document.getElementById("spell-form")?.classList.remove("open");
+      showSpellingHint(null);
+    }
     if (!paintRoom(this)) paper(this);
     warmPanel(this, 640, 400, 1040, 740);
     const now = studyNow(save);
@@ -182,11 +189,11 @@ export class ReviewScene extends Phaser.Scene {
       const shown = !due || this.revealed.has(memory.wordId);
       warmSlice(this, "atlas_ui_pages", "list_row", 980, row.height).setPosition(640, row.centerY);
       const english = this.add.text(REVIEW_ROW.textX, y, "", { fontFamily: FONT, fontSize: "22px", color: INK });
-      applyFittedText(english, word.english, reviewEnglishBox());
+      applyFittedText(english, reviewDeskEnglish(word.english, spellingPanel), reviewEnglishBox());
       if (shown) {
         const box = reviewMeaningBox(english.width);
         const meaning = this.add.text(box.x, y, "", { fontFamily: FONT, fontSize: "22px", color: INK });
-        applyFittedText(meaning, formatMeaning(word), box);
+        applyFittedText(meaning, reviewDeskMeaning(formatMeaning(word), spellingPanel), box);
       }
       if (due && !shown) {
         warmButton(this, REVIEW_ROW.revealCenter, y + REVIEW_ROW.revealOffset, "翻看释义", () => {
@@ -209,9 +216,11 @@ export class ReviewScene extends Phaser.Scene {
       if (spellingAllowed(word, lit)) {
         warmButton(this, REVIEW_ROW.spellCenter, y + REVIEW_ROW.spellOffset, "拼写", () => {
           this.spellId = memory.wordId;
+          this.spellingPanel = true;
           this.draw();
           document.getElementById("spell-form")?.classList.add("open");
           showSpellingHint(word.english);
+          showSpellingPrompt(spellingQuestion(memory.wordId, this.badgeLit(memory.wordId))?.prompt ?? null);
           const input = document.getElementById("spell-input");
           if (input instanceof HTMLInputElement) input.focus();
         }, { width: REVIEW_ROW.spellWidth, height: 48 });

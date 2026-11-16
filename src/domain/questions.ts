@@ -1,6 +1,7 @@
 import { glossPairBlocked, spellingSkipIds } from "./chapter-plan";
 import { formatMeaning, sampleWords, wordById, type WordDef } from "./catalog";
 import { hashSeed, shuffle } from "./rng";
+import { maskedSpellingFace } from "./spelling-leak";
 
 export interface QuizChoice {
   id: string;
@@ -110,7 +111,7 @@ export function spellingQuestion(wordId: string, badgeLit: boolean, skip?: reado
   return {
     kind: "spelling",
     wordId: word.id,
-    prompt: `用键盘拼出「${formatMeaning(word)}」。`,
+    prompt: `用键盘拼出「${maskedSpellingFace(word)}」。`,
     answer: word.english,
     hint: spellingMarkHint(word.english),
   };
