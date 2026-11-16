@@ -5,6 +5,7 @@
  * re-checked before any server grants the same reward.
  */
 import { isAppearance } from "./appearance";
+import { migrateTitleSave } from "./titles";
 import { normalizeGrades } from "./catalog";
 import { CLASS_IDS } from "./classes";
 import { resolvedClassId } from "./class-unlock";
@@ -145,7 +146,7 @@ export function deserialize(raw: string): SaveData | null {
       : undefined;
     save.selectedGrades = normalizeGrades(grades);
     save.gradesConfirmed = typeof value.gradesConfirmed === "boolean" ? value.gradesConfirmed : save.selectedGrades.length > 0;
-    return settleWardrobeWear(withParentDefaults(save));
+    return settleWardrobeWear(withParentDefaults(migrateTitleSave(save, Date.now())));
   } catch {
     return null;
   }

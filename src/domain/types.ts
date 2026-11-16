@@ -65,6 +65,62 @@ export interface RewardNotice {
   detail: string;
 }
 
+export type TitleSlot = "prefix" | "suffix";
+export type TitleJoin = "de" | "direct";
+export type TitleGrantSource = "bossFirstClear" | "level" | "legacyTitle";
+
+export type TitleSourceRule =
+  | { kind: "level"; minLevel: number }
+  | { kind: "examPrefix"; bossId: string }
+  | { kind: "anyMid" | "anyFinal" | "graduation" };
+
+export interface TitleDef {
+  id: string;
+  slot: TitleSlot;
+  text: string;
+  join?: TitleJoin;
+  sourceRule: TitleSourceRule;
+}
+
+export interface TitleParts {
+  unlockedPrefixIds: string[];
+  unlockedSuffixIds: string[];
+  equipped: { prefixId: string | null; suffixId: string | null };
+  newIds: string[];
+  via: Record<string, { source: string; at: number }>;
+}
+
+/**
+ * Shape from TITLE_SPEC. This PR does not write it onto examProgress.
+ * Graduation proof and exam phase records stay with the exam PR.
+ */
+export type FirstClearProof = {
+  clearEventId: string;
+  firstClearAt?: number;
+  configPhaseCount?: number;
+  gateVerified?: boolean;
+  chapterConfigVersion?: string;
+} & (
+  | { kind: "finalPhaseVictory"; phaseCount: number }
+  | { kind: "legacyCleared"; phaseCount?: number }
+);
+
+export interface TitleGrant {
+  grantedAt: number;
+  source: TitleGrantSource;
+  evidenceId: string;
+  partIds: string[];
+  newPartIds: string[];
+}
+
+export interface TitleReceipt {
+  id: string;
+  eventId: string;
+  grantKeys: string[];
+  newPartIds: string[];
+  status: "pending" | "presented";
+}
+
 export interface PlayerProfile {
   name: string;
   classId: ClassId;
@@ -215,4 +271,17 @@ export interface SaveData {
   inventorUnlockedBy?: string;
   /** Reserved. 1.0.0 does not backfill a clear into an unlock. */
   examProgress?: Record<string, { cleared?: boolean; bestPhase?: number }>;
+  /**
+   * Stable id for title events. Not derived from the player name.
+   * Old saves receive one during title migration.
+   */
+  profileId?: string;
+  /**
+   * Title-subsystem migration mark. Missing means not migrated yet.
+   * SaveData.version stays 1; a higher version would fail the current loader.
+   */
+  titleRulesVersion?: 1;
+  titleParts?: TitleParts;
+  titleGrantLedger?: Record<string, TitleGrant>;
+  titleReceipts?: Record<string, TitleReceipt>;
 }
