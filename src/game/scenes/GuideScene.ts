@@ -17,6 +17,7 @@ import type { GoalPreset, GradeBand } from "../../domain/types";
 import { isDesktopShell, shellCopy } from "../../domain/host-copy";
 import { commit, getSave, mutate, saveCacheNotice } from "../session";
 import { STRUGGLE_LIST, cjkWrap, struggleWindow } from "../layout";
+import { clearPinErrorText } from "../pin-error";
 import { probeEnter, probeNote } from "../probe";
 import { paintShellDom } from "../shell-dom";
 import { FONT } from "../ui";
@@ -63,6 +64,8 @@ export class GuideScene extends Phaser.Scene {
       if (event.code === "KeyY" && this.pinSession.unlocked && this.confirming && this.tab === "notes") this.clearSave();
     });
     this.bindPinForm();
+    clearPinErrorText(document);
+    this.events.once("shutdown", () => clearPinErrorText(document));
     this.renderPinForm();
     const clock = window.setInterval(() => this.renderPinClock(), 1000);
     this.events.once("shutdown", () => window.clearInterval(clock));
