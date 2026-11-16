@@ -16,7 +16,7 @@ import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { isDesktopShell, shellCopy } from "../../domain/host-copy";
 import { commit, getSave, mutate, saveCacheNotice } from "../session";
-import { STRUGGLE_LIST, cjkWrap, struggleWindow } from "../layout";
+import { PARENT_GATE_BACK, STRUGGLE_LIST, cjkWrap, parentGateLayout, pinFormPlacement, struggleWindow } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { paintShellDom } from "../shell-dom";
 import { FONT } from "../ui";
@@ -42,6 +42,8 @@ export class GuideScene extends Phaser.Scene {
   private pinSession!: ParentPinSession;
   private pinBusy = false;
   private pinNotice = "";
+  /** Whether the parchment note and the password card are currently side by side. */
+  private gateWide: boolean | null = null;
 
   constructor() {
     super("guide");
@@ -55,6 +57,7 @@ export class GuideScene extends Phaser.Scene {
     probeEnter("guide");
     this.pinSession = createParentPinSession({ gate: pbkdf2PinGate, vault: browserParentPinVault() });
     this.pinBusy = false;
+    this.gateWide = null;
     this.notice = "";
     this.gradeDraft = normalizeGrades(getSave()?.selectedGrades);
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
@@ -66,7 +69,40 @@ export class GuideScene extends Phaser.Scene {
     this.renderPinForm();
     const clock = window.setInterval(() => this.renderPinClock(), 1000);
     this.events.once("shutdown", () => window.clearInterval(clock));
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.followGateResize);
+    this.events.once("shutdown", () => this.scale.off(Phaser.Scale.Events.RESIZE, this.followGateResize));
     this.draw();
+  }
+
+  private followGateResize = (): void => {
+    if (this.pinSession.unlocked) return;
+    const wide = parentGateLayout(this.scale.displaySize.width).mode === "columns";
+    if (wide !== this.gateWide) this.draw();
+    else this.positionPinForm();
+  };
+
+  /** Keep the password card on the fitted canvas, to the right of the note or under it. */
+  private positionPinForm(): void {
+    const form = document.getElementById("pin-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.classList.contains("open")) {
+      form.style.transform = "";
+      return;
+    }
+    const layout = parentGateLayout(this.scale.displaySize.width);
+    form.dataset.gateMode = layout.mode;
+    form.style.width = `${layout.pin.w}px`;
+    form.style.transform = "none";
+    const rect = this.game.canvas.getBoundingClientRect();
+    const placed = pinFormPlacement(
+      { left: rect.left, top: rect.top, width: rect.width },
+      layout.pin,
+      form.offsetHeight,
+    );
+    form.style.left = `${placed.left}px`;
+    form.style.top = `${placed.top}px`;
+    form.style.transformOrigin = "top left";
+    form.style.transform = `scale(${placed.scale})`;
   }
 
   private bindPinForm(): void {
@@ -92,6 +128,12 @@ export class GuideScene extends Phaser.Scene {
       form?.removeEventListener("submit", submit);
       forgot?.removeEventListener("click", startForgot);
       form?.classList.remove("open");
+      if (form instanceof HTMLFormElement) {
+        form.style.left = "";
+        form.style.top = "";
+        form.style.width = "";
+        form.style.transform = "";
+      }
     });
   }
 
@@ -105,6 +147,7 @@ export class GuideScene extends Phaser.Scene {
     const challenge = document.getElementById("pin-challenge");
     if (this.pinSession.unlocked) {
       form?.classList.remove("open");
+      this.positionPinForm();
       return;
     }
     paintShellDom(document, isDesktopShell());
@@ -116,6 +159,7 @@ export class GuideScene extends Phaser.Scene {
     if (challenge) challenge.textContent = this.pinSession.challenge ? `请计算 ${this.pinSession.challenge.prompt}` : "";
     if (error && !error.textContent) error.textContent = this.pinSession.notice ?? "";
     this.renderPinClock();
+    this.positionPinForm();
   }
 
   private renderPinClock(): void {
@@ -205,16 +249,24 @@ export class GuideScene extends Phaser.Scene {
     warmBackground(this, "bg_parent");
     this.add.text(140, 28, uiLabel("给家长"), { fontFamily: FONT_TITLE, fontSize: "36px", color: INK });
     if (!this.pinSession.unlocked) {
-      warmPanel(this, 640, 280, 960, 220);
-      this.add.text(200, 210, shellCopy(isDesktopShell()).gradeGateNote, {
+      const layout = parentGateLayout(this.scale.displaySize.width);
+      this.gateWide = layout.mode === "columns";
+      const box = layout.dialog;
+      warmPanel(this, box.x + box.w / 2, box.y + box.h / 2, box.w, box.h);
+      this.add.text(layout.note.x, layout.note.y, shellCopy(isDesktopShell()).gradeGateNote, {
         fontFamily: FONT,
         fontSize: "20px",
         color: INK,
-        wordWrap: cjkWrap(880),
+        wordWrap: cjkWrap(layout.note.wrap),
       });
-      warmButton(this, 280, 340, uiLabel("返回"), () => this.scene.start("overworld"), { width: 160, tone: "secondary" });
+      warmButton(this, layout.back.x, layout.back.y, uiLabel("返回"), () => this.scene.start("overworld"), {
+        width: PARENT_GATE_BACK.width,
+        tone: "secondary",
+      });
+      this.positionPinForm();
       return;
     }
+    this.gateWide = null;
     warmTab(this, 360, 96, uiLabel("学习进度"), this.tab === "progress", () => this.show("progress"), 200);
     warmTab(this, 580, 96, uiLabel("说明与年级"), this.tab === "notes", () => this.show("notes"), 220);
     if (this.tab === "progress") this.drawProgress();
