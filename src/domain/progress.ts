@@ -5,15 +5,16 @@ import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
 import { advanceBattleAnchor } from "./chapter-route";
 import { chapterBossReady, parseChapterEncounter, spellingSkipIds, starKey } from "./chapter-plan";
+import { isCleared } from "./clearance";
+import { battleClearLine, learnedWordsLine, cardProgress } from "./learn-progress";
 import { PROVISIONAL } from "./provisional";
 import {
   bossReady,
-  chapterLearnedCount,
   chapterWordIds,
   FOREST_CHAPTER,
-  FOREST_WORD_COUNT,
   clearedStageCount,
   litMasteryCount,
+  requiredWordIds,
   explorationStageByEncounter,
   masteryLabel,
   stageById,
@@ -450,7 +451,9 @@ export function questLine(save: SaveData): string {
   const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
   if (tooSmall) return tooSmall;
   const now = studyNow(save);
-  const progress = `已学 ${chapterLearnedCount(save)}/${FOREST_WORD_COUNT}，已清关 ${clearedStageCount(save)}/5，熟练 ${masteryLabel(save, now)}。`;
+  const words = cardProgress(save, requiredWordIds(save));
+  const learned = learnedWordsLine(words, "本章") ?? "本章没有要学的词";
+  const progress = `${learned}，${battleClearLine(clearedStageCount(save), 5)}，熟练 ${masteryLabel(save, now)}。`;
   if (save.chapterCleared) {
     return `森林冒险通关了。${progress}复习会让灰掉的徽章再亮。`;
   }
@@ -505,13 +508,15 @@ export function applyBattleOutcome(
     ? (save.chapterProgress?.[chapterHit.chapterId] ?? { cleared: false, stageWins: {} })
     : null;
   const alreadyCleared = chapterHit
-    ? chapterHit.boss
-      ? priorEntry!.cleared
-      : (priorEntry!.stageWins[String(chapterHit.stageId)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
+    ? isCleared(save, {
+        kind: "stage",
+        chapterId: chapterHit.chapterId,
+        stage: { id: chapterHit.stageId, type: chapterHit.boss ? "boss" : "exploration" },
+      })
     : stage
-      ? (save.stageWins[String(stage.id)] ?? 0) >= FOREST_CHAPTER.stage_clear.min_battle_wins
+      ? isCleared(save, { kind: "stage", chapterId: FOREST_CHAPTER.chapter_id, stage })
       : boss
-        ? save.chapterCleared
+        ? isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER.chapter_id })
         : false;
   const dayKey = localDayKey(new Date(now), deviceTimeZone());
   const replayCount = alreadyCleared ? (save.replayWinsByDay?.[dayKey] ?? 0) : 0;

@@ -1,6 +1,7 @@
 import { chapterExtraWords, isChapterExtra, wordById } from "./catalog";
 import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
+import { isCleared } from "./clearance";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
 import type { ClassId, SaveData } from "./types";
@@ -274,10 +275,9 @@ export function stageWins(save: SaveData, stageId: number): number {
   return save.stageWins[String(stageId)] ?? 0;
 }
 
-/** The only non-boss clear check. One recorded win passes the stage. Learning words does not. */
+/** Forest stages use isCleared. One recorded win passes a non-boss stage. */
 export function stageCleared(save: SaveData, stage: ForestStage): boolean {
-  if (stage.type === "boss") return save.chapterCleared;
-  return stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
+  return isCleared(save, { kind: "stage", chapterId: FOREST_CHAPTER.chapter_id, stage });
 }
 
 export function explorationCleared(save: SaveData): boolean {
@@ -305,7 +305,7 @@ export function stageStatuses(save: SaveData): StageStatus[] {
   let gateOpen = true;
   for (const stage of FOREST_CHAPTER.stages) {
     if (stage.type === "boss") {
-      if (save.chapterCleared) statuses.push("cleared");
+      if (isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER.chapter_id })) statuses.push("cleared");
       else if (gateOpen && bossReady(save)) statuses.push("open");
       else statuses.push("locked");
       continue;

@@ -128,7 +128,8 @@ describe("forest map panel", () => {
     expect(panel.note).toBe("这一关没有要学的新词。赢 1 场小战斗就算通过。");
     expect(panel.statusLabel).toBe("进行中");
     expect(panel.buttons.find((button) => button.id === "fight")).toMatchObject({ label: "小战斗", enabled: true });
-    expect(panel.total).toBe(stage.new_words.length);
+    expect(panel.total).toBe(0);
+    expect(panel.learned).toBe(0);
     expect(panel.progressLabel).toBeNull();
     expect(`${panel.goal ?? ""} ${panel.note ?? ""}`).not.toMatch(/\d+\/\d+/);
   });
@@ -143,6 +144,7 @@ describe("forest map panel", () => {
     const beforeWin = stageWordsStillToLearn(save, stage);
     const waiting = mapPanel(save, stage, "open");
     expect(waiting.note).toBe(`这一关还有 ${beforeWin} 个新词可以去学堂学`);
+    expect(waiting.progressLabel).toBe(`本关已学 1/${ids.length} 个词`);
     expect(waiting.statusLabel).toBe("进行中");
     save = { ...save, stageWins: { "1": 1 }, battlesWon: 1 };
     expect(stageCleared(save, stage)).toBe(true);
@@ -154,7 +156,11 @@ describe("forest map panel", () => {
     expect(panel.note).toBe(stageLearnMoreLine(remaining));
     expect(panel.note).toBe(`这一关还有 ${remaining} 个新词可以去学堂学`);
     expect(panel.note).not.toContain("才能通过");
+    expect(panel.progressLabel).toBe(`本关已学 1/${ids.length} 个词`);
+    expect(panel.learned).toBe(1);
+    expect(panel.total).toBe(ids.length);
     expect(panel.statusLabel).toBe("已通过");
+    expect(panel.progressLabel).not.toContain("通过");
     const view = buildResultsView({
       before: save,
       after: { ...save, battlesWon: save.battlesWon + 1, xp: save.xp + 10 },
@@ -183,6 +189,7 @@ describe("forest map panel", () => {
     expect(stageCleared(done, stage)).toBe(true);
     const cleared = mapPanel(done, stage, "cleared");
     expect(cleared.note).toBeNull();
+    expect(cleared.progressLabel).toBe(`本关已学 ${ids.length}/${ids.length} 个词`);
     expect(cleared.statusLabel).toBe("已通过");
     const finished = buildResultsView({
       before: done,

@@ -1,5 +1,6 @@
 import { MAP_PRACTICE_NOTE } from "./battle-results";
 import { wordById } from "./catalog";
+import { cardProgress, learnedWordsLine } from "./learn-progress";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { studyNow } from "./progress";
 import { uiLabel } from "./ui-label";
@@ -71,15 +72,11 @@ export interface MapPanelCounts {
 }
 
 export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus, counts?: MapPanelCounts): MapPanel {
-  const total = stage.new_words.length;
-  const learned = stage.new_words.filter((id) => save.wordCards[id]).length;
+  const progress = cardProgress(save, stageWordIds(save, stage));
+  const learned = progress.learned;
+  const total = progress.total;
   const boss = stage.type === "boss";
-  const learnable = stageWordIds(save, stage).length;
-  const progressLabel = !boss && learnable === 0
-    ? null
-    : status === "open" && !boss
-      ? `已学 ${learned}/${total}`
-      : `${learned}/${total}`;
+  const progressLabel = learnedWordsLine(progress, "本关");
   const base = {
     stageId: stage.id,
     title: stage.name_zh,

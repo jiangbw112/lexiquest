@@ -6,7 +6,8 @@ import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades
 import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
 import { PROVISIONAL } from "./provisional";
 import { startBattle } from "./battle";
-import { battleWordIds, gradeChapters, isChapterUnlocked } from "./chapter-plan";
+import { battleWordIds, gradeChapters, graduationBossReady, isChapterUnlocked } from "./chapter-plan";
+import { inventorEarnedByClear, isClassUnlocked } from "./class-unlock";
 import { skillQuestionPool } from "./skill-cast";
 import { deserialize, serialize } from "./storage";
 import { badgeTone } from "./review";
@@ -162,6 +163,29 @@ describe("forest chapter", () => {
     expect(repeated.titles).toEqual(claimed.titles);
     expect(repeated.unlockedCosmeticIds).toEqual(claimed.unlockedCosmeticIds);
     expect(repeated.rewardQueue).toEqual(claimed.rewardQueue);
+    const replay = applyBattleOutcome(loaded, "win", START.getTime() + 5_000, "forest-stage-1");
+    const replayAgain = applyBattleOutcome(replay, "win", START.getTime() + 6_000, "forest-stage-1");
+    expect(replay.chapterCleared).toBe(false);
+    expect(replay.clearRewardClaimed).toBe(false);
+    expect(replay.unlockedTitleIds).toEqual(loaded.unlockedTitleIds);
+    expect(replay.titles).toEqual(loaded.titles);
+    expect(replay.unlockedCosmeticIds).toEqual(loaded.unlockedCosmeticIds);
+    expect(replay.rewardQueue).toEqual(loaded.rewardQueue);
+    expect(replay.ownedOutfitIds).toEqual(loaded.ownedOutfitIds);
+    expect(replay.titleParts).toEqual(loaded.titleParts);
+    expect(replay.titleGrantLedger).toEqual(loaded.titleGrantLedger);
+    expect(replay.unlockedClassIds).toEqual(loaded.unlockedClassIds);
+    expect(isClassUnlocked("inventor", replay)).toBe(false);
+    expect(inventorEarnedByClear(replay)).toBe(false);
+    expect(graduationBossReady(replay)).toBe(false);
+    expect(isChapterUnlocked(replay, gradeChapters("G3")[0]!)).toBe(false);
+    expect(replayAgain.unlockedTitleIds).toEqual(replay.unlockedTitleIds);
+    expect(replayAgain.titles).toEqual(replay.titles);
+    expect(replayAgain.unlockedCosmeticIds).toEqual(replay.unlockedCosmeticIds);
+    expect(replayAgain.rewardQueue).toEqual(replay.rewardQueue);
+    expect(replayAgain.ownedOutfitIds).toEqual(replay.ownedOutfitIds);
+    expect(replayAgain.titleGrantLedger).toEqual(replay.titleGrantLedger);
+    expect(replayAgain.chapterCleared).toBe(false);
   });
 
   it("unlocks the stages in order and keeps the boss shut until then", () => {

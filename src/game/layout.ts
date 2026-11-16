@@ -723,6 +723,34 @@ export interface PinFormPlacement {
 
 /** Map the password card onto the fitted canvas. Shrink only if the card would pass the bottom margin. */
 /** CJK width used by the academy title and chip layout tests. ASCII is a bit narrower. */
+/** Map header sits in the panel centered at x=930, width 540. Text starts at 680 and must end by 1200. */
+export const MAP_HEADER = {
+  textLeft: 680,
+  textRight: 1200,
+  learnedX: 680,
+  masteryX: 860,
+  dueX: 1040,
+  titleSize: 20,
+  subSize: 14,
+} as const;
+
+export function mapHeaderFits(learned: string, mastery: string, due: string, sub: string): boolean {
+  const learnedEnd = MAP_HEADER.learnedX + cjkTextWidth(learned, MAP_HEADER.titleSize);
+  const masteryEnd = MAP_HEADER.masteryX + cjkTextWidth(mastery, MAP_HEADER.titleSize);
+  const dueEnd = MAP_HEADER.dueX + cjkTextWidth(due, MAP_HEADER.titleSize);
+  return learnedEnd <= MAP_HEADER.masteryX - 8
+    && masteryEnd <= MAP_HEADER.dueX - 8
+    && dueEnd <= MAP_HEADER.textRight
+    && MAP_HEADER.textLeft + cjkTextWidth(sub, MAP_HEADER.subSize) <= MAP_HEADER.textRight;
+}
+
+/** Parent week line starts at 140. The learned count starts at 720 and must stay inside 1140. */
+export function parentProgressFits(week: string, learned: string): boolean {
+  const weekEnd = 140 + cjkTextWidth(week, 16);
+  const learnedEnd = 720 + cjkTextWidth(learned, 16);
+  return weekEnd <= 700 && learnedEnd <= 1140;
+}
+
 export function cjkTextWidth(text: string, fontSize: number): number {
   let pixels = 0;
   for (const char of text) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;

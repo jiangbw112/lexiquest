@@ -307,6 +307,9 @@ export class GuideScene extends Phaser.Scene {
     const note = this.pinNotice || view.clockNote || view.emptyLine || view.todayLine || (view.dueNow === 0 ? "太好了，暂时没有到期要复习的词。" : view.reminderLine);
     this.add.text(140, 264, note, { fontFamily: FONT, fontSize: "16px", color: MUTED, wordWrap: cjkWrap(1000) });
     this.add.text(140, 296, view.weekLine, { fontFamily: FONT, fontSize: "16px", color: INK });
+    if (view.learnedLine) {
+      this.add.text(720, 296, view.learnedLine, { fontFamily: FONT, fontSize: "16px", fontStyle: "700", color: INK });
+    }
     this.add.text(140, 324, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
       fontFamily: FONT,
       fontSize: "16px",
