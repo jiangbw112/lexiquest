@@ -12,10 +12,14 @@ import type { ClassId, SaveData } from "./types";
 
 export const OUTFIT_SLOT = "outfit";
 
-/** Wardrobe icon atlas. Loaded with `atlas_wardrobe`, not in the boot scene. */
+/**
+ * Future reviewed icon atlas. Do not queue it until the art is in the repo.
+ * Load it in the wardrobe scene next to `atlas_wardrobe`, never in BootScene.
+ * Each frame is `equip_{id}` and is drawn at `equipIconDisplaySize`.
+ */
 export const EQUIP_ICON_ATLAS = "atlas_equip_icons";
 
-/** Frame names follow mapping.json: `equip_{id}`, including hyphenated ids. */
+/** Frame name for a later atlas: `equip_{id}`, including hyphenated ids. */
 export function equipIconFrame(id: string): string {
   return `equip_${id}`;
 }
@@ -23,6 +27,18 @@ export function equipIconFrame(id: string): string {
 /** 48 logical pixels, or 64 when the cell is at least 180 wide. */
 export function equipIconDisplaySize(cellWidth: number): 48 | 64 {
   return cellWidth >= 180 ? 64 : 48;
+}
+
+/**
+ * One character already in the font subset, until the icon atlas exists.
+ * Chest would start with 胸, which is not in the subset, so that slot uses 饰.
+ */
+export function equipIconMark(slot: string): string {
+  if (slot === OUTFIT_SLOT) return "整";
+  if (slot === "cosmetic_back") return "背";
+  if (slot === "cosmetic_chest") return "饰";
+  if (slot === "cosmetic_head") return "头";
+  return "装";
 }
 
 /** Viewport for the owned list. More rows than this height can scroll. */

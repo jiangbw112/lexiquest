@@ -9,7 +9,6 @@ const ATLASES = {
   atlas_skills: ["assets/warm/atlas/atlas_skills.png", "assets/warm/atlas/atlas_skills.json"],
   atlas_monsters: ["assets/warm/atlas/atlas_monsters.png", "assets/warm/atlas/atlas_monsters.json"],
   atlas_wardrobe: ["assets/warm/atlas/atlas_wardrobe.png", "assets/warm/atlas/atlas_wardrobe.json"],
-  atlas_equip_icons: ["assets/warm/atlas/atlas_equip_icons.png", "assets/warm/atlas/atlas_equip_icons.json"],
   atlas_ui_pages: ["assets/warm/atlas/atlas_ui_pages.png", "assets/warm/atlas/atlas_ui_pages.json"],
   atlas_results: ["assets/warm/atlas/atlas_results.png", "assets/warm/atlas/atlas_results.json"],
   atlas_fx_projectiles: ["assets/warm/atlas/atlas_fx_projectiles.png", "assets/warm/atlas/atlas_fx_projectiles.json"],

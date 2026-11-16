@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { CLASS_IDS } from "./classes";
@@ -13,6 +13,7 @@ import {
   applyWardrobeIntent,
   equipIconDisplaySize,
   equipIconFrame,
+  equipIconMark,
   equippedSlotPieces,
   ownedWardrobeRows,
   slotHolderId,
@@ -238,23 +239,25 @@ describe("owned wardrobe list", () => {
     expect(clearNew.equipped).toEqual([{ id: "pin", slot: "cosmetic_chest" }]);
   });
 
-  it("sizes equipment icons from the cell width and maps each id to its atlas frame", () => {
+  it("reserves a fixed icon well and a slot mark until reviewed art arrives", () => {
     expect(equipIconDisplaySize(179)).toBe(48);
     expect(equipIconDisplaySize(180)).toBe(64);
     expect(equipIconDisplaySize(WARDROBE_LIST.width)).toBe(64);
-    const atlas = JSON.parse(
-      readFileSync(new URL("../../public/assets/warm/atlas/atlas_equip_icons.json", import.meta.url), "utf8"),
-    ) as { frames: Record<string, { frame: { w: number; h: number } }> };
     for (const piece of wardrobeCatalog()) {
-      const frame = equipIconFrame(piece.id);
-      expect(frame).toBe(`equip_${piece.id}`);
-      expect(atlas.frames[frame]?.frame).toMatchObject({ w: 96, h: 96 });
+      expect(equipIconFrame(piece.id)).toBe(`equip_${piece.id}`);
+      expect(equipIconMark(piece.slot).length).toBe(1);
     }
+    expect(equipIconMark("outfit")).toBe("整");
+    expect(equipIconMark("cosmetic_back")).toBe("背");
+    expect(equipIconMark("cosmetic_chest")).toBe("饰");
+    expect(equipIconMark("cosmetic_head")).toBe("头");
     const boot = readFileSync(new URL("../game/scenes/BootScene.ts", import.meta.url), "utf8");
     const preload = boot.slice(boot.indexOf("preload(): void {"), boot.indexOf("create(): void {"));
     expect(preload).not.toContain(EQUIP_ICON_ATLAS);
     const load = readFileSync(new URL("../game/warm/load.ts", import.meta.url), "utf8");
-    expect(load).toContain("atlas_equip_icons");
+    expect(load).not.toContain(EQUIP_ICON_ATLAS);
+    expect(existsSync(new URL("../../public/assets/warm/atlas/atlas_equip_icons.png", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../../public/assets/warm/atlas/atlas_equip_icons.json", import.meta.url))).toBe(false);
   });
 
   it("draws checks from the owned list and drops the old wear buttons", () => {
@@ -263,9 +266,11 @@ describe("owned wardrobe list", () => {
     expect(scene).toContain("applyWardrobeIntent");
     expect(scene).toContain("icon_check");
     expect(scene).toContain("save.equippedOutfitId");
-    expect(scene).toContain(`queueWarm(this, ["atlas_ui_core", "atlas_wardrobe", "${EQUIP_ICON_ATLAS}"]`);
+    expect(scene).toContain('queueWarm(this, ["atlas_ui_core", "atlas_wardrobe"], ["bg_room"])');
     expect(scene).toContain("equipIconFrame");
+    expect(scene).toContain("equipIconMark");
     expect(scene).toContain("equipIconDisplaySize");
+    expect(scene).not.toContain(`${EQUIP_ICON_ATLAS}.png`);
     expect(scene).toContain("this.scroll = 0");
     expect(scene).toContain("shutdown");
     expect(scene).not.toContain("换上");

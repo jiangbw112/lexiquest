@@ -10,6 +10,7 @@ import {
   applyWardrobeIntent,
   equipIconDisplaySize,
   equipIconFrame,
+  equipIconMark,
   ownedWardrobeRows,
   slotHolderId,
   wardrobeListMetrics,
@@ -44,7 +45,7 @@ export class WardrobeScene extends Phaser.Scene {
     queueClassSide(this, savedClassId(getSave()));
     queueClassWreath(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_wardrobe", "atlas_equip_icons"], ["bg_room"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_wardrobe"], ["bg_room"]);
   }
 
   create(): void {
@@ -186,6 +187,34 @@ export class WardrobeScene extends Phaser.Scene {
     warmButton(this, 1040, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
   }
 
+  /**
+   * Fixed icon well. A reviewed `atlas_equip_icons` frame `equip_{id}` replaces
+   * the mark; until that texture is queued, the well keeps a slot character.
+   */
+  private equipIcon(
+    x: number,
+    y: number,
+    size: number,
+    row: WardrobeRow,
+  ): Phaser.GameObjects.GameObject[] {
+    const frame = equipIconFrame(row.id);
+    const atlas = this.textures.exists(EQUIP_ICON_ATLAS) ? this.textures.get(EQUIP_ICON_ATLAS) : null;
+    if (atlas?.has(frame)) {
+      return [this.add.image(x, y, EQUIP_ICON_ATLAS, frame).setDisplaySize(size, size)];
+    }
+    const plate = this.add.graphics();
+    plate.fillStyle(0xead8bd, 1);
+    plate.lineStyle(3, 0x3b2a20, 1);
+    plate.fillRoundedRect(x - size / 2, y - size / 2, size, size, 12);
+    plate.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 12);
+    const mark = this.add.text(x, y, equipIconMark(row.slot), {
+      fontFamily: FONT,
+      fontSize: "28px",
+      color: INK,
+    }).setOrigin(0.5);
+    return [plate, mark];
+  }
+
   private drawRows(rows: readonly WardrobeRow[], classId: ReturnType<typeof savedClassId>): void {
     const board = this.add.container(0, WARDROBE_LIST.y - this.scroll);
     this.board = board;
@@ -208,8 +237,7 @@ export class WardrobeScene extends Phaser.Scene {
       mark.setVisible(row.equipped);
       const iconSize = equipIconDisplaySize(WARDROBE_LIST.width);
       const iconX = markX + 14 + 10 + iconSize / 2;
-      const icon = this.add.image(iconX, centerY, EQUIP_ICON_ATLAS, equipIconFrame(row.id));
-      icon.setDisplaySize(iconSize, iconSize);
+      const icon = this.equipIcon(iconX, centerY, iconSize, row);
       const label = this.add.text(iconX + iconSize / 2 + 12, centerY, row.name, {
         fontFamily: FONT,
         fontSize: "22px",
@@ -271,7 +299,7 @@ export class WardrobeScene extends Phaser.Scene {
         if (result.ok && result.save !== current) mutate(() => result.save);
         this.draw();
       });
-      board.add([slot, box, mark, icon, label, hit]);
+      board.add([slot, box, mark, ...icon, label, hit]);
     });
   }
 }
