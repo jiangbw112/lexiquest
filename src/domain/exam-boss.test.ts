@@ -48,6 +48,8 @@ import { PROVISIONAL } from "./provisional";
 import { SAVE_KEY, deserialize, serialize } from "./storage";
 import { configuredPartIds, migrateTitleSave } from "./titles";
 import { wordById } from "./catalog";
+import { spellingQuestion } from "./questions";
+import { SPELLING_MASK, excludedFromUnpromptedSpelling, maskedSpellingFace } from "./spelling-leak";
 import type { ExamSessionRecord, SaveData } from "./types";
 
 const NOW = Date.parse("2026-03-01T02:00:00Z");
@@ -200,6 +202,80 @@ describe("exam bosses", () => {
     });
     expect(again.wordCards.tree?.spelledAloneAt).toBeUndefined();
     expect(isMastered(again.wordCards.tree!)).toBe(false);
+  });
+
+  it("keeps excluded words off exam spelling and masks the Chinese face", () => {
+    expect(excludedFromUnpromptedSpelling("next")).toBe(true);
+    expect(excludedFromUnpromptedSpelling("cleaned")).toBe(true);
+    let save = fresh();
+    save = learnWord(save, "next", new Date(YESTERDAY));
+    save = learnWord(save, "cleaned", new Date(YESTERDAY));
+    const held = EXAM_ID_LIST.flatMap((id) => {
+      const exam = examById(id);
+      if (!exam) return [];
+      return examCardPool(save, exam, new Date(NOW), gradeIsOpen)
+        .filter((word) => word.id === "next" || word.id === "cleaned")
+        .map((word) => word.canSpell);
+    });
+    expect(held.length).toBeGreaterThan(0);
+    expect(held.every((canSpell) => canSpell === false)).toBe(true);
+    const noted = noteExamAnswer(save, {
+      wordId: "next",
+      correct: true,
+      now: new Date(NOW),
+      dueAtStart: [],
+      spelling: true,
+    });
+    expect(noted.wordCards.next?.spelledAloneAt).toBeUndefined();
+    const cleanedNote = noteExamAnswer(save, {
+      wordId: "cleaned",
+      correct: true,
+      now: new Date(NOW),
+      dueAtStart: [],
+      spelling: true,
+    });
+    expect(cleanedNote.wordCards.cleaned?.spelledAloneAt).toBeUndefined();
+    const exam = examById("exam_g3_s1_mid");
+    const next = wordById("next");
+    const cleaned = wordById("cleaned");
+    if (!exam || !next || !cleaned) throw new Error("missing");
+    const blocked = {
+      id: "next",
+      mastered: false,
+      learnedToday: false,
+      due: false,
+      canSpell: true,
+      badgeLit: false,
+    };
+    const opened = { ...scheduleForPhase(exam, emptySession(), 0, [blocked]), phaseQuestions: 2 };
+    const chinese = pickExamQuestion(opened, 1);
+    if (!chinese || chinese.kind === "spelling") throw new Error("excluded word was spelled");
+    const face = maskedSpellingFace(next);
+    expect(chinese.prompt).toBe(`「${face}」用英语怎么说？`);
+    expect(chinese.prompt).toContain(SPELLING_MASK);
+    expect(chinese.prompt.toLowerCase()).not.toContain("next");
+    if (next.pos) expect(chinese.prompt).toContain(next.pos);
+    const englishSide = pickExamQuestion({ ...opened, sessionIndex: 1 }, 1);
+    if (!englishSide || englishSide.kind === "spelling") throw new Error("excluded word was spelled");
+    const label = englishSide.choices.find((choice) => choice.id === "next")?.label;
+    expect(label).toBe(maskedSpellingFace(next));
+    expect(label).toContain(SPELLING_MASK);
+    if (next.pos) expect(label).toContain(next.pos);
+    const tree = {
+      id: "tree",
+      mastered: false,
+      learnedToday: false,
+      due: false,
+      canSpell: true,
+      badgeLit: false,
+    };
+    const spelled = pickExamQuestion({ ...scheduleForPhase(exam, emptySession(), 0, [tree]), phaseQuestions: 2 }, 1);
+    expect(spelled?.kind).toBe("spelling");
+    expect(spelled && spelled.kind === "spelling" ? spelled.prompt : "").toBe(spellingQuestion("tree", false)?.prompt);
+    expect(cleaned.chinese).toContain("clean");
+    expect(maskedSpellingFace(cleaned)).toContain(SPELLING_MASK);
+    expect(maskedSpellingFace(cleaned)).not.toContain("clean");
+    if (cleaned.pos) expect(maskedSpellingFace(cleaned)).toContain(cleaned.pos);
   });
 
   it("caps spelling, keeps the first question as a choice, and still asks when only repeats remain", () => {

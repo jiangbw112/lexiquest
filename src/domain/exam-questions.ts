@@ -10,18 +10,18 @@ import { examById, type ExamDef } from "./exams";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import { isDue } from "./review";
+import { excludedFromUnpromptedSpelling, maskedSpellingFace } from "./spelling-leak";
 import type { SaveData } from "./types";
 
 export const EXAM_NO_QUESTION = "当前没有可用题目，请返回学堂学习或稍后再试";
-
-const EXCLUSION = new Set<string>(exclusionFile.wordIds);
 
 export function spellingExclusionIds(): readonly string[] {
   return exclusionFile.wordIds;
 }
 
+/** Same gate as battle composeQuestion: leak rule and the 20-word list. */
 export function isSpellingExcluded(wordId: string): boolean {
-  return EXCLUSION.has(wordId);
+  return excludedFromUnpromptedSpelling(wordId);
 }
 
 export interface ExamWord {
@@ -158,8 +158,8 @@ export function pickExamQuestion(schedule: ExamSchedule, seed: number): QuizQues
   const repeat = open.length === 0;
   const defs = pool.map((word) => wordById(word.id)).filter((word): word is WordDef => Boolean(word));
   if (spellingRoom(schedule) && !repeat) {
-    const spellable = source.filter((word) => word.canSpell && !word.mastered);
-    const practice = source.filter((word) => word.canSpell && word.mastered);
+    const spellable = source.filter((word) => word.canSpell && !word.mastered && !excludedFromUnpromptedSpelling(word.id));
+    const practice = source.filter((word) => word.canSpell && word.mastered && !excludedFromUnpromptedSpelling(word.id));
     const chosen = pickId(spellable, seed) ?? (source.some((word) => word.due || !word.mastered) ? undefined : pickId(practice, seed + 1));
     if (chosen) {
       const spelling = spellingQuestion(chosen.id, chosen.badgeLit, spellingSkipIds());
@@ -172,7 +172,28 @@ export function pickExamQuestion(schedule: ExamSchedule, seed: number): QuizQues
   const choice = pickId(due, seed) ?? pickId(learning, seed + 3) ?? pickId(rest, seed + 5) ?? source[0];
   if (!choice) return null;
   const direction = schedule.sessionIndex % 2 === 0 ? "zh-to-en" : "en-to-zh";
-  return quizForWord(choice.id, seed + schedule.sessionIndex * 17, direction, defs);
+  return presentExamMeaning(quizForWord(choice.id, seed + schedule.sessionIndex * 17, direction, defs));
+}
+
+/** Chinese on an exam card uses the spelling-face mask. The part of speech stays. */
+function presentExamMeaning(question: QuizQuestion): QuizQuestion {
+  const word = wordById(question.wordId);
+  if (!word) return question;
+  if (question.direction === "zh-to-en") {
+    const face = maskedSpellingFace(word);
+    return { ...question, prompt: `「${face}」用英语怎么说？`, hint: face };
+  }
+  if (question.direction === "en-to-zh") {
+    return {
+      ...question,
+      hint: maskedSpellingFace(word),
+      choices: question.choices.map((choice) => {
+        const item = wordById(choice.id);
+        return item ? { ...choice, label: maskedSpellingFace(item) } : choice;
+      }),
+    };
+  }
+  return question;
 }
 
 export function noteExamAsk(schedule: ExamSchedule, wordId: string, spelling: boolean): ExamSchedule {
