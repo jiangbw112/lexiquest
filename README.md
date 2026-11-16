@@ -4,7 +4,7 @@
 
 进度记在这台电脑上。没有聊天功能，没有真钱商城。
 
-当前版本：1.0.2。这一版的更新写在 [更新说明](RELEASE_NOTES.md)。安装方式没有变。
+当前版本：1.0.3。这一版的更新写在 [更新说明](RELEASE_NOTES.md)。安装方式没有变。
 
 ## 下载安装
 
@@ -130,9 +130,9 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 ## 示例数据
 
-`src/domain/data/pep_words_g3-6_v1.2.2_loader.json` 是唯一的词表。它是 PEP 3–6 年级词库，v1.2.2，863 个词，`sample` 为 false。加载器读取 `word`、`meaning_zh`、`grade_est`、`spelling` 和可选的 `pos`。`pos` 是不透明字符串，按原样显示，包括 `modal v.` 和 `v./n.`。null、缺失字段或 `""` 使词义不带前缀。数字或对象会被拒绝。v1.2.2 加载器文件只有词级 `pos`。当条目还有 `senses` 时，显示的义项使用该义项的 `pos`，回退到词的 `pos`。标记为 `new_sense` 的义项不加载，不会成为测验答案或干扰项。注释、变更注释和顶层列表（如 `dedup_dropped`）仍被忽略。该目录中没有 `words` 数组的文件会被拒绝。一个文件可以包含所有年级，也可以每个年级一个文件。重复的词 id 会被拒绝。`unitId` 仍硬编码为 `${grade}-S1-U1`。学期和单元在正式表中，尚未使用。
+`src/domain/data/pep_words_g3-6_v1.2.2_loader.json` 是唯一的词表。它是 PEP 3–6 年级词库，v1.2.2，863 个词，`sample` 为 false。加载器读取 `word`、`meaning_zh`、`grade_est`、`spelling` 和可选的 `pos`。`pos` 是不透明字符串，按原样显示，包括 `modal v.` 和 `v./n.`。null、缺失字段或 `""` 使词义不带前缀。数字或对象会被拒绝。v1.2.2 加载器文件只有词级 `pos`。当条目还有 `senses` 时，显示的义项使用该义项的 `pos`，回退到词的 `pos`。标记为 `new_sense` 的义项不加载，不会成为测验答案或干扰项。注释、变更注释和顶层列表（如 `dedup_dropped`）仍被忽略。该目录中没有 `words` 数组的文件会被拒绝。一个文件可以包含所有年级，也可以每个年级一个文件。重复的词 id 会被拒绝。这份加载器词表没有学期和单元字段。每个词的 `unitId` 在代码里写成 `${grade}-S1-U1`。
 
-森林章节是 `src/domain/chapters/chapter_forest_v1.1.json`，在词表目录之外。其五个关卡和 6/6/6/6/4 分配来自该文件。二十个词通过 id 从 v1.2.2 词库解析，因此拼写、词义、年级和 `pos` 遵循该词库。章节文件的 `words_resolved_snapshot` 不被读取。八个词（`bridge`、`brave`、`path`、`treasure`、`journey`、`discover`、`adventure`、`protect`）仅属于本章。它们可在此学习，不会进入年级池。章节文件未定义的 Boss 通关规则保留在 `forest-stage-rules.json` 中。学堂教授这 28 个词的章节。用于「够不够开战」和每日目标学习回退的年级池是词库。已保存的卡牌 id 与之前的森林 id 匹配，因此现有存档保留这些卡牌。卡牌显示的年级、词义、拼写和词性现在遵循 v1.2.2。`docs/pep/forest_chapter_mapping_v1.json` 是旧映射，不被学习工具读取。
+森林章节是 `src/domain/chapters/chapter_forest_v1.1.json`，在词表目录之外。其五个关卡和 6/6/6/6/4 分配来自该文件。二十个词通过 id 从 v1.2.2 词库解析，因此拼写、词义、年级和 `pos` 遵循该词库。章节文件的 `words_resolved_snapshot` 不被读取。八个词（`bridge`、`brave`、`path`、`treasure`、`journey`、`discover`、`adventure`、`protect`）仅属于本章。它们可在此学习，不会进入年级池。章节文件未定义的 Boss 通关规则保留在 `forest-stage-rules.json` 中。森林这一章是这 28 个词。学堂按孩子选中的章节出词，不只这一章。用于「够不够开战」和每日目标学习回退的年级池是词库。已保存的卡牌 id 与之前的森林 id 匹配，因此现有存档保留这些卡牌。卡牌显示的年级、词义、拼写和词性现在遵循 v1.2.2。`docs/pep/forest_chapter_mapping_v1.json` 是旧映射，不被学习工具读取。
 
 拼写比较采用 trim、小写、合并空白，然后精确字符串匹配。连字符、撇号或空格是答案的一部分。`camp` 和 `camping` 是两个 id。`spelling` 为 `none` 的词（包括对话卡 `hello`、`hi` 和 `goodbye`）不会出拼写题。
 
@@ -144,7 +144,6 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 
 - 服务器权威存档。这台电脑上的存档不是孩子在服务器上的正式进度。
 - 联网好友 1v1。同设备练习使用已测试的比较规则。真正的对战需要服务器权威处理房间、判定、计时、字典序结果和奖励，并有回放、防伪和防重复奖励保护。客户端不能提交最终结果。
-- `unitId` 仍硬编码为 `${grade}-S1-U1`。v1.2.2 表有学期和单元，此构建未使用。学堂按自己选的章节出词。第 1 章仍是森林的 28 个词。
 - 关闭年级是否应改变 Boss 门槛。通关本身是击败 Boss。亮起徽章仍是本章词汇的计数。森林章的 Boss 图仍是暂定 v0.1 林冠（`bossSprite` 为 `canopy`）。三到六年级每一章用自己的 Boss 图。
 - 称号名称保持首选候选直到配置设置 `final_name_selected_by_pm`。v0.1 森林图在学习工具中。包本身仍标记为「暂定」。
 - 最终林冠图。v0.1 是 `public/assets/boss/canopy/v0.1` 下的可集成包，文档在 `docs/art/boss-canopy/`。
