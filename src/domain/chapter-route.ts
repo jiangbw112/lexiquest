@@ -6,8 +6,9 @@ import {
   isChapterUnlocked,
   type PlayChapter,
 } from "./chapter-plan";
-import { FOREST_CHAPTER } from "./stages";
+import { FOREST_CHAPTER, FOREST_TITLE } from "./stages";
 import type { GradeBand, SaveData } from "./types";
+import { uiLabel } from "./ui-label";
 
 /**
  * Academy L and battle P.
@@ -18,6 +19,8 @@ export const LEARN_PICK = "请选章";
 export const LEARN_RESELECT = "请重新选章";
 export const LEARN_LOAD_FAILED = "本章没有载入。";
 export const LEARN_GRADE_EMPTY = "这一年级还没有可学的章";
+/** Grade chapters stay locked until the forest adventure is cleared. */
+export const LEARN_GRADE_LOCKED = "先打完森林冒险，这一年级就会开启";
 export const BATTLE_RETURN_PROGRESS = "返回进度章";
 export const BATTLE_NONE = "暂无可进入章节";
 export const BATTLE_REVIEW = "回顾";
@@ -67,6 +70,41 @@ function chapterById(chapterId: string): PlayChapter | undefined {
 export function learnGradeLabel(grade: LearnGrade): string {
   if (grade === "mixed") return "森林";
   return GRADE_BANDS.find((item) => item.id === grade)?.label ?? "";
+}
+
+/** Selected grades for the forest lesson, in band order, joined with 、. */
+export function forestGradeLabel(save: SaveData): string {
+  return normalizeGrades(save.selectedGrades)
+    .map((id) => GRADE_BANDS.find((band) => band.id === id)?.label ?? "")
+    .filter((label) => label.length > 0)
+    .join("、");
+}
+
+/** Title line. A forest lesson names the selected grades instead of only 森林. */
+export function learnSceneTitle(save: SaveData, grade: LearnGrade, chapterName: string): string {
+  const label = grade === "mixed" ? forestGradeLabel(save) : learnGradeLabel(grade);
+  return uiLabel(`学堂 · ${label} · ${chapterName}`);
+}
+
+/** Grade chip. The forest chip is the chapter name plus the selected grades. */
+export function learnChipLabel(grade: LearnGrade, save: SaveData): string {
+  if (grade !== "mixed") return learnGradeLabel(grade);
+  const grades = forestGradeLabel(save);
+  return grades.length > 0 ? `${FOREST_TITLE}（${grades}）` : FOREST_TITLE;
+}
+
+export function learnDraftLine(grade: LearnGrade, save: SaveData, chapterName: string | null): string {
+  const label = grade === "mixed" ? forestGradeLabel(save) : learnGradeLabel(grade);
+  return `${label} · ${chapterName ?? LEARN_PICK}`;
+}
+
+/**
+ * An empty grade list before the forest adventure is cleared is the lock, not a missing chapter.
+ * The lock itself is unchanged.
+ */
+export function learnGradeEmptyLine(grade: LearnGrade, forestCleared: boolean): string {
+  if (grade !== "mixed" && !forestCleared) return LEARN_GRADE_LOCKED;
+  return LEARN_GRADE_EMPTY;
 }
 
 /** Title line. Both the grade and the chapter name are required whenever a pair is shown. */

@@ -1,9 +1,10 @@
 import { MAP_PRACTICE_NOTE } from "./battle-results";
 import { wordById } from "./catalog";
+import { cardProgress, learnedWordsLine } from "./learn-progress";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { studyNow } from "./progress";
 import { uiLabel } from "./ui-label";
-import { bossUnlockLine, FOREST_CHAPTER, stageWins, stageWordIds, type ForestStage, type StageStatus } from "./stages";
+import { bossUnlockLine, FOREST_CHAPTER, stageLearnMoreLine, stageWins, stageWordIds, stageWordsStillToLearn, type ForestStage, type StageStatus } from "./stages";
 import type { SaveData } from "./types";
 
 export interface MapWordFace {
@@ -71,15 +72,11 @@ export interface MapPanelCounts {
 }
 
 export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus, counts?: MapPanelCounts): MapPanel {
-  const total = stage.new_words.length;
-  const learned = stage.new_words.filter((id) => save.wordCards[id]).length;
+  const progress = cardProgress(save, stageWordIds(save, stage));
+  const learned = progress.learned;
+  const total = progress.total;
   const boss = stage.type === "boss";
-  const learnable = stageWordIds(save, stage).length;
-  const progressLabel = !boss && learnable === 0
-    ? null
-    : status === "open" && !boss
-      ? `已学 ${learned}/${total}`
-      : `${learned}/${total}`;
+  const progressLabel = learnedWordsLine(progress, "本关");
   const base = {
     stageId: stage.id,
     title: stage.name_zh,
@@ -149,6 +146,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
   const cleared = status === "cleared";
   const winsNeeded = FOREST_CHAPTER.stage_clear.min_battle_wins;
   const emptyLearn = stageWordIds(save, stage).length === 0;
+  const learnMore = stageLearnMoreLine(stageWordsStillToLearn(save, stage));
   return {
     ...base,
     goal: emptyLearn ? `赢 ${winsNeeded} 场小战斗` : null,
@@ -157,11 +155,13 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     wins: counts ? counts.wins : stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
-    note: cleared && practiceFull(save)
-      ? MAP_PRACTICE_NOTE
-      : emptyLearn
-        ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。`
-        : null,
+    note: learnMore
+      ? learnMore
+      : cleared && practiceFull(save)
+        ? MAP_PRACTICE_NOTE
+        : !cleared && emptyLearn
+          ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。`
+          : null,
     buttons: [
       { id: "learn", label: uiLabel("去学堂"), enabled: true, tone: "secondary" },
       { id: "fight", label: uiLabel(cleared ? "再战" : "小战斗"), enabled: true, tone: cleared ? "coral" : "primary" },

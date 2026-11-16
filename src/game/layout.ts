@@ -722,6 +722,94 @@ export interface PinFormPlacement {
 }
 
 /** Map the password card onto the fitted canvas. Shrink only if the card would pass the bottom margin. */
+/** CJK width used by the academy title and chip layout tests. ASCII is a bit narrower. */
+/** Map header sits in the panel centered at x=930, width 540. Text starts at 680 and must end by 1200. */
+export const MAP_HEADER = {
+  textLeft: 680,
+  textRight: 1200,
+  learnedX: 680,
+  masteryX: 860,
+  dueX: 1040,
+  titleSize: 20,
+  subSize: 14,
+} as const;
+
+export function mapHeaderFits(learned: string, mastery: string, due: string, sub: string): boolean {
+  const learnedEnd = MAP_HEADER.learnedX + cjkTextWidth(learned, MAP_HEADER.titleSize);
+  const masteryEnd = MAP_HEADER.masteryX + cjkTextWidth(mastery, MAP_HEADER.titleSize);
+  const dueEnd = MAP_HEADER.dueX + cjkTextWidth(due, MAP_HEADER.titleSize);
+  return learnedEnd <= MAP_HEADER.masteryX - 8
+    && masteryEnd <= MAP_HEADER.dueX - 8
+    && dueEnd <= MAP_HEADER.textRight
+    && MAP_HEADER.textLeft + cjkTextWidth(sub, MAP_HEADER.subSize) <= MAP_HEADER.textRight;
+}
+
+/** Parent week line starts at 140. The learned count starts at 720 and must stay inside 1140. */
+export function parentProgressFits(week: string, learned: string): boolean {
+  const weekEnd = 140 + cjkTextWidth(week, 16);
+  const learnedEnd = 720 + cjkTextWidth(learned, 16);
+  return weekEnd <= 700 && learnedEnd <= 1140;
+}
+
+export function cjkTextWidth(text: string, fontSize: number): number {
+  let pixels = 0;
+  for (const char of text) pixels += char.charCodeAt(0) <= 0x7e ? fontSize * 0.55 : fontSize;
+  return pixels;
+}
+
+/** Wood plank behind the academy title. warmTitlePlank scales text into width − inset. */
+export const LEARN_TITLE_PLANK = { x: 560, y: 48, width: 560, inset: 48, fontSize: 28 } as const;
+
+export function learnTitleScale(textWidth: number, plankWidth = LEARN_TITLE_PLANK.width, inset = LEARN_TITLE_PLANK.inset): number {
+  const limit = Math.max(1, plankWidth - inset);
+  if (textWidth <= limit) return 1;
+  return limit / textWidth;
+}
+
+export const LEARN_CHIP_ROW = {
+  y: 210,
+  centerX: 640,
+  minWidth: 148,
+  maxWidth: 420,
+  gap: 12,
+  fontSize: 24,
+  /** Room for the selected check, so the label stays inside the chip. */
+  textInset: 72,
+  /** Fits inside the 1280-wide canvas with a margin past the safe frame. */
+  rowWidth: 1040,
+} as const;
+
+export interface LearnChipPlacement {
+  x: number;
+  width: number;
+  textScale: number;
+}
+
+/** Places grade chips on one row. Long labels shrink instead of leaving the chip or the screen. */
+export function learnGradeChipRow(labels: readonly string[], measure: (label: string) => number): LearnChipPlacement[] {
+  if (labels.length === 0) return [];
+  const inset = LEARN_CHIP_ROW.textInset;
+  const natural = labels.map((label) => {
+    const wanted = measure(label) + inset;
+    return Math.min(LEARN_CHIP_ROW.maxWidth, Math.max(LEARN_CHIP_ROW.minWidth, wanted));
+  });
+  const gaps = LEARN_CHIP_ROW.gap * (labels.length - 1);
+  const raw = natural.reduce((sum, width) => sum + width, 0) + gaps;
+  const fit = raw > LEARN_CHIP_ROW.rowWidth ? LEARN_CHIP_ROW.rowWidth / raw : 1;
+  const widths = natural.map((width) => width * fit);
+  const total = widths.reduce((sum, width) => sum + width, 0) + gaps;
+  let cursor = LEARN_CHIP_ROW.centerX - total / 2;
+  return labels.map((label, index) => {
+    const width = widths[index] ?? LEARN_CHIP_ROW.minWidth;
+    const inner = Math.max(1, width - inset);
+    const text = measure(label);
+    const textScale = text > inner ? inner / text : 1;
+    const x = cursor + width / 2;
+    cursor += width + LEARN_CHIP_ROW.gap;
+    return { x, width, textScale };
+  });
+}
+
 export function pinFormPlacement(
   canvas: { left: number; top: number; width: number },
   pin: Pick<ParentGateBox, "x" | "y" | "w">,

@@ -98,6 +98,7 @@ export class BattleResultsScene extends Phaser.Scene {
     this.drawHero();
     this.drawTitle();
     this.drawWords();
+    this.drawStudyHint();
     if (view.won) this.drawWinBody();
     else this.drawLossBody();
     this.drawButtons();
@@ -376,6 +377,18 @@ export class BattleResultsScene extends Phaser.Scene {
         color: INK,
       }).setOrigin(0, 0.5);
     }
+  }
+
+  /** Sits in the gap under the word chips. Hidden once nothing is left to learn. */
+  private drawStudyHint(): void {
+    const line = [this.view.learnMoreLine, this.view.repeatLine].filter((item): item is string => Boolean(item)).join(" ");
+    if (!line) return;
+    const text = this.add.text(480, this.dy(400), line, {
+      fontFamily: FONT_BODY,
+      fontSize: "16px",
+      color: NOTE,
+    }).setOrigin(0, 0.5);
+    if (text.width > 700) text.setScale(700 / text.width);
   }
 
   /** Reward and encouragement blocks sit one gap under the words, even when the list is a single row. */

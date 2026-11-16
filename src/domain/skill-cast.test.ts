@@ -4,6 +4,7 @@ import {
   drawSkillQuestionWord,
   emptySkillDeck,
   sharedDuelWordPool,
+  battleQuestionPool,
   skillQuestionPool,
   type SkillQuestionDeck,
 } from "./skill-cast";
@@ -31,6 +32,15 @@ describe("skill card questions", () => {
     expect(dueFirst).toHaveLength(4);
     expect(dueFirst.every((id) => LEARNED.includes(id))).toBe(true);
     expect(dueFirst).not.toContain("not-a-word");
+  });
+
+  it("asks every allowed word when none are learned, and still leads with a due card", () => {
+    const allowed = ["tree", "bird", "fish", "sun"];
+    expect(battleQuestionPool([], [], allowed)).toEqual(allowed);
+    expect(battleQuestionPool(["tree"], ["tree"], allowed)).toEqual(["tree", "bird", "fish", "sun"]);
+    expect(battleQuestionPool(["about"], ["about"], allowed)).toEqual(allowed);
+    expect(battleQuestionPool(["missing"], ["missing"], allowed)).toEqual(allowed);
+    expect(battleQuestionPool([], ["tree"], null)).toEqual(["tree"]);
   });
 
   it("does not ask a due word from a deselected grade", () => {

@@ -2,7 +2,6 @@ import Phaser from "phaser";
 import { unlockedWordIds } from "../../domain/chapter-plan";
 import type { PlayChapter } from "../../domain/chapter-plan";
 import {
-  LEARN_GRADE_EMPTY,
   LEARN_LOAD_FAILED,
   LEARN_PICK,
   LEARN_RESELECT,
@@ -10,8 +9,11 @@ import {
   changeLearnDraftGrade,
   confirmLearnSelection,
   initialLearnDraft,
-  learnGradeLabel,
+  learnChipLabel,
+  learnDraftLine,
+  learnGradeEmptyLine,
   learnGradeOptions,
+  learnSceneTitle,
   legalLearnChapters,
   type LearnDraft,
 } from "../../domain/chapter-route";
@@ -48,7 +50,7 @@ import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
-import { CARD_GOT, STUDY_CARD, cjkWrap, meaningScale, studyNoticeGap, studyRowY } from "../layout";
+import { CARD_GOT, LEARN_CHIP_ROW, LEARN_TITLE_PLANK, STUDY_CARD, cjkTextWidth, cjkWrap, learnGradeChipRow, meaningScale, studyNoticeGap, studyRowY } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
@@ -349,7 +351,7 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     const chapter = assessed.chapter;
-    this.drawLessonHeading(chapter);
+    this.drawLessonHeading(save, chapter);
     warmButton(this, 980, 48, LEARN_PICK, () => this.openPicker(save), { width: 140, tone: "secondary" });
     if (this.picking) {
       this.drawPicker(save);
@@ -482,14 +484,20 @@ export class LearnScene extends Phaser.Scene {
     return assessed.status === "ready" ? assessed.chapter : null;
   }
 
-  private drawLessonHeading(chapter: PlayChapter): void {
+  private drawLessonHeading(save: NonNullable<ReturnType<typeof getSave>>, chapter: PlayChapter): void {
     const grade = chapter.grade === "mixed" ? "mixed" : chapter.grade;
-    warmTitlePlank(this, 560, 48, 560, this.lessonTitle(grade, chapter.name));
+    warmTitlePlank(
+      this,
+      LEARN_TITLE_PLANK.x,
+      LEARN_TITLE_PLANK.y,
+      LEARN_TITLE_PLANK.width,
+      this.lessonTitle(save, grade, chapter.name),
+    );
   }
 
-  /** Static pieces stay inside uiLabel so the title font subset does not drop 学堂. */
-  private lessonTitle(grade: PlayChapter["grade"], name: string): string {
-    return uiLabel(`学堂 · ${learnGradeLabel(grade)} · ${name}`);
+  /** The title font subset reads the template inside learnSceneTitle. */
+  private lessonTitle(save: NonNullable<ReturnType<typeof getSave>>, grade: PlayChapter["grade"], name: string): string {
+    return learnSceneTitle(save, grade, name);
   }
 
   private openPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
@@ -529,7 +537,7 @@ export class LearnScene extends Phaser.Scene {
     status: "choose" | "reselect" | "load-failed",
     remembered: { grade: LearnDraft["grade"]; name: string } | null,
   ): void {
-    if (remembered) warmTitlePlank(this, 560, 48, 560, this.lessonTitle(remembered.grade, remembered.name));
+    if (remembered) warmTitlePlank(this, LEARN_TITLE_PLANK.x, LEARN_TITLE_PLANK.y, LEARN_TITLE_PLANK.width, this.lessonTitle(save, remembered.grade, remembered.name));
     else warmTitlePlank(this, 560, 48, 360, uiLabel("学堂"));
     const message = status === "load-failed" ? LEARN_LOAD_FAILED : status === "reselect" ? LEARN_RESELECT : LEARN_PICK;
     probeNote(`learn:gate:${status}`);
@@ -551,19 +559,27 @@ export class LearnScene extends Phaser.Scene {
   private drawPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
     const grades = learnGradeOptions(save);
     const gradeChoices: LearnDraft["grade"][] = ["mixed", ...grades];
+    const chipLabels = gradeChoices.map((grade) => learnChipLabel(grade, save));
+    const chips = learnGradeChipRow(chipLabels, (label) => cjkTextWidth(label, LEARN_CHIP_ROW.fontSize));
     gradeChoices.forEach((grade, index) => {
-      const x = 640 - ((gradeChoices.length - 1) * 180) / 2 + index * 180;
-      warmChip(this, x, 210, learnGradeLabel(grade), this.draft.grade === grade, () => {
+      const chip = chips[index];
+      if (!chip) return;
+      warmChip(this, chip.x, LEARN_CHIP_ROW.y, chipLabels[index] ?? "", this.draft.grade === grade, () => {
         this.draft = changeLearnDraftGrade(this.draft, grade);
         this.draw();
-      }, { width: 160 });
+      }, { width: chip.width });
     });
     const chapters = legalLearnChapters(save, this.draft.grade);
     const picked = chapters.find((chapter) => chapter.id === this.draft.chapterId);
-    const pair = picked ? `${learnGradeLabel(this.draft.grade)} · ${picked.name}` : `${learnGradeLabel(this.draft.grade)} · ${LEARN_PICK}`;
-    this.add.text(640, 270, pair, { fontFamily: FONT, fontSize: "20px", color: INK }).setOrigin(0.5);
+    const pair = learnDraftLine(this.draft.grade, save, picked ? picked.name : null);
+    const pairText = this.add.text(640, 270, pair, { fontFamily: FONT, fontSize: "20px", color: INK }).setOrigin(0.5);
+    if (pairText.width > 960) pairText.setScale(960 / pairText.width);
     if (chapters.length === 0) {
-      this.add.text(640, 360, LEARN_GRADE_EMPTY, { fontFamily: FONT, fontSize: "22px", color: MUTED }).setOrigin(0.5);
+      this.add.text(640, 360, learnGradeEmptyLine(this.draft.grade, save.chapterCleared), {
+        fontFamily: FONT,
+        fontSize: "22px",
+        color: MUTED,
+      }).setOrigin(0.5);
     }
     chapters.forEach((chapter, index) => {
       const column = index % 2;

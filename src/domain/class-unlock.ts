@@ -1,4 +1,6 @@
 import { CLASS_IDS } from "./classes";
+import { isCleared, type ClearSave } from "./clearance";
+import { finalExamIds } from "./titles";
 import type { ClassId } from "./types";
 
 /**
@@ -22,18 +24,27 @@ export const INVENTOR_UNLOCK_SUB = "可以在技能页换成发明家。";
 export const INVENTOR_UNLOCK_GO = "去看看";
 export const INVENTOR_UNLOCK_LATER = "等会儿";
 
-export interface ClassUnlockSave {
+export interface ClassUnlockSave extends ClearSave {
   unlockedClassIds?: readonly string[];
 }
 
 /**
- * Inventor is not selectable while the constant is false, and that path does not
- * read the save. The other five classes are always open.
+ * A final-exam clear, or a grant already stored on the save.
+ * This does not write the save. The 1.0 lock in isClassUnlocked still refuses the class.
+ */
+export function inventorEarnedByClear(save: ClassUnlockSave | null | undefined): boolean {
+  if (!save) return false;
+  if (save.unlockedClassIds?.includes("inventor") === true) return true;
+  return finalExamIds().some((examId) => isCleared(save, { kind: "exam", examId }));
+}
+
+/**
+ * Inventor asks isCleared for a final exam, then stays closed while the constant is false.
+ * The other five classes are always open. This function does not write the save.
  */
 export function isClassSelectable(id: ClassId, save: ClassUnlockSave | null | undefined): boolean {
   if (id !== "inventor") return true;
-  if (!INVENTOR_UNLOCK_ENABLED) return false;
-  return save?.unlockedClassIds?.includes(id) === true;
+  return INVENTOR_UNLOCK_ENABLED && inventorEarnedByClear(save);
 }
 
 /** Same gate as isClassSelectable. Create and load both use it. */
