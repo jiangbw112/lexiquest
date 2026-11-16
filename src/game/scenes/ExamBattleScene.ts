@@ -99,7 +99,7 @@ export class ExamBattleScene extends Phaser.Scene {
   private resultIds: string[] = [];
   private inventorFresh = false;
   private view: Phaser.GameObjects.Container | null = null;
-  private onKey: ((event: KeyboardEvent) => void) | null = null;
+  private spellingSubmit: ((event: Event) => void) | null = null;
 
   constructor() {
     super("exam-battle");
@@ -135,11 +135,18 @@ export class ExamBattleScene extends Phaser.Scene {
       this.scene.start("stages");
       return;
     }
-    this.onKey = (event) => {
-      if (event.key === "Enter") this.submitSpelling();
+    const form = document.getElementById("spell-form");
+    if (this.spellingSubmit) form?.removeEventListener("submit", this.spellingSubmit);
+    const submit = (event: Event) => {
+      event.preventDefault();
+      this.submitSpelling();
     };
-    window.addEventListener("keydown", this.onKey);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.leave());
+    this.spellingSubmit = submit;
+    form?.addEventListener("submit", submit);
+    this.events.off("shutdown", this.leave, this);
+    this.events.off("destroy", this.leave, this);
+    this.events.once("shutdown", this.leave, this);
+    this.events.once("destroy", this.leave, this);
     this.lockToken = `exam-${Math.random().toString(36).slice(2)}`;
     if (!this.holdLock()) {
       this.notice(EXAM_LOCK_HELD, true);
@@ -593,11 +600,15 @@ export class ExamBattleScene extends Phaser.Scene {
   }
 
   private leave(): void {
-    if (this.onKey) window.removeEventListener("keydown", this.onKey);
-    this.onKey = null;
-    document.getElementById("spell-form")?.classList.remove("open");
+    const form = document.getElementById("spell-form");
+    if (this.spellingSubmit) form?.removeEventListener("submit", this.spellingSubmit);
+    this.spellingSubmit = null;
+    form?.classList.remove("open");
     showSpellingHint(null);
-    if (this.lockToken) releaseExamLock(browserStore, this.lockToken);
+    if (this.lockToken) {
+      releaseExamLock(browserStore, this.lockToken);
+      this.lockToken = "";
+    }
     if (import.meta.env.DEV) {
       detachExamDev();
     }

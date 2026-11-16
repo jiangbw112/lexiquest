@@ -197,16 +197,18 @@ function presentExamMeaning(question: QuizQuestion): QuizQuestion {
 }
 
 export function noteExamAsk(schedule: ExamSchedule, wordId: string, spelling: boolean): ExamSchedule {
-  const prev = schedule.sessionAsks[wordId] ?? { count: 0, lastIndex: -99 };
+  const raw = schedule.sessionAsks[wordId];
+  const prev = raw && Number.isInteger(raw.count) && Number.isInteger(raw.lastIndex) ? raw : { count: 0, lastIndex: -99 };
+  const sessionIndex = Number.isInteger(schedule.sessionIndex) ? schedule.sessionIndex : 0;
   return {
     ...schedule,
     phaseQuestions: schedule.phaseQuestions + 1,
     phaseSpelling: schedule.phaseSpelling + (spelling ? 1 : 0),
     phaseWords: schedule.phaseWords.includes(wordId) ? schedule.phaseWords : [...schedule.phaseWords, wordId],
-    sessionIndex: schedule.sessionIndex + 1,
+    sessionIndex: sessionIndex + 1,
     sessionAsks: {
       ...schedule.sessionAsks,
-      [wordId]: { count: prev.count + 1, lastIndex: schedule.sessionIndex },
+      [wordId]: { count: prev.count + 1, lastIndex: sessionIndex },
     },
   };
 }
@@ -220,16 +222,32 @@ export function lossesForPhase(save: SaveData, examId: string, phaseNo: number):
   return typeof count === "number" && Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
 }
 
+function wholeNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+function keptAsk(value: unknown): ExamAsk | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const ask = value as { count?: unknown; lastIndex?: unknown };
+  const count = wholeNumber(ask.count);
+  if (count === null || typeof ask.lastIndex !== "number" || !Number.isInteger(ask.lastIndex)) return null;
+  return { count, lastIndex: ask.lastIndex };
+}
+
 export function storedSession(save: SaveData, examId: string, practice: boolean): ExamSession {
   if (practice) return emptySession();
   const session = save.examProgress?.[examId]?.session;
   if (!session?.asks || typeof session.asks !== "object" || Array.isArray(session.asks)) return emptySession();
-  return {
-    asks: Object.fromEntries(Object.entries(session.asks).map(([id, ask]) => [id, { count: ask.count, lastIndex: ask.lastIndex }])),
-    nextIndex: session.nextIndex,
-    fightQuestions: session.fightQuestions,
-    fightSpelling: session.fightSpelling,
-  };
+  const nextIndex = wholeNumber(session.nextIndex);
+  const fightQuestions = wholeNumber(session.fightQuestions);
+  const fightSpelling = wholeNumber(session.fightSpelling);
+  if (nextIndex === null || fightQuestions === null || fightSpelling === null) return emptySession();
+  const asks: Record<string, ExamAsk> = {};
+  for (const [id, ask] of Object.entries(session.asks)) {
+    const kept = keptAsk(ask);
+    if (kept) asks[id] = kept;
+  }
+  return { asks, nextIndex, fightQuestions, fightSpelling };
 }
 
 export function examDefOrNull(id: string): ExamDef | undefined {

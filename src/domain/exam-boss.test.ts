@@ -782,6 +782,48 @@ describe("exam bosses", () => {
     expect(storedSession(save, "exam_g3_s1_mid", false).asks.tree).toEqual({ count: 1, lastIndex: 0 });
   });
 
+  it("drops a broken ask entry and a session that is missing counters", () => {
+    const save = fresh();
+    save.examProgress = {
+      exam_g3_s1_mid: {
+        session: {
+          asks: { w: null, tree: { count: 1, lastIndex: 0 }, bird: { lastIndex: 2 } },
+          nextIndex: 3,
+          fightQuestions: 3,
+          fightSpelling: 1,
+        } as unknown as ExamSessionRecord,
+      },
+    };
+    const kept = storedSession(save, "exam_g3_s1_mid", false);
+    expect(kept.asks.w).toBeUndefined();
+    expect(kept.asks.bird).toBeUndefined();
+    expect(kept.asks.tree).toEqual({ count: 1, lastIndex: 0 });
+    expect(kept.nextIndex).toBe(3);
+    expect(Number.isInteger(kept.nextIndex)).toBe(true);
+    const { exam, words } = learnedExam("exam_g3_s1_mid");
+    const asked = noteExamAsk(scheduleForPhase(exam, kept, 0, words), "tree", false);
+    expect(asked.sessionIndex).toBe(4);
+    expect(asked.sessionAsks.tree).toEqual({ count: 2, lastIndex: 3 });
+    expect(Number.isInteger(asked.sessionAsks.tree?.count)).toBe(true);
+    expect(Number.isInteger(asked.sessionAsks.tree?.lastIndex)).toBe(true);
+    const question = pickExamQuestion(scheduleForPhase(exam, kept, 0, words), 1);
+    expect(question?.prompt ?? "").not.toContain("NaN");
+    save.examProgress = {
+      exam_g3_s1_mid: {
+        session: { asks: { w: null }, nextIndex: 1, fightQuestions: 1 } as unknown as ExamSessionRecord,
+      },
+    };
+    expect(storedSession(save, "exam_g3_s1_mid", false)).toEqual(emptySession());
+    save.examProgress = {
+      exam_g3_s1_mid: {
+        session: { asks: { w: null } } as unknown as ExamSessionRecord,
+      },
+    };
+    const dropped = storedSession(save, "exam_g3_s1_mid", false);
+    expect(dropped).toEqual(emptySession());
+    expect(Number.isInteger(dropped.nextIndex)).toBe(true);
+  });
+
   it("grants level words when a normal win crosses a level and leaves them unequipped", () => {
     const save = fresh();
     save.xp = 30;
