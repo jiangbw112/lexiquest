@@ -162,7 +162,7 @@ macOS 15 及更高版本中，Gatekeeper 会在首次打开时拦截，因为应
 - `src/domain/chapters/chapter_forest_v1.1.json` — 森林章节，按引用解析
 - `docs/pep/forest_chapter_mapping_v1.json` — 旧映射，游戏不读取
 - `src/game` — Phaser 3 客户端、职业 v1.0 侧视和俯视、森林奖励 v0.1、暂定林冠 v0.1 和场景
-- `public/assets/chapter/forest/v0.1` — 披风、别针、花环和称号图集，以及 `manifest.json`
+- `public/assets/chapter/forest/v0.1` — 林叶披肩、别针、花环和称号图集，以及 `manifest.json`
 - `public/assets/boss/canopy/v0.1` — 四个林冠图集和 `manifest.json`
 - `docs/art` — 战士包 README、槽位表 v0.2 和 QA 报告。`docs/art/forest-rewards` 是森林奖励 readme 和 QA 报告。`docs/art/boss-canopy` 是林冠 readme 和 QA 报告。`style_ref_v0.1.png` 是概念图，不在游戏中
 - `src/domain/*.test.ts` — 复习计划、卡牌和徽章色调、3 槽配置、题库和字典序计分测试
