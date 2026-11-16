@@ -53,7 +53,11 @@ describe("release notes", () => {
     expect(section).toContain("设置密码");
     expect(section).toContain("起始卡");
     expect(section).toContain("错误提示会清掉");
-    expect(section).toContain("称号的保存方式升级为前后两部分，已获得的称号和奖励会可靠保存、不会重复发放；自己搭配称号的画面会在以后的版本加入。");
+    expect(section).toContain("学堂一批学完结算后，可以接着学本章。");
+    expect(section).toContain("学堂可以自己选章。对战退回村子后，回到当前进度章。");
+    expect(section).toContain("称号的保存方式升级为前后两部分，旧存档里已获得的称号会可靠迁移保存；自己搭配称号的画面会在以后的版本加入。");
+    expect(section).not.toContain("不会重复发放");
+    expect(section).not.toContain("窗口较窄");
     expect(section).toContain("修复：拼写练习时不再露出答案。");
     expect(section).toContain("学习工具");
     expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
