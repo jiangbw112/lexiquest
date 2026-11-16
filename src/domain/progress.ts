@@ -1,4 +1,5 @@
 import { sanitizeName } from "./appearance";
+import { settleWardrobeWear, wardrobeApplies } from "./wardrobe-list";
 import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
 import { CHAPTER_BOSS_ID } from "./battle";
@@ -23,7 +24,6 @@ import {
 import { classById } from "./classes";
 import { isClassSelectable } from "./class-unlock";
 import { isChapterExtra, normalizeGrades, sampleWords, wordById, wordsForGrades } from "./catalog";
-import { OUTFITS } from "./outfits";
 import { compareRounds, type DuelAnswer } from "./duel";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { ensureDailyGoal, noteDueReview, noteLearned, notePracticeAnswer } from "./parent";
@@ -360,12 +360,12 @@ export function switchClass(save: SaveData, nextId: ClassId, inBattle = false): 
   const prepared = nextId === "healer" ? migrateHealerDeck(remembered, true) : remembered;
   const stored = prepared.filter((id) => known.has(id)).slice(0, MAX_EQUIPPED_SKILLS);
   const equippedSkillIds = stored.length > 0 ? stored : [starterSkillId(nextId)];
-  const refreshed = refreshUnlocks({
+  const refreshed = settleWardrobeWear(refreshUnlocks({
     ...save,
     player: { ...save.player, classId: nextId },
     equippedByClass,
     equippedSkillIds,
-  });
+  }));
   if (refreshed.equippedSkillIds.length > 0) return refreshed;
   return { ...refreshed, equippedSkillIds: [starterSkillId(nextId)] };
 }
@@ -390,7 +390,7 @@ export function unequipSkill(save: SaveData, skillId: string): SaveData {
 
 export function equipOutfit(save: SaveData, outfitId: string): SaveData {
   if (!save.ownedOutfitIds.includes(outfitId)) return save;
-  if (!OUTFITS.some((outfit) => outfit.id === outfitId)) return save;
+  if (!wardrobeApplies(outfitId, save.player.classId)) return save;
   return { ...save, equippedOutfitId: outfitId };
 }
 
@@ -527,7 +527,7 @@ export function applyBattleOutcome(
   let equippedOutfitId = save.equippedOutfitId;
   if (!owned.includes("forest-cape")) {
     owned = [...owned, "forest-cape"];
-    equippedOutfitId = "forest-cape";
+    if (wardrobeApplies("forest-cape", save.player.classId)) equippedOutfitId = "forest-cape";
   }
   let bestStars = save.bestStars;
   const starId = chapterHit

@@ -11,6 +11,7 @@ import { normalizeGrades } from "./catalog";
 import { CLASS_IDS } from "./classes";
 import { resolvedClassId } from "./class-unlock";
 import { withParentDefaults } from "./parent";
+import { settleWardrobeWear } from "./wardrobe-list";
 import { skillsForClass, starterSkillId } from "./skills";
 import type { ClassId, GradeBand, SaveData } from "./types";
 
@@ -147,7 +148,7 @@ export function deserialize(raw: string): SaveData | null {
     save.selectedGrades = normalizeGrades(grades);
     save.gradesConfirmed = typeof value.gradesConfirmed === "boolean" ? value.gradesConfirmed : save.selectedGrades.length > 0;
     const titled = migrateTitleSave(save, Date.now());
-    return withParentDefaults(backfillInventorRecord(migrateExamRewards(titled, Date.now())));
+    return settleWardrobeWear(withParentDefaults(backfillInventorRecord(migrateExamRewards(titled, Date.now()))));
   } catch {
     return null;
   }

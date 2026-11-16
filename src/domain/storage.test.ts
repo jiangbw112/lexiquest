@@ -179,6 +179,48 @@ describe("save class id", () => {
     expect(again.masteryMilestonesClaimed).toEqual(legal.masteryMilestonesClaimed);
     expect(again.clearRewardClaimed).toBe(legal.clearRewardClaimed);
   });
+
+  it("loads title migration, parent defaults, and wardrobe settlement together", () => {
+    const save = createSave({
+      name: "小林",
+      classId: "mage",
+      appearance: DEFAULT_APPEARANCE,
+      now: NOW,
+      grades: ["G3"],
+    });
+    const raw = JSON.parse(serialize(save)) as Record<string, unknown> & {
+      titleParts?: { equipped: { prefixId: string; suffixId: string } };
+      ownedOutfitIds: string[];
+      equippedOutfitId: string;
+      parentPin?: string;
+    };
+    delete raw.profileId;
+    delete raw.titleRulesVersion;
+    delete raw.titleGrantLedger;
+    delete raw.titleReceipts;
+    raw.titleParts = { equipped: { prefixId: "p_075", suffixId: "s_044" } };
+    delete raw.parentGoalPreset;
+    delete raw.spellingMemory;
+    raw.parentPin = "1234";
+    raw.ownedOutfitIds = ["traveler", "forest-cape"];
+    raw.equippedOutfitId = "forest-cape";
+
+    const loaded = deserialize(JSON.stringify(raw));
+    expect(loaded).not.toBeNull();
+    expect(loaded!.titleRulesVersion).toBe(1);
+    expect(loaded!.profileId).toEqual(expect.any(String));
+    expect(loaded!.titleParts?.unlockedPrefixIds).toEqual(["p_000"]);
+    expect(loaded!.titleParts?.unlockedSuffixIds).toEqual(["s_000"]);
+    expect(loaded!.titleParts?.unlockedPrefixIds).not.toContain("p_075");
+    expect(loaded!.titleParts?.unlockedSuffixIds).not.toContain("s_044");
+    expect(loaded!.titleParts?.equipped).toEqual({ prefixId: null, suffixId: null });
+    expect("parentPin" in loaded!).toBe(false);
+    expect(loaded!.parentGoalPreset).toBe("normal");
+    expect(loaded!.spellingMemory).toEqual({});
+    expect(loaded!.equippedOutfitId).toBe("");
+    expect(loaded!.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(loaded!.examRewardSchemaVersion).toBe(1);
+  });
 });
 
 interface ForestSave {

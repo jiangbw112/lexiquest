@@ -77,7 +77,7 @@ export class ClassSideSprite {
     outfitId = "traveler",
   ) {
     ensureClassSideAnims(scene, classId);
-    if (classId === "warrior") ensureCosmeticAnims(scene);
+    ensureCosmeticAnims(scene);
     this.equipped = equipped;
     this.outfitId = outfitId;
     this.root = scene.add.container(x, y);
@@ -89,7 +89,8 @@ export class ClassSideSprite {
       this.root.add(sprite);
       this.sprites.set(layer.id, sprite);
     }
-    if (classId === "warrior") this.addWarriorExtras(scene);
+    if (classId === "warrior") this.addWarriorOutfit(scene);
+    this.addChapterCosmetics(scene);
     this.addWreath(scene);
     this.places = placesFor(scene, classId);
     this.root.sort("depth");
@@ -158,32 +159,38 @@ export class ClassSideSprite {
     const slots = SIDE_LAYERS[this.classId].map((layer) => layer.slot);
     const visibility = visibilityForCosmetics(FOREST_REWARDS, this.equipped, { slots, parts: [] });
     const hidden = new Set<string>();
-    if (this.classId === "warrior") {
-      for (const slot of visibility.hiddenSlots) hidden.add(slot);
-    }
+    for (const slot of visibility.hiddenSlots) hidden.add(slot);
     if (this.equipped.includes("forest_wreath")) {
       for (const slot of WREATH_HIDES[this.classId]) hidden.add(slot);
     }
     return hidden;
   }
 
-  private addWarriorExtras(scene: Phaser.Scene): void {
-    if (scene.textures.exists("actors")) {
-      const pieceScale = 306 / 264;
-      for (const name of ["side/cape", "side/sash", "side/hat-leaf", "side/hat-star"]) {
-        const depth = name === "side/cape" ? 15 : name === "side/sash" ? 78 : 62;
-        const drop = name === "side/sash" ? WARRIOR_SASH_DROP : 0;
-        const image = scene.add.image(0, drop, "actors", name).setOrigin(0.5, 1).setScale(pieceScale);
-        image.setDepth(depth);
-        image.setVisible(false);
-        this.root.add(image);
-        this.outfitImages.set(name, image);
-      }
+  /** Actor-sheet cape, sash, and hats. Scaled for the warrior, so other classes do not wear them. */
+  private addWarriorOutfit(scene: Phaser.Scene): void {
+    if (!scene.textures.exists("actors")) return;
+    const pieceScale = 306 / 264;
+    for (const name of ["side/cape", "side/sash", "side/hat-leaf", "side/hat-star"]) {
+      const depth = name === "side/cape" ? 15 : name === "side/sash" ? 78 : 62;
+      const drop = name === "side/sash" ? WARRIOR_SASH_DROP : 0;
+      const image = scene.add.image(0, drop, "actors", name).setOrigin(0.5, 1).setScale(pieceScale);
+      image.setDepth(depth);
+      image.setVisible(false);
+      this.root.add(image);
+      this.outfitImages.set(name, image);
     }
+  }
+
+  /** Foot-anchored chapter pieces. The wreath uses its own placement atlas. */
+  private addChapterCosmetics(scene: Phaser.Scene): void {
     for (const layer of chapterCosmeticLayers()) {
       if (layer.id === "forest_wreath" || !scene.textures.exists(layer.textureKey)) continue;
       const sprite = scene.add.sprite(0, 0, layer.textureKey).setOrigin(CLASS_SIDE_ORIGIN.x, CLASS_SIDE_ORIGIN.y);
-      sprite.setDepth(layer.z);
+      // The pin sits at z 47, under the near sleeve (outfit_front is 75).
+      // On the warrior the shield still leaves a gap. Other classes have no
+      // shield, and that sleeve covers the whole pin, so lift the same frame.
+      const depth = layer.id === "acorn_pin" && this.classId !== "warrior" ? 76 : layer.z;
+      sprite.setDepth(depth);
       this.root.add(sprite);
       this.cosmeticById.set(layer.id, sprite);
     }
@@ -201,10 +208,10 @@ export class ClassSideSprite {
 
   private syncExtras(anim: ClassSideAnim): void {
     const warrior = this.classId === "warrior";
-    const extras = new Set(warrior ? outfitExtraFrames(this.outfitId) : []);
+    const extras = new Set(warrior && this.outfitId ? outfitExtraFrames(this.outfitId) : []);
     for (const [name, image] of this.outfitImages) image.setVisible(extras.has(name) && anim !== "dash");
     for (const [id, sprite] of this.cosmeticById) {
-      const show = warrior && this.equipped.includes(id) && anim !== "dash";
+      const show = this.equipped.includes(id) && anim !== "dash";
       sprite.setVisible(show);
       if (show) sprite.play(cosmeticAnimKey(id, anim as WarriorAnim));
     }
