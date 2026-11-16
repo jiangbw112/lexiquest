@@ -1,17 +1,24 @@
 import Phaser from "phaser";
 import {
   displayTitle,
-  equipCosmetic,
   equipTitle,
   FOREST_REWARDS,
-  unequipCosmetic,
 } from "../../domain/chapter-rewards";
-import { COSMETIC_LABEL } from "../../domain/cosmetic-label";
-import { OUTFITS } from "../../domain/outfits";
-import { equipOutfit } from "../../domain/progress";
-import { chapterCosmeticLayers, queueChapterCosmetics } from "../art/chapter-cosmetics";
+import {
+  EQUIP_ICON_ATLAS,
+  WARDROBE_LIST,
+  applyWardrobeIntent,
+  equipIconDisplaySize,
+  equipIconFrame,
+  ownedWardrobeRows,
+  slotHolderId,
+  wardrobeListMetrics,
+  type WardrobeIntent,
+  type WardrobeRow,
+} from "../../domain/wardrobe-list";
 import { drawEquippedTitle } from "../art/title-bar";
 import { ClassSideSprite } from "../art/class-sprite";
+import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { WARDROBE_TITLE_Y, parchmentTitleY } from "../layout";
 import { probeEnter, probeNote } from "../probe";
@@ -20,9 +27,15 @@ import { FONT, paper } from "../ui";
 import { warmButton, warmSlice } from "../warm/kit";
 import { paintRoom, queueWarm } from "../warm/load";
 import { containerHitArea } from "../hit";
-import { DIS_TEXT, INK, MUTED, NOTE } from "../warm/theme";
+import { INK, MUTED, NOTE } from "../warm/theme";
 
 export class WardrobeScene extends Phaser.Scene {
+  private scroll = 0;
+  private maxScroll = 0;
+  private board?: Phaser.GameObjects.Container;
+  private maskGraphics?: Phaser.GameObjects.Graphics;
+  private drag = { on: false, moved: false, y: 0, scroll: 0 };
+
   constructor() {
     super("wardrobe");
   }
@@ -31,7 +44,7 @@ export class WardrobeScene extends Phaser.Scene {
     queueClassSide(this, savedClassId(getSave()));
     queueClassWreath(this);
     queueChapterCosmetics(this);
-    queueWarm(this, ["atlas_ui_core", "atlas_wardrobe"], ["bg_room"]);
+    queueWarm(this, ["atlas_ui_core", "atlas_wardrobe", "atlas_equip_icons"], ["bg_room"]);
   }
 
   create(): void {
@@ -40,14 +53,67 @@ export class WardrobeScene extends Phaser.Scene {
       this.scene.start("title");
       return;
     }
+    this.scroll = 0;
     probeEnter("wardrobe");
-    this.input.keyboard?.on("keydown-ESC", () => this.scene.start("overworld"));
+    const onEsc = () => this.scene.start("overworld");
+    const onWheel = (pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => {
+      if (!this.insideList(pointer) || this.maxScroll <= 0) return;
+      pointer.event?.preventDefault?.();
+      this.setScroll(this.scroll + dy);
+    };
+    const onPointerDown = (pointer: Phaser.Input.Pointer) => {
+      this.drag.moved = false;
+      if (!this.insideList(pointer) || this.maxScroll <= 0) {
+        this.drag.on = false;
+        return;
+      }
+      this.drag = { on: true, moved: false, y: pointer.y, scroll: this.scroll };
+    };
+    const onPointerMove = (pointer: Phaser.Input.Pointer) => {
+      if (!this.drag.on) return;
+      if (Math.abs(pointer.y - this.drag.y) > 8) this.drag.moved = true;
+      this.setScroll(this.drag.scroll + (this.drag.y - pointer.y));
+    };
+    const onPointerUp = () => {
+      this.drag.on = false;
+    };
+    this.input.keyboard?.on("keydown-ESC", onEsc);
+    this.input.on("wheel", onWheel);
+    this.input.on("pointerdown", onPointerDown);
+    this.input.on("pointermove", onPointerMove);
+    this.input.on("pointerup", onPointerUp);
+    this.events.once("shutdown", () => {
+      this.input.keyboard?.off("keydown-ESC", onEsc);
+      this.input.off("wheel", onWheel);
+      this.input.off("pointerdown", onPointerDown);
+      this.input.off("pointermove", onPointerMove);
+      this.input.off("pointerup", onPointerUp);
+    });
     this.draw();
+  }
+
+  private insideList(pointer: Phaser.Input.Pointer): boolean {
+    return pointer.x >= WARDROBE_LIST.x
+      && pointer.x <= WARDROBE_LIST.x + WARDROBE_LIST.width
+      && pointer.y >= WARDROBE_LIST.y
+      && pointer.y <= WARDROBE_LIST.y + WARDROBE_LIST.height;
+  }
+
+  private setScroll(value: number): void {
+    const next = Math.min(this.maxScroll, Math.max(0, value));
+    if (next === this.scroll) return;
+    this.scroll = next;
+    if (this.board) this.board.y = WARDROBE_LIST.y - next;
+    probeNote(`wardrobe:scroll:${this.scroll}:${this.maxScroll}`);
   }
 
   private draw(): void {
     const save = getSave();
     if (!save) return;
+    this.board?.clearMask(true);
+    this.maskGraphics?.destroy();
+    this.maskGraphics = undefined;
+    this.board = undefined;
     this.children.removeAll(true);
     if (!paintRoom(this)) paper(this);
     warmSlice(this, "atlas_ui_core", "panel_parchment", 1040, 740).setPosition(640, 400);
@@ -66,63 +132,28 @@ export class WardrobeScene extends Phaser.Scene {
         color: NOTE,
       });
     }
-    OUTFITS.forEach((outfit, index) => {
-      const owned = save.ownedOutfitIds.includes(outfit.id);
-      const y = 150 + index * 78;
-      this.add.text(160, y, outfit.name, { fontFamily: FONT, fontSize: "22px", color: INK });
-      if (!owned) {
-        this.add.text(340, y, "还没得到", { fontFamily: FONT, fontSize: "18px", color: MUTED });
-        return;
-      }
-      const wearing = save.equippedOutfitId === outfit.id;
-      warmButton(this, 460, y + 14, wearing ? "穿着" : "换上", () => {
-        mutate((current) => equipOutfit(current, outfit.id));
-        this.draw();
-      }, { width: 120, height: 56, tone: wearing ? "primary" : "secondary" });
-    });
-
-    this.add.text(160, 390, "森林章外观", { fontFamily: FONT, fontSize: "22px", color: INK });
-    chapterCosmeticLayers().forEach((layer, index) => {
-      const owned = save.unlockedCosmeticIds.includes(layer.id);
-      const on = save.equippedCosmeticIds.includes(layer.id);
-      const left = 135 + index * 210;
-      const top = 420;
-      const frame = !owned ? "wardrobe_slot_disabled" : on ? "wardrobe_slot_selected" : "wardrobe_slot_normal";
-      const slot = warmSlice(this, "atlas_wardrobe", frame, 190, 104);
-      slot.setPosition(left + 95, top + 52);
-      const color = owned ? INK : DIS_TEXT;
-      const status = !owned ? "未得到" : on ? "摘下" : "戴上";
-      this.add.text(left + 95, top + 36, COSMETIC_LABEL[layer.id] ?? "", { fontFamily: FONT, fontSize: "18px", color }).setOrigin(0.5);
-      this.add.text(left + 95, top + 64, status, { fontFamily: FONT, fontSize: "16px", color }).setOrigin(0.5);
-      if (!owned) return;
-      const hit = this.add.container(left + 95, top + 52);
-      hit.setSize(190, 104);
-      const area = containerHitArea(190, 104);
-      hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
-      if (hit.input) hit.input.cursor = "pointer";
-      let down = false;
-      const show = (state: "normal" | "hover" | "pressed") => {
-        if (on && state === "normal") slot.setFrame("wardrobe_slot_selected");
-        else slot.setFrame(`wardrobe_slot_${state}`);
-      };
-      hit.on("pointerover", () => {
-        if (!down) show("hover");
+    const rows = ownedWardrobeRows(save);
+    const metrics = wardrobeListMetrics(rows.length);
+    this.maxScroll = metrics.maxScroll;
+    this.scroll = Math.min(this.scroll, this.maxScroll);
+    this.add.text(150, WARDROBE_LIST.y - 32, "已有装备", { fontFamily: FONT, fontSize: "22px", color: INK });
+    if (rows.length === 0) {
+      this.add.text(160, WARDROBE_LIST.y + 8, "还没得到", { fontFamily: FONT, fontSize: "18px", color: MUTED });
+    } else {
+      this.drawRows(rows, classId);
+    }
+    if (this.maxScroll > 0) {
+      this.add.text(150, WARDROBE_LIST.y + WARDROBE_LIST.height + 8, "衣服多了可以上下看。", {
+        fontFamily: FONT,
+        fontSize: "16px",
+        color: NOTE,
       });
-      hit.on("pointerout", () => {
-        down = false;
-        show("normal");
-      });
-      hit.on("pointerdown", () => {
-        down = true;
-        show("pressed");
-      });
-      hit.on("pointerup", () => {
-        if (!down) return;
-        down = false;
-        mutate((current) => (on ? unequipCosmetic(current, layer.id) : equipCosmetic(current, layer.id)));
-        this.draw();
-      });
-    });
+    }
+    const rowNote = rows.map((row, index) => {
+      const center = WARDROBE_LIST.y + index * WARDROBE_LIST.rowStride + WARDROBE_LIST.rowStride / 2;
+      return `${row.id}:${row.equipped ? "on" : "off"}:${Math.round(center)}`;
+    }).join(",");
+    probeNote(`wardrobe:list:${rows.length}:${this.scroll}:${this.maxScroll}:${rowNote}`);
 
     this.add.text(160, 548, "称号。一次只戴一个。", { fontFamily: FONT, fontSize: "22px", color: INK });
     if (save.unlockedTitleIds.length === 0) {
@@ -153,5 +184,94 @@ export class WardrobeScene extends Phaser.Scene {
     const back = hero.isSlotDrawn("back") ? "drawn" : "absent";
     probeNote(`forest:equip:${worn}:helmet=${helmet}:back=${back}`);
     warmButton(this, 1040, 730, "返回 Esc", () => this.scene.start("overworld"), { width: 180, tone: "secondary" });
+  }
+
+  private drawRows(rows: readonly WardrobeRow[], classId: ReturnType<typeof savedClassId>): void {
+    const board = this.add.container(0, WARDROBE_LIST.y - this.scroll);
+    this.board = board;
+    const maskGraphics = this.make.graphics({ x: 0, y: 0 }, false);
+    maskGraphics.fillStyle(0xffffff);
+    maskGraphics.fillRect(WARDROBE_LIST.x, WARDROBE_LIST.y, WARDROBE_LIST.width, WARDROBE_LIST.height);
+    this.maskGraphics = maskGraphics;
+    board.setMask(maskGraphics.createGeometryMask());
+    rows.forEach((row, index) => {
+      const centerY = index * WARDROBE_LIST.rowStride + WARDROBE_LIST.rowStride / 2;
+      const centerX = WARDROBE_LIST.x + WARDROBE_LIST.width / 2;
+      const frame = row.equipped ? "wardrobe_slot_selected" : "wardrobe_slot_normal";
+      const slot = warmSlice(this, "atlas_wardrobe", frame, WARDROBE_LIST.width, 88);
+      slot.setPosition(centerX, centerY);
+      const markX = WARDROBE_LIST.x + 36;
+      const box = this.add.graphics();
+      box.lineStyle(3, 0x3b2a20, 1);
+      box.strokeCircle(markX, centerY, 14);
+      const mark = this.add.image(markX, centerY, "atlas_ui_core", "icon_check").setScale(28 / 96);
+      mark.setVisible(row.equipped);
+      const iconSize = equipIconDisplaySize(WARDROBE_LIST.width);
+      const iconX = markX + 14 + 10 + iconSize / 2;
+      const icon = this.add.image(iconX, centerY, EQUIP_ICON_ATLAS, equipIconFrame(row.id));
+      icon.setDisplaySize(iconSize, iconSize);
+      const label = this.add.text(iconX + iconSize / 2 + 12, centerY, row.name, {
+        fontFamily: FONT,
+        fontSize: "22px",
+        color: INK,
+      }).setOrigin(0, 0.5);
+      const hit = this.add.container(centerX, centerY);
+      hit.setSize(WARDROBE_LIST.width, 88);
+      hit.setName(`wardrobe:${row.id}`);
+      const area = containerHitArea(WARDROBE_LIST.width, 88);
+      hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
+      if (hit.input) hit.input.cursor = "pointer";
+      let down = false;
+      let intent: WardrobeIntent | null = null;
+      const show = (state: "normal" | "hover" | "pressed") => {
+        if (row.equipped && state === "normal") slot.setFrame("wardrobe_slot_selected");
+        else slot.setFrame(`wardrobe_slot_${state}`);
+      };
+      hit.on("pointerover", () => {
+        if (!down) show("hover");
+      });
+      hit.on("pointerout", () => {
+        down = false;
+        show("normal");
+      });
+      hit.on("pointerdown", () => {
+        down = true;
+        show("pressed");
+        const current = getSave();
+        const piece = current ? ownedWardrobeRows(current).find((item) => item.id === row.id) : undefined;
+        if (!current || !piece) {
+          intent = null;
+          return;
+        }
+        const held = ownedWardrobeRows(current)
+          .filter((item) => item.equipped)
+          .map((item) => ({ id: item.id, slot: item.slot }));
+        intent = {
+          id: piece.id,
+          wantEquipped: !piece.equipped,
+          seenHolderId: slotHolderId(held, piece.slot),
+        };
+      });
+      hit.on("pointerup", () => {
+        const chosen = intent;
+        if (!down || this.drag.moved || !chosen) {
+          down = false;
+          show("normal");
+          return;
+        }
+        down = false;
+        const pointer = this.input.activePointer;
+        if (!this.insideList(pointer)) {
+          show("normal");
+          return;
+        }
+        const current = getSave();
+        if (!current) return;
+        const result = applyWardrobeIntent(current, chosen, classId);
+        if (result.ok && result.save !== current) mutate(() => result.save);
+        this.draw();
+      });
+      board.add([slot, box, mark, icon, label, hit]);
+    });
   }
 }
