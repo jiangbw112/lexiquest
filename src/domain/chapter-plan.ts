@@ -311,11 +311,10 @@ export function playStageWins(save: SaveData, chapter: PlayChapter, stageId: num
   return save.chapterProgress?.[chapter.id]?.stageWins[String(stageId)] ?? 0;
 }
 
+/** Same win check as stageCleared. A missing card does not keep the stage open. */
 function playStageCleared(save: SaveData, chapter: PlayChapter, stage: ForestStage): boolean {
   if (stage.type === "boss") return isChapterCleared(save, chapter);
-  const wins = playStageWins(save, chapter, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
-  if (stage.new_words.length === 0) return wins;
-  return wins && stage.new_words.every((id) => save.wordCards[id]);
+  return playStageWins(save, chapter, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
 }
 
 /** Same gate as the forest: one open stage at a time, boss after stages 1–4 and every word. */

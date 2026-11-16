@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { State } from "ts-fsrs";
 import { DEFAULT_APPEARANCE } from "./appearance";
-import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades } from "./progress";
+import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
+import { applyBattleOutcome, createSave, learnWord, questLine, setSelectedGrades, syncUnlocks } from "./progress";
 import { chapterExtraWords, isChapterExtra, sampleWords } from "./catalog";
 import { PROVISIONAL } from "./provisional";
 import { startBattle } from "./battle";
-import { battleWordIds, gradeChapters } from "./chapter-plan";
+import { battleWordIds, gradeChapters, isChapterUnlocked } from "./chapter-plan";
 import { skillQuestionPool } from "./skill-cast";
+import { deserialize, serialize } from "./storage";
 import { badgeTone } from "./review";
 import {
   bossReady,
@@ -91,21 +93,75 @@ describe("forest chapter", () => {
     );
   });
 
-  it("clears a stage only after its new words are learned and one small battle is won", () => {
+  it("clears a stage after one win while new words are still unlearned", () => {
     let save = newSave();
     const first = FOREST_CHAPTER.stages[0]!;
     expect(stageCleared(save, first)).toBe(false);
     for (const id of first.new_words.slice(0, 5)) save = learnWord(save, id, START);
-    save = applyBattleOutcome(save, "win", START.getTime(), "forest-stage-1");
     expect(stageCleared(save, first)).toBe(false);
     expect(stageStatuses(save)[1]).toBe("locked");
-    save = learnWord(save, first.new_words[5]!, new Date(START.getTime() + 86_400_000));
+    save = applyBattleOutcome(save, "win", START.getTime(), "forest-stage-1");
+    expect(save.stageWins["1"]).toBe(1);
+    expect(stageWordIds(save, first).some((id) => !save.wordCards[id])).toBe(true);
     expect(stageCleared(save, first)).toBe(true);
     expect(stageStatuses(save)[0]).toBe("cleared");
     expect(stageStatuses(save)[1]).toBe("open");
     const lost = applyBattleOutcome(save, "loss", START.getTime() + 1, "forest-stage-2");
     expect(lost.stageWins["2"] ?? 0).toBe(0);
     expect(stageCleared(lost, FOREST_CHAPTER.stages[1]!)).toBe(false);
+  });
+
+  it("loads a won but unfinished stage as cleared without unlocking the boss or granting the title again", () => {
+    let save = newSave(["G3"]);
+    const first = FOREST_CHAPTER.stages[0]!;
+    const ids = stageWordIds(save, first);
+    save = learnWord(save, ids[0]!, START);
+    save = {
+      ...save,
+      stageWins: { "1": 1 },
+      battlesWon: 1,
+      ownedOutfitIds: save.ownedOutfitIds.includes("forest-cape")
+        ? save.ownedOutfitIds
+        : [...save.ownedOutfitIds, "forest-cape"],
+      chapterCleared: false,
+      clearRewardClaimed: false,
+    };
+    const loaded = syncUnlocks(deserialize(serialize(save))!);
+    const again = syncUnlocks(deserialize(serialize(loaded))!);
+    expect(stageCleared(loaded, first)).toBe(true);
+    expect(stageStatuses(loaded)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
+    expect(bossReady(loaded)).toBe(false);
+    expect(loaded.chapterCleared).toBe(false);
+    expect(isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(false);
+    expect(loaded.clearRewardClaimed).toBe(false);
+    expect(loaded.unlockedTitleIds).not.toContain("title_forest_trekker");
+    expect(loaded.titles).toEqual(again.titles);
+    expect(loaded.unlockedTitleIds).toEqual(again.unlockedTitleIds);
+    expect(loaded.unlockedCosmeticIds).toEqual(again.unlockedCosmeticIds);
+    expect(loaded.rewardQueue).toEqual(again.rewardQueue);
+    expect(loaded.ownedOutfitIds).toEqual(again.ownedOutfitIds);
+    const hinted = applyChapterRewards(loaded, 0, 28, FOREST_REWARDS, false);
+    expect(hinted.clearRewardClaimed).toBe(false);
+    expect(hinted.unlockedTitleIds).toEqual(loaded.unlockedTitleIds);
+    const four = { ...loaded, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+    expect(explorationCleared(four)).toBe(true);
+    expect(bossReady(four)).toBe(false);
+    expect(stageStatuses(four)[4]).toBe("locked");
+    expect(isChapterUnlocked(four, gradeChapters("G3")[0]!)).toBe(false);
+    const claimed = applyChapterRewards(
+      { ...loaded, chapterCleared: true, clearRewardClaimed: false },
+      0,
+      28,
+      FOREST_REWARDS,
+      false,
+    );
+    const repeated = applyChapterRewards(claimed, 0, 28, FOREST_REWARDS, false);
+    expect(claimed.clearRewardClaimed).toBe(true);
+    expect(claimed.unlockedTitleIds.filter((id) => id === "title_forest_trekker")).toEqual(["title_forest_trekker"]);
+    expect(repeated.unlockedTitleIds).toEqual(claimed.unlockedTitleIds);
+    expect(repeated.titles).toEqual(claimed.titles);
+    expect(repeated.unlockedCosmeticIds).toEqual(claimed.unlockedCosmeticIds);
+    expect(repeated.rewardQueue).toEqual(claimed.rewardQueue);
   });
 
   it("unlocks the stages in order and keeps the boss shut until then", () => {

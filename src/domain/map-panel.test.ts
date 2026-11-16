@@ -133,20 +133,28 @@ describe("forest map panel", () => {
     expect(`${panel.goal ?? ""} ${panel.note ?? ""}`).not.toMatch(/\d+\/\d+/);
   });
 
-  it("says how many new words remain after a win, then shows the stage as cleared", () => {
+  it("shows a stage as cleared after one win and keeps the remaining-word hint", () => {
     let save = saveWith(["G3"]);
     const stage = FOREST_CHAPTER.stages[0]!;
     const ids = stageWordIds(save, stage);
     expect(ids.length).toBeGreaterThan(1);
     save = learnWord(save, ids[0]!, START);
-    save = { ...save, stageWins: { "1": 1 }, battlesWon: 1 };
     expect(stageCleared(save, stage)).toBe(false);
+    const beforeWin = stageWordsStillToLearn(save, stage);
+    const waiting = mapPanel(save, stage, "open");
+    expect(waiting.note).toBe(`这一关还有 ${beforeWin} 个新词可以去学堂学`);
+    expect(waiting.statusLabel).toBe("进行中");
+    save = { ...save, stageWins: { "1": 1 }, battlesWon: 1 };
+    expect(stageCleared(save, stage)).toBe(true);
+    expect(stageStatuses(save)[0]).toBe("cleared");
+    expect(stageStatuses(save)[1]).toBe("open");
     const remaining = stageWordsStillToLearn(save, stage);
     expect(remaining).toBe(ids.length - 1);
-    const panel = mapPanel(save, stage, "open");
+    const panel = mapPanel(save, stage, "cleared");
     expect(panel.note).toBe(stageLearnMoreLine(remaining));
-    expect(panel.note).toBe(`还要在学堂学 ${remaining} 个新词才能通过这一关`);
-    expect(panel.statusLabel).toBe("进行中");
+    expect(panel.note).toBe(`这一关还有 ${remaining} 个新词可以去学堂学`);
+    expect(panel.note).not.toContain("才能通过");
+    expect(panel.statusLabel).toBe("已通过");
     const view = buildResultsView({
       before: save,
       after: { ...save, battlesWon: save.battlesWon + 1, xp: save.xp + 10 },

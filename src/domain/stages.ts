@@ -24,7 +24,7 @@ export interface ForestChapter {
   clear_rule: "defeat_boss";
   mastery_blocks_clear: false;
   stages: ForestStage[];
-  stage_clear: { all_stage_words_learned: true; min_battle_wins: number };
+  stage_clear: { all_stage_words_learned: false; min_battle_wins: number };
   boss_unlock: { stages_1_to_4_cleared: true; all_28_learned: true };
   boss_v1: {
     phases: number;
@@ -81,7 +81,7 @@ function readChapter(value: unknown): ForestChapter {
     }
     if (!boss && index === 0 && stage.unlock !== null) throw new Error("stage 1 has no unlock");
   });
-  if (file.stage_clear?.all_stage_words_learned !== true || file.stage_clear.min_battle_wins !== 1) {
+  if (file.stage_clear?.all_stage_words_learned !== false || file.stage_clear.min_battle_wins !== 1) {
     throw new Error("stage clear rule");
   }
   if (file.boss_unlock?.stages_1_to_4_cleared !== true || file.boss_unlock.all_28_learned !== true) {
@@ -235,14 +235,14 @@ export function stageWordIds(save: SaveData, stage: ForestStage): string[] {
   return stage.new_words.filter((id) => countsTowardBoss(id, grades));
 }
 
-/** Cards still missing among stageWordIds. The clear rule is unchanged. */
+/** Cards still missing among stageWordIds. This count is a hint and does not gate stageCleared. */
 export function stageWordsStillToLearn(save: SaveData, stage: ForestStage): number {
   return stageWordIds(save, stage).filter((id) => !save.wordCards[id]).length;
 }
 
 export function stageLearnMoreLine(remaining: number): string | null {
   if (remaining <= 0) return null;
-  return `还要在学堂学 ${remaining} 个新词才能通过这一关`;
+  return `这一关还有 ${remaining} 个新词可以去学堂学`;
 }
 
 /** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
@@ -274,14 +274,10 @@ export function stageWins(save: SaveData, stageId: number): number {
   return save.stageWins[String(stageId)] ?? 0;
 }
 
-/** The only stage-clear check. A later change to the win or word rule belongs here. */
+/** The only non-boss clear check. One recorded win passes the stage. Learning words does not. */
 export function stageCleared(save: SaveData, stage: ForestStage): boolean {
   if (stage.type === "boss") return save.chapterCleared;
-  const ids = stageWordIds(save, stage);
-  const wins = stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
-  if (ids.length === 0) return wins;
-  const learned = !FOREST_CHAPTER.stage_clear.all_stage_words_learned || ids.every((id) => save.wordCards[id]);
-  return learned && wins;
+  return stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
 }
 
 export function explorationCleared(save: SaveData): boolean {

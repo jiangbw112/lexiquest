@@ -158,11 +158,11 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     wins: counts ? counts.wins : stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
-    note: !cleared && learnMore
+    note: learnMore
       ? learnMore
       : cleared && practiceFull(save)
         ? MAP_PRACTICE_NOTE
-        : emptyLearn
+        : !cleared && emptyLearn
           ? `这一关没有要学的新词。赢 ${winsNeeded} 场小战斗就算通过。`
           : null,
     buttons: [
