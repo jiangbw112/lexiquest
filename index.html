@@ -75,7 +75,7 @@
       #pin-input, #pin-confirm, #pin-answer, #pin-submit { width: 100%; }
       #spell-input, #spell-form button { width: 100%; }
       #name-error, #spell-error, #pin-error { color: #834735; margin: 0; min-height: 1.2em; }
-      #spell-hint { margin: 0; color: #61402d; min-height: 1.2em; }
+      #spell-hint, #spell-prompt { margin: 0; color: #61402d; min-height: 1.2em; }
       #pin-title { margin: 0; color: #fff4dc; background: #3b2a20; border-radius: 12px; padding: 8px 12px; text-align: center; font-size: 22px; }
       #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #46363a; font-size: 14px; }
       #pin-note .keep-word { white-space: nowrap; }
@@ -119,6 +119,7 @@
     </form>
     <form id="spell-form">
       <label>拼写<input id="spell-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></label>
+      <p id="spell-prompt"></p>
       <p id="spell-hint"></p>
       <p id="spell-error"></p>
       <button type="submit">确认</button>

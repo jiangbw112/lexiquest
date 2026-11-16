@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { CLASSES, classById } from "../../domain/classes";
+import { LOCKED_CARD_STROKE } from "../../domain/class-picker";
 import { CLASS_SWITCH_BUTTON, CLASS_SWITCH_HINT } from "../../domain/class-copy";
 import {
   INVENTOR_LOCK_BUTTON,
@@ -150,7 +151,8 @@ export class SkillsScene extends Phaser.Scene {
       const unlocked = isClassUnlocked(def.id, save);
       const selected = unlocked && def.id === save.player.classId;
       const box = this.add.rectangle(cx, 400, 170, 250, unlocked ? 0xfff4dc : 0xc8bfb0, selected ? 0.96 : 0.55);
-      box.setStrokeStyle(selected ? 6 : 2, selected ? 0xc4533a : 0x3b2a20);
+      const stroke = !unlocked ? LOCKED_CARD_STROKE : selected ? 0xc4533a : 0x3b2a20;
+      box.setStrokeStyle(selected ? 6 : 2, stroke);
       if (this.textures.exists(unlocked ? "cls:portraits" : PORTRAIT_LOCKED_ATLAS)) {
         const portrait = unlocked
           ? this.add.image(cx, 360, "cls:portraits", portraitFrame(def.id, "side"))

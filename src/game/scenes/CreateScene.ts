@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GRADE_BANDS, normalizeGrades } from "../../domain/catalog";
 import { CLASSES } from "../../domain/classes";
+import { classPrimaryStroke, LOCKED_CARD_STROKE, starterCardLine } from "../../domain/class-picker";
 import {
   INVENTOR_LOCK_BUTTON,
   INVENTOR_LOCK_NOTE,
@@ -154,38 +155,54 @@ export class CreateScene extends Phaser.Scene {
       const unlocked = isClassUnlocked(def.id, progress);
       const selected = unlocked && def.id === this.classId;
       const box = this.add.rectangle(cx, 132, 196, 220, unlocked ? 0xfff4dc : 0xc8bfb0, selected ? 0.96 : 0.55);
-      box.setStrokeStyle(selected ? 6 : 2, selected ? 0xc4533a : 0x3b2a20);
+      const stroke = !unlocked ? LOCKED_CARD_STROKE : selected ? classPrimaryStroke(def) : 0x3b2a20;
+      box.setStrokeStyle(selected ? 6 : 2, stroke);
       const portrait = unlocked
         ? this.add.image(cx, 118, "cls:portraits", portraitFrame(def.id, "side"))
         : this.add.image(cx, 118, PORTRAIT_LOCKED_ATLAS, PORTRAIT_LOCKED_FRAME);
       portrait.setOrigin(0.5, 0.875);
       portrait.setScale(0.18);
       if (unlocked) {
-        this.add.text(cx, 148, `${index + 1} ${def.name}`, {
+        this.add.text(cx, 134, `${index + 1} ${def.name}`, {
           fontFamily: FONT,
-          fontSize: "20px",
+          fontSize: "18px",
           color: INK,
         }).setOrigin(0.5, 0);
-      } else {
-        this.add.text(cx, 86, "?", {
+        this.add.text(cx, 160, def.blurb, {
           fontFamily: FONT,
-          fontSize: "48px",
-          color: "#fff6e4",
-          fontStyle: "700",
-        }).setOrigin(0.5).setDepth(4);
+          fontSize: "13px",
+          color: MUTED,
+          align: "center",
+          wordWrap: cjkWrap(176),
+        }).setOrigin(0.5, 0);
+        this.add.text(cx, 184, def.talent, {
+          fontFamily: FONT,
+          fontSize: "13px",
+          color: INK,
+          align: "center",
+          wordWrap: cjkWrap(176),
+        }).setOrigin(0.5, 0);
+        this.add.text(cx, 210, starterCardLine(def.id), {
+          fontFamily: FONT,
+          fontSize: "13px",
+          color: INK,
+          align: "center",
+          wordWrap: cjkWrap(176),
+        }).setOrigin(0.5, 0);
+      } else {
         this.add.text(cx, 148, INVENTOR_LOCK_TITLE, {
           fontFamily: FONT,
           fontSize: "18px",
           color: MUTED,
         }).setOrigin(0.5, 0);
+        this.add.text(cx, 176, INVENTOR_LOCK_NOTE, {
+          fontFamily: FONT,
+          fontSize: "13px",
+          color: MUTED,
+          align: "center",
+          wordWrap: cjkWrap(176),
+        }).setOrigin(0.5, 0);
       }
-      this.add.text(cx, 176, unlocked ? def.blurb : INVENTOR_LOCK_NOTE, {
-        fontFamily: FONT,
-        fontSize: unlocked ? "14px" : "13px",
-        color: MUTED,
-        align: "center",
-        wordWrap: cjkWrap(176),
-      }).setOrigin(0.5, 0);
       const zone = this.add.zone(cx, 132, 196, 220).setInteractive({ useHandCursor: true });
       zone.on("pointerdown", () => this.pick(def.id));
     });

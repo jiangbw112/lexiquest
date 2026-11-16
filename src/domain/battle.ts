@@ -1,6 +1,7 @@
 import { classById } from "./classes";
 import { wordById, type WordDef } from "./catalog";
 import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
+import { excludedFromUnpromptedSpelling } from "./spelling-leak";
 import {
   drawSkillQuestionWord,
   emptySkillDeck,
@@ -696,6 +697,7 @@ function composeQuestion(state: BattleState): { ok: true; question: BattleQuesti
     word &&
       state.spellingCap !== null &&
       spellingAllowed(word, lit) &&
+      !excludedFromUnpromptedSpelling(word.id) &&
       state.spellingAsked < PROVISIONAL.chapterEnding.bossSpellingMax &&
       nextShare <= state.spellingCap + 1e-9,
   );
