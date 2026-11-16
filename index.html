@@ -49,14 +49,15 @@
         border-radius: 18px;
       }
       #pin-form {
-        left: 430px;
-        top: 130px;
+        left: 0;
+        top: 0;
         width: 420px;
         min-height: 520px;
         padding: 24px 30px;
         background: #fff4dc;
         border: 3px solid #3b2a20;
         border-radius: 28px;
+        transform-origin: top left;
       }
       #pin-form label, #name-form label, #spell-form label { display: grid; gap: 6px; color: #3b2a20; }
       #hero-name, #spell-input, #pin-input, #pin-confirm, #pin-answer {
@@ -71,7 +72,7 @@
         box-sizing: border-box;
       }
       #hero-name, #name-form button { width: 332px; }
-      #pin-input, #pin-confirm, #pin-answer, #pin-submit { width: 360px; }
+      #pin-input, #pin-confirm, #pin-answer, #pin-submit { width: 100%; }
       #spell-input, #spell-form button { width: 100%; }
       #name-error, #spell-error, #pin-error { color: #834735; margin: 0; min-height: 1.2em; }
       #spell-hint { margin: 0; color: #61402d; min-height: 1.2em; }

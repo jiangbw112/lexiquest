@@ -1,6 +1,7 @@
 import { isDesktopShell, shellCopy } from "../domain/host-copy";
 import { syncUnlocks } from "../domain/progress";
-import { loadSave, writeSave } from "../domain/storage";
+import { SAVE_KEY, deserialize, writeSave } from "../domain/storage";
+import { wardrobeWearDiffers } from "../domain/wardrobe-list";
 import type { SaveData } from "../domain/types";
 import { probeNote, setProbeProvider } from "./probe";
 
@@ -11,13 +12,30 @@ export function saveCacheNotice(): string {
 }
 
 export function bootSave(): SaveData | null {
-  const loaded = loadSave();
+  const raw = readStoredSave();
+  const loaded = raw ? deserialize(raw) : null;
   current = loaded ? syncUnlocks(loaded) : null;
+  if (raw && current) {
+    try {
+      const stored = JSON.parse(raw) as SaveData;
+      if (wardrobeWearDiffers(stored, current)) writeSave(current);
+    } catch {
+      // deserialize already accepted this text.
+    }
+  }
   setProbeProvider(() => ({
     learned: current ? Object.keys(current.wordCards).length : 0,
     equippedSkills: current ? current.equippedSkillIds.length : 0,
   }));
   return current;
+}
+
+function readStoredSave(): string | null {
+  try {
+    return localStorage.getItem(SAVE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function getSave(): SaveData | null {
