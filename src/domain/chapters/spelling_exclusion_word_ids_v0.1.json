@@ -1,4 +1,59 @@
 {
+  "schemaVersion": "0.1",
+  "status": "design_data_pending_integration_not_active_in_game",
+  "decision": {
+    "authority": "Haru 定11:51",
+    "localDate": "2026-11-16",
+    "timezone": "Asia/Shanghai"
+  },
+  "baselineMain": "4a34add23274b15790ff12b397818d2bcdb5e95c",
+  "scope": "本批拼写资格过滤及独立拼写掌握写入保护；examIds是受影响考试的追溯映射。不是删词卡清单，不改原释义，不代表已接入任何游戏入口。",
+  "policy": {
+    "filterOnlySpellingEligibility": true,
+    "recognitionQuestionsAllowed": true,
+    "recognitionMustNotWriteIndependentSpellingMastery": true,
+    "deleteWordCards": false,
+    "editGlosses": false,
+    "retroactiveSaveMutation": false,
+    "restoreOnlyAfter": "后续另审通过干净中文释义后，再以明确新决策恢复拼写资格"
+  },
+  "sourceVersions": {
+    "wordData": "pep_words_g3-6_v1.2.2_loader.json",
+    "chapterData": "chapters_v0.2.json",
+    "idRule": "catalog.ts L146-147: trim then lowercase"
+  },
+  "sources": {
+    "scan": {
+      "path": "/workspace/lexiquest-research/exam_r2prime/fixtures_v1/leak_scan.json",
+      "sha256": "e99703325c55f813b2b82831d19609be59bd312fa08a9f480840f5a1a02b71a3"
+    },
+    "exams": {
+      "path": "/workspace/lexiquest-research/exam_r2prime/fixtures_v1/exams.json",
+      "sha256": "97780a75d1552b1bc9b8137c74286930feaff7c0f88ca3b954085081dbc734d0"
+    },
+    "wordLoader": {
+      "path": "/workspace/lexiquest-research/exam_r2prime/fixtures_v1/sources/src__domain__data__pep_words_g3-6_v1.2.2_loader.json",
+      "sha256": "8229269445379022a0b9e3da059b77e236e4f5582df5a45a8b5d7a9666985dd1"
+    },
+    "chapters": {
+      "path": "/workspace/lexiquest-research/exam_r2prime/fixtures_v1/sources/src__domain__chapters__chapters_v0.2.json",
+      "sha256": "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c"
+    },
+    "catalogIdRule": {
+      "path": "/workspace/lexiquest-research/exam_r2prime/fixtures_v1/sources/src__domain__catalog.ts",
+      "sha256": "8bcedbac61656bf9c74f1dcf04a43318f3c4f1d5df866ff13645ef7ebca11adf"
+    }
+  },
+  "counts": {
+    "scanRecords": 20,
+    "uniqueWordIds": 20,
+    "excludedEntries": 20,
+    "categories": {
+      "related_word_form_cue": 18,
+      "complete_answer_in_gloss": 1,
+      "partial_letter_cue": 1
+    }
+  },
   "wordIds": [
     "begin",
     "bought",
@@ -20,5 +75,483 @@
     "washed",
     "watched",
     "win"
-  ]
+  ],
+  "entries": [
+    {
+      "wordId": "begin",
+      "word": "begin",
+      "chapter": "pep_g6_01",
+      "originalGloss": "开始（过去式 began）",
+      "clueText": [
+        "began"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s1_mid",
+        "exam_g6_s1_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "bought",
+      "word": "bought",
+      "chapter": "pep_g6_06",
+      "originalGloss": "买（buy 的过去式）",
+      "clueText": [
+        "buy"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "changed",
+      "word": "changed",
+      "chapter": "pep_g6_06",
+      "originalGloss": "改变（change 的过去式）",
+      "clueText": [
+        "change"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "cleaned",
+      "word": "cleaned",
+      "chapter": "pep_g6_05",
+      "originalGloss": "打扫（clean 的过去式）",
+      "clueText": [
+        "clean"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "drank",
+      "word": "drank",
+      "chapter": "pep_g6_05",
+      "originalGloss": "喝（drink 的过去式）",
+      "clueText": [
+        "drink"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "fell",
+      "word": "fell",
+      "chapter": "pep_g6_06",
+      "originalGloss": "摔倒；落下（fall 的过去式）",
+      "clueText": [
+        "fall"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "fixed",
+      "word": "fixed",
+      "chapter": "pep_g6_06",
+      "originalGloss": "修理（fix 的过去式）",
+      "clueText": [
+        "fix"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "laughed",
+      "word": "laughed",
+      "chapter": "pep_g6_06",
+      "originalGloss": "笑（laugh 的过去式）",
+      "clueText": [
+        "laugh"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "next",
+      "word": "next",
+      "chapter": "pep_g5_06",
+      "originalGloss": "紧挨着（常用 next to）",
+      "clueText": [
+        "next",
+        "to"
+      ],
+      "category": "complete_answer_in_gloss",
+      "examIds": [
+        "exam_g5_s2_mid",
+        "exam_g5_s2_final"
+      ],
+      "manualJudgment": "complete target next is visibly present in next to; static exact-answer leak if this prompt renders",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "rode",
+      "word": "rode",
+      "chapter": "pep_g6_06",
+      "originalGloss": "骑（ride 的过去式）",
+      "clueText": [
+        "ride"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "slept",
+      "word": "slept",
+      "chapter": "pep_g6_06",
+      "originalGloss": "睡觉（sleep 的过去式）",
+      "clueText": [
+        "sleep"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "stayed",
+      "word": "stayed",
+      "chapter": "pep_g6_06",
+      "originalGloss": "待；停留（stay 的过去式）",
+      "clueText": [
+        "stay"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "swam",
+      "word": "swam",
+      "chapter": "pep_g6_06",
+      "originalGloss": "游泳（swim 的过去式）",
+      "clueText": [
+        "swim"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "t-shirt",
+      "word": "T-shirt",
+      "chapter": "pep_g4_04",
+      "originalGloss": "T恤衫",
+      "clueText": [
+        "T"
+      ],
+      "category": "partial_letter_cue",
+      "examIds": [
+        "exam_g4_s1_final"
+      ],
+      "manualJudgment": "T is a partial letter cue in T恤衫, not the whole answer T-shirt",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "took",
+      "word": "took",
+      "chapter": "pep_g6_06",
+      "originalGloss": "拍（照片）；拿（take 的过去式）",
+      "clueText": [
+        "take"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "wake",
+      "word": "wake",
+      "chapter": "pep_g6_02",
+      "originalGloss": "醒来（过去式 woke）",
+      "clueText": [
+        "woke"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s1_mid",
+        "exam_g6_s1_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "was",
+      "word": "was",
+      "chapter": "pep_g6_01",
+      "originalGloss": "是（am/is 的过去式）",
+      "clueText": [
+        "am",
+        "is"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s1_mid",
+        "exam_g6_s1_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "washed",
+      "word": "washed",
+      "chapter": "pep_g6_06",
+      "originalGloss": "洗（wash 的过去式）",
+      "clueText": [
+        "wash"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "watched",
+      "word": "watched",
+      "chapter": "pep_g6_06",
+      "originalGloss": "看（watch 的过去式）",
+      "clueText": [
+        "watch"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s2_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    },
+    {
+      "wordId": "win",
+      "word": "win",
+      "chapter": "pep_g6_02",
+      "originalGloss": "赢（过去式 won）",
+      "clueText": [
+        "won"
+      ],
+      "category": "related_word_form_cue",
+      "examIds": [
+        "exam_g6_s1_mid",
+        "exam_g6_s1_final"
+      ],
+      "manualJudgment": "related base/past word supplies morphological cue, not the whole target; no full-answer leak claim",
+      "excludeFromSpelling": true,
+      "recognitionQuestionsAllowed": true,
+      "independentSpellingMasteryWriteAllowed": false,
+      "sourceChecks": {
+        "catalogRecordCount": 1,
+        "chapterMembershipCount": 1,
+        "exactGlossMatch": true,
+        "exactExamIdMatch": true
+      }
+    }
+  ],
+  "validation": {
+    "allIdsExist": true,
+    "allIdsUnique": true,
+    "allCatalogMatchesUnique": true,
+    "allChapterMappingsExact": true,
+    "allExamMappingsExact": true,
+    "sameWordMultipleRealIds": {},
+    "note": "20条扫描记录对应20个唯一实际ID；没有拆造同义ID或为凑数追加记录。未跑游戏/GUI。"
+  }
 }

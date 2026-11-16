@@ -1,8 +1,14 @@
 import { spellingMarkHint } from "../domain/questions";
 
+export function showSpellingPrompt(prompt: string | null): void {
+  const node = document.getElementById("spell-prompt");
+  if (node) node.textContent = prompt ?? "";
+}
+
 export function showSpellingHint(answer: string | null): void {
   const hint = document.getElementById("spell-hint");
   if (hint) hint.textContent = answer ? (spellingMarkHint(answer) ?? "") : "";
+  showSpellingPrompt(null);
 }
 
 export function spellingInstruction(answer: string | null): string {
