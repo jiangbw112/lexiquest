@@ -19,8 +19,15 @@ import {
   chooseBattleSpot,
   commitBattleEntry,
   confirmLearnSelection,
+  forestGradeLabel,
   initialLearnDraft,
+  LEARN_GRADE_EMPTY,
+  LEARN_GRADE_LOCKED,
+  learnChipLabel,
+  learnDraftLine,
+  learnGradeEmptyLine,
   learnHeading,
+  learnSceneTitle,
   legalLearnChapters,
   selectBattleGrade,
 } from "./chapter-route";
@@ -160,6 +167,41 @@ describe("academy lesson L", () => {
     expect(joined).not.toContain(String.fromCodePoint(0x5269));
     expect(joined).not.toContain(String.fromCodePoint(0x5c1a));
     expect(joined).not.toContain(String.fromCodePoint(0x5f80));
+  });
+});
+
+describe("forest grade label", () => {
+  it("puts the selected grades on the forest title, chip, and draft line", () => {
+    const only = fresh(["G3"]);
+    expect(forestGradeLabel(only)).toBe("三年级");
+    expect(learnSceneTitle(only, "mixed", "森林冒险")).toBe("学堂 · 三年级 · 森林冒险");
+    expect(learnChipLabel("mixed", only)).toBe("森林冒险（三年级）");
+    expect(learnDraftLine("mixed", only, "森林冒险")).toBe("三年级 · 森林冒险");
+    expect(learnSceneTitle(only, "mixed", "森林冒险")).not.toContain("· 森林 ·");
+    expect(learnChipLabel("mixed", only)).not.toBe("森林");
+    expect(learnChipLabel("G3", only)).toBe("三年级");
+    const many = fresh(["G5", "G3", "G6"]);
+    expect(forestGradeLabel(many)).toBe("三年级、五年级、六年级");
+    expect(learnSceneTitle(many, "mixed", "森林冒险")).toBe("学堂 · 三年级、五年级、六年级 · 森林冒险");
+    expect(learnChipLabel("mixed", many)).toBe("森林冒险（三年级、五年级、六年级）");
+    expect(learnDraftLine("mixed", many, null)).toBe("三年级、五年级、六年级 · 请选章");
+  });
+
+  it("explains that a locked grade opens after the forest adventure, and keeps the lock", () => {
+    const early = fresh(["G3"]);
+    const first = gradeChapters("G3")[0]!;
+    expect(early.chapterCleared).toBe(false);
+    expect(isChapterUnlocked(early, first)).toBe(false);
+    expect(legalLearnChapters(early, "G3")).toEqual([]);
+    expect(learnGradeEmptyLine("G3", early.chapterCleared)).toBe(LEARN_GRADE_LOCKED);
+    expect(LEARN_GRADE_LOCKED).toContain("先打完森林冒险");
+    expect(LEARN_GRADE_LOCKED).toContain("就会开启");
+    expect(learnGradeEmptyLine("mixed", false)).toBe(LEARN_GRADE_EMPTY);
+    const scene = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
+    expect(scene).toContain("learnSceneTitle");
+    expect(scene).toContain("learnChipLabel");
+    expect(scene).toContain("learnDraftLine");
+    expect(scene).toContain("learnGradeEmptyLine");
   });
 });
 

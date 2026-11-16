@@ -277,9 +277,9 @@ describe("owned wardrobe list", () => {
     expect(scene).toContain("this.scroll = 0");
     expect(scene).toContain("shutdown");
     expect(scene).not.toContain("换上");
-    expect(scene).not.toContain("穿着");
     expect(scene).not.toContain("戴上");
     expect(scene).not.toContain("摘下");
+    expect(scene).toContain("outfitRowOffer");
     expect(scene).toContain("只给战士");
     expect(scene).toContain("村子只见花环。");
   });

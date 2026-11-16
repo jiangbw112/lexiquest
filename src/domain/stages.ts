@@ -235,6 +235,16 @@ export function stageWordIds(save: SaveData, stage: ForestStage): string[] {
   return stage.new_words.filter((id) => countsTowardBoss(id, grades));
 }
 
+/** Cards still missing among stageWordIds. The clear rule is unchanged. */
+export function stageWordsStillToLearn(save: SaveData, stage: ForestStage): number {
+  return stageWordIds(save, stage).filter((id) => !save.wordCards[id]).length;
+}
+
+export function stageLearnMoreLine(remaining: number): string | null {
+  if (remaining <= 0) return null;
+  return `还要在学堂学 ${remaining} 个新词才能通过这一关`;
+}
+
 /** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
 export function bossUnlockLine(save: SaveData): string {
   const boss = FOREST_CHAPTER.stages.find((stage) => stage.type === "boss");

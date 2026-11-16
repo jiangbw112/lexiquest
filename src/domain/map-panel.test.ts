@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { createSave, learnWord, setSelectedGrades } from "./progress";
+import { RESULTS_LEARN_REPEAT, buildResultsView } from "./battle-results";
 import { mapPanel } from "./map-panel";
-import { bossUnlockLine, FOREST_CHAPTER, requiredWordIds, stageStatuses } from "./stages";
+import { bossUnlockLine, FOREST_CHAPTER, requiredWordIds, stageCleared, stageLearnMoreLine, stageStatuses, stageWordIds, stageWordsStillToLearn } from "./stages";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -129,5 +131,60 @@ describe("forest map panel", () => {
     expect(panel.total).toBe(stage.new_words.length);
     expect(panel.progressLabel).toBeNull();
     expect(`${panel.goal ?? ""} ${panel.note ?? ""}`).not.toMatch(/\d+\/\d+/);
+  });
+
+  it("says how many new words remain after a win, then shows the stage as cleared", () => {
+    let save = saveWith(["G3"]);
+    const stage = FOREST_CHAPTER.stages[0]!;
+    const ids = stageWordIds(save, stage);
+    expect(ids.length).toBeGreaterThan(1);
+    save = learnWord(save, ids[0]!, START);
+    save = { ...save, stageWins: { "1": 1 }, battlesWon: 1 };
+    expect(stageCleared(save, stage)).toBe(false);
+    const remaining = stageWordsStillToLearn(save, stage);
+    expect(remaining).toBe(ids.length - 1);
+    const panel = mapPanel(save, stage, "open");
+    expect(panel.note).toBe(stageLearnMoreLine(remaining));
+    expect(panel.note).toBe(`还要在学堂学 ${remaining} 个新词才能通过这一关`);
+    expect(panel.statusLabel).toBe("进行中");
+    const view = buildResultsView({
+      before: save,
+      after: { ...save, battlesWon: save.battlesWon + 1, xp: save.xp + 10 },
+      answers: [{ wordId: ids[0]!, correct: true, kind: "meaning" }],
+      stageId: stage.id,
+      boss: false,
+      now: START.getTime(),
+    });
+    expect(view.learnMoreLine).toBe(panel.note);
+    expect(view.repeatLine).toBe(RESULTS_LEARN_REPEAT);
+    const scene = readFileSync(new URL("../game/scenes/BattleResultsScene.ts", import.meta.url), "utf8");
+    expect(scene).toContain("learnMoreLine");
+    expect(scene).toContain("repeatLine");
+    const map = readFileSync(new URL("../game/scenes/StageMapScene.ts", import.meta.url), "utf8");
+    expect(map).toContain("panel.note");
+
+    let done = save;
+    let at = START.getTime();
+    for (const id of ids) {
+      if (done.wordCards[id]) continue;
+      at += 86_400_000;
+      const learned = learnWord(done, id, new Date(at));
+      done = learned.wordCards[id] ? learned : learnWord(done, id, new Date(at + 86_400_000));
+    }
+    expect(stageWordsStillToLearn(done, stage)).toBe(0);
+    expect(stageCleared(done, stage)).toBe(true);
+    const cleared = mapPanel(done, stage, "cleared");
+    expect(cleared.note).toBeNull();
+    expect(cleared.statusLabel).toBe("已通过");
+    const finished = buildResultsView({
+      before: done,
+      after: { ...done, battlesWon: done.battlesWon + 1 },
+      answers: [{ wordId: ids[0]!, correct: true, kind: "meaning" }],
+      stageId: stage.id,
+      boss: false,
+      now: at,
+    });
+    expect(finished.learnMoreLine).toBeNull();
+    expect(finished.repeatLine).toBeNull();
   });
 });

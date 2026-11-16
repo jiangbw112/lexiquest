@@ -9,7 +9,7 @@ import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
 import { reviewDeskLayout } from "./dev-mode";
 import { REVIEW_DESK_LIMIT } from "../domain/review";
 import { shellCopy } from "../domain/host-copy";
-import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, meaningScale, optionTextBounds, parentGateLayout, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
+import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, LEARN_CHIP_ROW, LEARN_TITLE_PLANK, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkTextWidth, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, learnGradeChipRow, learnTitleScale, meaningScale, optionTextBounds, parentGateLayout, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -578,5 +578,30 @@ describe("parent gate columns", () => {
     expect(guide).toContain("每日目标从明天的新一天起改档。今天的数量不会变多。");
     expect(guide).toContain("applyIfParentUnlocked");
     expect(guide).toContain('width: PARENT_GATE_BACK.width');
+  });
+});
+
+describe("academy title and grade chips", () => {
+  it("scales a long forest title and keeps every grade chip inside the safe area", () => {
+    const grades = "三年级、四年级、五年级、六年级";
+    const title = `学堂 · ${grades} · 森林冒险`;
+    const titleWidth = cjkTextWidth(title, LEARN_TITLE_PLANK.fontSize);
+    const scale = learnTitleScale(titleWidth);
+    expect(titleWidth).toBeGreaterThan(LEARN_TITLE_PLANK.width - LEARN_TITLE_PLANK.inset);
+    expect(titleWidth * scale).toBeLessThanOrEqual(LEARN_TITLE_PLANK.width - LEARN_TITLE_PLANK.inset + 0.01);
+    expect(learnTitleScale(cjkTextWidth("学堂 · 三年级 · 森林冒险", LEARN_TITLE_PLANK.fontSize))).toBe(1);
+    const labels = [`森林冒险（${grades}）`, "三年级", "四年级", "五年级", "六年级"];
+    const row = learnGradeChipRow(labels, (label) => cjkTextWidth(label, LEARN_CHIP_ROW.fontSize));
+    expect(row).toHaveLength(labels.length);
+    for (const [index, chip] of row.entries()) {
+      const text = cjkTextWidth(labels[index] ?? "", LEARN_CHIP_ROW.fontSize) * chip.textScale;
+      expect(text).toBeLessThanOrEqual(chip.width - LEARN_CHIP_ROW.textInset + 0.01);
+      expect(chip.x - chip.width / 2).toBeGreaterThanOrEqual(SAFE.x);
+      expect(chip.x + chip.width / 2).toBeLessThanOrEqual(SAFE.x + SAFE.width);
+    }
+    const learn = readFileSync(new URL("./scenes/LearnScene.ts", import.meta.url), "utf8");
+    expect(learn).toContain("learnGradeChipRow");
+    expect(learn).toContain("LEARN_TITLE_PLANK");
+    expect(learn).toContain("warmTitlePlank");
   });
 });
