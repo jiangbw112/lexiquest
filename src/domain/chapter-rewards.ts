@@ -2,6 +2,7 @@
  * Forest chapter cosmetics and titles. Amounts, ids, and names come from
  * the reward config. Thresholds use ceil(total * ratio), not a fixed word count.
  */
+import { FOREST_CHAPTER_ID, isCleared } from "./clearance";
 import rewardFile from "./chapters/forest-rewards.json";
 import type { RewardNotice, SaveData } from "./types";
 
@@ -130,7 +131,7 @@ export function applyChapterRewards(
   notify = true,
 ): SaveData {
   let next = save;
-  if (next.chapterCleared && !next.clearRewardClaimed && config.clear_reward.grant_once) {
+  if (isCleared(next, { kind: "chapter", chapterId: FOREST_CHAPTER_ID }) && !next.clearRewardClaimed && config.clear_reward.grant_once) {
     next = grantPieces(next, config, config.clear_reward.cosmetic_ids, config.clear_reward.title_id, notify);
     next = { ...next, clearRewardClaimed: true };
   }

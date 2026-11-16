@@ -13,13 +13,13 @@ import {
   selectBattleGrade,
 } from "../../domain/chapter-route";
 import { GRADE_BANDS } from "../../domain/catalog";
+import { battleClearLine, cardProgress, learnedWordsLine } from "../../domain/learn-progress";
 import { mapPanel } from "../../domain/map-panel";
 import { selectionBattleNotice, studyNow } from "../../domain/progress";
 import { badgeTone, isDue } from "../../domain/review";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
   chapterDueCount,
-  learnedRequiredCount,
   masteryLabel,
   requiredWordIds,
   wordsUntilBoss,
@@ -292,10 +292,9 @@ export class StageMapScene extends Phaser.Scene {
     });
     warmPanel(this, 930, 48, 540, 66);
     const forestChapter = chapter.grade === "mixed";
-    const learned = forestChapter
-      ? learnedRequiredCount(save)
-      : chapter.wordIds.filter((id) => save.wordCards[id]).length;
-    const total = forestChapter ? requiredWordIds(save).length : chapter.wordIds.length;
+    const learnIds = forestChapter ? requiredWordIds(save) : chapter.wordIds;
+    const learnedProgress = cardProgress(save, learnIds);
+    const learnedLine = learnedWordsLine(learnedProgress, "已学") ?? "没有要学的词";
     const mastery = forestChapter
       ? masteryLabel(save, now)
       : `${chapter.wordIds.filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length}/${chapter.wordIds.length}`;
@@ -305,7 +304,7 @@ export class StageMapScene extends Phaser.Scene {
     const untilBoss = forestChapter
       ? wordsUntilBoss(save)
       : chapter.wordIds.filter((id) => !save.wordCards[id]).length;
-    this.add.text(680, 26, `已学 ${learned}/${total}`, {
+    this.add.text(680, 26, learnedLine, {
       fontFamily: FONT,
       fontSize: "20px",
       fontStyle: "700",
@@ -314,7 +313,8 @@ export class StageMapScene extends Phaser.Scene {
     this.add.text(860, 26, `熟练 ${mastery}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     this.add.text(1040, 26, `到期 ${due}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
     const untilLine = forestChapter ? `距林心守护还差 ${untilBoss} 个词` : `距${chapter.bossName}还差 ${untilBoss} 个词`;
-    this.add.text(680, 52, untilLine, {
+    const battleLine = `${battleClearLine(statuses.filter((item) => item === "cleared").length, chapter.stages.length)} · ${untilLine}`;
+    this.add.text(680, 52, battleLine, {
       fontFamily: FONT,
       fontSize: "14px",
       color: MUTED,

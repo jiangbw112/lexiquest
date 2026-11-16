@@ -489,4 +489,16 @@ describe("DES-05 parent progress and daily goal", () => {
     expect(legacy.goalCalendar["2026-03-01"]).toBeUndefined();
     expect(legacy).not.toHaveProperty("parentPin");
   });
+
+  it("counts chapter word cards apart from battle clears", () => {
+    const save = learnWord(newSave(), "tree", START);
+    const before = parentView(save, START);
+    expect(before.learnedLine).toMatch(/^本章已学 1\/\d+ 个词$/);
+    expect(before.masteredLine).toContain("已通关 0/");
+    expect(before.learnedLine).not.toContain("通过");
+    const won = parentView({ ...save, stageWins: { "1": 1 }, chapterCleared: true }, START);
+    expect(won.learnedLine).toBe(before.learnedLine);
+    expect(won.masteredLine).toContain("已通关森林");
+    expect(parentFacingLines(before)).toContain(before.learnedLine);
+  });
 });

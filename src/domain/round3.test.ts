@@ -703,13 +703,13 @@ describe("round 3 new words, hints, and replay", () => {
     const encounter = stageEncounterId(1);
     const skill = starterSkillId("warrior");
     save = applyBattleOutcome(save, "win", now.getTime(), encounter);
-    expect(stageCleared(save, stage)).toBe(false);
+    expect(stageCleared(save, stage)).toBe(true);
     expect(save.stageWins["1"]).toBe(1);
     expect(save.replayWinsByDay).toBeUndefined();
     expect(save.xp).toBeGreaterThan(0);
     expect(save.skillLevels[skill]).toBe(2);
     for (let win = 0; win < 3; win += 1) save = applyBattleOutcome(save, "win", now.getTime(), encounter);
-    expect(stageCleared(save, stage)).toBe(false);
+    expect(stageCleared(save, stage)).toBe(true);
     expect(save.replayWinsByDay?.[localDayKey(now, ZONE)]).toBe(3);
     expect(save.skillLevels[skill]).toBe(MAX_SKILL_LEVEL);
     const cappedXp = save.xp;

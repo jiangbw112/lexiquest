@@ -1,6 +1,7 @@
 import { chapterExtraWords, isChapterExtra, wordById } from "./catalog";
 import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
+import { isCleared } from "./clearance";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
 import type { ClassId, SaveData } from "./types";
@@ -24,7 +25,7 @@ export interface ForestChapter {
   clear_rule: "defeat_boss";
   mastery_blocks_clear: false;
   stages: ForestStage[];
-  stage_clear: { all_stage_words_learned: true; min_battle_wins: number };
+  stage_clear: { all_stage_words_learned: false; min_battle_wins: number };
   boss_unlock: { stages_1_to_4_cleared: true; all_28_learned: true };
   boss_v1: {
     phases: number;
@@ -34,8 +35,8 @@ export interface ForestChapter {
   };
   question_pool: {
     prefer_due: true;
-    fallback: "learned_in_chapter";
-    never: "unlearned_or_outside_chapter";
+    fallback: "allowed_pool";
+    never: "outside_allowed";
   };
 }
 
@@ -81,7 +82,7 @@ function readChapter(value: unknown): ForestChapter {
     }
     if (!boss && index === 0 && stage.unlock !== null) throw new Error("stage 1 has no unlock");
   });
-  if (file.stage_clear?.all_stage_words_learned !== true || file.stage_clear.min_battle_wins !== 1) {
+  if (file.stage_clear?.all_stage_words_learned !== false || file.stage_clear.min_battle_wins !== 1) {
     throw new Error("stage clear rule");
   }
   if (file.boss_unlock?.stages_1_to_4_cleared !== true || file.boss_unlock.all_28_learned !== true) {
@@ -90,10 +91,10 @@ function readChapter(value: unknown): ForestChapter {
   if (file.boss_v1?.phases !== 2 || file.boss_v1.spelling_ratio_cap !== 0.3) throw new Error("boss v1");
   const band = file.boss_v1.successful_skill_casts_to_clear;
   if (!Array.isArray(band) || band[0] !== 8 || band[1] !== 12) throw new Error("boss cast band");
-  if (file.question_pool?.prefer_due !== true || file.question_pool.fallback !== "learned_in_chapter") {
+  if (file.question_pool?.prefer_due !== true || file.question_pool.fallback !== "allowed_pool") {
     throw new Error("question pool");
   }
-  if (file.question_pool.never !== "unlearned_or_outside_chapter") throw new Error("question pool never");
+  if (file.question_pool.never !== "outside_allowed") throw new Error("question pool never");
   const ids = file.stages.flatMap((stage) => stage.new_words);
   if (new Set(ids).size !== ids.length) throw new Error("a forest word is in two stages");
   for (const id of ids) {
@@ -235,6 +236,16 @@ export function stageWordIds(save: SaveData, stage: ForestStage): string[] {
   return stage.new_words.filter((id) => countsTowardBoss(id, grades));
 }
 
+/** Cards still missing among stageWordIds. This count is a hint and does not gate stageCleared. */
+export function stageWordsStillToLearn(save: SaveData, stage: ForestStage): number {
+  return stageWordIds(save, stage).filter((id) => !save.wordCards[id]).length;
+}
+
+export function stageLearnMoreLine(remaining: number): string | null {
+  if (remaining <= 0) return null;
+  return `这一关还有 ${remaining} 个新词可以去学堂学`;
+}
+
 /** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
 export function bossUnlockLine(save: SaveData): string {
   const boss = FOREST_CHAPTER.stages.find((stage) => stage.type === "boss");
@@ -264,13 +275,9 @@ export function stageWins(save: SaveData, stageId: number): number {
   return save.stageWins[String(stageId)] ?? 0;
 }
 
+/** Forest stages use isCleared. One recorded win passes a non-boss stage. */
 export function stageCleared(save: SaveData, stage: ForestStage): boolean {
-  if (stage.type === "boss") return save.chapterCleared;
-  const ids = stageWordIds(save, stage);
-  const wins = stageWins(save, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
-  if (ids.length === 0) return wins;
-  const learned = !FOREST_CHAPTER.stage_clear.all_stage_words_learned || ids.every((id) => save.wordCards[id]);
-  return learned && wins;
+  return isCleared(save, { kind: "stage", chapterId: FOREST_CHAPTER.chapter_id, stage });
 }
 
 export function explorationCleared(save: SaveData): boolean {
@@ -298,7 +305,7 @@ export function stageStatuses(save: SaveData): StageStatus[] {
   let gateOpen = true;
   for (const stage of FOREST_CHAPTER.stages) {
     if (stage.type === "boss") {
-      if (save.chapterCleared) statuses.push("cleared");
+      if (isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER.chapter_id })) statuses.push("cleared");
       else if (gateOpen && bossReady(save)) statuses.push("open");
       else statuses.push("locked");
       continue;
