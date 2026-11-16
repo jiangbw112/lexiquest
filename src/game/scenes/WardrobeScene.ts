@@ -126,8 +126,13 @@ export class WardrobeScene extends Phaser.Scene {
       fontSize: "16px",
       color: NOTE,
     });
+    this.add.text(430, titleY + 48, "村子只见花环。", {
+      fontFamily: FONT,
+      fontSize: "16px",
+      color: NOTE,
+    });
     if (classId !== "warrior") {
-      this.add.text(430, titleY + 48, "这身衣服先给战士换。", {
+      this.add.text(620, titleY + 48, "这身衣服先给战士换。", {
         fontFamily: FONT,
         fontSize: "16px",
         color: NOTE,
@@ -226,7 +231,11 @@ export class WardrobeScene extends Phaser.Scene {
     rows.forEach((row, index) => {
       const centerY = index * WARDROBE_LIST.rowStride + WARDROBE_LIST.rowStride / 2;
       const centerX = WARDROBE_LIST.x + WARDROBE_LIST.width / 2;
-      const frame = row.equipped ? "wardrobe_slot_selected" : "wardrobe_slot_normal";
+      const frame = !row.applies
+        ? "wardrobe_slot_disabled"
+        : row.equipped
+          ? "wardrobe_slot_selected"
+          : "wardrobe_slot_normal";
       const slot = warmSlice(this, "atlas_wardrobe", frame, WARDROBE_LIST.width, 88);
       slot.setPosition(centerX, centerY);
       const markX = WARDROBE_LIST.x + 36;
@@ -241,17 +250,30 @@ export class WardrobeScene extends Phaser.Scene {
       const label = this.add.text(iconX + iconSize / 2 + 12, centerY, row.name, {
         fontFamily: FONT,
         fontSize: "22px",
-        color: INK,
+        color: row.applies ? INK : MUTED,
       }).setOrigin(0, 0.5);
+      const limit = row.applies
+        ? null
+        : this.add.text(WARDROBE_LIST.x + WARDROBE_LIST.width - 24, centerY, "只给战士", {
+          fontFamily: FONT,
+          fontSize: "18px",
+          color: NOTE,
+        }).setOrigin(1, 0.5);
       const hit = this.add.container(centerX, centerY);
       hit.setSize(WARDROBE_LIST.width, 88);
       hit.setName(`wardrobe:${row.id}`);
       const area = containerHitArea(WARDROBE_LIST.width, 88);
-      hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
-      if (hit.input) hit.input.cursor = "pointer";
+      if (row.applies) {
+        hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
+        if (hit.input) hit.input.cursor = "pointer";
+      }
       let down = false;
       let intent: WardrobeIntent | null = null;
       const show = (state: "normal" | "hover" | "pressed") => {
+        if (!row.applies) {
+          slot.setFrame("wardrobe_slot_disabled");
+          return;
+        }
         if (row.equipped && state === "normal") slot.setFrame("wardrobe_slot_selected");
         else slot.setFrame(`wardrobe_slot_${state}`);
       };
@@ -267,7 +289,7 @@ export class WardrobeScene extends Phaser.Scene {
         show("pressed");
         const current = getSave();
         const piece = current ? ownedWardrobeRows(current).find((item) => item.id === row.id) : undefined;
-        if (!current || !piece) {
+        if (!current || !piece || !piece.applies) {
           intent = null;
           return;
         }
@@ -299,7 +321,7 @@ export class WardrobeScene extends Phaser.Scene {
         if (result.ok && result.save !== current) mutate(() => result.save);
         this.draw();
       });
-      board.add([slot, box, mark, ...icon, label, hit]);
+      board.add([slot, box, mark, ...icon, label, ...(limit ? [limit] : []), hit]);
     });
   }
 }

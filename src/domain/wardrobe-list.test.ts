@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import { CLASS_IDS } from "./classes";
-import { createSave } from "./progress";
+import { applyBattleOutcome, createSave, switchClass } from "./progress";
+import { stageEncounterId } from "./stages";
 import { deserialize, serialize } from "./storage";
 import type { ClassId, SaveData } from "./types";
 import {
@@ -16,6 +17,8 @@ import {
   equipIconMark,
   equippedSlotPieces,
   ownedWardrobeRows,
+  settleWardrobeWear,
+  wardrobeWearDiffers,
   slotHolderId,
   wardrobeApplies,
   wardrobeCatalog,
@@ -71,7 +74,7 @@ describe("owned wardrobe list", () => {
     expect(new Set(fourRows.map((row) => row.slot)).size).toBeLessThanOrEqual(wardrobeCatalog().length);
     expect(wardrobeListMetrics(fourRows.length).maxScroll).toBeGreaterThan(0);
 
-    const more = saveWith("mage", {
+    const more = saveWith("warrior", {
       ownedOutfitIds: ["traveler", "forest-cape", "star-sash"],
       equippedOutfitId: "forest-cape",
       unlockedCosmeticIds: ["forest_leaf_cape", "acorn_pin", "forest_wreath"],
@@ -157,7 +160,7 @@ describe("owned wardrobe list", () => {
   });
 
   it("clears only the piece that was unchecked when two chapter slots are full", () => {
-    let save = saveWith("mage", {
+    let save = saveWith("warrior", {
       ownedOutfitIds: ["traveler", "forest-cape"],
       equippedOutfitId: "traveler",
       unlockedCosmeticIds: ["forest_leaf_cape", "acorn_pin", "forest_wreath"],
@@ -277,5 +280,107 @@ describe("owned wardrobe list", () => {
     expect(scene).not.toContain("穿着");
     expect(scene).not.toContain("戴上");
     expect(scene).not.toContain("摘下");
+    expect(scene).toContain("只给战士");
+    expect(scene).toContain("村子只见花环。");
+  });
+
+  it("keeps warrior-only outfits off other classes and rolls an old illegal wear back", () => {
+    for (const classId of CLASS_IDS) {
+      expect(wardrobeApplies("traveler", classId)).toBe(true);
+      expect(wardrobeApplies("forest_leaf_cape", classId)).toBe(true);
+      expect(wardrobeApplies("acorn_pin", classId)).toBe(true);
+      expect(wardrobeApplies("forest_wreath", classId)).toBe(true);
+      expect(wardrobeApplies("forest-cape", classId)).toBe(classId === "warrior");
+      expect(wardrobeApplies("star-sash", classId)).toBe(classId === "warrior");
+    }
+
+    const worn = saveWith("mage", {
+      ownedOutfitIds: ["traveler", "forest-cape", "star-sash"],
+      equippedOutfitId: "traveler",
+      unlockedCosmeticIds: ["forest_leaf_cape", "acorn_pin", "forest_wreath"],
+      equippedCosmeticIds: ["forest_wreath"],
+      masteryMilestonesClaimed: ["forest-1"],
+      inventorUnlockedAt: 12,
+      inventorUnlockedBy: "kept",
+    });
+    const cape = wear(worn, "forest-cape", "traveler");
+    expect(cape.ok).toBe(false);
+    expect(cape.reason).toBe("inapplicable");
+    expect(cape.save).toBe(worn);
+    expect(cape.save.equippedOutfitId).toBe("traveler");
+    expect(cape.save.equippedCosmeticIds).toEqual(["forest_wreath"]);
+    const sash = wear(worn, "star-sash", "traveler");
+    expect(sash.save).toBe(worn);
+    const rows = ownedWardrobeRows(worn);
+    expect(rows.find((row) => row.id === "forest-cape")).toMatchObject({ applies: false, equipped: false });
+    expect(rows.find((row) => row.id === "forest_leaf_cape")).toMatchObject({ applies: true, equipped: false });
+
+    const illegal = saveWith("mage", {
+      ownedOutfitIds: ["traveler", "forest-cape"],
+      equippedOutfitId: "forest-cape",
+      unlockedCosmeticIds: ["forest_wreath"],
+      equippedCosmeticIds: ["forest_wreath", "acorn_pin", "missing-pin"],
+      masteryMilestonesClaimed: ["forest-1"],
+      inventorUnlockedAt: 12,
+      inventorUnlockedBy: "kept",
+    });
+    const settled = settleWardrobeWear(illegal);
+    expect(settled.equippedOutfitId).toBe("");
+    expect(settled.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(settled.unlockedCosmeticIds).toEqual(["forest_wreath"]);
+    expect(settled.equippedCosmeticIds).toEqual(["forest_wreath"]);
+    expect(settled.masteryMilestonesClaimed).toEqual(["forest-1"]);
+    expect(settled.inventorUnlockedAt).toBe(12);
+    expect(settled.inventorUnlockedBy).toBe("kept");
+    expect(settleWardrobeWear(settled)).toBe(settled);
+
+    const unowned = settleWardrobeWear(saveWith("warrior", {
+      ownedOutfitIds: ["traveler"],
+      equippedOutfitId: "forest-cape",
+    }));
+    expect(unowned.equippedOutfitId).toBe("");
+    expect(unowned.ownedOutfitIds).toEqual(["traveler"]);
+
+    const empty = settleWardrobeWear(saveWith("mage", { equippedOutfitId: "" }));
+    expect(empty.equippedOutfitId).toBe("");
+    expect(settleWardrobeWear(empty)).toBe(empty);
+
+    const loaded = deserialize(serialize(illegal));
+    expect(loaded?.equippedOutfitId).toBe("");
+    expect(loaded?.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(loaded?.equippedCosmeticIds).toEqual(["forest_wreath"]);
+    expect(loaded?.masteryMilestonesClaimed).toEqual(["forest-1"]);
+    expect(loaded?.inventorUnlockedAt).toBe(12);
+
+    const fighter = saveWith("warrior", {
+      ownedOutfitIds: ["traveler", "forest-cape"],
+      equippedOutfitId: "forest-cape",
+      masteryMilestonesClaimed: ["forest-1"],
+      inventorUnlockedAt: 12,
+      inventorUnlockedBy: "kept",
+    });
+    const mage = switchClass(fighter, "mage");
+    expect(mage.player.classId).toBe("mage");
+    expect(mage.equippedOutfitId).toBe("");
+    expect(mage.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(mage.masteryMilestonesClaimed).toEqual(["forest-1"]);
+    expect(mage.inventorUnlockedAt).toBe(12);
+    expect(mage.inventorUnlockedBy).toBe("kept");
+    const back = switchClass(mage, "warrior");
+    expect(back.equippedOutfitId).toBe("");
+    expect(back.ownedOutfitIds).toEqual(fighter.ownedOutfitIds);
+
+    const granted = applyBattleOutcome(
+      saveWith("mage", { ownedOutfitIds: ["traveler"], equippedOutfitId: "traveler" }),
+      "win",
+      1_700_000_000_000,
+      stageEncounterId(1),
+      1,
+      1,
+    );
+    expect(granted.ownedOutfitIds).toContain("forest-cape");
+    expect(granted.equippedOutfitId).toBe("traveler");
+    expect(wardrobeWearDiffers(illegal, settled)).toBe(true);
+    expect(wardrobeWearDiffers(settled, settled)).toBe(false);
   });
 });

@@ -186,7 +186,11 @@ export class ClassSideSprite {
     for (const layer of chapterCosmeticLayers()) {
       if (layer.id === "forest_wreath" || !scene.textures.exists(layer.textureKey)) continue;
       const sprite = scene.add.sprite(0, 0, layer.textureKey).setOrigin(CLASS_SIDE_ORIGIN.x, CLASS_SIDE_ORIGIN.y);
-      sprite.setDepth(layer.z);
+      // The pin sits at z 47, under the near sleeve (outfit_front is 75).
+      // On the warrior the shield still leaves a gap. Other classes have no
+      // shield, and that sleeve covers the whole pin, so lift the same frame.
+      const depth = layer.id === "acorn_pin" && this.classId !== "warrior" ? 76 : layer.z;
+      sprite.setDepth(depth);
       this.root.add(sprite);
       this.cosmeticById.set(layer.id, sprite);
     }

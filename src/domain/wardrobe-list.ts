@@ -62,6 +62,8 @@ export interface WardrobePiece extends SlotPiece {
 
 export interface WardrobeRow extends WardrobePiece {
   equipped: boolean;
+  /** False when this class cannot wear the piece. The row stays, the box does not. */
+  applies: boolean;
 }
 
 export type WearReason = "unowned" | "inapplicable" | "stale";
@@ -102,14 +104,19 @@ export function wardrobePiece(id: string): WardrobePiece | null {
 }
 
 /**
- * Catalog pieces are wearable on every class. `equipOutfit` and `equipCosmetic`
- * have no class deny list, and the chapter pieces are marked for all six.
- * An id outside that catalog does not apply. The actor-sheet outfit frames
- * are still drawn on the warrior only; that is paint, not a second save lock.
+ * Chapter pieces are for every class: the forest manifest says 「六职通用」,
+ * and README says the wreath already draws on all six side and top views.
+ * Traveler adds no actor-sheet frames (`outfits.ts` cape/hat/sash are empty),
+ * so it is the shared "change back" outfit, not a class costume.
+ * Forest-cape and star-sash add cape, hat, or sash frames. README says the
+ * forest cape's side cape and leaf hat draw on the warrior only, and
+ * `ClassSideSprite` draws every one of those extra frames only for the warrior.
  */
 export function wardrobeApplies(id: string, classId: ClassId): boolean {
-  if (!wardrobePiece(id)) return false;
-  return CLASS_IDS.includes(classId);
+  const piece = wardrobePiece(id);
+  if (!piece || !CLASS_IDS.includes(classId)) return false;
+  if (piece.kind === "cosmetic" || piece.id === "traveler") return true;
+  return classId === "warrior";
 }
 
 function owns(save: SaveData, piece: WardrobePiece): boolean {
@@ -196,12 +203,57 @@ export function applyWardrobeIntent(save: SaveData, intent: WardrobeIntent, clas
   return { save: writePieces(save, result.equipped), ok: true };
 }
 
-export function ownedWardrobeRows(save: SaveData): WardrobeRow[] {
+export function ownedWardrobeRows(save: SaveData, classId: ClassId = save.player.classId): WardrobeRow[] {
   const equipped = equippedSlotPieces(save);
   return wardrobeCatalog()
     .filter((piece) => owns(save, piece))
-    .map((piece) => ({
-      ...piece,
-      equipped: slotHolderId(equipped, piece.slot) === piece.id,
-    }));
+    .map((piece) => {
+      const applies = wardrobeApplies(piece.id, classId);
+      return {
+        ...piece,
+        applies,
+        equipped: applies && slotHolderId(equipped, piece.slot) === piece.id,
+      };
+    });
+}
+
+/** True when the stored wear is not the wear the game will keep. */
+export function wardrobeWearDiffers(
+  before: { equippedOutfitId?: unknown; equippedCosmeticIds?: unknown },
+  after: { equippedOutfitId: string; equippedCosmeticIds: readonly string[] },
+): boolean {
+  if (before.equippedOutfitId !== after.equippedOutfitId) return true;
+  const ids = Array.isArray(before.equippedCosmeticIds)
+    ? before.equippedCosmeticIds.filter((id): id is string => typeof id === "string")
+    : [];
+  return ids.length !== after.equippedCosmeticIds.length
+    || ids.some((id, index) => id !== after.equippedCosmeticIds[index]);
+}
+
+/**
+ * Empty `equippedOutfitId` is the class default.
+ * An outfit or cosmetic that this class cannot wear, or that the save does
+ * not own, comes off. Ownership lists stay as they were.
+ */
+export function settleWardrobeWear(save: SaveData): SaveData {
+  const classId = save.player.classId;
+  const outfitId = save.equippedOutfitId;
+  const outfitOk = outfitId === ""
+    || (wardrobePiece(outfitId)?.kind === "outfit"
+      && save.ownedOutfitIds.includes(outfitId)
+      && wardrobeApplies(outfitId, classId));
+  const cosmetics = save.equippedCosmeticIds.filter((id) => {
+    const piece = wardrobePiece(id);
+    return piece?.kind === "cosmetic"
+      && save.unlockedCosmeticIds.includes(id)
+      && wardrobeApplies(id, classId);
+  });
+  const cosmeticsSame = cosmetics.length === save.equippedCosmeticIds.length
+    && cosmetics.every((id, index) => id === save.equippedCosmeticIds[index]);
+  if (outfitOk && cosmeticsSame) return save;
+  return {
+    ...save,
+    equippedOutfitId: outfitOk ? outfitId : "",
+    equippedCosmeticIds: cosmetics,
+  };
 }
