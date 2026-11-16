@@ -483,6 +483,19 @@ function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
   };
 }
 
+/**
+ * Exam only. Call after the settlement snapshot and before the next question.
+ * The 10th answer itself stays unshaken. The following question sees the flag.
+ * Shaken is battle memory. Leaving and re-entering a phase starts a new battle.
+ */
+export function armExamShaken(state: BattleState): BattleState {
+  const threshold = state.examTuning?.shakenAfter;
+  if (threshold == null || !state.phases || state.shaken) return state;
+  if (state.phase === "won" || state.phase === "lost") return state;
+  if (state.questionsAsked < threshold) return state;
+  return { ...state, shaken: true };
+}
+
 export function answerQuestion(state: BattleState, choiceId: string): BattleState {
   if (state.phase !== "question" || !state.question) return state;
   const slot = state.pendingBasic
@@ -563,9 +576,14 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   if (playerHit !== 0) turnDeltas.push({ target: "player", amount: playerHit });
   if (laterAmount !== 0) turnDeltas.push({ target: "enemy", amount: laterAmount });
   finished = { ...finished, turnDeltas };
-  const shakenAfter = state.examTuning?.shakenAfter ?? PROVISIONAL.chapterEnding.shakenAfterQuestions;
-  if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= shakenAfter) {
-    finished = { ...finished, shaken: true };
+  // Chapter bosses still mark shaken on this settlement. An exam keeps the
+  // settlement snapshot clear and marks shaken in armExamShaken, before the
+  // next question is dealt.
+  if (!state.examTuning) {
+    const shakenAfter = PROVISIONAL.chapterEnding.shakenAfterQuestions;
+    if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= shakenAfter) {
+      finished = { ...finished, shaken: true };
+    }
   }
   const hintNow = supportive && supportStreak === 3 && finished.phase !== "won" && finished.phase !== "lost";
   return {

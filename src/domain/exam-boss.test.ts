@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
-import { answerQuestion, startBattle, takeAction } from "./battle";
+import { answerQuestion, armExamShaken, startBattle, takeAction } from "./battle";
 import { isMastered } from "./cards";
 import { gradeChapters, isChapterUnlocked, spellingSkipIds } from "./chapter-plan";
 import { isClassSelectable } from "./class-unlock";
@@ -35,6 +35,7 @@ import {
   examById,
   examEnemyName,
   examIntroParts,
+  examShakenLine,
   examNodeStatus,
   examPhaseHp,
   examShowsCompass,
@@ -324,8 +325,35 @@ describe("exam bosses", () => {
       state = answerQuestion(asked.state, question.kind === "spelling" ? question.answer : question.answerId);
     }
     expect(state.questionsAsked).toBe(10);
-    expect(state.shaken).toBe(true);
+    expect(state.shaken).toBe(false);
     expect(state.phase).not.toBe("won");
+    state = armExamShaken(state);
+    expect(state.shaken).toBe(true);
+    expect(examShakenLine(state.enemyName, false)).toBe(`${state.enemyName}动摇了！答对并出手攻击，就能突破！`);
+    expect(examShakenLine(state.enemyName, true)).toBe(`${state.enemyName}动摇了！答对并出手攻击，就能赢！`);
+    const finisher = takeAction(state, { type: "attack" });
+    const finisherQuestion = finisher.state.question;
+    if (!finisherQuestion) throw new Error(finisher.reason ?? "finisher");
+    expect(finisher.state.shaken).toBe(true);
+    const ended = answerQuestion(
+      finisher.state,
+      finisherQuestion.kind === "spelling" ? finisherQuestion.answer : finisherQuestion.answerId,
+    );
+    expect(ended.phase).toBe("won");
+    const resumed = startBattle({
+      encounterId: exam.id,
+      classId: "warrior",
+      learnedIds: words.map((word) => word.id),
+      equippedSkillIds: save.equippedSkillIds,
+      skillLevels: save.skillLevels,
+      seed: 11,
+      enemy: { name: examEnemyName("mid"), maxHp: 9000, attack: 1, sprite: exam.id },
+      phases: [{ hp: 9000, note: "" }],
+      examTuning: { shakenAfter: EXAM_SHAKEN_AFTER, spellingCounter: 2 },
+      examSchedule: scheduleForPhase(exam, emptySession(), 0, words),
+    });
+    expect(resumed.shaken).toBe(false);
+    expect(resumed.questionsAsked).toBe(0);
     let chapter = startBattle({
       encounterId: "forest-stage-1",
       classId: "warrior",

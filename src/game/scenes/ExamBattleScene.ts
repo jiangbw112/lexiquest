@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { answerQuestion, startBattle, takeAction, type BattleState } from "../../domain/battle";
+import { answerQuestion, armExamShaken, startBattle, takeAction, type BattleState } from "../../domain/battle";
 import {
   INVENTOR_UNLOCK_GO,
   INVENTOR_UNLOCK_LATER,
@@ -41,6 +41,7 @@ import {
   examById,
   examEnemyName,
   examIntroParts,
+  examShakenLine,
   examPhaseHp,
   examSpellingCounter,
   examUnlocked,
@@ -298,6 +299,14 @@ export class ExamBattleScene extends Phaser.Scene {
         color: "#fff8e8",
       }));
     }
+    if (state.shaken && state.phase === "question") {
+      this.view?.add(this.add.text(760, 168, examShakenLine(state.enemyName, this.phaseNo >= exam.phases), {
+        fontFamily: FONT_BODY,
+        fontSize: "18px",
+        color: "#fff8e8",
+        wordWrap: cjkWrap(420),
+      }));
+    }
     if (state.phase === "choose") this.textButton(640, 700, "攻击", () => this.act());
     if (parts.question && parts.answers && state.phase === "question" && state.question) {
       this.view?.add(this.add.text(160, 560, state.question.prompt, {
@@ -357,6 +366,7 @@ export class ExamBattleScene extends Phaser.Scene {
       this.finishPhase(this.state.phase === "won" && this.state.playerHp > 0);
       return;
     }
+    this.state = armExamShaken(this.state);
     this.drawFight();
   }
 

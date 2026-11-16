@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
-import { answerQuestion, startBattle, takeAction, type BattleAction, type BattleState } from "./battle";
+import { answerQuestion, armExamShaken, startBattle, takeAction, type BattleAction, type BattleState } from "./battle";
 import { classById } from "./classes";
 import { wordsForGrades } from "./catalog";
 import {
@@ -152,6 +152,7 @@ function playPhase(
     const enemyBefore = state.enemyHp;
     const playerBefore = state.playerHp;
     state = answerQuestion(state, answerOf(state, correct));
+    state = armExamShaken(state);
     turns.push({
       q,
       slot: slotIndex,

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { answerQuestion, startBattle, takeAction, type BattleState } from "./battle";
+import { answerQuestion, armExamShaken, startBattle, takeAction, type BattleState } from "./battle";
 import { classById } from "./classes";
 import { wordsForGrades } from "./catalog";
 import { emptySession, scheduleForPhase, type ExamWord } from "./exam-questions";
@@ -102,11 +102,6 @@ function snap(state: BattleState): Snap {
   ];
 }
 
-/** Combat fields, leaving the shaken bit for a separate check. */
-function combatSnap(value: Snap): string {
-  return JSON.stringify([value[0], value[1], value[2], value[3], value[4], value[5], value[7]]);
-}
-
 function withScriptedKind(state: BattleState, spell: boolean): BattleState {
   const question = state.question;
   if (!question) throw new Error("no question");
@@ -129,7 +124,7 @@ function answerScripted(state: BattleState, correct: boolean): BattleState {
   return answerQuestion(state, wrong);
 }
 
-function replay(key: string, row: PaperRow, shakenGaps: Gap[]): Gap[] {
+function replay(key: string, row: PaperRow): Gap[] {
   const [classId, kind, starText, band, lossText, eligible] = key.split("|");
   if (!classId || !kind || !starText || !band || !lossText || !eligible) throw new Error(key);
   const star = Number(starText.slice("star".length));
@@ -184,7 +179,7 @@ function replay(key: string, row: PaperRow, shakenGaps: Gap[]): Gap[] {
       asked += 1;
       if (spell) spelled += 1;
       const actualBefore = snap(state);
-      if (combatSnap(actualBefore) !== combatSnap(before) || actualBefore[6] !== before[6]) {
+      if (JSON.stringify(actualBefore) !== JSON.stringify(before)) {
         gaps.push({
           key,
           phase: phase.phase,
@@ -266,7 +261,7 @@ function replay(key: string, row: PaperRow, shakenGaps: Gap[]): Gap[] {
         }
         if (after) {
           const actualAfter = snap(state);
-          if (combatSnap(actualAfter) !== combatSnap(after)) {
+          if (JSON.stringify(actualAfter) !== JSON.stringify(after)) {
             gaps.push({
               key,
               phase: phase.phase,
@@ -274,16 +269,6 @@ function replay(key: string, row: PaperRow, shakenGaps: Gap[]): Gap[] {
               field: "after",
               expected: JSON.stringify(after),
               actual: JSON.stringify(actualAfter),
-            });
-          }
-          if (actualAfter[6] !== after[6]) {
-            shakenGaps.push({
-              key,
-              phase: phase.phase,
-              q,
-              field: "shaken",
-              expected: String(after[6]),
-              actual: String(actualAfter[6]),
             });
           }
         }
@@ -299,6 +284,7 @@ function replay(key: string, row: PaperRow, shakenGaps: Gap[]): Gap[] {
           break;
         }
       }
+      state = armExamShaken(state);
     }
     if (state.phase !== phase.result) {
       gaps.push({
@@ -346,28 +332,9 @@ describe("paper golden exam samples", () => {
     expect(Object.keys(file.rows)).toHaveLength(12);
   });
 
-  it("replays twelve paper golden samples and compares damage and hit points", () => {
+  it("replays twelve paper golden samples including shaken", () => {
     const file = paper();
-    const shakenGaps: Gap[] = [];
-    const gaps = Object.entries(file.rows).flatMap(([key, row]) => replay(key, row, shakenGaps));
+    const gaps = Object.entries(file.rows).flatMap(([key, row]) => replay(key, row));
     expect(gaps).toEqual([]);
-    // The 10th answer already has questionsAsked === 10, so the engine
-    // raises shaken before returning that after-state. The paper after-tuple
-    // still says false. The next question's before-tuple is true on both sides,
-    // and both end the phase on question 11. Damage and hit points match.
-    expect(shakenGaps.map((gap) => `${gap.key} phase ${gap.phase} q${gap.q} ${gap.expected} vs ${gap.actual}`)).toEqual([
-      "warrior|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "warrior|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-      "mage|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "mage|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-      "ranger|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "ranger|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-      "healer|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "healer|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-      "explorer|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "explorer|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-      "inventor|mid|star1|G3G4|loss0|eligible_all|all_correct phase 1 q10 false vs true",
-      "inventor|mid|star1|G3G4|loss0|eligible_all|all_correct phase 2 q10 false vs true",
-    ]);
   });
 });

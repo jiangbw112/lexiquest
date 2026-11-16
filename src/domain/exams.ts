@@ -133,6 +133,13 @@ export function examIntroParts(open: boolean): { hud: boolean; phase: boolean; q
   return { hud: true, phase: true, question: true, answers: true };
 }
 
+/** Shown once the next question is about to be dealt. Same words as the chapter line. */
+export function examShakenLine(enemyName: string, lastPhase: boolean): string {
+  return lastPhase
+    ? `${enemyName}动摇了！答对并出手攻击，就能赢！`
+    : `${enemyName}动摇了！答对并出手攻击，就能突破！`;
+}
+
 /** A click that closes the banner is consumed. It is not delivered as an answer. */
 export function deliverExamPointer(open: boolean, onClose: () => void, onAnswer: () => void): void {
   if (open) {
