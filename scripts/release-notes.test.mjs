@@ -58,7 +58,9 @@ describe("release notes", () => {
     expect(section).toContain("家长页另外写出本章已学几个词");
     expect(section).not.toContain("才能通过");
     expect(section).toContain("在对战里见到或答对，不会变成已学");
+    expect(section).toContain("本章 Boss（如林心守护者）仍要先通过前面的关卡，并且所选年级的本章词都学完（都有词卡）才能挑战");
     expect(section).toContain("安装方式没有变");
+    expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
     expect(section).not.toContain("## 1.0.2");
     expect(section).not.toContain("## 1.0.1");
     expect(section).not.toContain("## 1.0.0");
@@ -66,7 +68,8 @@ describe("release notes", () => {
     expect(section).not.toContain("清除这台电脑上的存档");
     expect(section).not.toContain("游戏");
     expect(section).not.toContain("发明家");
-    expect(section).not.toContain("Boss");
+    expect(section).not.toContain("期末大 Boss");
+    expect(section).not.toContain("章节 Boss");
     expect(section).not.toContain("考试");
     expect(section).not.toContain("六个");
     expect(section).not.toContain("账本");
