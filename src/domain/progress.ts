@@ -35,6 +35,7 @@ import {
   skillsForClass,
   starterSkillId,
 } from "./skills";
+import { createProfileId, createTitleState } from "./titles";
 import type { Appearance, ClassId, MemoryRecord, RewardNotice, SaveData, WordCardRecord } from "./types";
 import { Rating, State, type Grade } from "ts-fsrs";
 
@@ -113,6 +114,8 @@ export function createSave(input: {
   if (!name) throw new Error("Name must be 1–12 characters");
   const starter = starterSkillId(input.classId);
   const selectedGrades = normalizeGrades(input.grades);
+  const profileId = createProfileId();
+  const titleState = createTitleState(profileId, input.now);
   const save: SaveData = {
     version: 1,
     createdAt: input.now,
@@ -154,6 +157,7 @@ export function createSave(input: {
     clockOffsetMs: 0,
     rewardQueue: [],
     bestStars: {},
+    ...titleState,
   };
   return refreshUnlocks(save);
 }
