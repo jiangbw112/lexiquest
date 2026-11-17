@@ -5,6 +5,7 @@
  * re-checked before any server grants the same reward.
  */
 import { isAppearance } from "./appearance";
+import { backfillInventorRecord, migrateExamRewards } from "./exam-settlement";
 import { migrateTitleSave } from "./titles";
 import { normalizeGrades } from "./catalog";
 import { CLASS_IDS } from "./classes";
@@ -146,7 +147,8 @@ export function deserialize(raw: string): SaveData | null {
       : undefined;
     save.selectedGrades = normalizeGrades(grades);
     save.gradesConfirmed = typeof value.gradesConfirmed === "boolean" ? value.gradesConfirmed : save.selectedGrades.length > 0;
-    return settleWardrobeWear(withParentDefaults(migrateTitleSave(save, Date.now())));
+    const titled = migrateTitleSave(save, Date.now());
+    return settleWardrobeWear(withParentDefaults(backfillInventorRecord(migrateExamRewards(titled, Date.now()))));
   } catch {
     return null;
   }

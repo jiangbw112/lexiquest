@@ -1,20 +1,21 @@
 import { CLASS_IDS } from "./classes";
 import { isCleared, type ClearSave } from "./clearance";
+import { hasClearedAnyFinal } from "./exams";
 import { finalExamIds } from "./titles";
 import type { ClassId } from "./types";
 
 /**
- * K22 hard lock for 1.0.0. This is a source literal. A later version turns it
- * on by editing this line and shipping a new build. Nothing at runtime may set it.
+ * Source literal for the final-exam build. Nothing at runtime may set it.
+ * Selection reads examProgress through hasClearedAnyFinal, not the reserved fields.
  */
-export const INVENTOR_UNLOCK_ENABLED = false as const;
+export const INVENTOR_UNLOCK_ENABLED = true as const;
 
 export const INVENTOR_LOCK_TITLE = "藏起来的职业";
 /** Subtitle under the locked card. It is not the click dialog. */
 export const INVENTOR_LOCK_NOTE = "打败期末大 Boss 后解锁";
 /** CLASS_SPEC v1.0.3 §5.4.3 `lock.tip`. The dialog uses this whole sentence. */
 export const INVENTOR_LOCK_TIP =
-  "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。期末大 Boss 还在准备中，先和大家一起去冒险吧！";
+  "这里藏着一位新朋友。打败任意一个期末大 Boss，就能请它加入。";
 export const INVENTOR_LOCK_TIP_BUTTON = "好的";
 /** Same label as `INVENTOR_LOCK_TIP_BUTTON`. The dialog has this one button. */
 export const INVENTOR_LOCK_BUTTON = INVENTOR_LOCK_TIP_BUTTON;
@@ -30,7 +31,7 @@ export interface ClassUnlockSave extends ClearSave {
 
 /**
  * A final-exam clear, or a grant already stored on the save.
- * This does not write the save. The 1.0 lock in isClassUnlocked still refuses the class.
+ * This does not write the save. Selectability still reads hasClearedAnyFinal.
  */
 export function inventorEarnedByClear(save: ClassUnlockSave | null | undefined): boolean {
   if (!save) return false;
@@ -39,12 +40,13 @@ export function inventorEarnedByClear(save: ClassUnlockSave | null | undefined):
 }
 
 /**
- * Inventor asks isCleared for a final exam, then stays closed while the constant is false.
- * The other five classes are always open. This function does not write the save.
+ * Inventor is selectable only after a whitelist final is cleared.
+ * The other five classes are always open. The constant is not a runtime switch.
  */
 export function isClassSelectable(id: ClassId, save: ClassUnlockSave | null | undefined): boolean {
   if (id !== "inventor") return true;
-  return INVENTOR_UNLOCK_ENABLED && inventorEarnedByClear(save);
+  if (!INVENTOR_UNLOCK_ENABLED) return false;
+  return hasClearedAnyFinal(save);
 }
 
 /** Same gate as isClassSelectable. Create and load both use it. */

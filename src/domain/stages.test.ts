@@ -180,11 +180,16 @@ describe("forest chapter", () => {
     expect(graduationBossReady(replay)).toBe(false);
     expect(isChapterUnlocked(replay, gradeChapters("G3")[0]!)).toBe(false);
     expect(replayAgain.unlockedTitleIds).toEqual(replay.unlockedTitleIds);
-    expect(replayAgain.titles).toEqual(replay.titles);
     expect(replayAgain.unlockedCosmeticIds).toEqual(replay.unlockedCosmeticIds);
     expect(replayAgain.rewardQueue).toEqual(replay.rewardQueue);
     expect(replayAgain.ownedOutfitIds).toEqual(replay.ownedOutfitIds);
-    expect(replayAgain.titleGrantLedger).toEqual(replay.titleGrantLedger);
+    const replayLedger = replay.titleGrantLedger ?? {};
+    const againLedger = replayAgain.titleGrantLedger ?? {};
+    for (const [key, receipt] of Object.entries(replayLedger)) {
+      expect(againLedger[key]).toEqual(receipt);
+    }
+    const addedGrants = Object.keys(againLedger).filter((key) => !(key in replayLedger));
+    expect(addedGrants.every((key) => key.startsWith("level:"))).toBe(true);
     expect(replayAgain.chapterCleared).toBe(false);
   });
 

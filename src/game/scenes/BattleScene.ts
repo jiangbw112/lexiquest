@@ -18,6 +18,7 @@ import {
   RANGER_SWAP_USED,
 } from "../../domain/class-copy";
 import { buildResultsView, starsFor } from "../../domain/battle-results";
+import { battleEnemyName } from "../../domain/exams";
 import { applyBattleOutcome, noteBattleAnswer, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
 import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey } from "../../domain/skill-card-face";
@@ -1025,8 +1026,7 @@ export class BattleScene extends Phaser.Scene {
     warmPanel(this, 930, 92, 400, 104);
     this.add.text(170, 62, save.player.name, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: INK }).setOrigin(0, 0.5);
     const phaseCount = this.state.phases?.length ?? 1;
-    const phaseLabel = phaseCount > 1 ? `  阶段 ${this.state.phaseIndex + 1}/${phaseCount}` : "";
-    this.add.text(750, 62, `${this.state.enemyName}${phaseLabel}`, {
+    this.add.text(750, 62, battleEnemyName(this.state.enemyName, this.state.phaseIndex, phaseCount, false), {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       fontStyle: "700",

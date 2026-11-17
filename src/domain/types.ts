@@ -91,8 +91,7 @@ export interface TitleParts {
 }
 
 /**
- * Shape from TITLE_SPEC. This PR does not write it onto examProgress.
- * Graduation proof and exam phase records stay with the exam PR.
+ * Written by an exam clear. Graduation proof stays out of this build.
  */
 export type FirstClearProof = {
   clearEventId: string;
@@ -119,6 +118,73 @@ export interface TitleReceipt {
   grantKeys: string[];
   newPartIds: string[];
   status: "pending" | "presented";
+}
+
+export interface ExamAskRecord {
+  count: number;
+  lastIndex: number;
+}
+
+export interface ExamSessionRecord {
+  asks: Record<string, ExamAskRecord>;
+  nextIndex: number;
+  fightQuestions: number;
+  fightSpelling: number;
+}
+
+/** One phase still in progress. Settlement clears it. It never grants XP. */
+export interface ExamPhaseRunRecord {
+  phaseNo: number;
+  seed: number;
+  casts: number;
+  pending: { wordId: string; kind: "meaning" | "spelling" } | null;
+  phaseQuestions: number;
+  phaseSpelling: number;
+  phaseWords: string[];
+  committedQuestions: number;
+  committedSpelling: number;
+  asks: Record<string, ExamAskRecord>;
+  nextIndex: number;
+  fightQuestions: number;
+  fightSpelling: number;
+  fightShare: number;
+  fightSpellingMax: number;
+  relief: boolean;
+  phaseSpellingMax: number;
+}
+
+export interface ExamPhaseRecord {
+  passed: true;
+  xpDisposition: "paid" | "legacyNoGrant";
+  xpAmount: number;
+  settledAt?: number;
+  settlementKey: string;
+  origin: "newPass" | "legacyProgress";
+}
+
+export interface ExamProgressEntry {
+  cleared?: boolean;
+  /** Next unpassed phase, 1..N. Stays at N after a full clear. */
+  bestPhase?: number;
+  clearedAt?: number;
+  phaseLosses?: Record<string, number>;
+  attempts?: number;
+  firstTryClear?: boolean;
+  /** A loss happened. The relief counter resets after a pass, so this remembers first-try. */
+  sawLoss?: boolean;
+  titleGrantedAt?: number;
+  firstClearProof?: FirstClearProof;
+  phaseRecords?: Record<string, ExamPhaseRecord>;
+  session?: ExamSessionRecord;
+  /** Question order for the phase that is open. Absent after settlement. */
+  phaseRun?: ExamPhaseRunRecord;
+  rewardMigration?: {
+    version: 1;
+    legacyPassedThrough: number;
+    evidence: "newSave" | "oldBestPhase" | "oldCleared";
+    migratedAt: number;
+  };
+  migrationReviewRequired?: true;
 }
 
 export interface PlayerProfile {
@@ -267,10 +333,16 @@ export interface SaveData {
   unlockedClassIds?: ClassId[];
   /** Reserved. 1.0.0 ignores a value already in a save and does not add one. */
   inventorUnlockedAt?: number;
-  /** Reserved. 1.0.0 ignores a value already in a save and does not add one. */
+  /** Record only. Inventor selection reads examProgress, not this field. */
   inventorUnlockedBy?: string;
-  /** Reserved. 1.0.0 does not backfill a clear into an unlock. */
-  examProgress?: Record<string, { cleared?: boolean; bestPhase?: number }>;
+  /** Shown once after the title card when a final clear unlocks inventor. */
+  inventorUnlockReceipt?: { eventId: string; status: "pending" | "presented" };
+  /**
+   * Exam reward ledger. Missing on older saves until load migrates it.
+   * Unknown ids are kept and do not unlock or pay.
+   */
+  examRewardSchemaVersion?: 1;
+  examProgress?: Record<string, ExamProgressEntry>;
   /**
    * Stable id for title events. Not derived from the player name.
    * Old saves receive one during title migration.

@@ -25,9 +25,10 @@ import {
   type SkillDef,
   type SkillSlot,
 } from "./skills";
+import { EXAM_NO_QUESTION, noteExamAsk, pendingExamQuestion, pickExamQuestion, type ExamSchedule, type ExamWord } from "./exam-questions";
 import { PROVISIONAL } from "./provisional";
 import { FOREST_CHAPTER } from "./stages";
-import type { ClassId } from "./types";
+import type { ClassId, ExamPhaseRunRecord } from "./types";
 
 export const MIN_LEARNED_FOR_BATTLE = 4;
 export const MAX_ENERGY = 6;
@@ -191,6 +192,10 @@ export interface BattleState {
   heldDraw: HeldDraw | null;
   /** Kind name only. The scene must not read the held question's prompt or answer. */
   previewLabel: string | null;
+  /** Exam fights only. Null keeps chapter and forest rules. */
+  examTuning: { shakenAfter: number; spellingCounter: number | null } | null;
+  /** Exam fights only. Null keeps the chapter question draw. */
+  examSchedule: ExamSchedule | null;
 }
 
 export interface HeldDraw {
@@ -236,6 +241,8 @@ export function startBattle(input: {
   distractorIds?: readonly string[];
   /** Unlocked skill ids of this class. Omitted means only the equipped cards are unlocked. */
   unlockedSkillIds?: readonly string[];
+  examTuning?: { shakenAfter: number; spellingCounter: number | null } | null;
+  examSchedule?: ExamSchedule | null;
 }): BattleState {
   const known = ENCOUNTERS.find((item) => item.id === input.encounterId);
   const enemy = input.enemy ?? (known
@@ -307,6 +314,8 @@ export function startBattle(input: {
     heldQuestion: null,
     heldDraw: null,
     previewLabel: null,
+    examTuning: input.examTuning ?? null,
+    examSchedule: input.examSchedule ?? null,
   });
 }
 
@@ -476,6 +485,39 @@ function basicEffectSlot(state: BattleState, action: BasicAction): SkillSlot {
   };
 }
 
+/**
+ * Exam only. Call after the settlement snapshot and before the next question.
+ * The 10th answer itself stays unshaken. The following question sees the flag.
+ * Shaken is battle memory. A resumed phase restores it from the saved answer count.
+ */
+export function resumeExamBattle(state: BattleState, run: ExamPhaseRunRecord, words: ExamWord[]): BattleState {
+  const answered = run.phaseQuestions - (run.pending ? 1 : 0);
+  const threshold = state.examTuning?.shakenAfter;
+  const next: BattleState = {
+    ...state,
+    casts: run.casts,
+    questionsAsked: run.phaseQuestions,
+    spellingAsked: run.phaseSpelling,
+    shaken: threshold != null && answered >= threshold,
+  };
+  if (!run.pending) return next;
+  const question = pendingExamQuestion(run, words);
+  if (!question) return next;
+  return { ...next, phase: "question", question, pendingBasic: "attack", pendingSlot: null };
+}
+
+/**
+ * Exam only. Call after the settlement snapshot and before the next question.
+ * The 10th answer itself stays unshaken. The following question sees the flag.
+ */
+export function armExamShaken(state: BattleState): BattleState {
+  const threshold = state.examTuning?.shakenAfter;
+  if (threshold == null || !state.phases || state.shaken) return state;
+  if (state.phase === "won" || state.phase === "lost") return state;
+  if (state.questionsAsked < threshold) return state;
+  return { ...state, shaken: true };
+}
+
 export function answerQuestion(state: BattleState, choiceId: string): BattleState {
   if (state.phase !== "question" || !state.question) return state;
   const slot = state.pendingBasic
@@ -518,6 +560,7 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   const playerHpForTurn = applied.playerHp;
   const enemyAmount = clampedHpDelta(state.enemyHp, enemyHpForTurn, state.enemyMaxHp);
   const playerEffect = clampedHpDelta(state.playerHp, playerHpForTurn, state.playerMaxHp);
+  const softCounter = state.examTuning?.spellingCounter != null && state.question.kind === "spelling";
   let finished = finishPlayerTurn(
     {
       ...state,
@@ -529,10 +572,12 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
       pendingSlot: null,
       pendingBasic: null,
       lastNote: note,
+      enemyAttack: softCounter ? state.examTuning!.spellingCounter! : state.enemyAttack,
     },
     note,
     whiff,
   );
+  if (softCounter) finished = { ...finished, enemyAttack: state.enemyAttack };
   if (finished.phase === "lost") later = 0;
   let laterAmount = 0;
   if (later > 0 && finished.phase !== "won" && finished.phase !== "lost" && finished.enemyHp > 0) {
@@ -553,8 +598,14 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   if (playerHit !== 0) turnDeltas.push({ target: "player", amount: playerHit });
   if (laterAmount !== 0) turnDeltas.push({ target: "enemy", amount: laterAmount });
   finished = { ...finished, turnDeltas };
-  if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= PROVISIONAL.chapterEnding.shakenAfterQuestions) {
-    finished = { ...finished, shaken: true };
+  // Chapter bosses still mark shaken on this settlement. An exam keeps the
+  // settlement snapshot clear and marks shaken in armExamShaken, before the
+  // next question is dealt.
+  if (!state.examTuning) {
+    const shakenAfter = PROVISIONAL.chapterEnding.shakenAfterQuestions;
+    if (finished.phases && finished.phase !== "won" && finished.questionsAsked >= shakenAfter) {
+      finished = { ...finished, shaken: true };
+    }
   }
   const hintNow = supportive && supportStreak === 3 && finished.phase !== "won" && finished.phase !== "lost";
   return {
@@ -687,6 +738,7 @@ export function swapCard(
 }
 
 function composeQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
+  if (state.examSchedule) return composeExamQuestion(state);
   const pool = questionPool(state);
   if (pool.length === 0) {
     return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。" };
@@ -720,9 +772,28 @@ function composeQuestion(state: BattleState): { ok: true; question: BattleQuesti
   return { ok: true, question, drawn };
 }
 
+function composeExamQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
+  const schedule = state.examSchedule;
+  if (!schedule) return { ok: false, reason: "这道题现在出不了" };
+  const question = pickExamQuestion(schedule, state.seed + state.casts * 13);
+  if (!question) return { ok: false, reason: EXAM_NO_QUESTION };
+  return {
+    ok: true,
+    question,
+    drawn: {
+      wordId: question.wordId,
+      deck: state.deck,
+      recent: state.recentQuestionIds,
+      askedCount: state.askedCount,
+    },
+  };
+}
+
 function commitQuestion(state: BattleState, slot: SkillSlot, basic: BasicAction | null, question: BattleQuestion, drawn: ReturnType<typeof drawBattleWord>): BattleState {
+  const examSchedule = state.examSchedule ? noteExamAsk(state.examSchedule, question.wordId, question.kind === "spelling") : state.examSchedule;
   return {
     ...state,
+    examSchedule,
     energy: state.energy - slot.energyCost,
     phase: "question",
     pendingSlot: basic ? null : slot.index,

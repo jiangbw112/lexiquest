@@ -134,6 +134,13 @@ describe("save class id", () => {
     // A locked inventor deck is the only path that rewrites equippedSkillIds.
     const expected = structuredClone(legal);
     expected.player.classId = "warrior";
+    expect(again.examRewardSchemaVersion).toBe(1);
+    expect(again.xp).toBe(legal.xp);
+    const examEntry = (again.examProgress as { exam_g6_s2_final?: { migrationReviewRequired?: boolean; phaseRecords?: unknown } } | undefined)?.exam_g6_s2_final;
+    expect(examEntry?.migrationReviewRequired).toBe(true);
+    expect(examEntry?.phaseRecords).toBeUndefined();
+    expected.examRewardSchemaVersion = again.examRewardSchemaVersion;
+    expected.examProgress = again.examProgress;
 
     expect(again).toEqual(expected);
     expect(again.player.classId).toBe("warrior");
@@ -148,7 +155,6 @@ describe("save class id", () => {
     expect(again.unlockedClassIds).toEqual(legal.unlockedClassIds);
     expect(again.inventorUnlockedAt).toBe(legal.inventorUnlockedAt);
     expect(again.inventorUnlockedBy).toBe(legal.inventorUnlockedBy);
-    expect(again.examProgress).toEqual(legal.examProgress);
     expect(again.finalBossCleared).toBe(legal.finalBossCleared);
     expect(again.selectedGrades).toEqual(legal.selectedGrades);
     expect(again.gradesConfirmed).toBe(legal.gradesConfirmed);
@@ -213,6 +219,7 @@ describe("save class id", () => {
     expect(loaded!.spellingMemory).toEqual({});
     expect(loaded!.equippedOutfitId).toBe("");
     expect(loaded!.ownedOutfitIds).toEqual(["traveler", "forest-cape"]);
+    expect(loaded!.examRewardSchemaVersion).toBe(1);
   });
 });
 

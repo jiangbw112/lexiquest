@@ -40,7 +40,7 @@ describe("one clear check", () => {
     const examined = { ...won, examProgress: { [examId]: { cleared: true } } };
     expect(isCleared(examined, { kind: "exam", examId })).toBe(true);
     expect(inventorEarnedByClear(examined)).toBe(true);
-    expect(isClassUnlocked("inventor", examined)).toBe(false);
+    expect(isClassUnlocked("inventor", examined)).toBe(true);
     expect(examined.unlockedClassIds).toBeUndefined();
     expect(graduationBossReady(examined)).toBe(false);
 

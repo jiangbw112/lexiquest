@@ -36,7 +36,7 @@ import {
   skillsForClass,
   starterSkillId,
 } from "./skills";
-import { createProfileId, createTitleState } from "./titles";
+import { configuredPartIds, createProfileId, createTitleState, grantTitleParts, levelSourceKeysUpTo } from "./titles";
 import type { Appearance, ClassId, MemoryRecord, RewardNotice, SaveData, WordCardRecord } from "./types";
 import { Rating, State, type Grade } from "ts-fsrs";
 
@@ -158,6 +158,7 @@ export function createSave(input: {
     clockOffsetMs: 0,
     rewardQueue: [],
     bestStars: {},
+    examRewardSchemaVersion: 1,
     ...titleState,
   };
   return refreshUnlocks(save);
@@ -585,5 +586,23 @@ export function applyBattleOutcome(
   const clearedNow = Boolean(
     chapterHit?.boss && priorEntry && !priorEntry.cleared && settled.chapterProgress?.[chapterHit.chapterId]?.cleared,
   );
-  return clearedNow && chapterHit ? advanceBattleAnchor(settled, chapterHit.chapterId) : settled;
+  const anchored = clearedNow && chapterHit ? advanceBattleAnchor(settled, chapterHit.chapterId) : settled;
+  return grantBattleLevels(save, anchored, now);
+}
+
+/** Level words follow the same XP step as the title ledger. A fight that does not cross a level leaves the save as it was. */
+function grantBattleLevels(before: SaveData, after: SaveData, now: number): SaveData {
+  if (!after.profileId || after.xp === before.xp) return after;
+  const from = levelFromXp(before.xp).level;
+  const to = levelFromXp(after.xp).level;
+  if (to <= from) return after;
+  let next = after;
+  for (const key of levelSourceKeysUpTo(to)) {
+    const level = Number(key.slice("level:".length));
+    if (!Number.isInteger(level) || level <= from) continue;
+    const parts = configuredPartIds(key);
+    if (!parts) continue;
+    next = grantTitleParts(next, key, parts, `level:${next.profileId}:${key}:${now}`, now).save;
+  }
+  return next;
 }

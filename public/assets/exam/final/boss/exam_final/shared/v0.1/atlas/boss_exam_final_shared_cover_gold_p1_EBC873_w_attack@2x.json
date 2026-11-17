@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_00": {
+   "frame": {
+    "x": 597,
+    "y": 429,
+    "w": 577,
+    "h": 393
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 92,
+    "y": 196,
+    "w": 577,
+    "h": 393
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_01": {
+   "frame": {
+    "x": 1176,
+    "y": 429,
+    "w": 569,
+    "h": 388
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 93,
+    "y": 201,
+    "w": 569,
+    "h": 388
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_02": {
+   "frame": {
+    "x": 625,
+    "y": 2,
+    "w": 609,
+    "h": 416
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 83,
+    "y": 173,
+    "w": 609,
+    "h": 416
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 621,
+    "h": 425
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 80,
+    "y": 164,
+    "w": 621,
+    "h": 425
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_04": {
+   "frame": {
+    "x": 1236,
+    "y": 2,
+    "w": 605,
+    "h": 414
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 175,
+    "w": 605,
+    "h": 414
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 429,
+    "w": 593,
+    "h": 405
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 89,
+    "y": 184,
+    "w": 593,
+    "h": 405
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_cover_gold_p1_EBC873_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1844,
+   "h": 836
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}
