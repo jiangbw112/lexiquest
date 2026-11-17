@@ -8,12 +8,13 @@
  },
  "id_rule": "word.trim().toLowerCase()（与 catalog.ts readWordFile 一致）",
  "rules": "Gloss overlap pairs over the whole book: repo 4cd2956 loader (863) + forest chapter_extra_words (8).\nRules (reproducible):\n  norm(s): drop ASCII/full-width whitespace, drop parenthesised text （…）/(...), drop '…' and '...'.\n  senses(g): split meaning_zh on ； ; ， , then norm each part, drop empty ones.\n  exact   : the two words have identical sense SETS after norm.\n  overlap : not exact, and either\n            R1 shared_sense  - at least one normalised sense is identical;\n            R2 contains      - some sense of one (len>=2) is a substring of a sense of the other\n                                (e.g. 担心 / 担心的, 旅行 / 旅行…).",
- "use": "出题时排除与正确答案 exact 或 overlap(R1_shared_sense) 的干扰项；R2_contains 仅含包含关系的词对供开发自行决定（含部分无害包含，如 十一/十一月）。",
+ "use": "出题时排除与正确答案 exact、overlap(R1_shared_sense) 或 near_synonym 的干扰项。R2_contains 里没有另外列入 near_synonym 的词对仍可作干扰项（含部分无害包含，如 十一/十一月）。near_synonym 只收扫描确认会在普通战斗选择题里同时成为正确答案和干扰项的词对。",
  "counts": {
   "exact": 23,
   "overlap": 92,
   "overlap_R1_shared_sense": 26,
-  "overlap_R2_contains_only": 66
+  "overlap_R2_contains_only": 66,
+  "near_synonym": 8
  },
  "exact": [
   {
@@ -2210,6 +2211,112 @@
    "shared": [
     "太空⊂外太空"
    ]
+  }
+ ],
+ "near_synonym": [
+  {
+   "a": "camp",
+   "a_word": "camp",
+   "a_meaning_zh": "野营",
+   "a_grade": "G6",
+   "b": "camping",
+   "b_word": "camping",
+   "b_meaning_zh": "露营",
+   "b_grade": "G6",
+   "cross_grade": false,
+   "rules": ["same_root_ing", "synonym_swap"],
+   "note": "野营 / 露营。同词根 -ing，释义只差一个近义字。"
+  },
+  {
+   "a": "child",
+   "a_word": "child",
+   "a_meaning_zh": "孩子",
+   "a_grade": "G4",
+   "b": "kid",
+   "b_word": "kid",
+   "b_meaning_zh": "小孩",
+   "b_grade": "G4",
+   "cross_grade": false,
+   "rules": ["child_compound"],
+   "note": "孩子 / 小孩。两条释义可以互相代替。"
+  },
+  {
+   "a": "like",
+   "a_word": "like",
+   "a_meaning_zh": "喜欢",
+   "a_grade": "G3",
+   "b": "love",
+   "b_word": "love",
+   "b_meaning_zh": "爱；喜爱",
+   "b_grade": "G3",
+   "cross_grade": false,
+   "rules": ["synonym_swap"],
+   "note": "喜欢 / 喜爱。只差一个近义字。"
+  },
+  {
+   "a": "rain",
+   "a_word": "rain",
+   "a_meaning_zh": "下雨；雨",
+   "a_grade": "G4",
+   "b": "rainy",
+   "b_word": "rainy",
+   "b_meaning_zh": "下雨的",
+   "b_grade": "G4",
+   "cross_grade": false,
+   "rules": ["same_root_y"],
+   "note": "下雨 / 下雨的。同词根 -y，只多一个「的」。"
+  },
+  {
+   "a": "snow",
+   "a_word": "snow",
+   "a_meaning_zh": "雪；下雪",
+   "a_grade": "G4",
+   "b": "snowy",
+   "b_word": "snowy",
+   "b_meaning_zh": "下雪的",
+   "b_grade": "G4",
+   "cross_grade": false,
+   "rules": ["same_root_y"],
+   "note": "下雪 / 下雪的。同词根 -y，只多一个「的」。"
+  },
+  {
+   "a": "tour",
+   "a_word": "tour",
+   "a_meaning_zh": "旅游",
+   "a_grade": "G5",
+   "b": "travel",
+   "b_word": "travel",
+   "b_meaning_zh": "旅行",
+   "b_grade": "G5",
+   "cross_grade": false,
+   "rules": ["synonym_swap"],
+   "note": "旅游 / 旅行。只差一个近义字。"
+  },
+  {
+   "a": "tour",
+   "a_word": "tour",
+   "a_meaning_zh": "旅游",
+   "a_grade": "G5",
+   "b": "trip",
+   "b_word": "trip",
+   "b_meaning_zh": "旅行",
+   "b_grade": "G5",
+   "cross_grade": false,
+   "rules": ["synonym_swap"],
+   "note": "旅游 / 旅行。trip 与 travel 已是 exact，这一对补上 tour。"
+  },
+  {
+   "a": "worried",
+   "a_word": "worried",
+   "a_meaning_zh": "担心的",
+   "a_grade": "G5",
+   "b": "worry",
+   "b_word": "worry",
+   "b_meaning_zh": "担心",
+   "b_grade": "G5",
+   "cross_grade": false,
+   "rules": ["same_root_ied"],
+   "note": "担心的 / 担心。同词根，只少一个「的」。"
   }
  ]
 }

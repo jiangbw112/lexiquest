@@ -37,7 +37,7 @@ export function spellingMarkHint(answer: string): string | null {
 
 /**
  * Same theme and same grade first, then the rest of the theme, then anything else.
- * Exact gloss pairs and pairs that share a sense are left out, including across grades.
+ * Exact gloss pairs, pairs that share a sense, and listed near-synonyms are left out, including across grades.
  * A pair whose only rule is that one gloss contains the other stays in the pool.
  */
 export function pickDistractors(word: WordDef, count: number, seed: number, pool: readonly WordDef[] = sampleWords()): WordDef[] {
