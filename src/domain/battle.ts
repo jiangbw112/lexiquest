@@ -1,5 +1,5 @@
 import { classById } from "./classes";
-import { wordById, type WordDef } from "./catalog";
+import { formatMeaning, wordById, type WordDef } from "./catalog";
 import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import { excludedFromUnpromptedSpelling } from "./spelling-leak";
 import {
@@ -140,6 +140,11 @@ export interface BattleState {
   rules: SkillCardRules;
   turn: number;
   lastNote: string;
+  /**
+   * Correct English and Chinese after a wrong answer. Null on a correct answer.
+   * Showing it does not grant a card or write a review.
+   */
+  answerReveal: { english: string; chinese: string } | null;
   log: string[];
   /** Memory only. Each answered question in this fight. Not written to the save. */
   answers: { wordId: string; correct: boolean; kind: string }[];
@@ -237,7 +242,7 @@ export function startBattle(input: {
   litWordIds?: readonly string[];
   /** Learned words, earliest review first. Ties should already be shuffled. */
   padOrder?: readonly string[];
-  /** Unlocked word ids. Meaning questions keep the answer's grade and drop same meanings. */
+  /** Unlocked word ids. Meaning questions prefer the answer's grade and drop same meanings. A short grade may show a chapter word, then an adjacent grade. */
   distractorIds?: readonly string[];
   /** Unlocked skill ids of this class. Omitted means only the equipped cards are unlocked. */
   unlockedSkillIds?: readonly string[];
@@ -285,7 +290,8 @@ export function startBattle(input: {
     casts: 0,
     rules,
     turn: 0,
-    lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会从这一关的词里抽题。",
+    lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会从这一章的词里抽题。",
+    answerReveal: null,
     log: [`${enemy.name}出现了。`],
     answers: [],
     learnedIds,
@@ -499,6 +505,7 @@ export function resumeExamBattle(state: BattleState, run: ExamPhaseRunRecord, wo
     questionsAsked: run.phaseQuestions,
     spellingAsked: run.phaseSpelling,
     shaken: threshold != null && answered >= threshold,
+    answerReveal: null,
   };
   if (!run.pending) return next;
   const question = pendingExamQuestion(run, words);
@@ -516,6 +523,13 @@ export function armExamShaken(state: BattleState): BattleState {
   if (state.phase === "won" || state.phase === "lost") return state;
   if (state.questionsAsked < threshold) return state;
   return { ...state, shaken: true };
+}
+
+/** English and Chinese for a wrong answer. The caller shows this and may speak the English. */
+export function revealedAnswer(question: BattleQuestion): { english: string; chinese: string } | null {
+  const word = wordById(question.wordId);
+  if (!word) return null;
+  return { english: word.english, chinese: formatMeaning(word) };
 }
 
 export function answerQuestion(state: BattleState, choiceId: string): BattleState {
@@ -613,6 +627,7 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
     answers: [...(state.answers ?? []), { wordId: state.question.wordId, correct, kind: state.question.kind }],
     attackHint: hintNow,
     attackHintShown: finished.attackHintShown + (hintNow ? 1 : 0),
+    answerReveal: correct ? null : revealedAnswer(state.question),
   };
 }
 
@@ -808,6 +823,7 @@ function commitQuestion(state: BattleState, slot: SkillSlot, basic: BasicAction 
     heldQuestion: null,
     heldDraw: null,
     previewLabel: null,
+    answerReveal: null,
     lastNote: basic
       ? `${slot.name}之前先答题：答对是完整效果，答错只有减弱的基础效果。`
       : `打出${slot.name}。先答题：答对是完整效果，答错只有减弱的基础效果。`,

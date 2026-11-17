@@ -447,8 +447,10 @@ export function battleWordIds(save: SaveData): string[] {
 
 /**
  * Words whose chapter is already open. The forest contributes only the words
- * that count for the selected grades, plus every forest extra. Distractors
- * then keep the answer's grade and do not borrow another grade.
+ * that count for the selected grades, plus every forest extra. A meaning
+ * question prefers this list's same grade. When that grade is short it may
+ * show another word from the same chapter, then an adjacent grade.
+ * A distractor is display-only: it is not learned and it does not create a card.
  */
 export function unlockedWordIds(save: SaveData): string[] {
   const ids: string[] = [];

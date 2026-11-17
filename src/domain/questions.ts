@@ -1,4 +1,4 @@
-import { glossPairBlocked, spellingSkipIds } from "./chapter-plan";
+import { allGradeChapters, glossPairBlocked, spellingSkipIds } from "./chapter-plan";
 import { formatMeaning, sampleWords, wordById, type WordDef } from "./catalog";
 import { hashSeed, shuffle } from "./rng";
 import { maskedSpellingFace } from "./spelling-leak";
@@ -35,6 +35,10 @@ export function spellingMarkHint(answer: string): string | null {
   return null;
 }
 
+/** A meaning or listening question shows the answer plus two distractors. */
+export const MEANING_DISTRACTOR_COUNT = 2;
+export const MEANING_CHOICE_COUNT = MEANING_DISTRACTOR_COUNT + 1;
+
 /**
  * Same theme and same grade first, then the rest of the theme, then anything else.
  * Exact gloss pairs, pairs that share a sense, and listed near-synonyms are left out, including across grades.
@@ -48,6 +52,61 @@ export function pickDistractors(word: WordDef, count: number, seed: number, pool
   return [...shuffle(sameGrade, seed), ...shuffle(sameTheme, seed + 3), ...shuffle(elsewhere, seed + 9)].slice(0, count);
 }
 
+let wordChapters: Map<string, string> | null = null;
+
+function chapterKey(wordId: string): string | null {
+  if (!wordChapters) {
+    const map = new Map<string, string>();
+    for (const word of sampleWords()) map.set(word.id, "forest");
+    for (const chapter of allGradeChapters()) {
+      for (const id of chapter.wordIds) map.set(id, chapter.id);
+    }
+    wordChapters = map;
+  }
+  return wordChapters.get(wordId) ?? null;
+}
+
+function englishKey(word: WordDef): string {
+  return word.english.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Same English, same Chinese, or the same shown meaning. Gloss pairs are handled separately. */
+function labelClash(a: WordDef, b: WordDef): boolean {
+  return englishKey(a) === englishKey(b) || a.chinese.trim() === b.chinese.trim() || formatMeaning(a) === formatMeaning(b);
+}
+
+function optionBlocked(answer: WordDef, candidate: WordDef, chosen: readonly WordDef[]): boolean {
+  for (const other of [answer, ...chosen]) {
+    if (other.id === candidate.id) return true;
+    if (glossPairBlocked(other.id, candidate.id)) return true;
+    if (labelClash(other, candidate)) return true;
+  }
+  return false;
+}
+
+/**
+ * Same-grade words already came first. This adds chapter words, then adjacent grades,
+ * and stops at the prescribed count. Words already chosen stay in front.
+ */
+function fillShortDistractors(word: WordDef, chosen: readonly WordDef[], pool: readonly WordDef[], seed: number): WordDef[] {
+  const next = [...chosen];
+  const home = chapterKey(word.id);
+  const tiers = [
+    home ? pool.filter((item) => chapterKey(item.id) === home) : [],
+    pool.filter((item) => Math.abs(item.gradeEst - word.gradeEst) === 1),
+  ];
+  for (let index = 0; index < tiers.length; index += 1) {
+    if (next.length >= MEANING_DISTRACTOR_COUNT) break;
+    const tier = tiers[index] ?? [];
+    for (const item of shuffle(tier, seed + 3 + index * 6)) {
+      if (next.length >= MEANING_DISTRACTOR_COUNT) break;
+      if (optionBlocked(word, item, next)) continue;
+      next.push(item);
+    }
+  }
+  return next;
+}
+
 export function quizForWord(
   wordId: string,
   seed: number,
@@ -56,10 +115,14 @@ export function quizForWord(
 ): QuizQuestion {
   const word = wordById(wordId);
   if (!word) throw new Error(`Unknown word ${wordId}`);
-  const source = pool ? pool.filter((item) => item.grade === word.grade) : undefined;
-  const distractors = source
-    ? pickDistractors(word, 2, seed || hashSeed(word.id), source)
-    : pickDistractors(word, 2, seed || hashSeed(word.id));
+  const mixed = seed || hashSeed(word.id);
+  const sameGrade = pool ? pool.filter((item) => item.grade === word.grade) : undefined;
+  let distractors = sameGrade
+    ? pickDistractors(word, MEANING_DISTRACTOR_COUNT, mixed, sameGrade)
+    : pickDistractors(word, MEANING_DISTRACTOR_COUNT, mixed);
+  if (pool && distractors.length < MEANING_DISTRACTOR_COUNT) {
+    distractors = fillShortDistractors(word, distractors, pool, mixed);
+  }
   const choices = shuffle([word, ...distractors], (seed || 1) + 17).map((item) => ({
     id: item.id,
     label: direction === "zh-to-en" ? item.english : formatMeaning(item),
