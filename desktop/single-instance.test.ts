@@ -88,4 +88,9 @@ describe("desktop single instance", () => {
     expect(helper).toContain("win.show()");
     expect(helper).toContain("win.focus()");
   });
+
+  it("ships the single-instance module inside the desktop package", () => {
+    const builder = fs.readFileSync(new URL("./builder.yml", import.meta.url), "utf8");
+    expect(builder).toContain("desktop/single-instance.mjs");
+  });
 });

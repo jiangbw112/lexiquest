@@ -13,6 +13,7 @@ files:
   - desktop/preload.mjs
   - desktop/protocol-path.mjs
   - desktop/app-identity.mjs
+  - desktop/single-instance.mjs
   - dist/**/*
   - package.json
   - "!**/node_modules/**"
