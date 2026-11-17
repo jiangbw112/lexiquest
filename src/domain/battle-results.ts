@@ -441,19 +441,13 @@ export const PRACTICE_LINE_2 = "练习也很棒！";
 export const PRACTICE_NOTICE = "今天再战的奖励都拿到啦！";
 export const MAP_PRACTICE_NOTE = "今天再战的奖励领完啦，还可以练习。";
 
-/**
- * 剩 is outside the committed Noto subset, so the glyph is assembled here.
- * The body font falls through to the next face for that one character.
- */
-const BOSS_WORDS_LEFT = String.fromCodePoint(0x5269);
-
 /** Same missing-card count the boss gate uses. Forest uses required words; a grade chapter uses its own list. */
 export function bossWordsStillRequired(save: SaveData, chapterId?: string): number {
   return chapterWordsRemaining(save, findPlayChapter(save, chapterId));
 }
 
 export function bossWordsLeftLine(remaining: number): string {
-  return `Boss 要先学完本章词，还${BOSS_WORDS_LEFT} ${remaining} 个词。`;
+  return `Boss 要先学完本章词，还剩 ${remaining} 个词。`;
 }
 
 /**

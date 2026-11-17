@@ -477,7 +477,7 @@ describe("stage 4 boss word reminder", () => {
     expect(requiredWordIds(open).filter((id) => !open.wordCards[id])).toHaveLength(forestLeft);
     expect(bossReady(open)).toBe(false);
     expect(bossGateReminder(open, 4, true, forest.id)).toBe(bossWordsLeftLine(forestLeft));
-    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先学完本章词，还${String.fromCodePoint(0x5269)} ${forestLeft} 个词。`);
+    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先学完本章词，还剩 ${forestLeft} 个词。`);
     for (const stageId of [1, 2, 3, 5]) expect(bossGateReminder(open, stageId, true, forest.id)).toBeNull();
     expect(bossGateReminder(open, 4, false, forest.id)).toBeNull();
 
