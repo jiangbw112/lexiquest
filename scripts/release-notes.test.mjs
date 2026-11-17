@@ -56,7 +56,8 @@ describe("release notes", () => {
     expect(section).toContain("等级往上跨了一级");
     expect(section).toContain("刷新页面");
     expect(section).toContain("同一时间只能打开一个窗口");
-    expect(section).toContain("六年级下册期末的罗盘原先画到画面外面，现在能看见了");
+    expect(section).toContain("六年级下期末的罗盘吊坠现在能看见了，挂在左页，贴着书脊");
+    expect(section).not.toContain("原先画到画面外面");
     expect(section).not.toContain("画在书的右侧");
     expect(section).toContain("休息一下");
     expect(section).toContain("有几张词卡的熟练徽章亮了");
@@ -68,7 +69,10 @@ describe("release notes", () => {
     expect(section).toContain("camp/camping");
     expect(section).toContain("不再互为干扰项");
     expect(section).not.toContain("意思接近的词不再同时出现");
-    expect(section).toContain("已知问题：期末王冠和期中徽章目前还显示不出来，下一版修。");
+    expect(section).toContain("期末守护者的王冠和金色装饰、期中守护者的徽章和光效，现在都显示在该在的位置");
+    expect(section).toContain("守护者也不会再挡住答错时的单词");
+    expect(section).not.toContain("已知问题");
+    expect(section).not.toContain("还显示不出来");
     expect(section).toContain("安装方式没有变");
     expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
     expect(section).not.toContain("## 1.0.3");
