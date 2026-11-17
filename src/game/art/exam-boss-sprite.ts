@@ -23,8 +23,14 @@ function frameNames(scene: Phaser.Scene, key: string, pose: ExamPose | null): st
   }).sort();
 }
 
-/** The atlas pivot is the foot point. Scale stays 0.5 for this art batch. */
-function plant(sprite: Phaser.GameObjects.Sprite): void {
+/**
+ * Foot plant for every exam layer except the compass.
+ * The origin is a fraction of the trimmed frame. Phaser then multiplies that fraction
+ * by the untrimmed 768 source. On the grade-6 body idle frame, scale 0.5, the plate
+ * sits about 0.31px to the right and 35.41px above the atlas pivot. Layers that share
+ * this function stay aligned with each other, so the offset stays.
+ */
+export function plantExamLayer(sprite: Phaser.GameObjects.Sprite): void {
   const frame = sprite.frame;
   const sourceW = frame.realWidth || frame.width;
   const sourceH = frame.realHeight || frame.height;
@@ -124,8 +130,8 @@ export class ExamBossSprite {
         continue;
       }
       const sprite = this.root.scene.add.sprite(0, 0, layer.key, frame);
-      plant(sprite);
-      sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, () => plant(sprite));
+      plantExamLayer(sprite);
+      sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, () => plantExamLayer(sprite));
       this.root.add(sprite);
       if (names.length > 1) {
         const anim = `${layer.key}:${pose}`;
@@ -138,7 +144,7 @@ export class ExamBossSprite {
           });
         }
         sprite.play(anim);
-        plant(sprite);
+        plantExamLayer(sprite);
       }
     }
     if (fxFromPhase === null) return;
@@ -148,7 +154,7 @@ export class ExamBossSprite {
     const frame = names[0];
     if (!frame) return;
     const fx = this.root.scene.add.sprite(0, 0, fxKey, frame);
-    plant(fx);
+    plantExamLayer(fx);
     this.root.add(fx);
     if (names.length > 1) {
       const anim = `${fxKey}:once`;
