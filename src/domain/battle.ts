@@ -242,7 +242,7 @@ export function startBattle(input: {
   litWordIds?: readonly string[];
   /** Learned words, earliest review first. Ties should already be shuffled. */
   padOrder?: readonly string[];
-  /** Unlocked word ids. Meaning questions keep the answer's grade and drop same meanings. */
+  /** Unlocked word ids. Meaning questions prefer the answer's grade and drop same meanings. A short grade may show a chapter word, then an adjacent grade. */
   distractorIds?: readonly string[];
   /** Unlocked skill ids of this class. Omitted means only the equipped cards are unlocked. */
   unlockedSkillIds?: readonly string[];
