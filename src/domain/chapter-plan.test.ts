@@ -30,7 +30,7 @@ import type { GradeBand, SaveData } from "./types";
 
 /** chapters_v0.2.json. pep_g3_07 boss is 营养餐盘守护者; its theme note no longer says Old toys. */
 const CHAPTERS_SHA256 = "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c";
-const GLOSS_SHA256 = "b894a98edae983f916ebb3d6dc10fbb7c73021303120623b5a6587876b61f047";
+const GLOSS_SHA256 = "29d9c690d11324ed2b0e10b213c0653826309d05f853ee162d5088204c48ba79";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -203,6 +203,7 @@ describe("grade chapters", () => {
     const gloss = JSON.parse(glossBytes.toString("utf8")) as {
       exact: { a: string; b: string; cross_grade: boolean }[];
       overlap: { a: string; b: string; rules: string[]; cross_grade: boolean }[];
+      near_synonym: { a: string; b: string }[];
     };
     expect(plan).toHaveLength(32);
     expect(chapterPlanStatus()).toBe("v0.2");
@@ -220,9 +221,12 @@ describe("grade chapters", () => {
     expect(gloss.exact).toHaveLength(23);
     expect(shared).toHaveLength(26);
     expect(containsOnly).toHaveLength(66);
+    expect(gloss.near_synonym).toHaveLength(11);
+    const nearKeys = new Set(gloss.near_synonym.map((pair) => [pair.a, pair.b].sort().join("|")));
     expect(gloss.exact.some((pair) => pair.cross_grade && glossPairBlocked(pair.a, pair.b))).toBe(true);
     expect(shared.every((pair) => glossPairBlocked(pair.a, pair.b))).toBe(true);
-    expect(containsOnly.some((pair) => glossPairBlocked(pair.a, pair.b))).toBe(false);
+    expect(gloss.near_synonym.every((pair) => glossPairBlocked(pair.a, pair.b))).toBe(true);
+    expect(containsOnly.every((pair) => glossPairBlocked(pair.a, pair.b) === nearKeys.has([pair.a, pair.b].sort().join("|")))).toBe(true);
     const extras = new Set(chapterExtraWords().map((word) => word.id));
     const forest = new Set(chapterWordIds());
     const seen = new Set<string>();
