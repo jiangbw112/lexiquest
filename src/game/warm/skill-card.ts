@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { BATTLE_CARD_H, BATTLE_CARD_W, battleCardLayout, cardBoxCenter, type CardBox } from "../../domain/battle-card-layout";
+import { BATTLE_CARD_LEFT, BATTLE_CARD_PITCH, BATTLE_CARD_TOP } from "../battle-hud";
 import type { SkillSlot } from "../../domain/skills";
 import {
   skillCardFace,
@@ -33,8 +34,8 @@ export function placeSkillCard(
 ): Phaser.GameObjects.Container {
   const face = skillCardFace({ phase, energy, energyCost: slot.energyCost, resolving });
   const muted = face !== "ready";
-  const left = 670 + slot.index * 160;
-  const top = 592;
+  const left = BATTLE_CARD_LEFT + slot.index * BATTLE_CARD_PITCH;
+  const top = BATTLE_CARD_TOP;
   const cx = left + CARD_W / 2;
   const cy = top + CARD_H / 2;
   const parts: Phaser.GameObjects.GameObject[] = [];

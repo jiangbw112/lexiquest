@@ -59,6 +59,7 @@ import { SAVE_KEY, serialize } from "../../domain/storage";
 import { equipTitleParts, markTitleReceiptPresented, titlePartText } from "../../domain/titles";
 import type { SaveData } from "../../domain/types";
 import { EXAM_ANSWER_REVEAL, paintAnswerReveal } from "../answer-reveal";
+import { EXAM_NAME, EXAM_PHASE_TEXT, EXAM_PROMPT, EXAM_STRIKE_BUTTON } from "../battle-hud";
 import { ExamBossSprite } from "../art/exam-boss-sprite";
 import { examBackground, queueExamArt, EXAM_UI_KEY } from "../art/exam-art";
 import { cjkWrap } from "../layout";
@@ -301,9 +302,9 @@ export class ExamBattleScene extends Phaser.Scene {
     this.view?.add(boss.root);
     if (parts.hud) {
       const name = battleEnemyName(state.enemyName, 0, exam.phases, true);
-      this.view?.add(this.add.text(760, 56, name, {
+      this.view?.add(this.add.text(EXAM_NAME.x, EXAM_NAME.y, name, {
         fontFamily: FONT_BODY,
-        fontSize: "28px",
+        fontSize: `${EXAM_NAME.fontPx}px`,
         fontStyle: "700",
         color: "#fff8e8",
       }).setOrigin(0, 0.5));
@@ -313,9 +314,9 @@ export class ExamBattleScene extends Phaser.Scene {
         const frame = index < this.phaseNo ? "ui_exam_phase_dot_done" : index === this.phaseNo ? "ui_exam_phase_dot_active" : "ui_exam_phase_dot_idle";
         this.view?.add(this.add.image(760 + (index - 1) * 40, 100, EXAM_UI_KEY, frame).setDisplaySize(28, 28));
       }
-      this.view?.add(this.add.text(760, 132, `第 ${this.phaseNo} 段`, {
+      this.view?.add(this.add.text(EXAM_PHASE_TEXT.x, EXAM_PHASE_TEXT.y, `第 ${this.phaseNo} 段`, {
         fontFamily: FONT_BODY,
-        fontSize: "18px",
+        fontSize: `${EXAM_PHASE_TEXT.fontPx}px`,
         color: "#fff8e8",
       }));
     }
@@ -332,19 +333,17 @@ export class ExamBattleScene extends Phaser.Scene {
         hidden: state.phase === "question",
         parent: this.view,
         plate: true,
-        x: EXAM_ANSWER_REVEAL.x,
-        y: EXAM_ANSWER_REVEAL.y,
-        width: EXAM_ANSWER_REVEAL.width,
+        spec: EXAM_ANSWER_REVEAL,
       });
     }
-    if (state.phase === "choose") this.textButton(640, 700, "攻击", () => this.act());
+    if (state.phase === "choose") this.textButton(EXAM_STRIKE_BUTTON.x, EXAM_STRIKE_BUTTON.y, "攻击", () => this.act());
     if (parts.question && parts.answers && state.phase === "question" && state.question) {
-      this.view?.add(this.add.text(160, 560, state.question.prompt, {
+      this.view?.add(this.add.text(EXAM_PROMPT.x, EXAM_PROMPT.y, state.question.prompt, {
         fontFamily: FONT_BODY,
-        fontSize: "28px",
+        fontSize: `${EXAM_PROMPT.fontPx}px`,
         fontStyle: "700",
         color: "#fff8e8",
-        wordWrap: cjkWrap(960),
+        wordWrap: cjkWrap(EXAM_PROMPT.wrap),
       }));
       if (state.question.kind === "spelling") {
         this.view?.add(this.add.text(160, 620, spellingInstruction(state.question.answer), {
