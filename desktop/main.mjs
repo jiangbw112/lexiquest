@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { APP_DATA_NAME, userDataDirFromArgs, userDataPath } from "./app-identity.mjs";
+import { bindSingleInstance } from "./single-instance.mjs";
 import {
   APP_HOST,
   APP_ORIGIN,
@@ -27,6 +28,9 @@ app.setPath(
     }),
   ),
 );
+
+// A second process must exit before it can open another window over the same save.
+const singleInstance = bindSingleInstance(app, app.requestSingleInstanceLock(), () => BrowserWindow.getAllWindows()[0]);
 
 const CONTENT_WIDTH = 1280;
 const CONTENT_HEIGHT = 800;
@@ -166,6 +170,7 @@ app.on("web-contents-created", (_event, contents) => {
 });
 
 app.whenReady().then(() => {
+  if (!singleInstance) return;
   Menu.setApplicationMenu(null);
   protocol.handle("app", handleAppRequest);
   denyPermissions();
