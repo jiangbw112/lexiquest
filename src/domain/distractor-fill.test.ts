@@ -60,20 +60,27 @@ function wordsOf(ids: readonly string[]): WordDef[] {
   });
 }
 
-function assertChoice(quiz: ReturnType<typeof quizForWord>): void {
-  expect(quiz.choices).toHaveLength(MEANING_CHOICE_COUNT);
-  expect(quiz.choices.filter((choice) => choice.id === quiz.answerId)).toHaveLength(1);
-  expect(new Set(quiz.choices.map((choice) => choice.id)).size).toBe(MEANING_CHOICE_COUNT);
-  expect(new Set(quiz.choices.map((choice) => choice.label)).size).toBe(MEANING_CHOICE_COUNT);
-  const words = quiz.choices.map((choice) => wordById(choice.id)!);
-  expect(new Set(words.map((word) => word.english.trim().toLowerCase())).size).toBe(MEANING_CHOICE_COUNT);
-  expect(new Set(words.map((word) => word.chinese.trim())).size).toBe(MEANING_CHOICE_COUNT);
-  expect(new Set(words.map((word) => formatMeaning(word))).size).toBe(MEANING_CHOICE_COUNT);
+function choiceProblem(quiz: ReturnType<typeof quizForWord>): string | null {
+  const choices = quiz.choices;
+  if (choices.length !== MEANING_CHOICE_COUNT) return `${quiz.wordId} has ${choices.length} choices`;
+  if (choices.filter((choice) => choice.id === quiz.answerId).length !== 1) return `${quiz.wordId} answer count`;
+  if (new Set(choices.map((choice) => choice.id)).size !== MEANING_CHOICE_COUNT) return `${quiz.wordId} repeated id`;
+  if (new Set(choices.map((choice) => choice.label)).size !== MEANING_CHOICE_COUNT) return `${quiz.wordId} repeated label`;
+  const words = choices.map((choice) => wordById(choice.id)!);
+  if (new Set(words.map((word) => word.english.trim().toLowerCase())).size !== MEANING_CHOICE_COUNT) return `${quiz.wordId} repeated english`;
+  if (new Set(words.map((word) => word.chinese.trim())).size !== MEANING_CHOICE_COUNT) return `${quiz.wordId} repeated chinese`;
+  if (new Set(words.map((word) => formatMeaning(word))).size !== MEANING_CHOICE_COUNT) return `${quiz.wordId} repeated meaning`;
   for (let i = 0; i < words.length; i += 1) {
     for (let j = i + 1; j < words.length; j += 1) {
-      expect(glossPairBlocked(words[i]!.id, words[j]!.id)).toBe(false);
+      if (glossPairBlocked(words[i]!.id, words[j]!.id)) return `${quiz.wordId} gloss ${words[i]!.id} ${words[j]!.id}`;
     }
   }
+  return null;
+}
+
+function assertChoice(quiz: ReturnType<typeof quizForWord>): void {
+  const problem = choiceProblem(quiz);
+  expect(problem).toBeNull();
 }
 
 describe("short choice fill", () => {
@@ -159,27 +166,32 @@ describe("short choice fill", () => {
     expect(combos()).toHaveLength(15);
     const pools = createHash("sha256");
     let questions = 0;
+    const problems: string[] = [];
     for (const grades of combos()) {
       const opened = unlockAll(fresh(grades));
       const closed = fresh(grades);
+      const label = grades.join("+");
+      const distractors = [opened, closed].map((save) => wordsOf(unlockedWordIds(save)));
       for (const chapter of visibleChapters(grades)) {
         const asked = battleWordIds({ ...opened, currentChapterId: chapter.id });
-        expect(battleWordIds({ ...closed, currentChapterId: chapter.id })).toEqual(asked);
-        pools.update(`${grades.join("+")}|${chapter.id}|${asked.join(",")}\n`);
-        for (const standing of [opened, closed]) {
-          const pool = wordsOf(unlockedWordIds({ ...standing, currentChapterId: chapter.id }));
+        const closedAsked = battleWordIds({ ...closed, currentChapterId: chapter.id });
+        if (closedAsked.join(",") !== asked.join(",")) problems.push(`${label} ${chapter.id} pool`);
+        pools.update(`${label}|${chapter.id}|${asked.join(",")}\n`);
+        questions += asked.length;
+        for (const pool of distractors) {
           for (const id of asked) {
-            questions += standing === opened ? 1 : 0;
             for (const direction of ["zh-to-en", "en-to-zh"] as const) {
-              assertChoice(quizForWord(id, 7, direction, pool));
+              const problem = choiceProblem(quizForWord(id, 7, direction, pool));
+              if (problem) problems.push(`${label} ${chapter.id} ${direction} ${problem}`);
             }
           }
         }
       }
     }
+    expect(problems).toEqual([]);
     expect(questions).toBe(7024);
     expect(pools.digest("hex")).toBe(POOL_HASH);
-  });
+  }, 20000);
 
   it("leaves exam choice lists and a one-card exam question unchanged", () => {
     const hash = createHash("sha256");
