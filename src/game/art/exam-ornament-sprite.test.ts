@@ -180,8 +180,11 @@ describe("exam crown and badge stay on the boss", () => {
           expect(ornament.originY, label).toBe(0.875);
           expect(ornament.scaleX, label).toBe(EXAM_BOSS_SCALE);
           expect(ornament.scaleY, label).toBe(EXAM_BOSS_SCALE);
-          expect(body.originY, label).toBeGreaterThan(0.9);
+          expect(body.originX, label).toBe(0.5);
+          expect(body.originY, label).toBe(0.875);
           expect(body.scaleX, label).toBe(EXAM_BOSS_SCALE);
+          expect(body.x, label).toBe(0);
+          expect(body.y, label).toBe(0);
 
           insideView(plate, label);
           insideView({ x: bounds.x, y: bounds.y, w: bounds.width, h: bounds.height }, `${label} bounds`);

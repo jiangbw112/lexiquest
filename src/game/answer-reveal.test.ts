@@ -279,13 +279,12 @@ describe("answer reveal plate", () => {
       for (let phase = 1; phase <= exam.phases; phase += 1) {
         for (const pose of POSES) {
           for (const layer of examLayers(exam, phase, pose)) {
-            if (layer.key.includes("compass")) continue;
             const path = files.get(layer.key);
             if (!path || seen.has(`${exam.id}:${path}`)) continue;
             seen.add(`${exam.id}:${path}`);
             for (const { name, frame } of atlasFrames(path)) {
               const pivot = frame.pivot ?? { x: 0.5, y: 0.875 };
-              const drawn = drawnSpriteBox(frame, EXAM_BOSS_X, EXAM_BOSS_Y, EXAM_BOSS_SCALE, "plant", pivot);
+              const drawn = drawnSpriteBox(frame, EXAM_BOSS_X, EXAM_BOSS_Y, EXAM_BOSS_SCALE, "origin", pivot);
               boxes.push({ label: `${exam.id} ${name}`, box: drawn });
               if (exam.id === "exam_g3_s1_mid" && name.includes("body") && name.includes("idle")) {
                 const naive = naivePivotBox(frame, EXAM_BOSS_X, EXAM_BOSS_Y, EXAM_BOSS_SCALE, pivot);
@@ -303,42 +302,35 @@ describe("answer reveal plate", () => {
         }
       }
     }
-    expect(midNaive).toBeGreaterThan(270);
-    expect(midNaive).toBeLessThan(278);
-    expect(midNaive - midTop).toBeGreaterThan(30);
-    expect(midTop).toBeLessThan(246);
-    expect(cloakTop).toBeLessThan(246);
-    expect(cloakTop).toBeGreaterThan(200);
-    expect(coverTop).toBeLessThan(160);
-    expect(coverTop).toBeGreaterThan(100);
-    // getBounds is the untrimmed source. The trimmed plate on that same sprite
-    // is the compass the answer board has to stay clear of.
+    expect(midTop).toBeGreaterThan(270);
+    expect(midTop).toBeLessThan(278);
+    expect(Math.abs(midNaive - midTop)).toBeLessThan(0.01);
+    expect(cloakTop).toBeGreaterThan(280);
+    expect(cloakTop).toBeLessThan(300);
+    expect(coverTop).toBeGreaterThan(270);
+    expect(coverTop).toBeLessThan(290);
+    // The compass is one shared-scale plate. Its getBounds is the untrimmed
+    // source, and that box has to contain the visible plate.
     const compass = await liveCompassBoxes();
     expect(compass.frames).toBeGreaterThan(8);
-    const canvas: ScreenBox = { x: 0, y: 0, w: GAME_W, h: GAME_H };
     for (const sample of compass.samples) {
       const { plate, bounds } = sample;
       expect(sample.visible, sample.name).toBe(true);
       expect(sample.alpha, sample.name).toBeGreaterThan(0);
-      expect(plate.x + plate.w / 2, sample.name).toBeGreaterThanOrEqual(canvas.x);
-      expect(plate.y + plate.h / 2, sample.name).toBeGreaterThanOrEqual(canvas.y);
-      expect(plate.x + plate.w / 2, sample.name).toBeLessThanOrEqual(canvas.x + canvas.w);
-      expect(plate.y + plate.h / 2, sample.name).toBeLessThanOrEqual(canvas.y + canvas.h);
-      expect(separation(canvas, plate), sample.name).toBeLessThan(0);
-      expect(plate.y + plate.h, sample.name).toBeGreaterThan(0);
+      expect(plate.x, sample.name).toBeGreaterThanOrEqual(0);
+      expect(plate.y, sample.name).toBeGreaterThanOrEqual(0);
+      expect(plate.x + plate.w, sample.name).toBeLessThanOrEqual(GAME_W);
+      expect(plate.y + plate.h, sample.name).toBeLessThanOrEqual(GAME_H);
       expect(separation(exam.plate, plate), sample.name).toBeGreaterThanOrEqual(GAP);
       expect(separation(exam.button, plate), sample.name).toBeGreaterThanOrEqual(GAP);
       expect(bounds.x, sample.name).toBeLessThanOrEqual(plate.x);
       expect(bounds.y, sample.name).toBeLessThanOrEqual(plate.y);
       expect(bounds.x + bounds.w, sample.name).toBeGreaterThanOrEqual(plate.x + plate.w);
       expect(bounds.y + bounds.h, sample.name).toBeGreaterThanOrEqual(plate.y + plate.h);
-      expect(separation(canvas, bounds), sample.name).toBeLessThan(0);
-      if (sample.main && sample.name.includes("idle_00")) {
-        expect(plate.x, sample.name).toBeGreaterThanOrEqual(0);
-        expect(plate.y, sample.name).toBeGreaterThanOrEqual(0);
-        expect(plate.x + plate.w, sample.name).toBeLessThanOrEqual(GAME_W);
-        expect(plate.y + plate.h, sample.name).toBeLessThanOrEqual(GAME_H);
-      }
+      expect(bounds.x, sample.name).toBeGreaterThanOrEqual(0);
+      expect(bounds.y, sample.name).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.w, sample.name).toBeLessThanOrEqual(GAME_W);
+      expect(bounds.y + bounds.h, sample.name).toBeLessThanOrEqual(GAME_H);
     }
     const onScreen = boxes.filter((item) => item.box.x < GAME_W && item.box.x + item.box.w > 0 && item.box.y < GAME_H && item.box.y + item.box.h > 0);
     const worst = worstGap(exam.plate, onScreen);
