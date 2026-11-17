@@ -80,7 +80,7 @@ interface GlossFile {
 }
 
 /** Pairs whose glosses are not identical but still both count as the answer. */
-const NEAR_SYNONYM_COUNT = 8;
+const NEAR_SYNONYM_COUNT = 11;
 
 interface LoadedPlan {
   chapters: PlayChapter[];

@@ -105,6 +105,8 @@ interface PairAcc {
   rules: Set<string>;
   interchangeable: boolean;
   alreadyBlocked: boolean;
+  /** Block even when the full gloss is not a second right answer. */
+  forced: boolean;
 }
 
 interface BattleContext {
@@ -275,12 +277,16 @@ function nearLemma(leftId: string, rightId: string, left: readonly string[], rig
   return null;
 }
 
+/** Close pairs the review asked to block. They are not strict double answers. */
+const REVIEW_BLOCK = new Set(["drank|drink", "finally|last", "outer space|space"]);
+
 function addRule(map: Map<string, PairAcc>, a: string, b: string, rule: string, interchangeable: boolean): void {
   if (a === b) return;
   const key = pairKey(a, b);
-  const acc = map.get(key) ?? { rules: new Set<string>(), interchangeable: false, alreadyBlocked: false };
+  const acc = map.get(key) ?? { rules: new Set<string>(), interchangeable: false, alreadyBlocked: false, forced: false };
   acc.rules.add(rule);
   if (interchangeable) acc.interchangeable = true;
+  if (REVIEW_BLOCK.has(key)) acc.forced = true;
   map.set(key, acc);
 }
 
@@ -458,6 +464,9 @@ function reasonFor(acc: PairAcc, together: number, crossGrade: boolean): { decis
   }
   if (acc.interchangeable && together > 0) {
     return { decision: "block", reason: "The glosses can stand in for each other, and a fully open grade mix can place one as the answer and the other as a distractor." };
+  }
+  if (acc.forced && together > 0) {
+    return { decision: "block", reason: "The full gloss is not a second right answer, but the pair is close enough to block, and a fully open grade mix can place them on the same question." };
   }
   if (acc.interchangeable && crossGrade) {
     return { decision: "leave", reason: "The glosses are close, but the words are in different grades. Distractors stay in the answer's grade, so this is not a double answer." };

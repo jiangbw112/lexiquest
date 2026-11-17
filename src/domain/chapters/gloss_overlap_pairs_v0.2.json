@@ -8,13 +8,13 @@
  },
  "id_rule": "word.trim().toLowerCase()（与 catalog.ts readWordFile 一致）",
  "rules": "Gloss overlap pairs over the whole book: repo 4cd2956 loader (863) + forest chapter_extra_words (8).\nRules (reproducible):\n  norm(s): drop ASCII/full-width whitespace, drop parenthesised text （…）/(...), drop '…' and '...'.\n  senses(g): split meaning_zh on ； ; ， , then norm each part, drop empty ones.\n  exact   : the two words have identical sense SETS after norm.\n  overlap : not exact, and either\n            R1 shared_sense  - at least one normalised sense is identical;\n            R2 contains      - some sense of one (len>=2) is a substring of a sense of the other\n                                (e.g. 担心 / 担心的, 旅行 / 旅行…).",
- "use": "出题时排除与正确答案 exact、overlap(R1_shared_sense) 或 near_synonym 的干扰项。R2_contains 里没有另外列入 near_synonym 的词对仍可作干扰项（含部分无害包含，如 十一/十一月）。near_synonym 只收扫描确认会在普通战斗选择题里同时成为正确答案和干扰项的词对。",
+ "use": "出题时排除与正确答案 exact、overlap(R1_shared_sense) 或 near_synonym 的干扰项。R2_contains 里没有另外列入 near_synonym 的词对仍可作干扰项（含部分无害包含，如 十一/十一月）。near_synonym 收扫描确认会在普通战斗选择题里同时成为正确答案和干扰项的词对，另加审定的 drank/drink、finally/last、outer space/space。",
  "counts": {
   "exact": 23,
   "overlap": 92,
   "overlap_R1_shared_sense": 26,
   "overlap_R2_contains_only": 66,
-  "near_synonym": 8
+  "near_synonym": 11
  },
  "exact": [
   {
@@ -2241,6 +2241,32 @@
    "note": "孩子 / 小孩。两条释义可以互相代替。"
   },
   {
+   "a": "drank",
+   "a_word": "drank",
+   "a_meaning_zh": "喝（drink 的过去式）",
+   "a_grade": "G6",
+   "b": "drink",
+   "b_word": "drink",
+   "b_meaning_zh": "饮料",
+   "b_grade": "G6",
+   "cross_grade": false,
+   "rules": ["review"],
+   "note": "喝 / 饮料。整条释义不能互换，但审定要求屏蔽。两个词不在同一场考试里。"
+  },
+  {
+   "a": "finally",
+   "a_word": "finally",
+   "a_meaning_zh": "最后；终于",
+   "a_grade": "G5",
+   "b": "last",
+   "b_word": "last",
+   "b_meaning_zh": "最后的",
+   "b_grade": "G5",
+   "cross_grade": false,
+   "rules": ["review"],
+   "note": "最后；终于 / 最后的。整条释义不能互换，但审定要求屏蔽。"
+  },
+  {
    "a": "like",
    "a_word": "like",
    "a_meaning_zh": "喜欢",
@@ -2252,6 +2278,19 @@
    "cross_grade": false,
    "rules": ["synonym_swap"],
    "note": "喜欢 / 喜爱。只差一个近义字。"
+  },
+  {
+   "a": "outer space",
+   "a_word": "outer space",
+   "a_meaning_zh": "外太空",
+   "a_grade": "G6",
+   "b": "space",
+   "b_word": "space",
+   "b_meaning_zh": "太空",
+   "b_grade": "G6",
+   "cross_grade": false,
+   "rules": ["review"],
+   "note": "外太空 / 太空。整条释义不能互换，但审定要求屏蔽。"
   },
   {
    "a": "rain",

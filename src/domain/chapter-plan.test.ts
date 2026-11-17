@@ -30,7 +30,7 @@ import type { GradeBand, SaveData } from "./types";
 
 /** chapters_v0.2.json. pep_g3_07 boss is 营养餐盘守护者; its theme note no longer says Old toys. */
 const CHAPTERS_SHA256 = "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c";
-const GLOSS_SHA256 = "0c4a2f6a3cd86df5d411ad70fa02e77dc8a2c24782143f31941037674e9eb6fe";
+const GLOSS_SHA256 = "29d9c690d11324ed2b0e10b213c0653826309d05f853ee162d5088204c48ba79";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -221,7 +221,7 @@ describe("grade chapters", () => {
     expect(gloss.exact).toHaveLength(23);
     expect(shared).toHaveLength(26);
     expect(containsOnly).toHaveLength(66);
-    expect(gloss.near_synonym).toHaveLength(8);
+    expect(gloss.near_synonym).toHaveLength(11);
     const nearKeys = new Set(gloss.near_synonym.map((pair) => [pair.a, pair.b].sort().join("|")));
     expect(gloss.exact.some((pair) => pair.cross_grade && glossPairBlocked(pair.a, pair.b))).toBe(true);
     expect(shared.every((pair) => glossPairBlocked(pair.a, pair.b))).toBe(true);
