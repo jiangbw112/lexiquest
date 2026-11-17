@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { ensureDailyGoal, goalProgress, goalStatusLine, goalTarget, openingReminder } from "../../domain/parent";
 import { dismissReward, questLine, selectedSampleWords, selectionBattleNotice, studyNow } from "../../domain/progress";
+import { rewardBatch } from "../../domain/reward-dialog";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
@@ -51,8 +52,7 @@ export class OverworldScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     if (event.code === "Enter" && save.rewardQueue[0]) {
-      mutate((current) => dismissReward(current));
-      this.draw();
+      this.takeReward();
       return;
     }
     if (this.traveling || save.rewardQueue[0] || this.toast) return;
@@ -152,8 +152,8 @@ export class OverworldScene extends Phaser.Scene {
     if (save.chapterCleared) {
       warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }
-    if (this.toast || save.rewardQueue[0]) {
-      const notice = save.rewardQueue[0];
+    const batch = rewardBatch(save.rewardQueue);
+    if (this.toast || batch) {
       const chrome = rewardDialogChrome();
       const mask = this.add.rectangle(640, 400, 1280, 800, 0x3b2a20, 0.65);
       mask.setInteractive();
@@ -161,8 +161,8 @@ export class OverworldScene extends Phaser.Scene {
       this.add.rectangle(chrome.fillX, chrome.fillY, chrome.fillWidth, chrome.fillHeight, DIALOG_HEADER, 1);
       const dialog = warmSlice(this, "atlas_ui_core", "dialog", REWARD_DIALOG.width, REWARD_DIALOG.height);
       dialog.setPosition(REWARD_DIALOG.x, REWARD_DIALOG.y);
-      const title = notice?.title ?? "";
-      const detail = notice?.detail ?? this.toast;
+      const title = batch?.title ?? "";
+      const detail = batch?.detail ?? this.toast;
       this.add.text(REWARD_DIALOG.x, chrome.titleY, title, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: CREAM }).setOrigin(0.5);
       this.add.text(REWARD_DIALOG.x, 248, detail, { fontFamily: FONT_BODY, fontSize: "18px", color: INK, wordWrap: cjkWrap(760), align: "center" }).setOrigin(0.5);
       this.add.text(REWARD_DIALOG.x, 308, "点击或按 Enter 收下", { fontFamily: FONT_BODY, fontSize: "16px", color: INK }).setOrigin(0.5);
@@ -171,12 +171,22 @@ export class OverworldScene extends Phaser.Scene {
       const area = containerHitArea(REWARD_DIALOG.width, REWARD_DIALOG.height);
       hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
       if (hit.input) hit.input.cursor = "pointer";
-      hit.on("pointerdown", () => {
-        if (getSave()?.rewardQueue[0]) mutate((current) => dismissReward(current));
-        this.toast = "";
-        this.draw();
+      hit.on("pointerdown", () => this.takeReward());
+    }
+  }
+
+  /** One confirmation clears the whole head run by calling dismissReward that many times. */
+  private takeReward(): void {
+    const count = rewardBatch(getSave()?.rewardQueue ?? [])?.count ?? 0;
+    if (count > 0) {
+      mutate((current) => {
+        let next = current;
+        for (let i = 0; i < count; i += 1) next = dismissReward(next);
+        return next;
       });
     }
+    this.toast = "";
+    this.draw();
   }
 
   private building(place: Place): void {

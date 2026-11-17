@@ -18,6 +18,7 @@ import {
   changeLearnDraftGrade,
   chooseBattleSpot,
   commitBattleEntry,
+  commitExamReturn,
   confirmLearnSelection,
   forestGradeLabel,
   initialLearnDraft,
@@ -32,9 +33,10 @@ import {
   selectBattleGrade,
 } from "./chapter-route";
 import { forestPlayChapter, gradeChapters, isChapterCleared, isChapterUnlocked } from "./chapter-plan";
+import { examById } from "./exams";
 import { applyBattleOutcome, createSave, learnWord } from "./progress";
 import { deserialize, serialize } from "./storage";
-import type { GradeBand, SaveData } from "./types";
+import type { ExamPhaseRunRecord, ExamSessionRecord, GradeBand, SaveData } from "./types";
 
 const START = new Date("2026-03-01T02:00:00Z");
 const FORBIDDEN = "所选年级没有这一章的词";
@@ -362,9 +364,94 @@ describe("saved route fields", () => {
   });
 });
 
+describe("exam map return", () => {
+  it("comes back to the grade chapter after a rest, and leaves the session and the grants alone", () => {
+    const exam = examById("exam_g5_s2_final");
+    if (!exam) throw new Error("exam");
+    const session: ExamSessionRecord = {
+      asks: { tree: { count: 2, lastIndex: 1 } },
+      nextIndex: 4,
+      fightQuestions: 3,
+      fightSpelling: 1,
+    };
+    const phaseRun: ExamPhaseRunRecord = {
+      phaseNo: 2,
+      seed: 424242,
+      casts: 3,
+      pending: { wordId: "tree", kind: "meaning" },
+      phaseQuestions: 4,
+      phaseSpelling: 1,
+      phaseWords: ["tree", "book"],
+      committedQuestions: 2,
+      committedSpelling: 0,
+      asks: { tree: { count: 1, lastIndex: 0 } },
+      nextIndex: 2,
+      fightQuestions: 2,
+      fightSpelling: 0,
+      fightShare: 0.5,
+      fightSpellingMax: 1,
+      relief: false,
+      phaseSpellingMax: 1,
+    };
+    const save: SaveData = {
+      ...fresh(["G5"]),
+      currentChapterId: "forest_adventure",
+      xp: 40,
+      chapterProgress: cleared([exam.after]),
+      examProgress: {
+        [exam.id]: {
+          session,
+          phaseRun,
+          titleGrantedAt: 100,
+          phaseRecords: {
+            "1": {
+              passed: true,
+              xpDisposition: "paid",
+              xpAmount: 12,
+              settlementKey: "once",
+              origin: "newPass",
+            },
+          },
+        },
+      },
+      titleGrantLedger: {
+        [`boss:${exam.id}:firstClear`]: {
+          grantedAt: 100,
+          source: "bossFirstClear",
+          evidenceId: exam.id,
+          partIds: ["p_exam"],
+          newPartIds: ["p_exam"],
+        },
+      },
+    };
+    expect(battleReturn(save)).toMatchObject({
+      kind: "ready",
+      grade: null,
+      spot: { chapter: expect.objectContaining({ id: "forest_adventure" }), step: "forest" },
+    });
+    const entered = commitExamReturn(save, exam.grade, exam.after);
+    expect(entered).not.toBe(save);
+    const returned = battleReturn(entered);
+    expect(returned).toMatchObject({
+      kind: "ready",
+      grade: "G5",
+      spot: { chapter: expect.objectContaining({ id: exam.after, grade: "G5" }), step: "progress" },
+    });
+    if (returned.kind !== "ready") throw new Error("return");
+    expect(returned.spot.chapter.id).not.toBe("forest_adventure");
+    expect(entered.examProgress).toBe(save.examProgress);
+    expect(entered.xp).toBe(save.xp);
+    expect(entered.titleGrantLedger).toBe(save.titleGrantLedger);
+    expect(entered.battlesWon).toBe(save.battlesWon);
+    expect(commitExamReturn(entered, exam.grade, exam.after)).toBe(entered);
+    expect(commitExamReturn(save, exam.grade, "missing_chapter")).toBe(save);
+  });
+});
+
 describe("scene wiring", () => {
   const map = readFileSync(new URL("../game/scenes/StageMapScene.ts", import.meta.url), "utf8");
   const battle = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
+  const examScene = readFileSync(new URL("../game/scenes/ExamBattleScene.ts", import.meta.url), "utf8");
 
   it("keeps map preview off the save and shows the return control on a locked chapter", () => {
     const shift = map.slice(map.indexOf("private shiftChapter"), map.indexOf("private returnToProgress"));
@@ -378,5 +465,11 @@ describe("scene wiring", () => {
     expect(map).not.toContain("所选年级没有这一章的词");
     expect(battle).toContain("commitBattleEntry");
     expect(BATTLE_RETURN_PROGRESS).toBe("返回进度章");
+    const examClick = map.slice(map.indexOf('node.on("pointerup"'), map.indexOf('this.scene.start("exam-battle"'));
+    expect(examClick.indexOf("commitExamReturn")).toBeGreaterThan(examClick.indexOf("return;"));
+    const rest = examScene.indexOf('this.textButton(820, 460, "休息一下"');
+    expect(rest).toBeGreaterThan(-1);
+    expect(examScene.slice(rest, rest + 80)).toContain('this.scene.start("stages")');
+    expect(map).toContain("battleReturn");
   });
 });

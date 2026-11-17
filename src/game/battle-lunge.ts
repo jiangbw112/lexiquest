@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { ClassId } from "../domain/types";
 import { DASH_RULES } from "./art/class-atlas";
 import { motionOff } from "./warm/theme";

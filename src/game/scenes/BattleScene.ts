@@ -54,6 +54,27 @@ import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm
 import { paintSceneImage, queueMissingForestBattle, queueSceneAtlas, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
+import { BATTLE_ANSWER_REVEAL, paintAnswerReveal } from "../answer-reveal";
+import {
+  BATTLE_ACTION_H,
+  BATTLE_ACTION_W,
+  BATTLE_ACTION_X,
+  BATTLE_ACTION_Y,
+  BATTLE_FOOT_Y,
+  BATTLE_HERO_SCALE,
+  MONSTER_ORIGIN,
+  MONSTER_SCALE,
+  BATTLE_HP_ENEMY,
+  BATTLE_HP_PLAYER,
+  BATTLE_LEAVE,
+  BATTLE_NOTE,
+  BATTLE_QUESTION,
+  BATTLE_SHAKEN,
+  BATTLE_TITLE_Y,
+  BATTLE_WOOD,
+  RANGER_SWAP,
+  SCOUT_HINT,
+} from "../battle-hud";
 import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
 import {
   spawnFloater,
@@ -789,6 +810,7 @@ export class BattleScene extends Phaser.Scene {
       boss: this.bossFight,
       bossName: this.state.enemyName,
       now,
+      chapterId: this.battleChapterId,
     });
     this.pendingResults = view;
     if (!this.lunging) this.armResults();
@@ -951,9 +973,9 @@ export class BattleScene extends Phaser.Scene {
     const frame = this.monsterFrame(this.monsterHit);
     if (!frame) return;
     const monster = this.add.image(0, 0, frame.atlas, frame.frame);
-    monster.setOrigin(0.5, 0.977);
-    monster.setScale(0.45);
-    this.battleEnemy = this.add.container(MONSTER_BATTLE_X, 520, [monster]);
+    monster.setOrigin(MONSTER_ORIGIN.x, MONSTER_ORIGIN.y);
+    monster.setScale(MONSTER_SCALE);
+    this.battleEnemy = this.add.container(MONSTER_BATTLE_X, BATTLE_FOOT_Y, [monster]);
   }
 
   private battleBackgroundKey(): string {
@@ -1005,14 +1027,14 @@ export class BattleScene extends Phaser.Scene {
       showSpellingHint(null);
     }
     this.paintBattleBackdrop();
-    const hero = new ClassSideSprite(this, 300, 520, savedClassId(save), 0.72, save.equippedCosmeticIds, save.equippedOutfitId);
+    const hero = new ClassSideSprite(this, PLAYER_BATTLE_X, BATTLE_FOOT_Y, savedClassId(save), BATTLE_HERO_SCALE, save.equippedCosmeticIds, save.equippedOutfitId);
     if (import.meta.env.DEV) {
       (window as unknown as { __LEXI_HERO__?: ClassSideSprite }).__LEXI_HERO__ = hero;
     }
     this.classHero = hero;
     this.battleHero = hero.root;
     const titleAt = this.children.length;
-    drawEquippedTitle(this, 300, 250, save.equippedTitleId);
+    drawEquippedTitle(this, PLAYER_BATTLE_X, BATTLE_TITLE_Y, save.equippedTitleId);
     this.battleTitle = this.children.list.slice(titleAt);
     if (this.dashOpen) {
       hero.play("dash");
@@ -1022,8 +1044,8 @@ export class BattleScene extends Phaser.Scene {
     }
     this.drawMonster();
     const hudAt = this.children.length;
-    warmPanel(this, 350, 92, 400, 104);
-    warmPanel(this, 930, 92, 400, 104);
+    warmPanel(this, BATTLE_HP_PLAYER.x, BATTLE_HP_PLAYER.y, BATTLE_HP_PLAYER.w, BATTLE_HP_PLAYER.h);
+    warmPanel(this, BATTLE_HP_ENEMY.x, BATTLE_HP_ENEMY.y, BATTLE_HP_ENEMY.w, BATTLE_HP_ENEMY.h);
     this.add.text(170, 62, save.player.name, { fontFamily: FONT_BODY, fontSize: "22px", fontStyle: "700", color: INK }).setOrigin(0, 0.5);
     const phaseCount = this.state.phases?.length ?? 1;
     this.add.text(750, 62, battleEnemyName(this.state.enemyName, this.state.phaseIndex, phaseCount, false), {
@@ -1036,11 +1058,11 @@ export class BattleScene extends Phaser.Scene {
       const shakenCopy = this.state.phaseIndex === 0
         ? `${this.state.enemyName}动摇了！答对并出手攻击，就能突破！`
         : `${this.state.enemyName}动摇了！答对并出手攻击，就能赢！`;
-      this.add.text(750, 148, shakenCopy, {
+      this.add.text(BATTLE_SHAKEN.x, BATTLE_SHAKEN.y, shakenCopy, {
         fontFamily: FONT_BODY,
-        fontSize: "16px",
+        fontSize: `${BATTLE_SHAKEN.fontPx}px`,
         color: INK,
-        wordWrap: cjkWrap(360),
+        wordWrap: cjkWrap(BATTLE_SHAKEN.wrap),
       }).setOrigin(0, 0);
     }
     this.hpBar(305, 104, this.displayHp.playerHp / this.state.playerMaxHp, "hp_fill_teal", "player");
@@ -1050,7 +1072,7 @@ export class BattleScene extends Phaser.Scene {
       const on = i < this.state.energy;
       this.add.image(226 + i * 24, 128, "atlas_battle", on ? "energy_pip_on" : "energy_pip_off").setScale(0.5);
     }
-    warmPanel(this, 490, 182, 680, 52);
+    warmPanel(this, BATTLE_NOTE.x, BATTLE_NOTE.y, BATTLE_NOTE.w, BATTLE_NOTE.h);
     this.noteText = this.add.text(170, 182, this.displayNote, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
@@ -1061,7 +1083,7 @@ export class BattleScene extends Phaser.Scene {
     this.drawPreview();
     if (this.state.phase === "question" && this.state.question) probeNote(`asked:${this.state.question.kind}`);
     const inputLocked = this.resolving || this.lunging;
-    if (battleControlOpen(this.state.phase, "action", inputLocked)) warmPanel(this, 640, 686, 1056, 204, "panel_wood");
+    if (battleControlOpen(this.state.phase, "action", inputLocked)) warmPanel(this, BATTLE_WOOD.x, BATTLE_WOOD.y, BATTLE_WOOD.w, BATTLE_WOOD.h, "panel_wood");
     else {
       const blocker = this.add.zone(640, 686, 1200, 240);
       blocker.setInteractive();
@@ -1080,7 +1102,7 @@ export class BattleScene extends Phaser.Scene {
       ),
     }));
     if (battleControlOpen(this.state.phase, "answer", inputLocked) && this.state.question) {
-      warmPanel(this, 640, 696, 1100, 172);
+      warmPanel(this, BATTLE_QUESTION.x, BATTLE_QUESTION.y, BATTLE_QUESTION.w, BATTLE_QUESTION.h);
       if (this.state.question.kind === "spelling") {
         probeQuestion(this.state.question.wordId, []);
         this.add.text(180, 640, this.state.question.prompt, { fontFamily: FONT_BODY, fontSize: "24px", fontStyle: "700", color: INK });
@@ -1110,9 +1132,9 @@ export class BattleScene extends Phaser.Scene {
       if (!battleControlOpen(this.state.phase, "action", inputLocked)) {
         warmPanel(this, 640, 686, 1056, 204, "panel_wood");
       }
-      const attack = warmButton(this, 200, 680, "1 攻击", () => this.act({ type: "attack" }), { width: 148, tone: "coral", disabled: inputLocked });
-      warmButton(this, 360, 680, "2 格挡", () => this.act({ type: "block" }), { width: 148, tone: "sky", disabled: inputLocked });
-      warmButton(this, 520, 680, "3 治疗", () => this.act({ type: "heal" }), { width: 148, tone: "teal", disabled: inputLocked });
+      const attack = warmButton(this, BATTLE_ACTION_X[0], BATTLE_ACTION_Y, "1 攻击", () => this.act({ type: "attack" }), { width: BATTLE_ACTION_W, height: BATTLE_ACTION_H, tone: "coral", disabled: inputLocked });
+      warmButton(this, BATTLE_ACTION_X[1], BATTLE_ACTION_Y, "2 格挡", () => this.act({ type: "block" }), { width: BATTLE_ACTION_W, height: BATTLE_ACTION_H, tone: "sky", disabled: inputLocked });
+      warmButton(this, BATTLE_ACTION_X[2], BATTLE_ACTION_Y, "3 治疗", () => this.act({ type: "heal" }), { width: BATTLE_ACTION_W, height: BATTLE_ACTION_H, tone: "teal", disabled: inputLocked });
       this.drawSwapButton(inputLocked);
       if (this.state.supportStreak >= 2) {
         this.add.text(360, 718, "效果减弱", { fontFamily: FONT_BODY, fontSize: "14px", color: MUTED }).setOrigin(0.5);
@@ -1143,12 +1165,22 @@ export class BattleScene extends Phaser.Scene {
     }
     if (!this.presenting && battleControlOpen(this.state.phase, "leave", inputLocked)) {
       const label = this.clearedChapter ? "看结局" : this.state.phase === "lost" ? "再试一次 Esc" : "回关卡 Esc";
-      warmButton(this, 640, 680, label, () => this.leave(), { width: 240 });
+      warmButton(this, BATTLE_LEAVE.x, BATTLE_LEAVE.y, label, () => this.leave(), { width: BATTLE_LEAVE.w, height: BATTLE_LEAVE.h });
     }
+    this.drawAnswerReveal();
     this.battleHud = this.children.list.slice(hudAt);
     if (this.swapStep !== "off" && this.state.phase === "choose") this.drawSwapPanel();
     else this.swapStep = "off";
     this.finishDraw();
+  }
+
+  /** Wrong answers show the word at once. A button reads it; the save is left alone. */
+  private drawAnswerReveal(): void {
+    paintAnswerReveal(this, this.state.answerReveal, {
+      hidden: this.state.phase === "question",
+      plate: true,
+      spec: BATTLE_ANSWER_REVEAL,
+    });
   }
 
   private drawPreview(): void {
@@ -1160,12 +1192,12 @@ export class BattleScene extends Phaser.Scene {
       color: INK,
     }).setOrigin(0.5, 0.5);
     if (this.scoutHintPending) {
-      this.add.text(640, 500, EXPLORER_PREVIEW_HINT, {
+      this.add.text(SCOUT_HINT.x, SCOUT_HINT.y, EXPLORER_PREVIEW_HINT, {
         fontFamily: FONT_BODY,
-        fontSize: "16px",
+        fontSize: `${SCOUT_HINT.fontPx}px`,
         color: INK,
         align: "center",
-        wordWrap: cjkWrap(420),
+        wordWrap: cjkWrap(SCOUT_HINT.wrap),
       }).setOrigin(0.5, 0);
     }
     probeNote(`preview:${this.state.previewLabel}`);
@@ -1175,16 +1207,16 @@ export class BattleScene extends Phaser.Scene {
     const offer = swapOffer(this.state);
     if (offer === "hidden") return;
     if (offer === "used") {
-      warmButton(this, 640, 300, RANGER_SWAP_USED, () => undefined, { width: 240, height: 48, tone: "secondary", disabled: true });
+      warmButton(this, RANGER_SWAP.x, RANGER_SWAP.y, RANGER_SWAP_USED, () => undefined, { width: RANGER_SWAP.usedW, height: RANGER_SWAP.usedH, tone: "secondary", disabled: true });
       probeNote("swap:used");
       return;
     }
-    warmButton(this, 640, 300, RANGER_SWAP_BUTTON, () => {
+    warmButton(this, RANGER_SWAP.x, RANGER_SWAP.y, RANGER_SWAP_BUTTON, () => {
       if (inputLocked) return;
       this.swapStep = "card";
       this.swapSkillId = null;
       this.draw();
-    }, { width: 140, height: 48, tone: "secondary", disabled: inputLocked });
+    }, { width: RANGER_SWAP.readyW, height: RANGER_SWAP.readyH, tone: "secondary", disabled: inputLocked });
     probeNote("swap:ready");
   }
 
