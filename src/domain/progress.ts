@@ -2,6 +2,7 @@ import { sanitizeName } from "./appearance";
 import { settleWardrobeWear, wardrobeApplies } from "./wardrobe-list";
 import { applyChapterRewards, FOREST_REWARDS } from "./chapter-rewards";
 import { grantWordCard, setMasteryBadge } from "./cards";
+import { MASTERY_BADGE_NOTICE } from "./reward-dialog";
 import { CHAPTER_BOSS_ID } from "./battle";
 import { advanceBattleAnchor } from "./chapter-route";
 import { chapterBossReady, parseChapterEncounter, spellingSkipIds, starKey } from "./chapter-plan";
@@ -261,7 +262,7 @@ export function reviewWord(save: SaveData, wordId: string, rating: Grade, now: D
     rewardQueue = pushReward(
       rewardQueue,
       reward(
-        "熟练徽章亮了",
+        MASTERY_BADGE_NOTICE,
         `${word?.english ?? wordId} 的词卡还在原处。徽章到了复习时间会变灰，答对后再亮起来。`,
       ),
     );
