@@ -58,7 +58,7 @@ import { checkSpelling } from "../../domain/questions";
 import { SAVE_KEY, serialize } from "../../domain/storage";
 import { equipTitleParts, markTitleReceiptPresented, titlePartText } from "../../domain/titles";
 import type { SaveData } from "../../domain/types";
-import { paintAnswerReveal } from "../answer-reveal";
+import { EXAM_ANSWER_REVEAL, paintAnswerReveal } from "../answer-reveal";
 import { ExamBossSprite } from "../art/exam-boss-sprite";
 import { examBackground, queueExamArt, EXAM_UI_KEY } from "../art/exam-art";
 import { cjkWrap } from "../layout";
@@ -332,6 +332,9 @@ export class ExamBattleScene extends Phaser.Scene {
         hidden: state.phase === "question",
         parent: this.view,
         plate: true,
+        x: EXAM_ANSWER_REVEAL.x,
+        y: EXAM_ANSWER_REVEAL.y,
+        width: EXAM_ANSWER_REVEAL.width,
       });
     }
     if (state.phase === "choose") this.textButton(640, 700, "攻击", () => this.act());

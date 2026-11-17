@@ -54,7 +54,7 @@ import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm
 import { paintSceneImage, queueMissingForestBattle, queueSceneAtlas, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
-import { paintAnswerReveal } from "../answer-reveal";
+import { BATTLE_ANSWER_REVEAL, paintAnswerReveal } from "../answer-reveal";
 import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
 import {
   spawnFloater,
@@ -1156,7 +1156,13 @@ export class BattleScene extends Phaser.Scene {
 
   /** Wrong answers show the word at once. A button reads it; the save is left alone. */
   private drawAnswerReveal(): void {
-    paintAnswerReveal(this, this.state.answerReveal, { hidden: this.state.phase === "question" });
+    paintAnswerReveal(this, this.state.answerReveal, {
+      hidden: this.state.phase === "question",
+      plate: true,
+      x: BATTLE_ANSWER_REVEAL.x,
+      y: BATTLE_ANSWER_REVEAL.y,
+      width: BATTLE_ANSWER_REVEAL.width,
+    });
   }
 
   private drawPreview(): void {
