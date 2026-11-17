@@ -2,8 +2,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import "./art/phaser-headless";
+import type Phaser from "phaser";
 import { CHAPTER_BOSS_DISPLAY_HEIGHT } from "../domain/chapter-bosses";
-import { EXAM_BOSS_SCALE, EXAM_BOSS_X, EXAM_BOSS_Y, EXAMS } from "../domain/exams";
+import { EXAM_BOSS_SCALE, EXAM_BOSS_X, EXAM_BOSS_Y, EXAMS, examById } from "../domain/exams";
+import { ExamBossSprite } from "./art/exam-boss-sprite";
 import { BATTLE_CARD_H, BATTLE_CARD_W } from "../domain/battle-card-layout";
 import { CLASS_SIDE_ORIGIN } from "./art/class-atlas";
 import { examAtlases, examLayers, type ExamPose } from "./art/exam-art";
@@ -81,6 +84,96 @@ function atlasFrames(path: string): { name: string; frame: AtlasFrame }[] {
     if (!frame.spriteSourceSize || !frame.sourceSize) throw new Error(`${path} ${name} is missing trim data`);
     return { name, frame };
   });
+}
+
+interface CompassSample {
+  name: string;
+  main: boolean;
+  visible: boolean;
+  alpha: number;
+  plate: ScreenBox;
+  bounds: ScreenBox;
+}
+
+function drawnPlate(sprite: Phaser.GameObjects.Sprite): ScreenBox {
+  const frame = sprite.frame;
+  const parent = sprite.parentContainer;
+  return {
+    x: (parent?.x ?? 0) + sprite.x + (-sprite.displayOriginX + frame.x) * sprite.scaleX,
+    y: (parent?.y ?? 0) + sprite.y + (-sprite.displayOriginY + frame.y) * sprite.scaleY,
+    w: frame.cutWidth * sprite.scaleX,
+    h: frame.cutHeight * sprite.scaleY,
+  };
+}
+
+function boundsBox(sprite: Phaser.GameObjects.Sprite): ScreenBox {
+  const bounds = sprite.getBounds();
+  return { x: bounds.x, y: bounds.y, w: bounds.width, h: bounds.height };
+}
+
+async function liveCompassBoxes(): Promise<{ frames: number; samples: CompassSample[] }> {
+  const loaded = await import("phaser");
+  const PhaserLib = ((loaded as { default?: typeof import("phaser") }).default ?? loaded) as typeof import("phaser");
+  const examDef = examById("exam_g6_s2_final");
+  if (!examDef) throw new Error("missing exam_g6_s2_final");
+  const atlasFile = examAtlases(examDef).find((file) => file.key.includes("compass"));
+  if (!atlasFile) throw new Error("missing compass atlas");
+  const packed = JSON.parse(readFileSync(join(ROOT, "public", atlasFile.dataUrl.replace(/^\//, "")), "utf8")) as {
+    frames: Record<string, unknown>;
+    meta?: { size?: { w: number; h: number } };
+  };
+  let game: Phaser.Game | undefined;
+  try {
+    const scene = await new Promise<Phaser.Scene>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("phaser headless did not start")), 5000);
+      game = new PhaserLib.Game({
+        type: PhaserLib.HEADLESS,
+        customEnvironment: true,
+        width: GAME_W,
+        height: GAME_H,
+        banner: false,
+        audio: { noAudio: true },
+        scene: {
+          create(this: Phaser.Scene) {
+            clearTimeout(timeout);
+            resolve(this);
+          },
+        },
+      });
+    });
+    const source = document.createElement("canvas");
+    source.width = packed.meta?.size?.w ?? 8;
+    source.height = packed.meta?.size?.h ?? 8;
+    const texture = scene.textures.addAtlasJSONHash(atlasFile.key, source as unknown as HTMLImageElement, packed);
+    if (!texture) throw new Error("compass texture");
+    const boss = new ExamBossSprite(scene, EXAM_BOSS_X, EXAM_BOSS_Y, examDef);
+    boss.show(1, "idle", null);
+    const sprites = boss.root.list.filter((child) => {
+      const sprite = child as Phaser.GameObjects.Sprite;
+      return sprite.type === "Sprite" && sprite.texture?.key === atlasFile.key;
+    }) as Phaser.GameObjects.Sprite[];
+    if (sprites.length === 0) throw new Error("compass sprite");
+    for (const sprite of sprites) sprite.anims?.stop();
+    const names = sprites[0]?.texture.getFrameNames().filter((name) => name !== "__BASE") ?? [];
+    const samples: CompassSample[] = [];
+    for (const name of names) {
+      for (const sprite of sprites) {
+        sprite.setFrame(name);
+        const index = samples.length % sprites.length;
+        samples.push({
+          name: `${name}#${index}`,
+          main: index === sprites.length - 1,
+          visible: sprite.visible,
+          alpha: sprite.alpha,
+          plate: drawnPlate(sprite),
+          bounds: boundsBox(sprite),
+        });
+      }
+    }
+    return { frames: names.length, samples };
+  } finally {
+    game?.destroy(true);
+  }
 }
 
 function worstGap(plate: ScreenBox, boxes: { label: string; box: ScreenBox }[]): { label: string; gap: number } {
@@ -174,20 +267,19 @@ describe("answer reveal plate", () => {
     expect(boxes.length).toBeGreaterThan(100);
   });
 
-  it("clears the exam boss where the planter actually draws it", () => {
+  it("clears the exam boss where each layer is actually drawn", async () => {
     const boxes: { label: string; box: ScreenBox }[] = [];
     const seen = new Set<string>();
     let midTop = Number.POSITIVE_INFINITY;
     let midNaive = Number.POSITIVE_INFINITY;
     let cloakTop = Number.POSITIVE_INFINITY;
     let coverTop = Number.POSITIVE_INFINITY;
-    let compassBottom = Number.NEGATIVE_INFINITY;
-    let compassNaive: ScreenBox | null = null;
     for (const exam of EXAMS) {
       const files = new Map(examAtlases(exam).map((file) => [file.key, join(ROOT, "public", file.dataUrl.replace(/^\//, ""))]));
       for (let phase = 1; phase <= exam.phases; phase += 1) {
         for (const pose of POSES) {
           for (const layer of examLayers(exam, phase, pose)) {
+            if (layer.key.includes("compass")) continue;
             const path = files.get(layer.key);
             if (!path || seen.has(`${exam.id}:${path}`)) continue;
             seen.add(`${exam.id}:${path}`);
@@ -206,18 +298,6 @@ describe("answer reveal plate", () => {
               if (exam.id === "exam_g6_s2_final" && name.includes("cover_gold_p1") && name.includes("idle")) {
                 coverTop = Math.min(coverTop, drawn.y);
               }
-              if (name.includes("compass")) {
-                compassBottom = Math.max(compassBottom, drawn.y + drawn.h);
-                const naive = naivePivotBox(frame, EXAM_BOSS_X, EXAM_BOSS_Y, EXAM_BOSS_SCALE, pivot);
-                compassNaive = compassNaive
-                  ? {
-                      x: Math.min(compassNaive.x, naive.x),
-                      y: Math.min(compassNaive.y, naive.y),
-                      w: Math.max(compassNaive.x + compassNaive.w, naive.x + naive.w) - Math.min(compassNaive.x, naive.x),
-                      h: Math.max(compassNaive.y + compassNaive.h, naive.y + naive.h) - Math.min(compassNaive.y, naive.y),
-                    }
-                  : naive;
-              }
             }
           }
         }
@@ -231,9 +311,35 @@ describe("answer reveal plate", () => {
     expect(cloakTop).toBeGreaterThan(200);
     expect(coverTop).toBeLessThan(160);
     expect(coverTop).toBeGreaterThan(100);
-    expect(compassBottom).toBeLessThan(0);
-    expect(compassNaive).not.toBeNull();
-    expect(separation(exam.plate, compassNaive!)).toBeGreaterThanOrEqual(GAP);
+    // getBounds is the untrimmed source. The trimmed plate on that same sprite
+    // is the compass the answer board has to stay clear of.
+    const compass = await liveCompassBoxes();
+    expect(compass.frames).toBeGreaterThan(8);
+    const canvas: ScreenBox = { x: 0, y: 0, w: GAME_W, h: GAME_H };
+    for (const sample of compass.samples) {
+      const { plate, bounds } = sample;
+      expect(sample.visible, sample.name).toBe(true);
+      expect(sample.alpha, sample.name).toBeGreaterThan(0);
+      expect(plate.x + plate.w / 2, sample.name).toBeGreaterThanOrEqual(canvas.x);
+      expect(plate.y + plate.h / 2, sample.name).toBeGreaterThanOrEqual(canvas.y);
+      expect(plate.x + plate.w / 2, sample.name).toBeLessThanOrEqual(canvas.x + canvas.w);
+      expect(plate.y + plate.h / 2, sample.name).toBeLessThanOrEqual(canvas.y + canvas.h);
+      expect(separation(canvas, plate), sample.name).toBeLessThan(0);
+      expect(plate.y + plate.h, sample.name).toBeGreaterThan(0);
+      expect(separation(exam.plate, plate), sample.name).toBeGreaterThanOrEqual(GAP);
+      expect(separation(exam.button, plate), sample.name).toBeGreaterThanOrEqual(GAP);
+      expect(bounds.x, sample.name).toBeLessThanOrEqual(plate.x);
+      expect(bounds.y, sample.name).toBeLessThanOrEqual(plate.y);
+      expect(bounds.x + bounds.w, sample.name).toBeGreaterThanOrEqual(plate.x + plate.w);
+      expect(bounds.y + bounds.h, sample.name).toBeGreaterThanOrEqual(plate.y + plate.h);
+      expect(separation(canvas, bounds), sample.name).toBeLessThan(0);
+      if (sample.main && sample.name.includes("idle_00")) {
+        expect(plate.x, sample.name).toBeGreaterThanOrEqual(0);
+        expect(plate.y, sample.name).toBeGreaterThanOrEqual(0);
+        expect(plate.x + plate.w, sample.name).toBeLessThanOrEqual(GAME_W);
+        expect(plate.y + plate.h, sample.name).toBeLessThanOrEqual(GAME_H);
+      }
+    }
     const onScreen = boxes.filter((item) => item.box.x < GAME_W && item.box.x + item.box.w > 0 && item.box.y < GAME_H && item.box.y + item.box.h > 0);
     const worst = worstGap(exam.plate, onScreen);
     expect(worst.gap, worst.label).toBeGreaterThanOrEqual(GAP);

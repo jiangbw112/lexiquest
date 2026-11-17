@@ -46,8 +46,8 @@ export const BATTLE_ANSWER_REVEAL: AnswerRevealSpec = {
 
 /**
  * Exam plate on the open left. The boss body, cloak, and cover stay to the right.
- * The grade-6 compass is drawn off the screen by the current planter; that is
- * separate from this plate and is not moved here.
+ * The grade-6 compass sits on the right of the book, inside the view. This plate
+ * stays clear of that compass and does not move it.
  */
 export const EXAM_ANSWER_REVEAL: AnswerRevealSpec = {
   x: 398,
