@@ -1,6 +1,18 @@
 import Phaser from "phaser";
 import { EXAM_BOSS_SCALE, type ExamDef } from "../../domain/exams";
 import { examLayers, examPhaseFxKey, type ExamPose } from "./exam-art";
+import {
+  COMPASS_DISPLAY_SCALE,
+  COMPASS_GLOW,
+  COMPASS_GLOW_PAD,
+  COMPASS_LAYER_KEY,
+  COMPASS_OUTLINE_DELTAS,
+  COMPASS_PLATE,
+  compassBattleRect,
+  compassShift,
+  cssHex,
+  isCompassLayer,
+} from "./exam-compass";
 
 function frameNames(scene: Phaser.Scene, key: string, pose: ExamPose | null): string[] {
   if (!scene.textures.exists(key)) return [];
@@ -23,6 +35,66 @@ function plant(sprite: Phaser.GameObjects.Sprite): void {
   sprite.setScale(EXAM_BOSS_SCALE);
 }
 
+/** Larger plate, cream card, ink copies. Other layers never call this. */
+function addCompass(root: Phaser.GameObjects.Container, names: string[], pose: ExamPose): void {
+  const scene = root.scene;
+  const first = names[0];
+  if (!first) return;
+  const glow = scene.add.graphics();
+  root.add(glow);
+  const outlines = COMPASS_OUTLINE_DELTAS.map((delta) => {
+    const sprite = scene.add.sprite(0, 0, COMPASS_LAYER_KEY, first);
+    root.add(sprite);
+    return { sprite, delta };
+  });
+  const main = scene.add.sprite(0, 0, COMPASS_LAYER_KEY, first);
+  root.add(main);
+  const place = (sprite: Phaser.GameObjects.Sprite, dx: number, dy: number) => {
+    plant(sprite);
+    const shift = compassShift();
+    sprite.setScale(COMPASS_DISPLAY_SCALE);
+    sprite.setPosition(shift.x + dx, shift.y + dy);
+  };
+  const sync = () => {
+    place(main, 0, 0);
+    const frameName = main.frame.name;
+    for (const item of outlines) {
+      if (item.sprite.frame.name !== frameName) item.sprite.setFrame(frameName);
+      place(item.sprite, item.delta.x, item.delta.y);
+      item.sprite.setTint(cssHex(COMPASS_PLATE));
+    }
+    const rect = compassBattleRect({
+      x: main.frame.x,
+      y: main.frame.y,
+      w: main.frame.width,
+      h: main.frame.height,
+    });
+    glow.clear();
+    glow.fillStyle(cssHex(COMPASS_GLOW), 0.96);
+    glow.fillRoundedRect(
+      rect.x - COMPASS_GLOW_PAD,
+      rect.y - COMPASS_GLOW_PAD,
+      rect.w + COMPASS_GLOW_PAD * 2,
+      rect.h + COMPASS_GLOW_PAD * 2,
+      18,
+    );
+  };
+  sync();
+  if (names.length < 2) return;
+  const anim = `${COMPASS_LAYER_KEY}:${pose}`;
+  if (!scene.anims.exists(anim)) {
+    scene.anims.create({
+      key: anim,
+      frames: names.map((name) => ({ key: COMPASS_LAYER_KEY, frame: name })),
+      frameRate: 8,
+      repeat: pose === "idle" ? -1 : 0,
+    });
+  }
+  main.play(anim);
+  main.on(Phaser.Animations.Events.ANIMATION_UPDATE, sync);
+  sync();
+}
+
 export class ExamBossSprite {
   readonly root: Phaser.GameObjects.Container;
 
@@ -41,6 +113,10 @@ export class ExamBossSprite {
       const names = frameNames(this.root.scene, layer.key, layer.pose);
       const frame = names[0];
       if (!frame) continue;
+      if (isCompassLayer(layer.key)) {
+        addCompass(this.root, names, pose);
+        continue;
+      }
       const sprite = this.root.scene.add.sprite(0, 0, layer.key, frame);
       plant(sprite);
       sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, () => plant(sprite));
