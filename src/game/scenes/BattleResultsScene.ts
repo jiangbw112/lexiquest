@@ -99,6 +99,7 @@ export class BattleResultsScene extends Phaser.Scene {
     this.drawTitle();
     this.drawWords();
     this.drawStudyHint();
+    this.drawBossGate();
     if (view.won) this.drawWinBody();
     else this.drawLossBody();
     this.drawButtons();
@@ -377,6 +378,21 @@ export class BattleResultsScene extends Phaser.Scene {
         color: INK,
       }).setOrigin(0, 0.5);
     }
+  }
+
+  /** Stage 4 win, while the boss still needs this chapter's words. The stage itself is already cleared. */
+  private drawBossGate(): void {
+    const line = this.view.bossGateLine;
+    if (!line) return;
+    const y = 720;
+    const plate = this.add.rectangle(835, y, 740, 36, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
+    const text = this.add.text(835, y, line, {
+      fontFamily: FONT_BODY,
+      fontSize: "18px",
+      fontStyle: "700",
+      color: NOTE,
+    }).setOrigin(0.5);
+    this.finishing.push(plate, text);
   }
 
   /** Sits in the gap under the word chips. Hidden once nothing is left to learn. */
@@ -754,7 +770,16 @@ export class BattleResultsScene extends Phaser.Scene {
     if (this.view.won) {
       const label = this.view.firstChapterClear ? uiLabel("看结局") : uiLabel("继续");
       const spot = RESULTS_LAYOUT.continueButton;
-      const button = warmButton(this, spot.x, spot.y, label, () => {
+      const y = this.view.bossGateLine ? 770 : spot.y;
+      if (this.view.bossGateLine) {
+        const academy = warmButton(this, 560, y, uiLabel("去学堂"), () => {
+          if (!this.keysOpen()) return;
+          this.toAcademy();
+        }, { width: 200, height: spot.h, tone: "secondary" });
+        academy.setVisible(false);
+        this.buttons.push(academy);
+      }
+      const button = warmButton(this, spot.x, y, label, () => {
         if (!this.keysOpen()) return;
         this.continueOn();
       }, { width: spot.w, height: spot.h });
@@ -775,6 +800,12 @@ export class BattleResultsScene extends Phaser.Scene {
     again.setVisible(false);
     map.setVisible(false);
     this.buttons.push(again, map);
+  }
+
+  private toAcademy(): void {
+    probeNote(`battle:results:academy:${this.view.stageId}`);
+    this.scene.stop("battle");
+    this.scene.start("learn");
   }
 
   private continueOn(): void {

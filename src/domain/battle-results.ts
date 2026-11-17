@@ -6,6 +6,7 @@ import { wordById } from "./catalog";
 import { findPlayChapter } from "./chapter-plan";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
 import { COSMETIC_LABEL } from "./cosmetic-label";
+import { chapterWordsRemaining } from "./learn-batch";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { levelFromXp } from "./progress";
 import { skillIconFrame } from "./skill-card-face";
@@ -94,6 +95,11 @@ export interface BattleResultsView {
   learnMoreLine: string | null;
   /** Set when a small learned pool is why the same words come back. */
   repeatLine: string | null;
+  /**
+   * After a win on stage 4, while this chapter's boss word gate is still open.
+   * Null when those words are already collected, or the fight was not that stage.
+   */
+  bossGateLine: string | null;
 }
 
 /** Integer thresholds. A loss has no stars. Question count and time do not reduce them. */
@@ -180,6 +186,8 @@ export function buildResultsView(input: {
   boss: boolean;
   bossName?: string;
   now: number;
+  /** The chapter that was fought. Omitted uses the save's current chapter. */
+  chapterId?: string;
 }): BattleResultsView {
   const words = wordsForResults(input.answers);
   const won = input.after.battlesWon === input.before.battlesWon + 1;
@@ -260,6 +268,7 @@ export function buildResultsView(input: {
     equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
     ...resultsStudyLines(input.after, input.stageId, input.boss),
+    bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
   };
 }
 
@@ -431,6 +440,33 @@ export const PRACTICE_LINE_1 = "今天的再战奖励领完啦，明天再来。
 export const PRACTICE_LINE_2 = "练习也很棒！";
 export const PRACTICE_NOTICE = "今天再战的奖励都拿到啦！";
 export const MAP_PRACTICE_NOTE = "今天再战的奖励领完啦，还可以练习。";
+
+/**
+ * 剩 is outside the committed Noto subset, so the glyph is assembled here.
+ * The body font falls through to the next face for that one character.
+ */
+const BOSS_WORDS_LEFT = String.fromCodePoint(0x5269);
+
+/** Same missing-card count the boss gate uses. Forest uses required words; a grade chapter uses its own list. */
+export function bossWordsStillRequired(save: SaveData, chapterId?: string): number {
+  return chapterWordsRemaining(save, findPlayChapter(save, chapterId));
+}
+
+export function bossWordsLeftLine(remaining: number): string {
+  return `Boss 要先学完本章词，还${BOSS_WORDS_LEFT} ${remaining} 个词。`;
+}
+
+/**
+ * Stage 4 is the last small fight before the boss.
+ * A win still clears the stage. This line only says how many boss-gate words are left.
+ * Stages 1–3, the boss, a loss, and a finished word list stay quiet.
+ */
+export function bossGateReminder(save: SaveData, stageId: number, won: boolean, chapterId?: string): string | null {
+  if (!won || stageId !== 4) return null;
+  const remaining = bossWordsStillRequired(save, chapterId);
+  if (remaining <= 0) return null;
+  return bossWordsLeftLine(remaining);
+}
 
 /** The clear hint only. A small learned set no longer makes the fight repeat those words. */
 export function resultsStudyLines(save: SaveData, stageId: number, boss: boolean): {

@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import {
+  bossGateReminder,
   bossVictoryBanner,
+  bossWordsLeftLine,
+  bossWordsStillRequired,
   buildResultsView,
   LOSS_ENCOURAGEMENT,
   MAP_PRACTICE_NOTE,
@@ -28,13 +31,14 @@ import {
   XP_LEVEL_HOLD_MS,
   xpBarSegments,
 } from "./battle-results";
-import { forestPlayChapter, gradeChapters } from "./chapter-plan";
+import { chapterBossReady, forestPlayChapter, gradeChapters, type PlayChapter } from "./chapter-plan";
+import { chapterWordsRemaining } from "./learn-batch";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { mapPanel } from "./map-panel";
 import { applyBattleOutcome, createSave, levelFromXp } from "./progress";
 import { deserialize, serialize } from "./storage";
-import { stageById, stageEncounterId } from "./stages";
-import type { SaveData } from "./types";
+import { bossReady, requiredWordIds, stageById, stageCleared, stageEncounterId, wordsUntilBoss } from "./stages";
+import type { GradeBand, SaveData } from "./types";
 
 const NOW = Date.parse("2026-08-12T03:00:00.000Z");
 
@@ -444,5 +448,116 @@ describe("battle results stars and words", () => {
     expect(map).toContain("mapResultsFramesReady");
     expect(guard).toBeGreaterThan(0);
     expect(paint).toBeGreaterThan(guard);
+  });
+});
+
+function graded(grades: GradeBand[], chapter?: PlayChapter): SaveData {
+  return {
+    ...fresh(),
+    selectedGrades: grades,
+    gradesConfirmed: true,
+    ...(chapter ? { currentChapterId: chapter.id } : {}),
+  };
+}
+
+function withCards(save: SaveData, ids: readonly string[]): SaveData {
+  const wordCards = { ...save.wordCards };
+  for (const id of ids) wordCards[id] = { wordId: id, collectedAt: NOW, masteryBadge: false };
+  return { ...save, wordCards };
+}
+
+describe("stage 4 boss word reminder", () => {
+  it("names the same missing words as the boss gate, and only after a stage 4 win", () => {
+    const forest = forestPlayChapter();
+    const open = graded(["G3"]);
+    const forestLeft = wordsUntilBoss(open);
+    expect(forestLeft).toBeGreaterThan(0);
+    expect(bossWordsStillRequired(open, forest.id)).toBe(forestLeft);
+    expect(chapterWordsRemaining(open, forest)).toBe(forestLeft);
+    expect(requiredWordIds(open).filter((id) => !open.wordCards[id])).toHaveLength(forestLeft);
+    expect(bossReady(open)).toBe(false);
+    expect(bossGateReminder(open, 4, true, forest.id)).toBe(bossWordsLeftLine(forestLeft));
+    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先学完本章词，还${String.fromCodePoint(0x5269)} ${forestLeft} 个词。`);
+    for (const stageId of [1, 2, 3, 5]) expect(bossGateReminder(open, stageId, true, forest.id)).toBeNull();
+    expect(bossGateReminder(open, 4, false, forest.id)).toBeNull();
+
+    const learned = withCards(open, requiredWordIds(open));
+    expect(bossWordsStillRequired(learned, forest.id)).toBe(0);
+    expect(bossGateReminder(learned, 4, true, forest.id)).toBeNull();
+    const forestWon = {
+      ...learned,
+      stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 },
+    };
+    expect(bossReady(forestWon)).toBe(true);
+    expect(bossGateReminder(forestWon, 4, true, forest.id)).toBeNull();
+
+    const before = { ...open, stageWins: { "1": 1, "2": 1, "3": 1 } };
+    const after = applyBattleOutcome(before, "win", NOW, stageEncounterId(4), 2, 4);
+    const stage = stageById(4);
+    if (!stage) throw new Error("stage 4 missing");
+    expect(stageCleared(after, stage)).toBe(true);
+    expect(bossReady(after)).toBe(false);
+    const view = buildResultsView({
+      before,
+      after,
+      answers: [],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(view.won).toBe(true);
+    expect(view.bossGateLine).toBe(bossWordsLeftLine(forestLeft));
+    for (const stageId of [1, 2, 3]) {
+      const quiet = buildResultsView({
+        before,
+        after: applyBattleOutcome(before, "win", NOW, stageEncounterId(stageId), 2, stageId),
+        answers: [],
+        stageId,
+        boss: false,
+        now: NOW,
+        chapterId: forest.id,
+      });
+      expect(quiet.won).toBe(true);
+      expect(quiet.bossGateLine).toBeNull();
+    }
+
+    const chapter = gradeChapters("G4").find((item) => item.id === "pep_g4_08");
+    if (!chapter) throw new Error("pep_g4_08 missing");
+    const gradeOpen = graded(["G4"], chapter);
+    const gradeLeft = chapter.wordIds.filter((id) => !gradeOpen.wordCards[id]).length;
+    expect(gradeLeft).toBe(chapter.wordIds.length);
+    expect(bossWordsStillRequired(gradeOpen, chapter.id)).toBe(gradeLeft);
+    expect(chapterBossReady(gradeOpen, chapter.id)).toBe(false);
+    expect(bossGateReminder(gradeOpen, 4, true, chapter.id)).toBe(bossWordsLeftLine(gradeLeft));
+    for (const stageId of [1, 2, 3, 5]) expect(bossGateReminder(gradeOpen, stageId, true, chapter.id)).toBeNull();
+
+    const almost = withCards(gradeOpen, chapter.wordIds.slice(0, -1));
+    const oneLeft = chapter.wordIds.filter((id) => !almost.wordCards[id]).length;
+    expect(oneLeft).toBe(1);
+    expect(bossGateReminder(almost, 4, true, chapter.id)).toBe(bossWordsLeftLine(1));
+    const ready = {
+      ...withCards(gradeOpen, chapter.wordIds),
+      chapterCleared: true,
+      chapterProgress: { [chapter.id]: { cleared: false, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } } },
+    };
+    expect(chapterBossReady(ready, chapter.id)).toBe(true);
+    expect(bossGateReminder(ready, 4, true, chapter.id)).toBeNull();
+    const gradeView = buildResultsView({
+      before: gradeOpen,
+      after: applyBattleOutcome(gradeOpen, "win", NOW, `chapter:${chapter.id}:stage:4`, 1, 4),
+      answers: [],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: chapter.id,
+    });
+    expect(gradeView.won).toBe(true);
+    expect(gradeView.bossGateLine).toBe(bossWordsLeftLine(gradeLeft));
+
+    const scene = source("../game/scenes/BattleResultsScene.ts");
+    expect(scene).toContain("bossGateLine");
+    expect(scene).toContain("去学堂");
+    expect(scene).toContain('this.scene.start("learn")');
   });
 });
