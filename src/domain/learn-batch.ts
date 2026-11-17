@@ -5,7 +5,7 @@ import type { SaveData } from "./types";
 
 /**
  * Settlement copy stays inside the committed Noto subset.
- * 剩 / 尚 / 往 are not in that subset, and the source fonts are not in the repo.
+ * 尚 / 往 are not in that subset, and the source fonts are not in the repo.
  * 还可学、还没通关、去本章地图 say the same thing with glyphs the game already ships.
  */
 export const LEARN_CONTINUE_BATCH = "继续本次";
