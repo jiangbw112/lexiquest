@@ -4,9 +4,10 @@ import { examLayers, examPhaseFxKey, type ExamPose } from "./exam-art";
 import {
   COMPASS_DISPLAY_SCALE,
   COMPASS_GLOW,
-  COMPASS_GLOW_PAD,
+  COMPASS_HALO_RINGS,
   COMPASS_LAYER_KEY,
   COMPASS_OUTLINE_DELTAS,
+  COMPASS_PIVOT,
   COMPASS_PLATE,
   compassBattleRect,
   compassShift,
@@ -35,7 +36,7 @@ function plant(sprite: Phaser.GameObjects.Sprite): void {
   sprite.setScale(EXAM_BOSS_SCALE);
 }
 
-/** Larger plate, cream card, ink copies. Other layers never call this. */
+/** Larger plate, soft halo, ink copies. Other layers never call this. */
 function addCompass(root: Phaser.GameObjects.Container, names: string[], pose: ExamPose): void {
   const scene = root.scene;
   const first = names[0];
@@ -50,9 +51,11 @@ function addCompass(root: Phaser.GameObjects.Container, names: string[], pose: E
   const main = scene.add.sprite(0, 0, COMPASS_LAYER_KEY, first);
   root.add(main);
   const place = (sprite: Phaser.GameObjects.Sprite, dx: number, dy: number) => {
-    plant(sprite);
-    const shift = compassShift();
+    sprite.setOrigin(COMPASS_PIVOT.x, COMPASS_PIVOT.y);
     sprite.setScale(COMPASS_DISPLAY_SCALE);
+    sprite.setVisible(true);
+    sprite.setAlpha(1);
+    const shift = compassShift();
     sprite.setPosition(shift.x + dx, shift.y + dy);
   };
   const sync = () => {
@@ -70,14 +73,17 @@ function addCompass(root: Phaser.GameObjects.Container, names: string[], pose: E
       h: main.frame.height,
     });
     glow.clear();
-    glow.fillStyle(cssHex(COMPASS_GLOW), 0.96);
-    glow.fillRoundedRect(
-      rect.x - COMPASS_GLOW_PAD,
-      rect.y - COMPASS_GLOW_PAD,
-      rect.w + COMPASS_GLOW_PAD * 2,
-      rect.h + COMPASS_GLOW_PAD * 2,
-      18,
-    );
+    const cream = cssHex(COMPASS_GLOW);
+    for (const ring of COMPASS_HALO_RINGS) {
+      glow.lineStyle(ring.line, cream, ring.alpha);
+      glow.strokeRoundedRect(
+        rect.x - ring.outset,
+        rect.y - ring.outset,
+        rect.w + ring.outset * 2,
+        rect.h + ring.outset * 2,
+        20,
+      );
+    }
   };
   sync();
   if (names.length < 2) return;
