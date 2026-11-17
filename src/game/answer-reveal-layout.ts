@@ -45,9 +45,9 @@ export const BATTLE_ANSWER_REVEAL: AnswerRevealSpec = {
 };
 
 /**
- * Exam plate on the open left. The boss body, cloak, and cover stay to the right.
- * The grade-6 compass is drawn off the screen by the current planter; that is
- * separate from this plate and is not moved here.
+ * Exam plate on the open left. The boss stands on the right, on the shared atlas pivot.
+ * The grade-6 compass hangs on the left page against the spine. This plate stays
+ * clear of that compass and does not move it.
  */
 export const EXAM_ANSWER_REVEAL: AnswerRevealSpec = {
   x: 398,
