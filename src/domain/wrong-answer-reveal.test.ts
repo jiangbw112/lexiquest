@@ -118,11 +118,13 @@ describe("wrong answer reveal", () => {
 
     const scene = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
     const reveal = scene.slice(scene.indexOf("private drawAnswerReveal"), scene.indexOf("private drawPreview"));
-    expect(reveal).toContain("reveal.english");
-    expect(reveal).toContain("reveal.chinese");
-    expect(reveal).toContain("正确答案");
-    expect(reveal).toContain("听一听");
-    expect(reveal).toContain("speakWord(reveal.english, browserSpeaker())");
+    expect(reveal).toContain("paintAnswerReveal");
+    const painter = readFileSync(new URL("../game/answer-reveal.ts", import.meta.url), "utf8");
+    expect(painter).toContain("reveal.english");
+    expect(painter).toContain("reveal.chinese");
+    expect(painter).toContain("正确答案");
+    expect(painter).toContain("听一听");
+    expect(painter).toContain("speakWord(reveal.english, browserSpeaker())");
   });
 
   it("clears the reveal after a correct answer", () => {

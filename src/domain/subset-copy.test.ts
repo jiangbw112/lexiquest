@@ -59,7 +59,9 @@ describe("player copy glyphs in the committed subsets", () => {
 
   it("keeps the battle, guide, reveal, and boss reminder inside Noto", () => {
     const guide = readRepo("src/game/scenes/GuideScene.ts");
-    const battle = readRepo("src/game/scenes/BattleScene.ts");
+    const reveal = readRepo("src/game/answer-reveal.ts");
+    const exam = readRepo("src/game/scenes/ExamBattleScene.ts");
+    expect(exam).toContain("paintAnswerReveal");
     const opened = startBattle({
       encounterId: "inkling",
       classId: "warrior",
@@ -74,7 +76,7 @@ describe("player copy glyphs in the committed subsets", () => {
       opened.lastNote,
       quoted(guide, "从这一章的词里抽题"),
       quoted(guide, "本章 Boss 要先学完本章词"),
-      quoted(battle, "正确答案"),
+      quoted(reveal, "正确答案"),
       bossWordsLeftLine(7),
     ];
     expect(lines[0]).toContain("这一章的词");
@@ -88,11 +90,26 @@ describe("player copy glyphs in the committed subsets", () => {
   });
 
   it("keeps the listen and academy buttons inside the title subset", () => {
-    const battle = readRepo("src/game/scenes/BattleScene.ts");
+    const reveal = readRepo("src/game/answer-reveal.ts");
+    const exam = readRepo("src/game/scenes/ExamBattleScene.ts");
     const results = readRepo("src/game/scenes/BattleResultsScene.ts");
-    const labels = [quoted(battle, "听一听"), quoted(results, "去学堂")];
+    expect(exam).toContain("paintAnswerReveal");
+    const labels = [quoted(reveal, "听一听"), quoted(results, "去学堂")];
     expect(labels).toEqual(["听一听", "去学堂"]);
     for (const label of labels) expect(coveredBy(label, title), label).toEqual([]);
+  });
+
+  it("keeps the exam reveal lines inside the subsets", () => {
+    const reveal = readRepo("src/game/answer-reveal.ts");
+    const exam = readRepo("src/game/scenes/ExamBattleScene.ts");
+    expect(exam).toContain("paintAnswerReveal");
+    const answer = quoted(reveal, "正确答案");
+    const listen = quoted(reveal, "听一听");
+    expect(answer).toBe("正确答案");
+    expect(listen).toBe("听一听");
+    expect(coveredBy(answer, body)).toEqual([]);
+    expect(coveredBy(answer, bodyBold)).toEqual([]);
+    expect(coveredBy(listen, title)).toEqual([]);
   });
 
   it("keeps every gloss a wrong answer can show inside Noto", () => {

@@ -505,6 +505,7 @@ export function resumeExamBattle(state: BattleState, run: ExamPhaseRunRecord, wo
     questionsAsked: run.phaseQuestions,
     spellingAsked: run.phaseSpelling,
     shaken: threshold != null && answered >= threshold,
+    answerReveal: null,
   };
   if (!run.pending) return next;
   const question = pendingExamQuestion(run, words);

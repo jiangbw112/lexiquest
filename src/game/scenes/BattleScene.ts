@@ -21,7 +21,6 @@ import { buildResultsView, starsFor } from "../../domain/battle-results";
 import { battleEnemyName } from "../../domain/exams";
 import { applyBattleOutcome, noteBattleAnswer, studyNow } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
-import { browserSpeaker, speakWord } from "../../domain/speech";
 import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey } from "../../domain/skill-card-face";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
@@ -55,7 +54,8 @@ import { warmButton, warmOption, warmPanel, warmSlice, warmToast } from "../warm
 import { paintSceneImage, queueMissingForestBattle, queueSceneAtlas, queueSceneImage } from "../chapter-scene-load";
 import { queueWarm, warmBackground } from "../warm/load";
 import { placeSkillCard } from "../warm/skill-card";
-import { FONT_BODY, FONT_LATIN, INK, MUTED, motionOff } from "../warm/theme";
+import { paintAnswerReveal } from "../answer-reveal";
+import { FONT_BODY, INK, MUTED, motionOff } from "../warm/theme";
 import {
   spawnFloater,
   activeFloaterCount,
@@ -1156,35 +1156,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** Wrong answers show the word at once. A button reads it; the save is left alone. */
   private drawAnswerReveal(): void {
-    const reveal = this.state.answerReveal;
-    if (!reveal || this.state.phase === "question") return;
-    this.add.text(170, 236, "正确答案", {
-      fontFamily: FONT_BODY,
-      fontSize: "18px",
-      color: MUTED,
-    }).setOrigin(0, 0.5);
-    const english = this.add.text(270, 236, reveal.english, {
-      fontFamily: FONT_LATIN,
-      fontSize: "28px",
-      fontStyle: "700",
-      color: INK,
-    }).setOrigin(0, 0.5);
-    const chinese = this.add.text(270 + english.width + 16, 236, reveal.chinese, {
-      fontFamily: FONT_BODY,
-      fontSize: "22px",
-      color: INK,
-    }).setOrigin(0, 0.5);
-    const limit = 960;
-    if (chinese.x + chinese.width > limit) {
-      const room = Math.max(40, limit - chinese.x);
-      chinese.setScale(room / chinese.width);
-    }
-    warmButton(this, 1080, 236, "听一听", () => speakWord(reveal.english, browserSpeaker()), {
-      width: 140,
-      height: 48,
-      tone: "secondary",
-    });
-    probeNote(`reveal:${reveal.english}:${reveal.chinese}`);
+    paintAnswerReveal(this, this.state.answerReveal, { hidden: this.state.phase === "question" });
   }
 
   private drawPreview(): void {
