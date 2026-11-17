@@ -23,6 +23,26 @@ function plant(sprite: Phaser.GameObjects.Sprite): void {
   sprite.setScale(EXAM_BOSS_SCALE);
 }
 
+/** Atlas foot pivot. Phaser multiplies origin by the untrimmed source, not the trimmed plate. */
+const ORNAMENT_PIVOT = { x: 0.5, y: 0.875 };
+
+function isCrownOrBadge(key: string): boolean {
+  return key.includes("_crown_") || key.includes("_badge_");
+}
+
+/**
+ * Crown and badge plates are a small trim of the 768 source.
+ * plant() divides by that trim, then Phaser multiplies by the full source and the plate leaves the view.
+ * The atlas pivot keeps the crown on the head and the badge on the chest. The body still uses plant().
+ */
+function placeCrownOrBadge(sprite: Phaser.GameObjects.Sprite): void {
+  sprite.setOrigin(ORNAMENT_PIVOT.x, ORNAMENT_PIVOT.y);
+  sprite.setScale(EXAM_BOSS_SCALE);
+  sprite.setPosition(0, 0);
+  sprite.setVisible(true);
+  sprite.setAlpha(1);
+}
+
 export class ExamBossSprite {
   readonly root: Phaser.GameObjects.Container;
 
@@ -42,8 +62,9 @@ export class ExamBossSprite {
       const frame = names[0];
       if (!frame) continue;
       const sprite = this.root.scene.add.sprite(0, 0, layer.key, frame);
-      plant(sprite);
-      sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, () => plant(sprite));
+      const place = isCrownOrBadge(layer.key) ? placeCrownOrBadge : plant;
+      place(sprite);
+      sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, () => place(sprite));
       this.root.add(sprite);
       if (names.length > 1) {
         const anim = `${layer.key}:${pose}`;
@@ -56,7 +77,7 @@ export class ExamBossSprite {
           });
         }
         sprite.play(anim);
-        plant(sprite);
+        place(sprite);
       }
     }
     if (fxFromPhase === null) return;
