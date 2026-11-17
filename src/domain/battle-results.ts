@@ -3,12 +3,14 @@
  * The results scene only reads them. It does not write the save.
  */
 import { wordById } from "./catalog";
+import { findPlayChapter } from "./chapter-plan";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
 import { COSMETIC_LABEL } from "./cosmetic-label";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { levelFromXp } from "./progress";
 import { skillIconFrame } from "./skill-card-face";
 import { skillById } from "./skills";
+import { stageLearnMoreLine, stageWordsStillToLearn } from "./stages";
 import type { SaveData } from "./types";
 
 export type StarCount = 1 | 2 | 3;
@@ -88,6 +90,10 @@ export interface BattleResultsView {
   equippedCosmeticIds: string[];
   equippedOutfitId: string;
   praise: string;
+  /** Null once every stage word already has a card, or this fight is the boss. */
+  learnMoreLine: string | null;
+  /** Set when a small learned pool is why the same words come back. */
+  repeatLine: string | null;
 }
 
 /** Integer thresholds. A loss has no stars. Question count and time do not reduce them. */
@@ -253,6 +259,7 @@ export function buildResultsView(input: {
     equippedCosmeticIds: input.after.equippedCosmeticIds,
     equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
+    ...resultsStudyLines(input.after, input.stageId, input.boss),
   };
 }
 
@@ -424,5 +431,20 @@ export const PRACTICE_LINE_1 = "今天的再战奖励领完啦，明天再来。
 export const PRACTICE_LINE_2 = "练习也很棒！";
 export const PRACTICE_NOTICE = "今天再战的奖励都拿到啦！";
 export const MAP_PRACTICE_NOTE = "今天再战的奖励领完啦，还可以练习。";
+
+/** The clear hint only. A small learned set no longer makes the fight repeat those words. */
+export function resultsStudyLines(save: SaveData, stageId: number, boss: boolean): {
+  learnMoreLine: string | null;
+  repeatLine: string | null;
+} {
+  if (boss) return { learnMoreLine: null, repeatLine: null };
+  const chapter = findPlayChapter(save);
+  const stage = chapter.stages.find((item) => item.id === stageId);
+  if (!stage || stage.type === "boss") return { learnMoreLine: null, repeatLine: null };
+  return {
+    learnMoreLine: stageLearnMoreLine(stageWordsStillToLearn(save, stage)),
+    repeatLine: null,
+  };
+}
 export const MASTERY_ITEM_LINE = "熟练徽章攒够啦，得到新外观！";
 export const BATTLE_DROP_ITEM_LINE = "打赢啦，捡到一件新装备！";

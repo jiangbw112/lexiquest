@@ -1,5 +1,7 @@
 import { CLASS_IDS } from "./classes";
+import { isCleared, type ClearSave } from "./clearance";
 import { hasClearedAnyFinal } from "./exams";
+import { finalExamIds } from "./titles";
 import type { ClassId } from "./types";
 
 /**
@@ -23,9 +25,18 @@ export const INVENTOR_UNLOCK_SUB = "可以在技能页换成发明家。";
 export const INVENTOR_UNLOCK_GO = "去看看";
 export const INVENTOR_UNLOCK_LATER = "等会儿";
 
-export interface ClassUnlockSave {
+export interface ClassUnlockSave extends ClearSave {
   unlockedClassIds?: readonly string[];
-  examProgress?: Record<string, { cleared?: boolean } | undefined>;
+}
+
+/**
+ * A final-exam clear, or a grant already stored on the save.
+ * This does not write the save. Selectability still reads hasClearedAnyFinal.
+ */
+export function inventorEarnedByClear(save: ClassUnlockSave | null | undefined): boolean {
+  if (!save) return false;
+  if (save.unlockedClassIds?.includes("inventor") === true) return true;
+  return finalExamIds().some((examId) => isCleared(save, { kind: "exam", examId }));
 }
 
 /**

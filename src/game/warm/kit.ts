@@ -156,6 +156,9 @@ export function warmChip(
       strokeThickness: selected && !disabled ? 4 : 0,
     })
     .setOrigin(0.5);
+  const inset = selected ? 72 : 28;
+  const limit = Math.max(8, width - inset);
+  if (text.width > limit) text.setScale(limit / text.width);
   const badge = scene.add.graphics();
   badge.fillStyle(0xfff4dc, 1);
   badge.fillCircle(-width / 2 + 30, -3, 16);

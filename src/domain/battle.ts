@@ -3,6 +3,7 @@ import { wordById, type WordDef } from "./catalog";
 import { checkSpelling, quizForWord, spellingAllowed, spellingQuestion, type QuizQuestion, type SpellingQuestion } from "./questions";
 import { excludedFromUnpromptedSpelling } from "./spelling-leak";
 import {
+  battleQuestionPool,
   drawSkillQuestionWord,
   emptySkillDeck,
   skillQuestionPool,
@@ -143,7 +144,7 @@ export interface BattleState {
   /** Memory only. Each answered question in this fight. Not written to the save. */
   answers: { wordId: string; correct: boolean; kind: string }[];
   learnedIds: string[];
-  /** Selected-grade chapter words. Omitted means the fallback pool is every learned word. */
+  /** Stage or chapter words for this fight. Omitted means the fallback pool is every learned word. */
   allowedWordIds: string[] | null;
   classId: ClassId;
   equippedSkillIds: string[];
@@ -227,7 +228,7 @@ export function startBattle(input: {
   seed: number;
   /** FSRS-due word ids at the start of the fight. Unlearned ids are ignored. */
   dueWordIds?: readonly string[];
-  /** Selected-grade word ids. Omitted means the fallback pool is every learned word. */
+  /** Stage or chapter words for this fight. Omitted means the fallback pool is every learned word. */
   allowedWordIds?: readonly string[];
   rules?: Partial<SkillCardRules>;
   enemy?: BattleEnemy;
@@ -284,7 +285,7 @@ export function startBattle(input: {
     casts: 0,
     rules,
     turn: 0,
-    lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会抽一道已学的词。",
+    lastNote: "可以攻击、格挡、治疗，或打出一张技能卡。技能卡会从这一关的词里抽题。",
     log: [`${enemy.name}出现了。`],
     answers: [],
     learnedIds,
@@ -615,6 +616,12 @@ export function answerQuestion(state: BattleState, choiceId: string): BattleStat
   };
 }
 
+function questionPool(state: BattleState): string[] {
+  return battleQuestionPool(state.dueWordIds, state.learnedIds, state.allowedWordIds, {
+    padOrder: state.padOrder,
+  });
+}
+
 function learnedPool(state: BattleState): string[] {
   return skillQuestionPool([], state.learnedIds, { allowedIds: state.allowedWordIds ?? undefined });
 }
@@ -629,17 +636,20 @@ function drawBattleWord(state: BattleState, pool: readonly string[]): {
   const cap = 2;
   const asked = state.askedCount;
   const avoid = new Set(window > 0 ? state.recentQuestionIds.slice(-window) : []);
-  const learned = learnedPool(state);
+  const wider = state.allowedWordIds ? pool : learnedPool(state);
+  const due = new Set(state.dueWordIds.filter((id) => state.learnedIds.includes(id) && pool.includes(id)));
   let candidates = pool.filter((id) => (asked[id] ?? 0) < cap);
-  if (candidates.length === 0) candidates = learned.filter((id) => (asked[id] ?? 0) < cap);
+  if (candidates.length === 0) candidates = wider.filter((id) => (asked[id] ?? 0) < cap);
   if (candidates.length === 0) {
-    const source = learned.length > 0 ? learned : [...pool];
+    const source = wider.length > 0 ? wider : [...pool];
     const least = Math.min(...source.map((id) => asked[id] ?? 0));
     candidates = source.filter((id) => (asked[id] ?? 0) === least);
   }
   const fresh = candidates.filter((id) => !avoid.has(id));
-  const choicePool = fresh.length > 0 ? fresh : candidates;
-  if (choicePool.length === 0) throw new Error("No learned words to ask");
+  const open = fresh.length > 0 ? fresh : candidates;
+  const dueFirst = open.filter((id) => due.has(id));
+  const choicePool = dueFirst.length > 0 ? dueFirst : open;
+  if (choicePool.length === 0) throw new Error("No words to ask");
   const drawn = drawSkillQuestionWord(choicePool, emptySkillDeck(), state.seed + state.casts * 17 + 1);
   return {
     wordId: drawn.wordId,
@@ -729,10 +739,7 @@ export function swapCard(
 
 function composeQuestion(state: BattleState): { ok: true; question: BattleQuestion; drawn: ReturnType<typeof drawBattleWord> } | { ok: false; reason: string } {
   if (state.examSchedule) return composeExamQuestion(state);
-  const pool = skillQuestionPool(state.dueWordIds, state.learnedIds, {
-    allowedIds: state.allowedWordIds ?? undefined,
-    padOrder: state.padOrder,
-  });
+  const pool = questionPool(state);
   if (pool.length === 0) {
     return { ok: false, reason: "所选年级里还没有可以出题的词。先去学堂，或在给家长里再勾选年级。已经学过的词卡还在册子里。" };
   }
@@ -743,10 +750,12 @@ function composeQuestion(state: BattleState): { ok: true; question: BattleQuesti
     return { ok: false, reason: "还没有学过的词" };
   }
   const word = wordById(drawn.wordId);
+  const learnedWord = state.learnedIds.includes(drawn.wordId);
   const lit = state.litWordIds.includes(drawn.wordId);
   const nextShare = (state.spellingAsked + 1) / (state.questionsAsked + 1);
   const spell = Boolean(
-    word &&
+    learnedWord &&
+      word &&
       state.spellingCap !== null &&
       spellingAllowed(word, lit) &&
       !excludedFromUnpromptedSpelling(word.id) &&

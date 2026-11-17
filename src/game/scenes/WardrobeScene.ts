@@ -21,6 +21,7 @@ import { drawEquippedTitle } from "../art/title-bar";
 import { ClassSideSprite } from "../art/class-sprite";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
+import { outfitRowOffer } from "../art/worn";
 import { WARDROBE_TITLE_Y, parchmentTitleY } from "../layout";
 import { probeEnter, probeNote } from "../probe";
 import { getSave, mutate } from "../session";
@@ -146,7 +147,7 @@ export class WardrobeScene extends Phaser.Scene {
     if (rows.length === 0) {
       this.add.text(160, WARDROBE_LIST.y + 8, "还没得到", { fontFamily: FONT, fontSize: "18px", color: MUTED });
     } else {
-      this.drawRows(rows, classId);
+      this.drawRows(rows, classId, save.equippedOutfitId);
     }
     if (this.maxScroll > 0) {
       this.add.text(150, WARDROBE_LIST.y + WARDROBE_LIST.height + 8, "衣服多了可以上下看。", {
@@ -220,7 +221,7 @@ export class WardrobeScene extends Phaser.Scene {
     return [plate, mark];
   }
 
-  private drawRows(rows: readonly WardrobeRow[], classId: ReturnType<typeof savedClassId>): void {
+  private drawRows(rows: readonly WardrobeRow[], classId: ReturnType<typeof savedClassId>, equippedOutfitId: string): void {
     const board = this.add.container(0, WARDROBE_LIST.y - this.scroll);
     this.board = board;
     const maskGraphics = this.make.graphics({ x: 0, y: 0 }, false);
@@ -229,11 +230,15 @@ export class WardrobeScene extends Phaser.Scene {
     this.maskGraphics = maskGraphics;
     board.setMask(maskGraphics.createGeometryMask());
     rows.forEach((row, index) => {
+      const offer = row.kind === "outfit"
+        ? outfitRowOffer(row.id, equippedOutfitId)
+        : { canCancel: true, wornLabel: null, note: null };
+      const shownEquipped = offer.wornLabel !== null || row.equipped;
       const centerY = index * WARDROBE_LIST.rowStride + WARDROBE_LIST.rowStride / 2;
       const centerX = WARDROBE_LIST.x + WARDROBE_LIST.width / 2;
       const frame = !row.applies
         ? "wardrobe_slot_disabled"
-        : row.equipped
+        : shownEquipped
           ? "wardrobe_slot_selected"
           : "wardrobe_slot_normal";
       const slot = warmSlice(this, "atlas_wardrobe", frame, WARDROBE_LIST.width, 88);
@@ -243,15 +248,29 @@ export class WardrobeScene extends Phaser.Scene {
       box.lineStyle(3, 0x3b2a20, 1);
       box.strokeCircle(markX, centerY, 14);
       const mark = this.add.image(markX, centerY, "atlas_ui_core", "icon_check").setScale(28 / 96);
-      mark.setVisible(row.equipped);
+      mark.setVisible(shownEquipped);
       const iconSize = equipIconDisplaySize(WARDROBE_LIST.width);
       const iconX = markX + 14 + 10 + iconSize / 2;
       const icon = this.equipIcon(iconX, centerY, iconSize, row);
-      const label = this.add.text(iconX + iconSize / 2 + 12, centerY, row.name, {
+      const label = this.add.text(iconX + iconSize / 2 + 12, offer.note ? centerY - 14 : centerY, row.name, {
         fontFamily: FONT,
         fontSize: "22px",
         color: row.applies ? INK : MUTED,
       }).setOrigin(0, 0.5);
+      const note = offer.note
+        ? this.add.text(iconX + iconSize / 2 + 12, centerY + 16, offer.note, {
+          fontFamily: FONT,
+          fontSize: "16px",
+          color: NOTE,
+        }).setOrigin(0, 0.5)
+        : null;
+      const wornLabel = offer.wornLabel
+        ? this.add.text(WARDROBE_LIST.x + WARDROBE_LIST.width - 24, centerY, offer.wornLabel, {
+          fontFamily: FONT,
+          fontSize: "18px",
+          color: NOTE,
+        }).setOrigin(1, 0.5)
+        : null;
       const limit = row.applies
         ? null
         : this.add.text(WARDROBE_LIST.x + WARDROBE_LIST.width - 24, centerY, "只给战士", {
@@ -263,7 +282,8 @@ export class WardrobeScene extends Phaser.Scene {
       hit.setSize(WARDROBE_LIST.width, 88);
       hit.setName(`wardrobe:${row.id}`);
       const area = containerHitArea(WARDROBE_LIST.width, 88);
-      if (row.applies) {
+      const canPress = row.applies && (offer.canCancel || offer.wornLabel === null);
+      if (canPress) {
         hit.setInteractive(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), Phaser.Geom.Rectangle.Contains);
         if (hit.input) hit.input.cursor = "pointer";
       }
@@ -274,7 +294,7 @@ export class WardrobeScene extends Phaser.Scene {
           slot.setFrame("wardrobe_slot_disabled");
           return;
         }
-        if (row.equipped && state === "normal") slot.setFrame("wardrobe_slot_selected");
+        if (shownEquipped && state === "normal") slot.setFrame("wardrobe_slot_selected");
         else slot.setFrame(`wardrobe_slot_${state}`);
       };
       hit.on("pointerover", () => {
@@ -296,6 +316,13 @@ export class WardrobeScene extends Phaser.Scene {
         const held = ownedWardrobeRows(current)
           .filter((item) => item.equipped)
           .map((item) => ({ id: item.id, slot: item.slot }));
+        const rowOffer = piece.kind === "outfit" ? outfitRowOffer(piece.id, current.equippedOutfitId) : offer;
+        if (!rowOffer.canCancel) {
+          intent = rowOffer.wornLabel
+            ? null
+            : { id: piece.id, wantEquipped: true, seenHolderId: slotHolderId(held, piece.slot) };
+          return;
+        }
         intent = {
           id: piece.id,
           wantEquipped: !piece.equipped,
@@ -321,7 +348,7 @@ export class WardrobeScene extends Phaser.Scene {
         if (result.ok && result.save !== current) mutate(() => result.save);
         this.draw();
       });
-      board.add([slot, box, mark, ...icon, label, ...(limit ? [limit] : []), hit]);
+      board.add([slot, box, mark, ...icon, label, ...(note ? [note] : []), ...(wornLabel ? [wornLabel] : []), ...(limit ? [limit] : []), hit]);
     });
   }
 }

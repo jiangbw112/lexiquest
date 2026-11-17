@@ -3,7 +3,7 @@
   "clear_rule": "defeat_boss",
   "mastery_blocks_clear": false,
   "stage_clear": {
-    "all_stage_words_learned": true,
+    "all_stage_words_learned": false,
     "min_battle_wins": 1
   },
   "boss_unlock": {
@@ -21,7 +21,7 @@
   },
   "question_pool": {
     "prefer_due": true,
-    "fallback": "learned_in_chapter",
-    "never": "unlearned_or_outside_chapter"
+    "fallback": "allowed_pool",
+    "never": "outside_allowed"
   }
 }

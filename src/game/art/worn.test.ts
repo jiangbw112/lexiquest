@@ -1,6 +1,37 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { outfitExtraFrames, outfitHatFrame, villageCosmeticNudge, villageCosmeticScale, villageHatPlacement, villageOutfitFrames, wornCosmeticIds } from "./worn";
+import { DEFAULT_OUTFIT_NOTE, DEFAULT_OUTFIT_WORN, outfitExtraFrames, outfitHatFrame, outfitRowOffer, outfitUsesDefaultFrames, villageCosmeticNudge, villageCosmeticScale, villageHatPlacement, villageOutfitFrames, wornCosmeticIds } from "./worn";
+
+describe("default clothes offer", () => {
+  it("does not offer cancel when the outfit adds no frames beyond the class default", () => {
+    expect(outfitExtraFrames("traveler")).toEqual([]);
+    expect(outfitExtraFrames("")).toEqual(outfitExtraFrames("traveler"));
+    expect(outfitUsesDefaultFrames("traveler")).toBe(true);
+    expect(outfitUsesDefaultFrames("")).toBe(true);
+    expect(outfitExtraFrames("forest-cape").length).toBeGreaterThan(0);
+    expect(outfitUsesDefaultFrames("forest-cape")).toBe(false);
+    expect(outfitUsesDefaultFrames("star-sash")).toBe(false);
+    const empty = outfitRowOffer("traveler", "");
+    const traveler = outfitRowOffer("traveler", "traveler");
+    expect(empty).toEqual(traveler);
+    expect(empty.canCancel).toBe(false);
+    expect(empty.wornLabel).toBe(DEFAULT_OUTFIT_WORN);
+    expect(empty.wornLabel).toBe("穿着");
+    expect(empty.note).toBe(DEFAULT_OUTFIT_NOTE);
+    expect(empty.note).toBe("就是职业原本的衣服");
+    expect(outfitRowOffer("forest-cape", "forest-cape")).toEqual({ canCancel: true, wornLabel: null, note: null });
+    expect(outfitRowOffer("star-sash", "traveler")).toEqual({ canCancel: true, wornLabel: null, note: null });
+    expect(outfitRowOffer("traveler", "forest-cape")).toMatchObject({ canCancel: false, wornLabel: null, note: DEFAULT_OUTFIT_NOTE });
+    const scene = readFileSync(new URL("../scenes/WardrobeScene.ts", import.meta.url), "utf8");
+    expect(scene).toContain("outfitRowOffer");
+    expect(scene).toContain("if (!rowOffer.canCancel)");
+    expect(scene).toContain("wornLabel");
+    expect(scene).toContain("wantEquipped: true");
+    const blocked = scene.slice(scene.indexOf("if (!rowOffer.canCancel)"), scene.indexOf("intent = {", scene.indexOf("if (!rowOffer.canCancel)")));
+    expect(blocked).toContain("intent = rowOffer.wornLabel");
+    expect(blocked).not.toContain("wantEquipped: false");
+  });
+});
 
 describe("worn appearance", () => {
   it("adds and removes every outfit piece", () => {

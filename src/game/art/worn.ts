@@ -12,6 +12,42 @@ export function outfitExtraFrames(outfitId: string): string[] {
   return visibleFrames("side", outfitId).filter((name) => !SIDE_BASE.has(name));
 }
 
+function sameFrames(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((frame, index) => frame === right[index]);
+}
+
+/**
+ * True when this outfit adds nothing the class default does not already draw.
+ * Empty `equippedOutfitId` and traveler share that frame set.
+ */
+export function outfitUsesDefaultFrames(outfitId: string): boolean {
+  const extra = outfitExtraFrames(outfitId);
+  return extra.length === 0 && sameFrames(extra, outfitExtraFrames("traveler"));
+}
+
+export const DEFAULT_OUTFIT_NOTE = "就是职业原本的衣服";
+export const DEFAULT_OUTFIT_WORN = "穿着";
+
+export interface OutfitRowOffer {
+  /** False when taking it off would not change the picture. */
+  canCancel: boolean;
+  wornLabel: string | null;
+  note: string | null;
+}
+
+/** The default clothes row stays "穿着" for both "" and traveler, and cannot be cancelled. */
+export function outfitRowOffer(outfitId: string, equippedOutfitId: string): OutfitRowOffer {
+  if (!outfitUsesDefaultFrames(outfitId)) {
+    return { canCancel: true, wornLabel: null, note: null };
+  }
+  const worn = outfitUsesDefaultFrames(equippedOutfitId);
+  return {
+    canCancel: false,
+    wornLabel: worn ? DEFAULT_OUTFIT_WORN : null,
+    note: DEFAULT_OUTFIT_NOTE,
+  };
+}
+
 /** Chapter cosmetics that have their own layered sprites. */
 export const WORN_COSMETIC_IDS = ["forest_leaf_cape", "acorn_pin", "forest_wreath"] as const;
 

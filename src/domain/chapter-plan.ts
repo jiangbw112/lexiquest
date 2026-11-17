@@ -3,6 +3,7 @@ import { chapterBossDisplayName, chapterBossId } from "./chapter-bosses";
 import { chapterMinion } from "./chapter-scenes";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone } from "./review";
+import { FOREST_CHAPTER_ID, isCleared } from "./clearance";
 import {
   FOREST_CHAPTER,
   FOREST_TITLE,
@@ -265,9 +266,18 @@ export function visibleChapters(grades: readonly string[] | undefined): PlayChap
   return chapters;
 }
 
+export function allGradeChapters(): PlayChapter[] {
+  return GRADE_ORDER.flatMap((grade) => gradeChapters(grade));
+}
+
+/** The primary-school boss opens only after every grade chapter is cleared. Forest wins do not count. */
+export function graduationBossReady(save: SaveData): boolean {
+  const chapters = allGradeChapters();
+  return chapters.length === 31 && chapters.every((chapter) => isCleared(save, { kind: "chapter", chapterId: chapter.id }));
+}
+
 export function isChapterCleared(save: SaveData, chapter: PlayChapter): boolean {
-  if (chapter.id === FOREST_CHAPTER.chapter_id) return save.chapterCleared;
-  return save.chapterProgress?.[chapter.id]?.cleared === true;
+  return isCleared(save, { kind: "chapter", chapterId: chapter.id });
 }
 
 /**
@@ -279,7 +289,7 @@ export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list = v
   const index = list.findIndex((item) => item.id === chapter.id);
   if (index < 0) return false;
   if (index === 0 || isChapterCleared(save, chapter)) return true;
-  if (!save.chapterCleared) return false;
+  if (!isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })) return false;
   const sameGrade = list.filter((item) => item.grade === chapter.grade);
   const at = sameGrade.findIndex((item) => item.id === chapter.id);
   if (at <= 0) return true;
@@ -291,7 +301,7 @@ export function activeChapter(save: SaveData): PlayChapter {
   const list = visibleChapters(save.selectedGrades);
   const current = list.find((chapter) => chapter.id === save.currentChapterId);
   if (current) return current;
-  if (save.chapterCleared) {
+  if (isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })) {
     const next = list.find((chapter, index) => index > 0 && isChapterUnlocked(save, chapter, list));
     if (next) return next;
   }
@@ -311,11 +321,9 @@ export function playStageWins(save: SaveData, chapter: PlayChapter, stageId: num
   return save.chapterProgress?.[chapter.id]?.stageWins[String(stageId)] ?? 0;
 }
 
+/** Same check as stageCleared. A missing card does not keep the stage open. */
 function playStageCleared(save: SaveData, chapter: PlayChapter, stage: ForestStage): boolean {
-  if (stage.type === "boss") return isChapterCleared(save, chapter);
-  const wins = playStageWins(save, chapter, stage.id) >= FOREST_CHAPTER.stage_clear.min_battle_wins;
-  if (stage.new_words.length === 0) return wins;
-  return wins && stage.new_words.every((id) => save.wordCards[id]);
+  return isCleared(save, { kind: "stage", chapterId: chapter.id, stage });
 }
 
 /** Same gate as the forest: one open stage at a time, boss after stages 1–4 and every word. */
@@ -413,7 +421,7 @@ export function mapCounts(save: SaveData, chapter: PlayChapter, stage: ForestSta
 
 /**
  * A fight draws from the chapter the child is standing on.
- * Unlearned ids may be listed here; the question pool still requires a card.
+ * Unlearned ids in this list can be asked. Seeing them does not create a card.
  */
 export function battleWordIds(save: SaveData): string[] {
   const chapter = activeChapter(save);

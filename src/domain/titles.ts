@@ -3,6 +3,7 @@
  * Grant, equip, and migration are pure. Exam battles and graduation grants are not.
  * Level numbers use the same 40 XP step as progress.XP_PER_LEVEL.
  */
+import { isCleared } from "./clearance";
 import catalogFile from "./title-parts.json";
 import type {
   SaveData,
@@ -51,6 +52,10 @@ interface CatalogFile {
 }
 
 export const GRADUATION_BOSS_ID = "grad_primary";
+
+export function finalExamIds(): readonly string[] {
+  return catalog.finals.map((row) => row.examId);
+}
 
 const catalog = catalogFile as CatalogFile;
 
@@ -412,8 +417,7 @@ function repairVersionOne(save: SaveData, now: number): SaveData {
 }
 
 function strictlyCleared(save: SaveData, examId: string): boolean {
-  const entry = save.examProgress?.[examId];
-  return entry?.cleared === true;
+  return isCleared(save, { kind: "exam", examId });
 }
 
 function coveredByLedger(draft: Draft, id: string): boolean {

@@ -24,6 +24,7 @@ import {
   setSelectedGrades,
   unequipSkill,
 } from "./progress";
+import { newWordsLearnedToday } from "./parent";
 import { badgeTone, calendarDay } from "./review";
 import { deserialize, serialize } from "./storage";
 import { skillsForClass } from "./skills";
@@ -370,5 +371,42 @@ describe("saved progress", () => {
     });
     expect(isMastered(fromBattle.wordCards.about)).toBe(true);
     expect(fromBattle.memory.about?.fsrs.due).toBe(save.memory.about?.fsrs.due);
+  });
+
+  it("does not put an unlearned battle word into cards, review, or the daily new-word count", () => {
+    const save = setSelectedGrades(newSave(), ["G3"]);
+    const correct = noteBattleAnswer(save, {
+      wordId: "bird",
+      correct: true,
+      now: START,
+      dueAtStart: ["bird"],
+      spelling: false,
+    });
+    const wrong = noteBattleAnswer(save, {
+      wordId: "bird",
+      correct: false,
+      now: START,
+      dueAtStart: ["bird"],
+      spelling: false,
+    });
+    const spelled = noteBattleAnswer(save, {
+      wordId: "bird",
+      correct: true,
+      now: START,
+      dueAtStart: ["bird"],
+      spelling: true,
+    });
+    expect(correct).toBe(save);
+    expect(wrong).toBe(save);
+    expect(spelled).toBe(save);
+    expect(spelled.wordCards.bird).toBeUndefined();
+    expect(spelled.memory.bird).toBeUndefined();
+    expect(isMastered(spelled.wordCards.bird)).toBe(false);
+    expect(newWordsLearnedToday(spelled, START)).toBe(0);
+    const won = applyBattleOutcome(spelled, "win", START.getTime(), "inkling", 2, 1);
+    expect(won.wordCards).toEqual(save.wordCards);
+    expect(won.memory).toBe(save.memory);
+    expect(newWordsLearnedToday(won, START)).toBe(0);
+    expect(won.dueAnswers).toEqual(save.dueAnswers);
   });
 });

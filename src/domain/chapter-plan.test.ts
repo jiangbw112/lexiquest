@@ -305,6 +305,16 @@ describe("grade chapters", () => {
     const rest = { ...ready.wordCards };
     delete rest[missingId];
     expect(chapterBossReady({ ...ready, wordCards: rest }, chapter.id)).toBe(false);
+    const firstGrade = gradeChapters("G4")[0]!;
+    const oneWin = {
+      ...newSave(["G4"]),
+      chapterCleared: true,
+      chapterProgress: { [firstGrade.id]: { cleared: false, stageWins: { "1": 1 } } },
+    };
+    expect(playStatuses(oneWin, firstGrade)[0]).toBe("cleared");
+    expect(playStatuses(oneWin, firstGrade)[1]).toBe("open");
+    expect(playStatuses(oneWin, firstGrade).at(-1)).toBe("locked");
+    expect(chapterBossReady(oneWin, firstGrade.id)).toBe(false);
   });
 
   it("keeps Beijing opera and Mount Taishan spellable and does not call other listed names mastered", () => {
