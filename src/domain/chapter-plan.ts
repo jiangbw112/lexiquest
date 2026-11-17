@@ -76,7 +76,11 @@ interface GlossPair {
 interface GlossFile {
   exact: GlossPair[];
   overlap: GlossPair[];
+  near_synonym: GlossPair[];
 }
+
+/** Pairs whose glosses are not identical but still both count as the answer. */
+const NEAR_SYNONYM_COUNT = 11;
 
 interface LoadedPlan {
   chapters: PlayChapter[];
@@ -94,16 +98,28 @@ function pairKey(a: string, b: string): string {
 }
 
 function loadGloss(file: GlossFile): Set<string> {
-  if (!file || !Array.isArray(file.exact) || !Array.isArray(file.overlap)) throw new Error("gloss pairs need exact and overlap");
+  if (!file || !Array.isArray(file.exact) || !Array.isArray(file.overlap) || !Array.isArray(file.near_synonym)) {
+    throw new Error("gloss pairs need exact, overlap, and near_synonym");
+  }
   const shared = file.overlap.filter((pair) => pair.rules?.includes("R1_shared_sense"));
   const containsOnly = file.overlap.filter((pair) => pair.rules?.includes("R2_contains") && !pair.rules?.includes("R1_shared_sense"));
   if (file.exact.length !== 23 || shared.length !== 26 || containsOnly.length !== 66 || file.overlap.length !== 92) {
     throw new Error(`gloss pair counts ${file.exact.length}/${shared.length}/${containsOnly.length}/${file.overlap.length}`);
   }
+  if (file.near_synonym.length !== NEAR_SYNONYM_COUNT) {
+    throw new Error(`near synonym count ${file.near_synonym.length}`);
+  }
   const blocked = new Set<string>();
   for (const pair of [...file.exact, ...shared]) {
     if (!pair.a || !pair.b) throw new Error("gloss pair is missing a word");
     blocked.add(pairKey(pair.a, pair.b));
+  }
+  for (const pair of file.near_synonym) {
+    if (!pair.a || !pair.b || pair.a === pair.b) throw new Error("near synonym pair is missing a word");
+    if (!wordById(pair.a) || !wordById(pair.b)) throw new Error(`near synonym ${pair.a}/${pair.b} is not in the catalog`);
+    const key = pairKey(pair.a, pair.b);
+    if (blocked.has(key)) throw new Error(`near synonym ${pair.a}/${pair.b} is already an exact or shared-sense pair`);
+    blocked.add(key);
   }
   return blocked;
 }
@@ -235,7 +251,7 @@ export function spellingSkipIds(): readonly string[] {
   return plan().skip;
 }
 
-/** Exact gloss pairs and pairs that share a sense. Contains-only pairs stay available. */
+/** Exact gloss pairs, pairs that share a sense, and the near-synonym list. Contains-only pairs stay available unless that list names them. */
 export function glossPairBlocked(a: string, b: string): boolean {
   return plan().blocked.has(pairKey(a, b));
 }
