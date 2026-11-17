@@ -10,6 +10,7 @@ import {
   BATTLE_REVIEW,
   battleReturn,
   commitBattleEntry,
+  commitExamReturn,
   selectBattleGrade,
 } from "../../domain/chapter-route";
 import { GRADE_BANDS } from "../../domain/catalog";
@@ -228,6 +229,7 @@ export class StageMapScene extends Phaser.Scene {
           this.draw();
           return;
         }
+        mutate((current) => commitExamReturn(current, exam.grade, exam.after));
         this.scene.start("exam-battle", { examId: exam.id });
       });
     });

@@ -240,6 +240,17 @@ export function selectBattleGrade(save: SaveData, grade: GradeBand): SaveData {
   return { ...save, battleGrade: grade };
 }
 
+/**
+ * The exam node records the grade chapter it sits on.
+ * Rest and the other returns read that anchor, so leaving an exam does not fall back to the forest.
+ * The session, XP, and title grants stay on the save.
+ */
+export function commitExamReturn(save: SaveData, grade: GradeBand, chapterId: string): SaveData {
+  const chapter = gradeChapters(grade).find((item) => item.id === chapterId);
+  if (!chapter) return save;
+  return commitBattleEntry(save, chapter);
+}
+
 /** Explicit entry of a legal open chapter. Preview and paging must not call this. */
 export function commitBattleEntry(save: SaveData, chapter: PlayChapter): SaveData {
   if (!isChapterUnlocked(save, chapter)) return save;
