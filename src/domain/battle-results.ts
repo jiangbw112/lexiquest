@@ -281,9 +281,23 @@ export function buildResultsView(input: {
     equippedCosmeticIds: input.after.equippedCosmeticIds,
     equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
-    ...resultsStudyLines(input.after, input.stageId, input.boss),
+    ...stageHintBesideChapterList(
+      resultsStudyLines(input.after, input.stageId, input.boss),
+      bossGateFields(input.after, input.stageId, won, input.chapterId, input.answers),
+    ),
     bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
-    ...bossGateFields(input.after, input.stageId, won, input.chapterId, input.answers),
+  };
+}
+
+/** The stage line sits above the experience bar. The chapter list below replaces it. */
+function stageHintBesideChapterList<T extends { bossGateWords: readonly string[] }>(
+  study: { learnMoreLine: string | null; repeatLine: string | null },
+  gate: T,
+): { learnMoreLine: string | null; repeatLine: string | null } & T {
+  return {
+    ...study,
+    ...gate,
+    learnMoreLine: gate.bossGateWords.length > 0 ? null : study.learnMoreLine,
   };
 }
 

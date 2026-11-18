@@ -29,6 +29,7 @@ import {
   RESULTS_LAYOUT,
   resultsBoxInsidePanel,
   resultsGateButtons,
+  resultsStudyLines,
   starsFor,
   visibleItems,
   wordsForResults,
@@ -41,7 +42,7 @@ import { deviceTimeZone, localDayKey } from "./local-day";
 import { mapPanel } from "./map-panel";
 import { applyBattleOutcome, createSave, levelFromXp } from "./progress";
 import { deserialize, serialize } from "./storage";
-import { bossReady, requiredWordIds, stageById, stageCleared, stageEncounterId, wordsUntilBoss } from "./stages";
+import { bossReady, requiredWordIds, stageById, stageCleared, stageEncounterId, stageWordsStillToLearn, wordsUntilBoss } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
 const NOW = Date.parse("2026-08-12T03:00:00.000Z");
@@ -474,6 +475,57 @@ function withCards(save: SaveData, ids: readonly string[]): SaveData {
   for (const id of ids) wordCards[id] = { wordId: id, collectedAt: NOW, masteryBadge: false };
   return { ...save, wordCards };
 }
+
+describe("stage hint beside the chapter list", () => {
+  it("hides the stage line when the chapter list is shown, and keeps it when the list is absent", () => {
+    const forest = forestPlayChapter();
+    const open = graded(["G3"]);
+    const stage4 = stageById(4);
+    const stage1 = stageById(1);
+    if (!stage4 || !stage1) throw new Error("forest stage missing");
+    const before = { ...open, stageWins: { "1": 1, "2": 1, "3": 1 } };
+    const after = applyBattleOutcome(before, "win", NOW, stageEncounterId(4), 2, 4);
+    expect(stageWordsStillToLearn(after, stage4)).toBeGreaterThan(0);
+    const stageLine = resultsStudyLines(after, 4, false).learnMoreLine;
+    expect(stageLine).toContain("这一关还有");
+    const listed = buildResultsView({
+      before,
+      after,
+      answers: [
+        { wordId: "tree", correct: true, kind: "meaning" },
+        { wordId: "bird", correct: false, kind: "meaning" },
+      ],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(listed.bossGateWords.length).toBeGreaterThan(0);
+    expect(listed.bossGateLine).toContain("没在学堂学过");
+    expect(listed.learnMoreLine).toBeNull();
+
+    const early = applyBattleOutcome(open, "win", NOW, stageEncounterId(1), 2, 1);
+    expect(stageWordsStillToLearn(early, stage1)).toBeGreaterThan(0);
+    const kept = resultsStudyLines(early, 1, false).learnMoreLine;
+    expect(kept).toContain("这一关还有");
+    const plain = buildResultsView({
+      before: open,
+      after: early,
+      answers: [
+        { wordId: "tree", correct: true, kind: "meaning" },
+        { wordId: "bird", correct: true, kind: "meaning" },
+        { wordId: "fish", correct: false, kind: "meaning" },
+      ],
+      stageId: 1,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(plain.bossGateWords).toEqual([]);
+    expect(plain.bossGateLine).toBeNull();
+    expect(plain.learnMoreLine).toBe(kept);
+  });
+});
 
 describe("stage 4 boss word reminder", () => {
   it("names the same missing words as the boss gate, and only after a stage 4 win", () => {
