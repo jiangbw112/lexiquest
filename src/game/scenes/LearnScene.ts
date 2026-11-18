@@ -1,11 +1,12 @@
 import Phaser from "phaser";
-import { unlockedWordIds } from "../../domain/chapter-plan";
-import type { PlayChapter } from "../../domain/chapter-plan";
+import { findPlayChapter, unlockedWordIds, type PlayChapter } from "../../domain/chapter-plan";
 import {
   LEARN_LOAD_FAILED,
   LEARN_PICK,
   LEARN_RESELECT,
+  LEARN_SWITCH,
   assessLearnSelection,
+  openAcademyForStage,
   changeLearnDraftGrade,
   academyGradeChoices,
   confirmLearnSelection,
@@ -74,9 +75,14 @@ export class LearnScene extends Phaser.Scene {
   private answerTimer = 0;
   private picking = false;
   private draft: LearnDraft = { grade: "G3", chapterId: null };
+  private forestStageId: number | null = null;
 
   constructor() {
     super("learn");
+  }
+
+  init(data: { forestStageId?: number } = {}): void {
+    this.forestStageId = typeof data.forestStageId === "number" ? data.forestStageId : null;
   }
 
   preload(): void {
@@ -84,12 +90,23 @@ export class LearnScene extends Phaser.Scene {
   }
 
   create(): void {
-    const save = getSave();
+    let save = getSave();
     if (!save) {
       this.scene.start("title");
       return;
     }
     if (redirectUngraded(this, save)) return;
+    const stageId = this.forestStageId;
+    this.forestStageId = null;
+    if (stageId !== null) {
+      const chapter = findPlayChapter(save);
+      const stage = chapter.grade === "mixed" ? chapter.stages.find((item) => item.id === stageId) : undefined;
+      if (stage) {
+        const next = openAcademyForStage(save, stage);
+        if (next !== save) mutate(() => next);
+        save = getSave() ?? save;
+      }
+    }
     probeEnter("learn");
     this.input.setDefaultCursor("default");
     this.phase = "study";
@@ -251,7 +268,6 @@ export class LearnScene extends Phaser.Scene {
     }
     const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, chapter);
     const step = learnAdvance(view);
-    this.missed = false;
     document.getElementById("spell-form")?.classList.remove("open");
     showSpellingHint(null);
     if (step.kind === "next") {
@@ -286,19 +302,6 @@ export class LearnScene extends Phaser.Scene {
     const save = getSave();
     if (!save) return;
     if (confirmLearnSettlement(save) !== save) return;
-    const chapter = this.lessonChapter(save);
-    if (!chapter) return;
-    const view = learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter);
-    if (view.kind === "continue-batch") {
-      this.showStudy();
-      return;
-    }
-    if (view.kind === "continue-chapter") {
-      this.batchIds = view.nextBatchIds;
-      this.learnedThisBatch = [];
-      this.showStudy();
-      return;
-    }
     this.scene.start("stages");
   }
 
@@ -359,7 +362,7 @@ export class LearnScene extends Phaser.Scene {
     }
     const chapter = assessed.chapter;
     this.drawLessonHeading(save, chapter);
-    warmButton(this, 980, 48, LEARN_PICK, () => this.openPicker(save), { width: 140, tone: "secondary" });
+    warmButton(this, 980, 48, LEARN_SWITCH, () => this.openPicker(save), { width: 140, tone: "secondary" });
     if (this.picking) {
       this.drawPicker(save);
       return;

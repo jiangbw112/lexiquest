@@ -13,8 +13,6 @@ import {
 import {
   LEARN_BACK_VILLAGE,
   LEARN_CARDS_DONE,
-  LEARN_CONTINUE_BATCH,
-  LEARN_CONTINUE_CHAPTER,
   LEARN_GO_MAP,
   chapterLearnScope,
   confirmLearnSettlement,
@@ -71,9 +69,8 @@ describe("academy batch settlement", () => {
     expect(view.kind).toBe("continue-chapter");
     expect(view.completed).toBe(batches[0]!.length);
     expect(view.remaining).toBe(chapter.wordIds.length - batches[0]!.length);
-    expect(view.completedLine).toBe(`本次完成 ${batches[0]!.length} 词`);
     expect(view.remainingLine).toBe(`本章还可学 ${view.remaining} 词`);
-    expect(view.primaryLabel).toBe(LEARN_CONTINUE_CHAPTER);
+    expect(view.primaryLabel).toBeNull();
     expect(view.secondaryLabel).toBeNull();
     expect(view.message).toBeNull();
     expect(view.nextBatchIds).toEqual(batches[1]);
@@ -95,7 +92,7 @@ describe("academy batch settlement", () => {
     const view = learnBatchView(mid, batches[0]!, [...learned, ...learned], chapter);
     expect(view.kind).toBe("continue-batch");
     expect(view.completed).toBe(3);
-    expect(view.primaryLabel).toBe(LEARN_CONTINUE_BATCH);
+    expect(view.primaryLabel).toBeNull();
     expect(view.nextWordId).toBe(batches[0]![3]);
     expect(view.nextBatchIds).toEqual(batches[0]);
     expect(view.remaining).toBe(chapter.wordIds.length - 3);
@@ -107,7 +104,7 @@ describe("academy batch settlement", () => {
     const beforeLast = learnIds(standing, chapter.wordIds.slice(0, -1));
     const still = learnBatchView(beforeLast, last, last.slice(0, -1), chapter);
     expect(still.kind).toBe("continue-batch");
-    expect(still.primaryLabel).toBe(LEARN_CONTINUE_BATCH);
+    expect(still.primaryLabel).toBeNull();
     const finished = learnWord(beforeLast, chapter.wordIds[chapter.wordIds.length - 1]!, START);
     const view = learnBatchView(finished, last, last, chapter);
     expect(view.kind).toBe("cards-done");
@@ -117,8 +114,9 @@ describe("academy batch settlement", () => {
     expect(view.secondaryLabel).toBe(LEARN_BACK_VILLAGE);
     expect(view.message).toBe(LEARN_CARDS_DONE);
     expect(view.nextWordId).toBeNull();
-    expect([view.primaryLabel, view.secondaryLabel]).not.toContain(LEARN_CONTINUE_CHAPTER);
-    expect([view.primaryLabel, view.secondaryLabel]).not.toContain(LEARN_CONTINUE_BATCH);
+    expect(view.primaryLabel).toBe(LEARN_GO_MAP);
+    expect(readFileSync(new URL("./learn-batch.ts", import.meta.url), "utf8")).not.toContain("继续本次");
+    expect(readFileSync(new URL("./learn-batch.ts", import.meta.url), "utf8")).not.toContain("继续学本章");
     expect(isChapterCleared(finished, chapter)).toBe(false);
     expect(finished.chapterCleared).toBe(standing.chapterCleared);
     expect(finished.chapterProgress).toEqual(standing.chapterProgress);
@@ -248,6 +246,7 @@ describe("learn scene settlement wiring", () => {
     const grant = scene.slice(scene.indexOf("private grant"), scene.indexOf("private backToVillage"));
     expect(grant).toContain("learnAdvance");
     expect(grant).toContain('this.phase = "study"');
+    expect(grant.split("this.missed = false").length - 1).toBe(1);
     expect(grant).not.toContain('this.phase = "got"');
     expect(grant).not.toContain("warmButton");
     expect(grant).not.toContain("dailyNewWordTargetMet");
@@ -257,6 +256,10 @@ describe("learn scene settlement wiring", () => {
     expect(scene).toContain("learnDayMeter");
     expect(scene).toContain("paintDayMeter");
     expect(scene).toContain("academyGradeChoices");
+    expect(scene).toContain("LEARN_SWITCH");
+    expect(scene).toContain("openAcademyForStage");
+    expect(scene).toContain("forestStageId");
+    expect(readFileSync(new URL("./chapter-route.ts", import.meta.url), "utf8")).toContain("换一章");
     const picker = scene.slice(scene.indexOf("private drawPicker"), scene.indexOf("private meaningRow"));
     expect(picker).toContain("academyGradeChoices");
     expect(picker).not.toContain('"mixed"');
@@ -267,6 +270,8 @@ describe("learn scene settlement wiring", () => {
     const choose = scene.slice(scene.indexOf("private chooseSettlement"), scene.indexOf("private drawSettlement"));
     expect(choose).toContain("confirmLearnSettlement");
     expect(choose).toContain('this.scene.start("stages")');
+    expect(choose).not.toContain("continue-batch");
+    expect(choose).not.toContain("continue-chapter");
     expect(choose).not.toContain("learnWord");
     expect(choose).not.toContain("mutate");
     expect(choose).not.toContain("stageWins");

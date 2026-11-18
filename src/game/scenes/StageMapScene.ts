@@ -11,6 +11,7 @@ import {
   battleReturn,
   commitBattleEntry,
   commitExamReturn,
+  openAcademyForStage,
   selectBattleGrade,
 } from "../../domain/chapter-route";
 import { GRADE_BANDS } from "../../domain/catalog";
@@ -498,7 +499,10 @@ export class StageMapScene extends Phaser.Scene {
       const x = panel.buttons.length === 1 ? panelX : panelX - 72 + index * 144;
       warmButton(this, x, panelY + 232, button.label, () => {
         if (!button.enabled) return;
-        if (button.id === "learn") this.scene.start("learn");
+        if (button.id === "learn") {
+          if (chapter.grade === "mixed") mutate((current) => openAcademyForStage(current, stage));
+          this.scene.start("learn");
+        }
         else this.fight(stage.id);
       }, { width: panel.buttons.length === 1 ? 240 : 132, tone: button.tone, disabled: !button.enabled });
     });

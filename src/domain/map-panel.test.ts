@@ -176,6 +176,7 @@ describe("forest map panel", () => {
     expect(scene).toContain("repeatLine");
     const map = readFileSync(new URL("../game/scenes/StageMapScene.ts", import.meta.url), "utf8");
     expect(map).toContain("panel.note");
+    expect(map).toContain("openAcademyForStage");
 
     let done = save;
     let at = START.getTime();

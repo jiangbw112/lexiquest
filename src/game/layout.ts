@@ -145,31 +145,6 @@ export function optionTextBounds(width: number, height: number): { maxWidth: num
   };
 }
 
-/**
- * 「词卡入手」 sits above the English word. meaningRow draws that word at rowY - 70.
- * The boxes below use the font size as the line box, which is the tight case.
- */
-export const CARD_GOT = {
-  titleY: 224,
-  titleFont: 36,
-  rowY: 392,
-  englishSize: 64,
-  noteY: 488,
-  buttonY: 558,
-} as const;
-
-export function cardGotTitleGap(): number {
-  const titleBottom = CARD_GOT.titleY + CARD_GOT.titleFont / 2;
-  const englishTop = CARD_GOT.rowY - 70 - CARD_GOT.englishSize / 2;
-  return englishTop - titleBottom;
-}
-
-export function cardGotEnglishMeaningGap(): number {
-  const englishBottom = CARD_GOT.rowY - 70 + CARD_GOT.englishSize / 2;
-  const meaningTop = CARD_GOT.rowY + 20 - 46 / 2;
-  return meaningTop - englishBottom;
-}
-
 /** Collection card. The badge sits on the top-right, so the English line stops before it. */
 export const COLLECTION_CARD = {
   width: 132,
@@ -770,8 +745,8 @@ export const LEARN_DAY_METER = {
   y: 108,
   width: 260,
   hintX: 640,
-  hintY: 142,
-  hintFont: 14,
+  hintY: 148,
+  hintFont: 20,
 } as const;
 
 export function learnTitleScale(textWidth: number, plankWidth = LEARN_TITLE_PLANK.width, inset = LEARN_TITLE_PLANK.inset): number {

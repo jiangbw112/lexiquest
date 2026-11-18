@@ -54,7 +54,20 @@ describe("study card and option alignment", () => {
     const titleBottom = LEARN_TITLE_PLANK.y + 29;
     expect(LEARN_DAY_METER.y - 12).toBeGreaterThan(titleBottom);
     const studyPanelTop = 400 - 230;
-    expect(LEARN_DAY_METER.hintY + LEARN_DAY_METER.hintFont / 2).toBeLessThan(studyPanelTop);
+    expect(LEARN_DAY_METER.hintFont).toBeGreaterThanOrEqual(18);
+    const hintTop = LEARN_DAY_METER.hintY - LEARN_DAY_METER.hintFont / 2;
+    const hintBottom = LEARN_DAY_METER.hintY + LEARN_DAY_METER.hintFont / 2;
+    expect(hintTop).toBeGreaterThanOrEqual(LEARN_DAY_METER.y + 12);
+    expect(hintBottom).toBeLessThan(studyPanelTop);
+    const hintWidth = cjkTextWidth("今天的新词够啦，想继续认识新朋友也可以。", LEARN_DAY_METER.hintFont);
+    const hintLeft = LEARN_DAY_METER.hintX - hintWidth / 2;
+    const hintRight = LEARN_DAY_METER.hintX + hintWidth / 2;
+    const switchButton = { left: 980 - 70, right: 980 + 70, top: 48 - 28, bottom: 48 + 28 };
+    const count = { left: 1100 - 48, right: 1100 + 48, top: 36 - 11, bottom: 36 + 11 };
+    expect(hintTop).toBeGreaterThan(switchButton.bottom);
+    expect(hintTop).toBeGreaterThan(count.bottom);
+    expect(hintRight).toBeLessThan(switchButton.left);
+    expect(hintLeft).toBeGreaterThan(0);
     expect(LEARN_DAY_METER.labelX).toBeLessThan(LEARN_DAY_METER.barX - LEARN_DAY_METER.width / 2);
   });
 

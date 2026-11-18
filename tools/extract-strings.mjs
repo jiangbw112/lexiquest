@@ -194,6 +194,7 @@ function plain(map) {
 }
 
 for (const ch of sources.extraCore ?? []) add(core, ch, "tools/font-sources.json:extraCore");
+for (const ch of sources.extraKuaile ?? []) add(kuaile, ch, "tools/font-sources.json:extraKuaile");
 
 const written = {
   "charset_core.txt": textOf(core),

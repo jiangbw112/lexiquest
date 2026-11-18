@@ -10,6 +10,7 @@
   "bodyJsonKeys": ["goal_zh"],
   "ignoreKeys": ["words_resolved_snapshot", "notes", "source"],
   "extraCore": ["★"],
+  "extraKuaile": ["入", "卡", "手", "词"],
   "fonts": {
     "noto": "fonts/src/NotoSansSC-wght.ttf",
     "kuaile": "fonts/src/ZCOOLKuaiLe-Regular.ttf",
