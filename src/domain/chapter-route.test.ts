@@ -23,7 +23,12 @@ import {
   forestGradeLabel,
   initialLearnDraft,
   LEARN_GRADE_EMPTY,
-  LEARN_GRADE_LOCKED,
+  academyForestChapter,
+  academyForestWordIds,
+  academyGradeChoices,
+  academyLessonForStage,
+  currentStudyGrade,
+  openAcademyForStage,
   learnChipLabel,
   learnDraftLine,
   learnGradeEmptyLine,
@@ -32,7 +37,9 @@ import {
   legalLearnChapters,
   selectBattleGrade,
 } from "./chapter-route";
-import { forestPlayChapter, gradeChapters, isChapterCleared, isChapterUnlocked } from "./chapter-plan";
+import { chapterExtraWords, chapterWords } from "./catalog";
+import { forestPlayChapter, gradeChapters, isChapterCleared, isChapterUnlocked, visibleChapters } from "./chapter-plan";
+import { bossReady, chapterWordIds, FOREST_CHAPTER, requiredWordIds, stageLearnMoreLine, stageStatuses, stageWordIds } from "./stages";
 import { examById } from "./exams";
 import { applyBattleOutcome, createSave, learnWord } from "./progress";
 import { deserialize, serialize } from "./storage";
@@ -103,10 +110,25 @@ describe("academy lesson L", () => {
     expect(next.chapterProgress).toEqual(before.chapterProgress);
   });
 
-  it("offers the forest lesson before any grade chapter is open, and does not preselect a later chapter", () => {
+  it("lists the forest lesson first, then every grade chapter, before the forest battle is cleared", () => {
     const early = fresh(["G3"]);
-    expect(legalLearnChapters(early, "G3")).toEqual([]);
-    expect(initialLearnDraft(early)).toEqual({ grade: "mixed", chapterId: "forest_adventure" });
+    expect(early.chapterCleared).toBe(false);
+    expect(academyGradeChoices(early)).toEqual(["G3"]);
+    expect(legalLearnChapters(early, "mixed")).toEqual([]);
+    const listed = legalLearnChapters(early, "G3");
+    expect(listed[0]).toMatchObject({ id: "forest_adventure", grade: "G3", name: "森林冒险" });
+    expect(listed.slice(1).map((chapter) => chapter.id)).toEqual(gradeChapters("G3").map((chapter) => chapter.id));
+    expect(visibleChapters(early.selectedGrades).map((chapter) => chapter.id)).toEqual([
+      "forest_adventure",
+      ...gradeChapters("G3").map((chapter) => chapter.id),
+    ]);
+    expect(isChapterUnlocked(early, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(early, gradeChapters("G3")[1]!)).toBe(false);
+    expect(initialLearnDraft(early)).toEqual({ grade: "G3", chapterId: null });
+    const remembered = { ...early, learnSelection: { grade: "mixed" as const, chapterId: "forest_adventure" } };
+    expect(assessLearnSelection(remembered).status).toBe("reselect");
+    expect(initialLearnDraft(remembered)).toEqual({ grade: "G3", chapterId: "forest_adventure" });
+    expect(remembered.learnSelection).toEqual({ grade: "mixed", chapterId: "forest_adventure" });
     const opened = { ...fresh(["G3", "G5"]), chapterCleared: true };
     expect(initialLearnDraft(opened)).toEqual({ grade: "G3", chapterId: null });
     expect(confirmLearnSelection(opened, "G5", g3[0]!.id)).toBe(opened);
@@ -125,11 +147,14 @@ describe("academy lesson L", () => {
     expect(`${switched.grade}:${switched.chapterId ?? ""}`).not.toBe(`G5:${g3[0]!.id}`);
   });
 
-  it("refuses a paused lower grade and a locked chapter, then asks for a new lesson without the old pool", () => {
+  it("studies a battle-locked chapter and still refuses a paused grade", () => {
     const before = standing();
     const locked = g3[1]!;
     expect(isChapterUnlocked(before, locked)).toBe(false);
-    expect(confirmLearnSelection(before, "G3", locked.id)).toBe(before);
+    const studied = confirmLearnSelection(before, "G3", locked.id);
+    expect(studied.learnSelection).toEqual({ grade: "G3", chapterId: locked.id });
+    expect(battleSnapshot(studied)).toEqual(battleSnapshot(before));
+    expect(commitBattleEntry(before, locked)).toBe(before);
     expect(legalLearnChapters(before, "G4")).toEqual([]);
     expect(confirmLearnSelection(before, "G4", gradeChapters("G4")[0]!.id)).toBe(before);
     const paused = { ...before, selectedGrades: ["G5"] as GradeBand[] };
@@ -176,7 +201,8 @@ describe("forest grade label", () => {
   it("puts the selected grades on the forest title, chip, and draft line", () => {
     const only = fresh(["G3"]);
     expect(forestGradeLabel(only)).toBe("三年级");
-    expect(learnSceneTitle(only, "mixed", "森林冒险")).toBe("学堂 · 三年级 · 森林冒险");
+    expect(learnSceneTitle(only, "mixed", "森林冒险")).toBe("学堂 · 三年级");
+    expect(learnSceneTitle(only, "mixed", "森林冒险")).not.toContain("· 森林冒险");
     expect(learnChipLabel("mixed", only)).toBe("森林冒险（三年级）");
     expect(learnDraftLine("mixed", only, "森林冒险")).toBe("三年级 · 森林冒险");
     expect(learnSceneTitle(only, "mixed", "森林冒险")).not.toContain("· 森林 ·");
@@ -184,26 +210,37 @@ describe("forest grade label", () => {
     expect(learnChipLabel("G3", only)).toBe("三年级");
     const many = fresh(["G5", "G3", "G6"]);
     expect(forestGradeLabel(many)).toBe("三年级、五年级、六年级");
-    expect(learnSceneTitle(many, "mixed", "森林冒险")).toBe("学堂 · 三年级、五年级、六年级 · 森林冒险");
+    expect(learnSceneTitle(many, "mixed", "森林冒险")).toBe("学堂 · 三年级、五年级、六年级");
+    expect(learnSceneTitle(many, "mixed", "森林冒险")).not.toContain("· 森林冒险");
     expect(learnChipLabel("mixed", many)).toBe("森林冒险（三年级、五年级、六年级）");
     expect(learnDraftLine("mixed", many, null)).toBe("三年级、五年级、六年级 · 请选章");
   });
 
-  it("explains that a locked grade opens after the forest adventure, and keeps the lock", () => {
-    const early = fresh(["G3"]);
-    const first = gradeChapters("G3")[0]!;
-    expect(early.chapterCleared).toBe(false);
-    expect(isChapterUnlocked(early, first)).toBe(false);
-    expect(legalLearnChapters(early, "G3")).toEqual([]);
-    expect(learnGradeEmptyLine("G3", early.chapterCleared)).toBe(LEARN_GRADE_LOCKED);
-    expect(LEARN_GRADE_LOCKED).toContain("先打完森林冒险");
-    expect(LEARN_GRADE_LOCKED).toContain("就会开启");
-    expect(learnGradeEmptyLine("mixed", false)).toBe(LEARN_GRADE_EMPTY);
+  it("lists the grades the parent left open, and not a closed lesson grade", () => {
+    const both = fresh(["G5", "G3"]);
+    expect(currentStudyGrade(both)).toBeNull();
+    expect(academyGradeChoices(both)).toEqual(["G3", "G5"]);
+    const withLesson = {
+      ...both,
+      learnSelection: { grade: "G5" as const, chapterId: gradeChapters("G5")[0]!.id },
+      battleGrade: "G3" as const,
+    };
+    expect(currentStudyGrade(withLesson)).toBe("G5");
+    expect(academyGradeChoices(withLesson)).toEqual(["G3", "G5"]);
+    const closed = { ...withLesson, selectedGrades: ["G3"] as GradeBand[] };
+    expect(currentStudyGrade(closed)).toBe("G5");
+    expect(academyGradeChoices(closed)).toEqual(["G3"]);
+    expect(academyGradeChoices(closed)).not.toContain("G5");
+    expect(legalLearnChapters(closed, "mixed")).toEqual([]);
+    expect(learnGradeEmptyLine()).toBe(LEARN_GRADE_EMPTY);
+    expect(LEARN_GRADE_EMPTY).not.toContain("森林冒险");
     const scene = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
     expect(scene).toContain("learnSceneTitle");
     expect(scene).toContain("learnChipLabel");
     expect(scene).toContain("learnDraftLine");
     expect(scene).toContain("learnGradeEmptyLine");
+    expect(scene).toContain("academyGradeChoices");
+    expect(scene).not.toContain("先打完森林冒险");
   });
 });
 
@@ -471,5 +508,113 @@ describe("scene wiring", () => {
     expect(rest).toBeGreaterThan(-1);
     expect(examScene.slice(rest, rest + 80)).toContain('this.scene.start("stages")');
     expect(map).toContain("battleReturn");
+  });
+});
+
+describe("academy forest lessons", () => {
+  const extras = chapterExtraWords().map((word) => word.id);
+  const grades = ["G3", "G4", "G5", "G6"] as const;
+
+  function learnForestLessons(save: SaveData): SaveData {
+    let next = save;
+    for (const grade of academyGradeChoices(next)) {
+      for (const id of academyForestWordIds(grade)) next = learnWord(next, id, START);
+    }
+    return next;
+  }
+
+  it("builds each grade lesson from that grade's formal forest words plus the eight common words", () => {
+    const file = JSON.parse(readFileSync(new URL("./chapters/chapter_forest_v1.1.json", import.meta.url), "utf8")) as {
+      words_resolved_snapshot: { word_ref: string; grade_est: number }[];
+      chapter_extra_words: { id: string }[];
+    };
+    expect(file.chapter_extra_words.map((word) => word.id)).toEqual(extras);
+    expect(extras).toHaveLength(8);
+    const formalGrade = new Map(file.words_resolved_snapshot.map((word) => [word.word_ref, word.grade_est]));
+    for (const word of chapterWords()) {
+      if (extras.includes(word.id)) continue;
+      expect(formalGrade.get(word.id)).toBe(Number(word.grade.slice(1)));
+    }
+    for (const grade of grades) {
+      const formal = chapterWords().filter((word) => word.grade === grade && !extras.includes(word.id)).map((word) => word.id);
+      expect(academyForestWordIds(grade)).toEqual([...formal, ...extras]);
+      const listed = legalLearnChapters(fresh([grade]), grade);
+      expect(listed[0]?.wordIds).toEqual(academyForestWordIds(grade));
+      expect(listed[0]).toMatchObject({ id: "forest_adventure", grade, index: 0 });
+      expect(gradeChapters(grade).map((chapter) => chapter.id)).not.toContain("forest_adventure");
+    }
+  });
+
+  it("learns the forest boss words from the academy alone, and the sash when every grade is open", () => {
+    const mixes = [["G3"], ["G4"], ["G5"], ["G6"], ["G3", "G5"], ["G3", "G4", "G6"], ["G3", "G4", "G5", "G6"]] as const;
+    for (const selected of mixes) {
+      let save = learnForestLessons(fresh(selected));
+      for (const id of requiredWordIds(save)) expect(save.wordCards[id], `${selected.join("+")} ${id}`).toBeTruthy();
+      expect(isChapterUnlocked(save, gradeChapters(selected[0])[0]!)).toBe(false);
+      save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+      expect(bossReady(save), selected.join("+")).toBe(true);
+      expect(stageStatuses(save)[4]).toBe("open");
+      expect(isChapterUnlocked(save, gradeChapters(selected[0])[0]!)).toBe(false);
+    }
+    const all = learnForestLessons(fresh(["G3", "G4", "G5", "G6"]));
+    expect(chapterWordIds().every((id) => all.wordCards[id])).toBe(true);
+    expect(all.ownedOutfitIds).toContain("star-sash");
+    expect(all.rewardQueue.filter((item) => item.title === "得到星光绶带")).toHaveLength(1);
+    expect(learnWord(all, extras[0]!, START)).toBe(all);
+    expect(learnForestLessons(fresh(["G3"])).ownedOutfitIds).not.toContain("star-sash");
+  });
+
+  it("sends a forest stage's remaining words to the forest lesson that can teach them", () => {
+    for (const stage of FOREST_CHAPTER.stages.filter((item) => item.type !== "boss")) {
+      const save = fresh(["G5"]);
+      const remaining = stageWordIds(save, stage).length;
+      const opened = openAcademyForStage(save, stage);
+      const assessed = assessLearnSelection(opened);
+      expect(stageLearnMoreLine(remaining)).toBe(remaining > 0 ? `这一关还有 ${remaining} 个新词可以去学堂学` : null);
+      expect(assessed.status).toBe("ready");
+      if (assessed.status !== "ready") continue;
+      expect(assessed.chapter).toMatchObject({ id: "forest_adventure", grade: "G5" });
+      for (const id of stageWordIds(save, stage)) expect(assessed.chapter.wordIds).toContain(id);
+      expect(opened.currentChapterId).toBe(save.currentChapterId);
+      expect(opened.stageWins).toEqual(save.stageWins);
+      expect(opened.wordCards).toBe(save.wordCards);
+    }
+    const both = fresh(["G3", "G5"]);
+    const stage = FOREST_CHAPTER.stages[1]!;
+    const counted = stageWordIds(both, stage);
+    expect(counted).toEqual(expect.arrayContaining(["big", "river"]));
+    expect(academyLessonForStage(both, stage)?.grade).toBe("G3");
+    let progressed = both;
+    for (const id of academyForestWordIds("G3")) progressed = learnWord(progressed, id, START);
+    const still = stageWordIds(progressed, stage).filter((id) => !progressed.wordCards[id]);
+    expect(still.length).toBeGreaterThan(0);
+    expect(academyLessonForStage(progressed, stage)).toEqual({ grade: "G5", chapterId: "forest_adventure" });
+    expect(academyForestChapter("G5").wordIds).toEqual(expect.arrayContaining(still));
+    const opened = openAcademyForStage(progressed, stage);
+    expect(opened.learnSelection).toEqual({ grade: "G5", chapterId: "forest_adventure" });
+    expect(opened.xp).toBe(progressed.xp);
+    expect(opened.ownedOutfitIds).toEqual(progressed.ownedOutfitIds);
+  });
+
+  it("keeps an old mixed lesson on the chapter list without rewriting progress", () => {
+    const old = {
+      ...learnWord(fresh(["G3", "G5"]), "tree", START),
+      learnSelection: { grade: "mixed" as const, chapterId: "forest_adventure" },
+    };
+    expect(assessLearnSelection(old)).toEqual({
+      status: "reselect",
+      remembered: { grade: "mixed", name: "森林冒险" },
+    });
+    expect(learnSceneTitle(old, "mixed", "森林冒险")).toBe("学堂 · 三年级、五年级");
+    expect(learnSceneTitle(old, "mixed", "森林冒险")).not.toContain("· 森林冒险");
+    expect(initialLearnDraft(old)).toEqual({ grade: "G3", chapterId: "forest_adventure" });
+    expect(old.learnSelection).toEqual({ grade: "mixed", chapterId: "forest_adventure" });
+    const confirmed = confirmLearnSelection(old, "G3", "forest_adventure");
+    expect(confirmed.learnSelection).toEqual({ grade: "G3", chapterId: "forest_adventure" });
+    expect(confirmed.wordCards).toBe(old.wordCards);
+    expect(confirmed.xp).toBe(old.xp);
+    expect(confirmed.ownedOutfitIds).toEqual(old.ownedOutfitIds);
+    expect(confirmed.rewardQueue).toBe(old.rewardQueue);
+    expect(deserialize(serialize(old))?.learnSelection).toEqual(old.learnSelection);
   });
 });

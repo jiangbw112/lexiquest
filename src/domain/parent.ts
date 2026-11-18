@@ -142,6 +142,32 @@ export function dailyNewWordTargetMet(save: SaveData, now: Date, timeZone = devi
   return newWordsLearnedToday(save, now, timeZone) >= PROPOSALS.dailyGoal.newWordTarget[save.parentGoalPreset];
 }
 
+export interface LearnDayMeter {
+  learned: number;
+  target: number;
+  /** Today's new words over the 3/5/8 target, such as 3/5. The count may pass the target. */
+  label: string;
+  /** Bar fill. Stays full after the target so later words do not empty it. */
+  ratio: number;
+  met: boolean;
+  hint: string | null;
+}
+
+/** Persistent academy meter. Reaching the target only sets the hint. It does not stop the next word. */
+export function learnDayMeter(save: SaveData, now: Date, timeZone = deviceTimeZone()): LearnDayMeter {
+  const target = PROPOSALS.dailyGoal.newWordTarget[save.parentGoalPreset];
+  const learned = newWordsLearnedToday(save, now, timeZone);
+  const met = target > 0 && learned >= target;
+  return {
+    learned,
+    target,
+    label: `${learned}/${target}`,
+    ratio: target > 0 ? Math.min(1, learned / target) : 0,
+    met,
+    hint: met ? NEW_WORD_GOAL_NOTICE : null,
+  };
+}
+
 export function reviewFirstNotice(save: SaveData, now: Date): string | null {
   const due = dueWordIds(save, now).length;
   if (due > PROPOSALS.dailyGoal.goalMax[save.parentGoalPreset]) return REVIEW_FIRST_NOTICE;

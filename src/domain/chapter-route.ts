@@ -1,4 +1,4 @@
-import { GRADE_BANDS, normalizeGrades } from "./catalog";
+import { chapterExtraWords, chapterWords, isChapterExtra, GRADE_BANDS, normalizeGrades } from "./catalog";
 import {
   forestPlayChapter,
   gradeChapters,
@@ -6,7 +6,7 @@ import {
   isChapterUnlocked,
   type PlayChapter,
 } from "./chapter-plan";
-import { FOREST_CHAPTER, FOREST_TITLE } from "./stages";
+import { FOREST_CHAPTER, FOREST_TITLE, stageWordIds, type ForestStage } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 import { uiLabel } from "./ui-label";
 
@@ -16,11 +16,10 @@ import { uiLabel } from "./ui-label";
  * New lines stay inside the committed core subset. The three glyphs called out in learn-batch stay unused.
  */
 export const LEARN_PICK = "请选章";
+export const LEARN_SWITCH = "换一章";
 export const LEARN_RESELECT = "请重新选章";
 export const LEARN_LOAD_FAILED = "本章没有载入。";
 export const LEARN_GRADE_EMPTY = "这一年级还没有可学的章";
-/** Grade chapters stay locked until the forest adventure is cleared. */
-export const LEARN_GRADE_LOCKED = "先打完森林冒险，这一年级就会开启";
 export const BATTLE_RETURN_PROGRESS = "返回进度章";
 export const BATTLE_NONE = "暂无可进入章节";
 export const BATTLE_REVIEW = "回顾";
@@ -80,10 +79,17 @@ export function forestGradeLabel(save: SaveData): string {
     .join("、");
 }
 
-/** Title line. A forest lesson names the selected grades instead of only 森林. */
+/**
+ * Title line.
+ * An old forest lesson names the selected grades and stops there.
+ * The chapter name is not appended, so the title does not end in 「· 森林冒险」.
+ */
 export function learnSceneTitle(save: SaveData, grade: LearnGrade, chapterName: string): string {
-  const label = grade === "mixed" ? forestGradeLabel(save) : learnGradeLabel(grade);
-  return uiLabel(`学堂 · ${label} · ${chapterName}`);
+  if (grade === "mixed") {
+    const grades = forestGradeLabel(save);
+    return uiLabel(grades ? `学堂 · ${grades}` : "学堂");
+  }
+  return uiLabel(`学堂 · ${learnGradeLabel(grade)} · ${chapterName}`);
 }
 
 /** Grade chip. The forest chip is the chapter name plus the selected grades. */
@@ -98,13 +104,63 @@ export function learnDraftLine(grade: LearnGrade, save: SaveData, chapterName: s
   return `${label} · ${chapterName ?? LEARN_PICK}`;
 }
 
-/**
- * An empty grade list before the forest adventure is cleared is the lock, not a missing chapter.
- * The lock itself is unchanged.
- */
-export function learnGradeEmptyLine(grade: LearnGrade, forestCleared: boolean): string {
-  if (grade !== "mixed" && !forestCleared) return LEARN_GRADE_LOCKED;
+/** Shown when an allowed grade has no chapter to list. Battle progress does not produce this line. */
+export function learnGradeEmptyLine(): string {
   return LEARN_GRADE_EMPTY;
+}
+
+/**
+ * Grade the child is in now.
+ * The academy lesson wins. A forest lesson is not a grade, so the battle grade is used instead.
+ * This can name a grade the parent has since turned off. Callers that list academy grades must not add it back.
+ */
+export function currentStudyGrade(save: SaveData): GradeBand | null {
+  const lesson = save.learnSelection?.grade;
+  if (lesson && lesson !== "mixed") return lesson;
+  return save.battleGrade ?? null;
+}
+
+/**
+ * Grades the academy may list.
+ * Parent-open grades are `selectedGrades`: the first grade pick and the parent-page checkboxes write the same field.
+ * A lesson or battle grade the parent has turned off is not added back.
+ * Forest is not a grade on this list.
+ */
+export function academyGradeChoices(save: SaveData): GradeBand[] {
+  return normalizeGrades(save.selectedGrades);
+}
+
+/**
+ * Formal forest words of this grade, then every chapter-extra word.
+ * The extras carry their own grade_est, and `forestLearnUnits` files them there.
+ * The boss gate counts all eight no matter which grades are open, so each academy
+ * forest chapter carries the full eight instead of only the extras of this grade.
+ */
+export function academyForestWordIds(grade: GradeBand): string[] {
+  const gradeWords = chapterWords()
+    .filter((word) => word.grade === grade && !isChapterExtra(word.id))
+    .map((word) => word.id);
+  const common = chapterExtraWords().map((word) => word.id).filter((id) => !gradeWords.includes(id));
+  return [...gradeWords, ...common];
+}
+
+/** First academy chapter of an allowed grade. Battle chapters are not this object. */
+export function academyForestChapter(grade: GradeBand): PlayChapter {
+  const wordIds = academyForestWordIds(grade);
+  const allowed = new Set(wordIds);
+  const forest = forestPlayChapter();
+  return {
+    id: forest.id,
+    name: forest.name,
+    bossName: forest.bossName,
+    grade,
+    index: 0,
+    stages: forest.stages.map((stage) => ({
+      ...stage,
+      new_words: stage.new_words.filter((id) => allowed.has(id)),
+    })),
+    wordIds,
+  };
 }
 
 /** Title line. Both the grade and the chapter name are required whenever a pair is shown. */
@@ -116,17 +172,49 @@ export function learnGradeOptions(save: SaveData): GradeBand[] {
   return normalizeGrades(save.selectedGrades);
 }
 
-/** Parent-allowed grades only, and inside a grade only chapters the existing order has opened. */
+/**
+ * Parent-allowed grades only. Forest is not a grade chip.
+ * The first chapter is that grade's forest lesson. The grade chapters follow, and battle unlock is not consulted.
+ */
 export function legalLearnChapters(save: SaveData, grade: LearnGrade): PlayChapter[] {
-  if (normalizeGrades(save.selectedGrades).length === 0) return [];
-  if (grade === "mixed") return [forestPlayChapter()];
-  if (!normalizeGrades(save.selectedGrades).includes(grade)) return [];
-  return gradeChapters(grade).filter((chapter) => isChapterUnlocked(save, chapter));
+  if (academyGradeChoices(save).length === 0) return [];
+  if (grade === "mixed") return [];
+  if (!academyGradeChoices(save).includes(grade)) return [];
+  return [academyForestChapter(grade), ...gradeChapters(grade)];
+}
+
+/**
+ * Academy lesson that can teach this forest stage's counted words.
+ * One grade's forest chapter is used when it holds every counted word.
+ * Otherwise the first allowed grade that still has one of those words is used.
+ */
+export function academyLessonForStage(save: SaveData, stage: ForestStage): LearnDraft | null {
+  const chapters = academyGradeChoices(save).map((grade) => academyForestChapter(grade));
+  if (chapters.length === 0) return null;
+  const counted = stageWordIds(save, stage);
+  const missing = counted.filter((id) => !save.wordCards[id]);
+  const queue = missing.length > 0 ? missing : counted;
+  const host = chapters.find((chapter) => queue.length > 0 && queue.every((id) => chapter.wordIds.includes(id)))
+    ?? chapters.find((chapter) => queue.some((id) => chapter.wordIds.includes(id)));
+  const chosen = host ?? chapters[0];
+  if (!chosen || chosen.grade === "mixed") return null;
+  return { grade: chosen.grade, chapterId: chosen.id };
+}
+
+/** Points the academy at the forest lesson for this stage. Battle fields, cards, and rewards stay. */
+export function openAcademyForStage(save: SaveData, stage: ForestStage): SaveData {
+  const lesson = academyLessonForStage(save, stage);
+  if (!lesson || lesson.grade === "mixed" || !lesson.chapterId) return save;
+  return confirmLearnSelection(save, lesson.grade, lesson.chapterId);
 }
 
 export function assessLearnSelection(save: SaveData): LearnAssessment {
   const selection = save.learnSelection;
   if (!selection) return { status: "choose" };
+  if (selection.grade !== "mixed") {
+    const listed = legalLearnChapters(save, selection.grade).find((item) => item.id === selection.chapterId);
+    if (listed && listed.grade === selection.grade) return { status: "ready", chapter: listed };
+  }
   const chapter = chapterById(selection.chapterId);
   if (!chapter) return { status: "load-failed" };
   const paired = chapter.grade === selection.grade;
@@ -152,15 +240,23 @@ export function changeLearnDraftGrade(draft: LearnDraft, grade: LearnGrade): Lea
 export function initialLearnDraft(save: SaveData): LearnDraft {
   const selection = save.learnSelection;
   const assessed = assessLearnSelection(save);
-  if (assessed.status === "ready" && selection) return { grade: selection.grade, chapterId: selection.chapterId };
-  const options = learnGradeOptions(save);
-  if (selection && (selection.grade === "mixed" || options.includes(selection.grade))) {
+  if (assessed.status === "ready" && selection && selection.grade !== "mixed") {
+    return { grade: selection.grade, chapterId: selection.chapterId };
+  }
+  const options = academyGradeChoices(save);
+  if (selection?.grade === "mixed") {
+    const grade = options.find((item) => legalLearnChapters(save, item).some((chapter) => chapter.id === FOREST_CHAPTER.chapter_id))
+      ?? options[0]
+      ?? "G3";
+    const forest = legalLearnChapters(save, grade).find((chapter) => chapter.id === FOREST_CHAPTER.chapter_id);
+    return { grade, chapterId: forest?.id ?? null };
+  }
+  if (selection && options.includes(selection.grade)) {
     return { grade: selection.grade, chapterId: null };
   }
   const withChapters = options.find((grade) => legalLearnChapters(save, grade).length > 0);
   if (withChapters) return { grade: withChapters, chapterId: null };
-  const forest = legalLearnChapters(save, "mixed")[0];
-  return { grade: "mixed", chapterId: forest?.id ?? null };
+  return { grade: options[0] ?? "G3", chapterId: null };
 }
 
 /** Writes L only when the chapter still belongs to that grade and is legal. Battle fields stay. */

@@ -805,7 +805,7 @@ export class BattleResultsScene extends Phaser.Scene {
   private toAcademy(): void {
     probeNote(`battle:results:academy:${this.view.stageId}`);
     this.scene.stop("battle");
-    this.scene.start("learn");
+    this.scene.start("learn", { forestStageId: this.view.stageId });
   }
 
   private continueOn(): void {

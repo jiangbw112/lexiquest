@@ -9,7 +9,7 @@ import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
 import { reviewDeskLayout } from "./dev-mode";
 import { REVIEW_DESK_LIMIT } from "../domain/review";
 import { shellCopy } from "../domain/host-copy";
-import { CARD_GOT, COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, LEARN_CHIP_ROW, LEARN_TITLE_PLANK, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cardGotEnglishMeaningGap, cardGotTitleGap, cjkTextWidth, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, learnGradeChipRow, learnTitleScale, mapHeaderFits, meaningScale, optionTextBounds, parentGateLayout, parentProgressFits, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
+import { COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkTextWidth, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, learnGradeChipRow, learnTitleScale, mapHeaderFits, meaningScale, optionTextBounds, parentGateLayout, parentProgressFits, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -45,14 +45,30 @@ describe("study card and option alignment", () => {
     expect(studyNoticeGap()).toBeGreaterThanOrEqual(24);
   });
 
-  it("keeps 词卡入手 clear of the English word on the collected card", () => {
-    expect(cardGotTitleGap()).toBeGreaterThanOrEqual(24);
-    expect(cardGotEnglishMeaningGap()).toBeGreaterThanOrEqual(16);
+  it("keeps the daily meter under the title and above the study card", () => {
     const learn = readFileSync(new URL("./scenes/LearnScene.ts", import.meta.url), "utf8");
-    expect(learn).toContain("CARD_GOT.titleY");
-    expect(learn).toContain("CARD_GOT.rowY");
-    expect(CARD_GOT.noteY).toBeGreaterThan(CARD_GOT.rowY + 20 + 23);
-    expect(CARD_GOT.buttonY - 28).toBeGreaterThan(CARD_GOT.noteY + 10);
+    expect(learn).toContain("LEARN_DAY_METER");
+    expect(learn).toContain("paintDayMeter");
+    expect(learn).not.toContain("CARD_GOT.titleY");
+    expect(learn).not.toContain("继续本次");
+    const titleBottom = LEARN_TITLE_PLANK.y + 29;
+    expect(LEARN_DAY_METER.y - 12).toBeGreaterThan(titleBottom);
+    const studyPanelTop = 400 - 230;
+    expect(LEARN_DAY_METER.hintFont).toBeGreaterThanOrEqual(18);
+    const hintTop = LEARN_DAY_METER.hintY - LEARN_DAY_METER.hintFont / 2;
+    const hintBottom = LEARN_DAY_METER.hintY + LEARN_DAY_METER.hintFont / 2;
+    expect(hintTop).toBeGreaterThanOrEqual(LEARN_DAY_METER.y + 12);
+    expect(hintBottom).toBeLessThan(studyPanelTop);
+    const hintWidth = cjkTextWidth("今天的新词够啦，想继续认识新朋友也可以。", LEARN_DAY_METER.hintFont);
+    const hintLeft = LEARN_DAY_METER.hintX - hintWidth / 2;
+    const hintRight = LEARN_DAY_METER.hintX + hintWidth / 2;
+    const switchButton = { left: 980 - 70, right: 980 + 70, top: 48 - 28, bottom: 48 + 28 };
+    const count = { left: 1100 - 48, right: 1100 + 48, top: 36 - 11, bottom: 36 + 11 };
+    expect(hintTop).toBeGreaterThan(switchButton.bottom);
+    expect(hintTop).toBeGreaterThan(count.bottom);
+    expect(hintRight).toBeLessThan(switchButton.left);
+    expect(hintLeft).toBeGreaterThan(0);
+    expect(LEARN_DAY_METER.labelX).toBeLessThan(LEARN_DAY_METER.barX - LEARN_DAY_METER.width / 2);
   });
 
   it("wraps a long part-of-speech gloss inside a battle option and a collection card", () => {

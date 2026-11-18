@@ -8,19 +8,30 @@ import type { SaveData } from "./types";
  * 尚 / 往 are not in that subset, and the source fonts are not in the repo.
  * 还可学、还没通关、去本章地图 say the same thing with glyphs the game already ships.
  */
-export const LEARN_CONTINUE_BATCH = "继续本次";
-export const LEARN_CONTINUE_CHAPTER = "继续学本章";
 export const LEARN_GO_MAP = "去本章地图";
 export const LEARN_BACK_VILLAGE = "返回村庄";
 export const LEARN_CARDS_DONE = "本章词卡已学完，章节还没通关";
 export const LEARN_CARDS_DONE_CLEARED = "本章词卡已学完。";
 
-export function learnCompletedLine(count: number): string {
-  return `本次完成 ${count} 词`;
-}
-
 export function learnRemainingLine(count: number): string {
   return `本章还可学 ${count} 词`;
+}
+
+export type LearnAdvance =
+  | { kind: "next"; batchIds: readonly string[]; resetBatch: boolean }
+  | { kind: "done" };
+
+/**
+ * After a card is collected, the next word opens immediately.
+ * A finished chapter is the only stop, because there is no next word.
+ */
+export function learnAdvance(view: LearnBatchView): LearnAdvance {
+  if (view.kind === "cards-done" || !view.nextWordId) return { kind: "done" };
+  return {
+    kind: "next",
+    batchIds: view.nextBatchIds,
+    resetBatch: view.kind === "continue-chapter",
+  };
 }
 
 export type LearnBatchKind = "continue-batch" | "continue-chapter" | "cards-done";
@@ -36,10 +47,10 @@ export interface LearnBatchView {
   nextBatchIds: string[];
   scopeIds: string[];
   chapterCleared: boolean;
-  primaryLabel: string;
+  /** Map button on a finished chapter. Continue steps have no button. */
+  primaryLabel: string | null;
   secondaryLabel: string | null;
   message: string | null;
-  completedLine: string;
   remainingLine: string;
 }
 
@@ -142,19 +153,17 @@ export function learnBatchView(
   let kind: LearnBatchKind;
   let nextWordId: string | null = null;
   let nextBatchIds: string[] = [];
-  let primaryLabel: string;
+  let primaryLabel: string | null = null;
   let secondaryLabel: string | null = null;
   let message: string | null = null;
   if (batchRemaining.length > 0) {
     kind = "continue-batch";
     nextWordId = batchRemaining[0] ?? null;
     nextBatchIds = batch;
-    primaryLabel = LEARN_CONTINUE_BATCH;
   } else if (remaining.length > 0) {
     kind = "continue-chapter";
     nextBatchIds = openLearnBatch(save, chapter);
     nextWordId = nextBatchIds.find((id) => !save.wordCards[id]) ?? remaining[0] ?? null;
-    primaryLabel = LEARN_CONTINUE_CHAPTER;
   } else {
     kind = "cards-done";
     primaryLabel = LEARN_GO_MAP;
@@ -174,7 +183,6 @@ export function learnBatchView(
     primaryLabel,
     secondaryLabel,
     message,
-    completedLine: learnCompletedLine(completed),
     remainingLine: learnRemainingLine(remaining.length),
   };
 }
