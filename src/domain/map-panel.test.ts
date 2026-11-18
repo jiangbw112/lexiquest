@@ -83,9 +83,10 @@ describe("forest map panel", () => {
     expect(requiredWordIds(everyGrade)).toHaveLength(28);
     expect(all.unlockLine).toBe("通过前 4 关并学完 28 个词");
     expect(all.unlockLine).toBe(bossUnlockLine(everyGrade));
-    expect(all.words.every((face) => face.english === null)).toBe(true);
-    expect(all.total).toBe(4);
-    expect(all.buttons).toEqual([{ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" }]);
+    expect(all.missingLines.length).toBeGreaterThan(0);
+    expect(all.missingLines.join("")).toContain("tree");
+    expect(all.buttons.some((button) => button.id === "learn" && button.enabled && button.label === "去学堂学这几个" || button.label.startsWith("去"))).toBe(true);
+    expect(all.buttons.at(-1)).toEqual({ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" });
 
     const grade3 = saveWith(["G3"]);
     const one = mapPanel(grade3, stage, "locked");

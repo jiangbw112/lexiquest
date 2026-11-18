@@ -193,20 +193,19 @@ describe("forest chapter", () => {
     expect(replayAgain.chapterCleared).toBe(false);
   });
 
-  it("unlocks the stages in order and keeps the boss shut until then", () => {
+  it("opens every stage once the forest words are learned, without waiting for four wins", () => {
     let save = newSave();
     expect(stageStatuses(save)).toEqual(["open", "locked", "locked", "locked", "locked"]);
     expect(bossReady(save)).toBe(false);
-    save = learnAll(save);
-    expect(bossReady(save)).toBe(false);
     save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1 } };
     expect(stageStatuses(save)[3]).toBe("open");
+    expect(stageStatuses(save)[4]).toBe("locked");
     expect(bossReady(save)).toBe(false);
-    save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
+    save = learnAll(save);
     expect(bossReady(save)).toBe(true);
-    expect(stageStatuses(save)[4]).toBe("open");
+    expect(stageStatuses(save)).toEqual(["cleared", "cleared", "cleared", "open", "open"]);
     const early = applyBattleOutcome(learnAll(newSave()), "win", START.getTime(), "canopy");
-    expect(early.chapterCleared).toBe(false);
+    expect(early.chapterCleared).toBe(true);
   });
 
   it("counts selected-grade chapter words plus every extra, and clears an empty stage after one win", () => {
@@ -251,8 +250,8 @@ describe("forest chapter", () => {
     expect(stageStatuses(onlySecond)[0]).toBe("open");
     expect(stageStatuses(onlySecond)[2]).toBe("locked");
     expect(explorationCleared(onlySecond)).toBe(false);
-    expect(questLine(grade5)).toContain("林缘小径");
-    expect(questLine(grade5)).toContain("赢 1 场小战斗");
+    expect(questLine(grade5)).toContain("五年级 · 森林冒险：已学 0/14 个词");
+    expect(questLine(grade5)).toContain("再学 14 个就能挑战 Boss 啦！");
     expect(questLine(grade5)).not.toContain("0/0");
     const wonFirst = { ...grade5, stageWins: { "1": 1 } as Record<string, number> };
     expect(stageCleared(wonFirst, first)).toBe(true);
@@ -273,7 +272,7 @@ describe("forest chapter", () => {
     expect(questLine(grade6)).not.toContain("0/0");
     const wonSixthFirst = { ...grade6, stageWins: { "1": 1 } };
     expect(stageStatuses(wonSixthFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
-    expect(questLine(wonSixthFirst)).toContain("河岸花径");
+    expect(questLine(wonSixthFirst)).toContain("六年级 · 森林冒险：已学 0/11 个词");
     expect(questLine(wonSixthFirst)).not.toContain("0/0");
     const wonBoth = { ...grade6, stageWins: { "1": 1, "2": 1 } };
     expect(stageStatuses(wonBoth)[2]).toBe("open");
@@ -373,7 +372,8 @@ describe("forest chapter", () => {
     expect(lost.stageWins).toEqual(save.stageWins);
     expect(lost.battlesLost).toBe(1);
     expect(bossReady(lost)).toBe(true);
-    expect(questLine(lost)).toContain("林心守护者");
+    expect(questLine(lost)).toContain("森林冒险：已学 28/28 个词");
+    expect(questLine(lost)).toContain("本章全学会了，真棒！");
     const retry = startBattle({
       encounterId: "canopy",
       classId: "warrior",
@@ -424,7 +424,8 @@ describe("forest chapter", () => {
     expect(badgeTone(grey.wordCards.tree, grey.memory.tree, START)).toBe("grey");
     expect(litMasteryCount(grey, START)).toBe(0);
     const won = applyBattleOutcome(save, "win", START.getTime(), "canopy");
-    expect(won.chapterCleared).toBe(false);
+    expect(won.chapterCleared).toBe(true);
+    expect(won.wordCards.tree).toBe(save.wordCards.tree);
   });
 
   it("keeps the boss locked after only the grade-3 library words and two small battles", () => {

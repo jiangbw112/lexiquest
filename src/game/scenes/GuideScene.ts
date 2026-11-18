@@ -310,6 +310,9 @@ export class GuideScene extends Phaser.Scene {
     if (view.learnedLine) {
       this.add.text(720, 296, view.learnedLine, { fontFamily: FONT, fontSize: "16px", fontStyle: "700", color: INK });
     }
+    if (view.encourageLine) {
+      this.add.text(720, 318, view.encourageLine, { fontFamily: FONT, fontSize: "14px", color: INK });
+    }
     this.add.text(140, 324, `${view.firstMasteredLine}  ·  ${view.restoredMasteredLine}`, {
       fontFamily: FONT,
       fontSize: "16px",

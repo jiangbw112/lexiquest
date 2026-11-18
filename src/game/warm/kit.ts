@@ -74,7 +74,7 @@ export function warmButton(
   y: number,
   label: string,
   onClick: () => void,
-  options: { width?: number; height?: number; tone?: ButtonTone; disabled?: boolean } = {},
+  options: { width?: number; height?: number; tone?: ButtonTone; disabled?: boolean; caption?: string } = {},
 ): Phaser.GameObjects.Container {
   const width = options.width ?? 220;
   const height = options.height ?? 56;
@@ -85,8 +85,18 @@ export function warmButton(
   const states: ButtonState[] = ["normal", "hover", "pressed", "disabled"];
   const slices = {} as Record<ButtonState, Phaser.GameObjects.NineSlice>;
   for (const state of states) slices[state] = warmSlice(scene, atlas, `${prefix}_${state}`, width, height);
-  const text = scene.add.text(0, -3, label, labelStyle(tone, disabled)).setOrigin(0.5);
-  const root = scene.add.container(x, y, [...states.map((state) => slices[state]), text]);
+  const text = scene.add.text(0, options.caption ? -12 : -3, label, labelStyle(tone, disabled)).setOrigin(0.5);
+  const children: Phaser.GameObjects.GameObject[] = [...states.map((state) => slices[state]), text];
+  if (options.caption) {
+    const caption = scene.add.text(0, 14, options.caption, {
+      fontFamily: FONT_BODY,
+      fontSize: "14px",
+      color: disabled ? DIS_TEXT : tone === "coral" || tone === "teal" ? CREAM : INK,
+    }).setOrigin(0.5);
+    if (caption.width > width - 28) caption.setScale((width - 28) / caption.width);
+    children.push(caption);
+  }
+  const root = scene.add.container(x, y, children);
   showState(slices, disabled ? "disabled" : "normal");
   root.setSize(width, height);
   if (disabled) return root;

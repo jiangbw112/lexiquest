@@ -709,14 +709,11 @@ export const MAP_HEADER = {
   subSize: 14,
 } as const;
 
-export function mapHeaderFits(learned: string, mastery: string, due: string, sub: string): boolean {
-  const learnedEnd = MAP_HEADER.learnedX + cjkTextWidth(learned, MAP_HEADER.titleSize);
-  const masteryEnd = MAP_HEADER.masteryX + cjkTextWidth(mastery, MAP_HEADER.titleSize);
-  const dueEnd = MAP_HEADER.dueX + cjkTextWidth(due, MAP_HEADER.titleSize);
-  return learnedEnd <= MAP_HEADER.masteryX - 8
-    && masteryEnd <= MAP_HEADER.dueX - 8
-    && dueEnd <= MAP_HEADER.textRight
-    && MAP_HEADER.textLeft + cjkTextWidth(sub, MAP_HEADER.subSize) <= MAP_HEADER.textRight;
+/** Two full-width lines. The named count is line 1. Encouragement and battle progress share line 2. */
+export function mapHeaderFits(title: string, sub: string): boolean {
+  const width = MAP_HEADER.textRight - MAP_HEADER.textLeft;
+  return cjkTextWidth(title, MAP_HEADER.titleSize) <= width
+    && cjkTextWidth(sub, MAP_HEADER.subSize) <= width;
 }
 
 /** Parent week line starts at 140. The learned count starts at 720 and must stay inside 1140. */

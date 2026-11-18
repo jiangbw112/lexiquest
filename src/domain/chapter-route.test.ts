@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import {
-  LEARN_CARDS_DONE,
   chapterLearnScope,
   learnBatchView,
   resumeChapterLearn,
@@ -177,7 +176,7 @@ describe("academy lesson L", () => {
     for (const id of chapter.wordIds) done = learnWord(done, id, START);
     const view = learnBatchView(done, [], [], chapter);
     expect(view.kind).toBe("cards-done");
-    expect(view.message).toBe(LEARN_CARDS_DONE);
+    expect(view.message).toBe("本章词都学会了！去对战挑战 Boss 吧");
     expect(view.message).not.toBe(LOAD_FAILED);
     expect(view.message).not.toContain(FORBIDDEN);
     expect(done.learnSelection).toEqual({ grade: "G3", chapterId: chapter.id });
@@ -188,9 +187,9 @@ describe("academy lesson L", () => {
     expect(resumeChapterLearn(missing).batchIds).toEqual([]);
     expect(missing.learnSelection?.chapterId).toBe("missing_chapter");
     expect(LOAD_FAILED).toBe("本章没有载入。");
-    expect(LOAD_FAILED).not.toBe(LEARN_CARDS_DONE);
+    expect(LOAD_FAILED).not.toBe("本章词都学会了！去对战挑战 Boss 吧");
     expect(LOAD_FAILED).not.toBe(LEARN_RESELECT);
-    const joined = [LEARN_RESELECT, LOAD_FAILED, LEARN_CARDS_DONE, BATTLE_RETURN_PROGRESS].join("");
+    const joined = [LEARN_RESELECT, LOAD_FAILED, view.message ?? "", BATTLE_RETURN_PROGRESS].join("");
     expect(joined).not.toContain(String.fromCodePoint(0x5269));
     expect(joined).not.toContain(String.fromCodePoint(0x5c1a));
     expect(joined).not.toContain(String.fromCodePoint(0x5f80));

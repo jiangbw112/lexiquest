@@ -17,6 +17,7 @@ import {
   xpBarSegments,
   type XpFillSegment,
   type BattleResultsView,
+  type BossStudyEntry,
   type ResultItem,
 } from "../../domain/battle-results";
 import { skillCardFrame, skillIconFrame, skillLevelFrame, starMark } from "../../domain/skill-card-face";
@@ -384,14 +385,19 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawBossGate(): void {
     const line = this.view.bossGateLine;
     if (!line) return;
-    const y = 720;
-    const plate = this.add.rectangle(835, y, 740, 36, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
-    const text = this.add.text(835, y, line, {
+    const words = (this.view.bossGateWords ?? []).join("、");
+    const body = words ? `${line}\n${words}` : line;
+    const y = 690;
+    const plate = this.add.rectangle(835, y, 740, words ? 78 : 36, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
+    const text = this.add.text(835, y, body, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       fontStyle: "700",
       color: NOTE,
+      align: "center",
+      wordWrap: { width: 700 },
     }).setOrigin(0.5);
+    if (text.height > 70) text.setScale(70 / text.height);
     this.finishing.push(plate, text);
   }
 
@@ -772,12 +778,18 @@ export class BattleResultsScene extends Phaser.Scene {
       const spot = RESULTS_LAYOUT.continueButton;
       const y = this.view.bossGateLine ? 770 : spot.y;
       if (this.view.bossGateLine) {
-        const academy = warmButton(this, 560, y, uiLabel("去学堂"), () => {
-          if (!this.keysOpen()) return;
-          this.toAcademy();
-        }, { width: 200, height: spot.h, tone: "secondary" });
-        academy.setVisible(false);
-        this.buttons.push(academy);
+        const study = this.view.bossStudy ?? [];
+        const entries = study.length > 0 ? study : [null];
+        entries.forEach((entry, index) => {
+          const label = entry?.label ?? uiLabel("去学堂");
+          const x = 480 + index * 220;
+          const academy = warmButton(this, x, y, label, () => {
+            if (!this.keysOpen()) return;
+            this.toAcademy(entry ?? undefined);
+          }, { width: entry ? 200 : 200, height: spot.h, tone: "secondary" });
+          academy.setVisible(false);
+          this.buttons.push(academy);
+        });
       }
       const button = warmButton(this, spot.x, y, label, () => {
         if (!this.keysOpen()) return;
@@ -802,10 +814,15 @@ export class BattleResultsScene extends Phaser.Scene {
     this.buttons.push(again, map);
   }
 
-  private toAcademy(): void {
+  private toAcademy(entry?: BossStudyEntry): void {
     probeNote(`battle:results:academy:${this.view.stageId}`);
     this.scene.stop("battle");
-    this.scene.start("learn", { forestStageId: this.view.stageId });
+    this.scene.start("learn", {
+      forestStageId: this.view.stageId,
+      practiceWordIds: entry?.wordIds,
+      practiceGrade: entry?.grade,
+      practiceChapterId: entry?.chapterId,
+    });
   }
 
   private continueOn(): void {

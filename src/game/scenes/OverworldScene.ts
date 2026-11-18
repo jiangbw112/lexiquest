@@ -126,12 +126,21 @@ export class OverworldScene extends Phaser.Scene {
     warmBackground(this, "bg_village");
     warmPanel(this, SAFE.x + SAFE.width / 2, 62, SAFE.width - 24, 96);
     const quest = questLine(save);
-    this.add.text(SAFE.x + 24, 28, `${save.player.name} · ${quest}`, {
+    const [headline, ...rest] = quest.split("\n");
+    this.add.text(SAFE.x + 24, rest.length > 0 ? 40 : 62, headline ?? "", {
       fontFamily: FONT_BODY,
       fontSize: "20px",
       color: INK,
       wordWrap: cjkWrap(SAFE.width - 60),
     });
+    if (rest.length > 0) {
+      this.add.text(SAFE.x + 24, 78, rest.join("\n"), {
+        fontFamily: FONT_BODY,
+        fontSize: "20px",
+        color: INK,
+        wordWrap: cjkWrap(SAFE.width - 60),
+      });
+    }
     const goal = save.dailyGoal;
     const goalText = `${goalStatusLine(goal)}  ·  累计完成 ${save.goalDaysTotal} 天`;
     const progress = goal ? goalProgress(goal) : 0;

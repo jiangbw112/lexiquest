@@ -13,14 +13,14 @@ import { starterSkillId } from "./skills";
 import type { SaveData } from "./types";
 
 const GRADES = ["G3", "G4", "G5", "G6"] as const;
-/** Question pools for every chapter under every grade selection, measured on 2ee729d. */
-const POOL_HASH = "6a4549596ce055b5f93afa1d7787d47dbc22af6e1c1d548c34e65db36536aeb4";
+/** Question pools for every chapter under every grade selection. Forest order follows forestStudyWordIds. */
+const POOL_HASH = "90728f833774d99baa31732d0a648ca35f8fb6d1196cfdd9e3eaa15ba5e7b08e";
 /** Exam meaning choices for a full card pool after the near-synonym blocks. */
 const EXAM_CHOICE_HASH = "8b3eca1f93a7241dd6c0092be675b868672b533e99cdedd648f493d15a4a1408";
 const EXCLUSION_SHA = "516cc9da9ac457e400b71530ec77174179e13ad643311dfa84423e866c7fb311";
 const FOREST_G3_POOL = [
   "tree", "bird", "fish", "sun", "map", "big", "red", "flower",
-  "bridge", "path", "brave", "protect", "treasure", "journey", "discover", "adventure",
+  "bridge", "brave", "path", "treasure", "journey", "discover", "adventure", "protect",
 ];
 
 function combos(): string[][] {

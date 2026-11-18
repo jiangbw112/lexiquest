@@ -7,21 +7,14 @@ import { CHAPTER_BOSS_ID } from "./battle";
 import { advanceBattleAnchor } from "./chapter-route";
 import { chapterBossReady, parseChapterEncounter, spellingSkipIds, starKey } from "./chapter-plan";
 import { isCleared } from "./clearance";
-import { battleClearLine, learnedWordsLine, cardProgress } from "./learn-progress";
+import { studyBanner, villageStudyChapter } from "./study-copy";
 import { PROVISIONAL } from "./provisional";
 import {
   bossReady,
   chapterWordIds,
   FOREST_CHAPTER,
-  clearedStageCount,
   litMasteryCount,
-  requiredWordIds,
   explorationStageByEncounter,
-  masteryLabel,
-  stageById,
-  stageCleared,
-  stageWordIds,
-  wordsUntilBoss,
 } from "./stages";
 import { classById } from "./classes";
 import { isClassSelectable } from "./class-unlock";
@@ -448,38 +441,12 @@ export function gradeGate(save: Pick<SaveData, "selectedGrades" | "gradesConfirm
   return save.gradesConfirmed ? "ask-parent" : "migrate";
 }
 
-/** What the village should tell the child to do next. */
+/** Village header. Same sentences as the map and the parent page, for this screen's chapter. */
 export function questLine(save: SaveData): string {
   const tooSmall = selectionBattleNotice(selectedSampleWords(save).length);
   if (tooSmall) return tooSmall;
-  const now = studyNow(save);
-  const words = cardProgress(save, requiredWordIds(save));
-  const learned = learnedWordsLine(words, "本章") ?? "本章没有要学的词";
-  const progress = `${learned}，${battleClearLine(clearedStageCount(save), 5)}，熟练 ${masteryLabel(save, now)}。`;
-  if (save.chapterCleared) {
-    return `森林冒险通关了。${progress}复习会让灰掉的徽章再亮。`;
-  }
-  const next = nextForestStage(save);
-  if (!next) return `去对战，挑战林心守护者。${progress}`;
-  if (next.type === "boss") {
-    return bossReady(save)
-      ? `可以挑战林心守护者了。${progress}`
-      : `林心守护还锁着。还差 ${wordsUntilBoss(save)} 个词。${progress}`;
-  }
-  const ids = stageWordIds(save, next);
-  const wins = save.stageWins[String(next.id)] ?? 0;
-  if (ids.length === 0) {
-    const need = FOREST_CHAPTER.stage_clear.min_battle_wins;
-    return `下一关是${next.name_zh}。没有要学的新词，赢 ${need} 场小战斗就算通过。小战斗 ${wins} 胜。${progress}`;
-  }
-  const got = ids.filter((id) => save.wordCards[id]).length;
-  return `下一关是${next.name_zh}。新词 ${got}/${ids.length}，小战斗 ${wins} 胜。${progress}`;
-}
-
-function nextForestStage(save: SaveData) {
-  const stages = [1, 2, 3, 4, 5].map((id) => stageById(id)).filter((stage) => stage !== undefined);
-  const open = stages.find((stage) => stage.type !== "boss" && !stageCleared(save, stage));
-  return open ?? stageById(5);
+  const banner = studyBanner(save, villageStudyChapter(save));
+  return [banner.title, banner.encourage].filter(Boolean).join("\n");
 }
 
 /**

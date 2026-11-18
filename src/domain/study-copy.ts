@@ -1,0 +1,176 @@
+import { GRADE_BANDS, isChapterExtra, normalizeGrades, wordById } from "./catalog";
+import { activeChapter, forestPlayChapter, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
+import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./stages";
+import type { GradeBand, SaveData } from "./types";
+
+const GRADE_ORDER: readonly GradeBand[] = ["G3", "G4", "G5", "G6"];
+
+export function gradeLabel(grade: GradeBand): string {
+  return GRADE_BANDS.find((band) => band.id === grade)?.label ?? grade;
+}
+
+/** Forest screens count the shared boss list. A later chapter counts its own words. */
+export function studyWordIds(save: SaveData, chapter: PlayChapter): string[] {
+  if (chapter.id === FOREST_CHAPTER.chapter_id) return forestStudyWordIds(save.selectedGrades);
+  return [...chapter.wordIds];
+}
+
+export interface StudyBanner {
+  title: string;
+  encourage: string;
+}
+
+/**
+ * The same two lines for the village, the map, and the parent page.
+ * The chapter argument is the chapter that screen is about.
+ */
+export function studyBanner(save: SaveData, chapter: PlayChapter): StudyBanner {
+  const ids = studyWordIds(save, chapter);
+  const learned = ids.filter((id) => save.wordCards[id]).length;
+  const total = ids.length;
+  const forest = chapter.id === FOREST_CHAPTER.chapter_id;
+  const selected = normalizeGrades(save.selectedGrades);
+  let title: string;
+  if (total === 0) title = "这一章没有要学的新词。";
+  else if (forest && selected.length === 1) title = `${gradeLabel(selected[0]!)} · ${chapter.name}：已学 ${learned}/${total} 个词`;
+  else if (forest) title = `${chapter.name}：已学 ${learned}/${total} 个词`;
+  else {
+    const grade = chapter.grade === "mixed" ? selected[0] ?? "G3" : chapter.grade;
+    title = `${gradeLabel(grade)} · ${chapter.name}：已学 ${learned}/${total} 个词`;
+  }
+  return { title, encourage: studyEncouragement(save, chapter, ids) };
+}
+
+function studyEncouragement(save: SaveData, chapter: PlayChapter, ids: readonly string[]): string {
+  if (ids.length === 0) return "";
+  const missing = ids.filter((id) => !save.wordCards[id]);
+  const cleared = isChapterCleared(save, chapter);
+  if (missing.length === 0) return cleared ? "这一章打完啦，真棒！" : "本章全学会了，真棒！";
+  const forest = chapter.id === FOREST_CHAPTER.chapter_id;
+  if (!forest && !isChapterUnlocked(save, chapter)) {
+    return `再学 ${missing.length} 个词。对战里要先打完上一章。`;
+  }
+  let line = `再学 ${missing.length} 个就能挑战 Boss 啦！`;
+  const formalGrades = GRADE_ORDER.filter((grade) =>
+    missing.some((id) => !isChapterExtra(id) && wordById(id)?.grade === grade),
+  );
+  const selected = normalizeGrades(save.selectedGrades);
+  const here: GradeBand | null = forest
+    ? (selected.length === 1 ? selected[0]! : null)
+    : (chapter.grade === "mixed" ? null : chapter.grade);
+  if (formalGrades.length === 1 && formalGrades[0] !== here) line += `去${gradeLabel(formalGrades[0]!)}学。`;
+  return line;
+}
+
+/** Forest until that boss is beaten, then the chapter the save is standing in. */
+export function villageStudyChapter(save: SaveData): PlayChapter {
+  if (!isChapterCleared(save, forestPlayChapter())) return forestPlayChapter();
+  return activeChapter(save);
+}
+
+/** Button caption on the academy chapter list. */
+export function academyProgressLabel(save: SaveData, chapter: PlayChapter): string {
+  if (chapter.id === FOREST_CHAPTER.chapter_id && chapter.grade !== "mixed") {
+    const all = gradeForestStudyWordIds(chapter.grade);
+    const formal = all.filter((id) => !isChapterExtra(id));
+    const common = all.filter((id) => isChapterExtra(id));
+    const formalDone = formal.filter((id) => save.wordCards[id]).length;
+    const commonDone = common.filter((id) => save.wordCards[id]).length;
+    if (all.length > 0 && formalDone === formal.length && commonDone === common.length) return "已学完";
+    return `${gradeLabel(chapter.grade)}词 ${formalDone}/${formal.length} · 共用 ${commonDone}/${common.length}`;
+  }
+  if (chapter.wordIds.length === 0) return "";
+  const done = chapter.wordIds.filter((id) => save.wordCards[id]).length;
+  if (done === chapter.wordIds.length) return "已学完";
+  return `${done}/${chapter.wordIds.length}`;
+}
+
+export interface NamedWord {
+  id: string;
+  english: string;
+  chinese: string;
+  grade: GradeBand;
+  extra: boolean;
+}
+
+export function namedWords(ids: readonly string[]): NamedWord[] {
+  const words: NamedWord[] = [];
+  for (const id of ids) {
+    const word = wordById(id);
+    if (!word) continue;
+    words.push({
+      id,
+      english: word.english,
+      chinese: word.chinese,
+      grade: word.grade,
+      extra: isChapterExtra(id),
+    });
+  }
+  return words;
+}
+
+export function wordLine(words: readonly NamedWord[]): string {
+  return words.map((word) => `${word.english} ${word.chinese}`).join("、");
+}
+
+/** Grade the shared extras attach to when they still need a card. */
+export function hostGrade(save: SaveData): GradeBand {
+  const selected = normalizeGrades(save.selectedGrades);
+  const current = save.learnSelection?.grade;
+  if (current && current !== "mixed" && selected.includes(current)) return current;
+  return selected[0] ?? "G3";
+}
+
+export interface GradePractice {
+  grade: GradeBand;
+  wordIds: string[];
+  label: string;
+  line: string;
+}
+
+/**
+ * One academy entry per grade that still has boss-gate words.
+ * Formal words stay with their own grade. Shared extras sit with the chapter being studied.
+ */
+export function gradePracticeEntries(save: SaveData, missing: readonly NamedWord[]): GradePractice[] {
+  const selected = normalizeGrades(save.selectedGrades);
+  const buckets = new Map<GradeBand, NamedWord[]>();
+  const take = (grade: GradeBand): NamedWord[] => {
+    const found = buckets.get(grade);
+    if (found) return found;
+    const created: NamedWord[] = [];
+    buckets.set(grade, created);
+    return created;
+  };
+  for (const word of missing) {
+    if (word.extra) continue;
+    if (selected.length > 0 && !selected.includes(word.grade)) continue;
+    take(word.grade).push(word);
+  }
+  const extras = missing.filter((word) => word.extra);
+  if (extras.length > 0) {
+    const grade = selected.includes(hostGrade(save)) ? hostGrade(save) : selected[0];
+    if (grade) take(grade).push(...extras);
+  }
+  const grades = GRADE_ORDER.filter((grade) => (buckets.get(grade)?.length ?? 0) > 0);
+  return grades.map((grade) => {
+    const words = buckets.get(grade) ?? [];
+    return {
+      grade,
+      wordIds: words.map((word) => word.id),
+      label: grades.length === 1 ? "去学堂学这几个" : `去${gradeLabel(grade)}学这几个`,
+      line: wordLine(words),
+    };
+  });
+}
+
+/** Settlement line when this forest lesson is done and another grade still has boss words. */
+export function otherGradeForestLine(here: GradeBand, groups: readonly GradePractice[]): string {
+  const bits = groups.map((group) => {
+    const english = group.wordIds.map((id) => wordById(id)?.english ?? id).join("、");
+    return `${gradeLabel(group.grade)} ${group.wordIds.length} 个：${english}`;
+  });
+  const first = groups[0];
+  const next = first ? gradeLabel(first.grade) : "";
+  return `${gradeLabel(here)}的词学完了。还差${bits.join("。还差")}。去${next}的森林冒险。`;
+}

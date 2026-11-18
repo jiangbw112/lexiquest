@@ -414,9 +414,9 @@ describe("boot and renderer guards", () => {
     expect(map).toContain("battleReturn");
     expect(map).toContain("上一章");
     expect(map).toContain("this.tweens.killAll()");
-    expect(map).toContain("learnedWordsLine");
+    expect(map).toContain("studyBanner");
     expect(map).toContain("battleClearLine");
-    expect(map).toContain("requiredWordIds(save)");
+    expect(map).toContain("studyBanner(save, chapter)");
     expect(map).not.toContain("FOREST_WORD_COUNT");
   });
 });
@@ -626,14 +626,12 @@ describe("academy title and grade chips", () => {
 describe("learning progress stays inside the map header and the parent row", () => {
   it("keeps the longest learning and battle labels from overlapping", () => {
     expect(mapHeaderFits(
-      "已学 28/28 个词",
-      "熟练 28/28",
-      "到期 99",
-      "战斗 5/5 关通过 · 距营养餐盘守护者还差 28 个词",
+      "六年级 · 不一样的朋友：已学 28/28 个词",
+      "本章全学会了，真棒！  战斗 5/5 关通过  熟练 28/28  到期 99",
     )).toBe(true);
     expect(parentProgressFits(
       "近 7 天：新学 128 个 · 复习过 128 个词",
-      "本章已学 28/28 个词",
+      "三年级 · 森林冒险：已学 10/16 个词",
     )).toBe(true);
     expect(cjkTextWidth("本关已学 21/21 个词", 16)).toBeLessThanOrEqual(252);
   });

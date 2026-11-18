@@ -493,7 +493,8 @@ describe("DES-05 parent progress and daily goal", () => {
   it("counts chapter word cards apart from battle clears", () => {
     const save = learnWord(newSave(), "tree", START);
     const before = parentView(save, START);
-    expect(before.learnedLine).toMatch(/^本章已学 1\/\d+ 个词$/);
+    expect(before.learnedLine).toBe("三年级 · 森林冒险：已学 1/16 个词");
+    expect(before.encourageLine).toContain("再学");
     expect(before.masteredLine).toContain("已通关 0/");
     expect(before.learnedLine).not.toContain("通过");
     const won = parentView({ ...save, stageWins: { "1": 1 }, chapterCleared: true }, START);

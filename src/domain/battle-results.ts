@@ -7,12 +7,13 @@ import { findPlayChapter } from "./chapter-plan";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
 import { COSMETIC_LABEL } from "./cosmetic-label";
 import { chapterWordsRemaining } from "./learn-batch";
+import { gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { levelFromXp } from "./progress";
 import { skillIconFrame } from "./skill-card-face";
 import { skillById } from "./skills";
 import { stageLearnMoreLine, stageWordsStillToLearn } from "./stages";
-import type { SaveData } from "./types";
+import type { GradeBand, SaveData } from "./types";
 
 export type StarCount = 1 | 2 | 3;
 
@@ -100,6 +101,17 @@ export interface BattleResultsView {
    * Null when those words are already collected, or the fight was not that stage.
    */
   bossGateLine: string | null;
+  /** English and Chinese of the words the boss gate still wants. Empty when the line is hidden. */
+  bossGateWords: string[];
+  /** One academy entry per grade. The scene passes wordIds and does not write them onto the save. */
+  bossStudy: BossStudyEntry[];
+}
+
+export interface BossStudyEntry {
+  grade: GradeBand;
+  chapterId: string;
+  wordIds: string[];
+  label: string;
 }
 
 /** Integer thresholds. A loss has no stars. Question count and time do not reduce them. */
@@ -269,7 +281,17 @@ export function buildResultsView(input: {
     praise: stars ? praiseFor(stars) : "",
     ...resultsStudyLines(input.after, input.stageId, input.boss),
     bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
+    ...bossGateFields(input.after, input.stageId, won, input.chapterId),
   };
+}
+
+function bossGateFields(save: SaveData, stageId: number, won: boolean, chapterId?: string): {
+  bossGateWords: string[];
+  bossStudy: BossStudyEntry[];
+} {
+  if (!bossGateReminder(save, stageId, won, chapterId)) return { bossGateWords: [], bossStudy: [] };
+  const study = bossGateStudy(save, chapterId);
+  return { bossGateWords: study.words, bossStudy: study.entries };
 }
 
 /** Listed rows stay as rows. Anything past the cap is a "+N 件" badge, not a button. */
@@ -460,6 +482,34 @@ export function bossGateReminder(save: SaveData, stageId: number, won: boolean, 
   const remaining = bossWordsStillRequired(save, chapterId);
   if (remaining <= 0) return null;
   return bossWordsLeftLine(remaining);
+}
+
+/** The unlearned boss-gate words, and one academy entry per grade. */
+export function bossGateStudy(save: SaveData, chapterId?: string): { words: string[]; entries: BossStudyEntry[] } {
+  const chapter = findPlayChapter(save, chapterId);
+  const missing = namedWords(studyWordIds(save, chapter).filter((id) => !save.wordCards[id]));
+  const words = missing.map((word) => `${word.english} ${word.chinese}`);
+  if (missing.length === 0) return { words, entries: [] };
+  if (chapter.grade !== "mixed") {
+    return {
+      words,
+      entries: [{
+        grade: chapter.grade,
+        chapterId: chapter.id,
+        wordIds: missing.map((word) => word.id),
+        label: "去学堂学这几个",
+      }],
+    };
+  }
+  return {
+    words,
+    entries: gradePracticeEntries(save, missing).map((entry) => ({
+      grade: entry.grade,
+      chapterId: chapter.id,
+      wordIds: entry.wordIds,
+      label: entry.label,
+    })),
+  };
 }
 
 /** The clear hint only. A small learned set no longer makes the fight repeat those words. */

@@ -558,7 +558,8 @@ describe("stage 4 boss word reminder", () => {
     const scene = source("../game/scenes/BattleResultsScene.ts");
     expect(scene).toContain("bossGateLine");
     expect(scene).toContain("去学堂");
-    expect(scene).toContain('this.scene.start("learn", { forestStageId: this.view.stageId })');
+    expect(scene).toContain("forestStageId: this.view.stageId");
+    expect(scene).toContain("practiceWordIds");
     expect(scene).not.toContain("mutate");
   });
 });

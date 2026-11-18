@@ -3,9 +3,11 @@ import { wordById } from "./catalog";
 import { cardProgress, learnedWordsLine } from "./learn-progress";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { studyNow } from "./progress";
+import { gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
 import { uiLabel } from "./ui-label";
 import { bossUnlockLine, FOREST_CHAPTER, stageLearnMoreLine, stageWins, stageWordIds, stageWordsStillToLearn, type ForestStage, type StageStatus } from "./stages";
-import type { SaveData } from "./types";
+import type { GradeBand, SaveData } from "./types";
+import type { PlayChapter } from "./chapter-plan";
 
 export interface MapWordFace {
   id: string;
@@ -19,6 +21,9 @@ export interface MapPanelButton {
   label: string;
   enabled: boolean;
   tone: "primary" | "secondary" | "coral";
+  grade?: GradeBand;
+  wordIds?: string[];
+  chapterId?: string;
 }
 
 export interface MapPanel {
@@ -35,6 +40,8 @@ export interface MapPanel {
   wins: number | null;
   words: MapWordFace[];
   unlockLine: string | null;
+  /** English and Chinese of boss-gate words that still need a card. */
+  missingLines: string[];
   note: string | null;
   /** Best stars for this stage. Null means there is no record, so the map draws nothing. */
   bestStars: 1 | 2 | 3 | null;
@@ -71,7 +78,13 @@ export interface MapPanelCounts {
   bossLabel?: string;
 }
 
-export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus, counts?: MapPanelCounts): MapPanel {
+export function mapPanel(
+  save: SaveData,
+  stage: ForestStage,
+  status: StageStatus,
+  counts?: MapPanelCounts,
+  chapter?: Pick<PlayChapter, "id" | "grade" | "wordIds">,
+): MapPanel {
   const progress = cardProgress(save, stageWordIds(save, stage));
   const learned = progress.learned;
   const total = progress.total;
@@ -97,21 +110,27 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       wins: null,
       words: faces(stage, save, "hide"),
       unlockLine: counts?.lockedLine ?? (after === null ? null : `通过第 ${after} 关后开启`),
+      missingLines: [],
       note: null,
       buttons: [{ id: "fight", label: uiLabel("未开启"), enabled: false, tone: "primary" }],
     };
   }
   if (boss && status === "locked") {
+    const gate = bossGateFaces(save, chapter);
     return {
       ...base,
       goal: stage.goal_zh,
       statusLabel: "未开启",
       showLock: true,
       wins: null,
-      words: faces(stage, save, "learned"),
+      words: gate.lines.length > 0 ? [] : faces(stage, save, "learned"),
       unlockLine: counts?.lockedLine ?? bossUnlockLine(save),
+      missingLines: gate.lines,
       note: null,
-      buttons: [{ id: "fight", label: bossLabel, enabled: false, tone: "coral" }],
+      buttons: [
+        ...gate.entries,
+        { id: "fight" as const, label: bossLabel, enabled: false, tone: "coral" as const },
+      ],
     };
   }
   if (boss && status === "open") {
@@ -123,6 +142,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       wins: null,
       words: faces(stage, save, "learned"),
       unlockLine: null,
+      missingLines: [],
       note: null,
       buttons: [{ id: "fight", label: bossLabel, enabled: true, tone: "coral" }],
     };
@@ -136,6 +156,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       wins: null,
       words: faces(stage, save, "all"),
       unlockLine: null,
+      missingLines: [],
       note: null,
       buttons: [
         { id: "learn", label: uiLabel("去学堂"), enabled: true, tone: "secondary" },
@@ -155,6 +176,7 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
     wins: counts ? counts.wins : stageWins(save, stage.id),
     words: faces(stage, save, cleared ? "all" : "learned"),
     unlockLine: null,
+    missingLines: [],
     note: learnMore
       ? learnMore
       : cleared && practiceFull(save)
@@ -166,5 +188,54 @@ export function mapPanel(save: SaveData, stage: ForestStage, status: StageStatus
       { id: "learn", label: uiLabel("去学堂"), enabled: true, tone: "secondary" },
       { id: "fight", label: uiLabel(cleared ? "再战" : "小战斗"), enabled: true, tone: cleared ? "coral" : "primary" },
     ],
+  };
+}
+
+function bossGateFaces(
+  save: SaveData,
+  chapter?: Pick<PlayChapter, "id" | "grade" | "wordIds">,
+): { lines: string[]; entries: MapPanelButton[] } {
+  const scope = chapter ?? {
+    id: FOREST_CHAPTER.chapter_id,
+    grade: "mixed" as const,
+    wordIds: [],
+  };
+  const play: PlayChapter = {
+    id: scope.id,
+    name: "",
+    bossName: "",
+    grade: scope.grade,
+    index: 0,
+    stages: [],
+    wordIds: [...scope.wordIds],
+  };
+  const missing = namedWords(studyWordIds(save, play).filter((id) => !save.wordCards[id]));
+  if (missing.length === 0) return { lines: [], entries: [] };
+  if (scope.grade !== "mixed") {
+    return {
+      lines: [missing.map((word) => `${word.english} ${word.chinese}`).join("、")],
+      entries: [{
+        id: "learn",
+        label: "去学堂学这几个",
+        enabled: true,
+        tone: "secondary",
+        grade: scope.grade,
+        wordIds: missing.map((word) => word.id),
+        chapterId: scope.id,
+      }],
+    };
+  }
+  const groups = gradePracticeEntries(save, missing);
+  return {
+    lines: groups.map((group) => group.line),
+    entries: groups.map((group) => ({
+      id: "learn" as const,
+      label: group.label,
+      enabled: true,
+      tone: "secondary" as const,
+      grade: group.grade,
+      wordIds: group.wordIds,
+      chapterId: scope.id,
+    })),
   };
 }
