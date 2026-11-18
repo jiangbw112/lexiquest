@@ -25,6 +25,8 @@ import {
   resultsSkipKind,
   resultsStackNudge,
   RESULTS_LAYOUT,
+  resultsBoxInsidePanel,
+  resultsGateButtons,
   starsFor,
   visibleItems,
   wordsForResults,
@@ -376,6 +378,11 @@ describe("battle results stars and words", () => {
     expect(main).toContain("BattleResultsScene");
     expect(map).toContain("retryStageId");
     expect(RESULTS_LAYOUT.continueButton.y).toBe(744);
+    const gate = resultsGateButtons();
+    for (const box of [gate.academy, gate.next, gate.plate]) expect(resultsBoxInsidePanel(box, 12)).toBe(true);
+    const gapX = Math.abs(gate.academy.x - gate.next.x) - (gate.academy.w + gate.next.w) / 2;
+    expect(gapX).toBeGreaterThanOrEqual(16);
+    expect(gate.plate.y + gate.plate.h / 2).toBeLessThanOrEqual(gate.academy.y - gate.academy.h / 2);
     expect(RESULTS_LAYOUT.practiceItems.y + RESULTS_LAYOUT.practiceItems.h / 2 + 30)
       .toBeLessThanOrEqual(RESULTS_LAYOUT.continueButton.y - RESULTS_LAYOUT.continueButton.h / 2);
     expect(mapStarCenter(0)).toEqual({ x: 294, y: 711 });

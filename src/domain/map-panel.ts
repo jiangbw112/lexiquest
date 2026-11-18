@@ -3,7 +3,7 @@ import { wordById } from "./catalog";
 import { cardProgress, learnedWordsLine } from "./learn-progress";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { studyNow } from "./progress";
-import { gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
+import { clipMissingWords, gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
 import { uiLabel } from "./ui-label";
 import { bossUnlockLine, FOREST_CHAPTER, stageLearnMoreLine, stageWins, stageWordIds, stageWordsStillToLearn, type ForestStage, type StageStatus } from "./stages";
 import type { GradeBand, SaveData } from "./types";
@@ -124,7 +124,7 @@ export function mapPanel(
       showLock: true,
       wins: null,
       words: gate.lines.length > 0 ? [] : faces(stage, save, "learned"),
-      unlockLine: counts?.lockedLine ?? bossUnlockLine(save),
+      unlockLine: counts?.lockedLine ?? bossUnlockLine(),
       missingLines: gate.lines,
       note: null,
       buttons: [
@@ -213,7 +213,7 @@ function bossGateFaces(
   if (missing.length === 0) return { lines: [], entries: [] };
   if (scope.grade !== "mixed") {
     return {
-      lines: [missing.map((word) => `${word.english} ${word.chinese}`).join("、")],
+      lines: clipMissingWords([missing.map((word) => `${word.english} ${word.chinese}`).join("、")], 48),
       entries: [{
         id: "learn",
         label: "去学堂学这几个",
@@ -226,16 +226,19 @@ function bossGateFaces(
     };
   }
   const groups = gradePracticeEntries(save, missing);
+  const first = groups[0];
   return {
-    lines: groups.map((group) => group.line),
-    entries: groups.map((group) => ({
-      id: "learn" as const,
-      label: group.label,
-      enabled: true,
-      tone: "secondary" as const,
-      grade: group.grade,
-      wordIds: group.wordIds,
-      chapterId: scope.id,
-    })),
+    lines: clipMissingWords(groups.map((group) => group.line), 48),
+    entries: first
+      ? [{
+          id: "learn" as const,
+          label: first.label,
+          enabled: true,
+          tone: "secondary" as const,
+          grade: first.grade,
+          wordIds: first.wordIds,
+          chapterId: scope.id,
+        }]
+      : [],
   };
 }

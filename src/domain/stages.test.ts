@@ -221,7 +221,7 @@ describe("forest chapter", () => {
     expect(stageWordIds(grade3, FOREST_CHAPTER.stages[2]!)).toEqual(["bridge", "path"]);
     expect(stageStatuses(grade3)).toEqual(["open", "locked", "locked", "locked", "locked"]);
     expect(wordsUntilBoss(grade3)).toBe(16);
-    expect(bossUnlockLine(grade3)).toBe("通过前 4 关并学完 16 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
     expect(bossReady(grade3)).toBe(false);
 
     let ready = grade3;
@@ -234,9 +234,9 @@ describe("forest chapter", () => {
 
     const several = newSave(["G3", "G4", "G5"]);
     expect(requiredWordIds(several)).toHaveLength(25);
-    expect(bossUnlockLine(several)).toBe("通过前 4 关并学完 25 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
     expect(requiredWordIds(newSave())).toHaveLength(28);
-    expect(bossUnlockLine(newSave())).toBe("通过前 4 关并学完 28 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
 
     const grade5 = newSave(["G5"]);
     const first = FOREST_CHAPTER.stages[0]!;
@@ -298,7 +298,7 @@ describe("forest chapter", () => {
     expect(requiredWordIds(save)).toHaveLength(28);
     expect(wordsUntilBoss(save)).toBe(1);
     expect(bossReady(save)).toBe(false);
-    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 28 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
 
     save = setSelectedGrades(save, ["G3", "G5", "G6"]);
     const left = requiredWordIds(save);
@@ -309,7 +309,7 @@ describe("forest chapter", () => {
     for (const extra of chapterExtraWords()) expect(left).toContain(extra.id);
     expect(wordsUntilBoss(save)).toBe(0);
     expect(bossReady(save)).toBe(true);
-    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 25 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
   });
 
   it("keeps the boss locked when no grade is selected, even if the extras are collected", () => {
@@ -319,7 +319,7 @@ describe("forest chapter", () => {
     expect(requiredWordIds(save)).toEqual(expect.arrayContaining(extras));
     expect(requiredWordIds(save)).toHaveLength(8);
     expect(requiredWordIds(save).every((id) => isChapterExtra(id))).toBe(true);
-    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 8 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
     expect(bossReady(save)).toBe(false);
     for (const id of requiredWordIds(save)) {
       save = {
@@ -442,7 +442,7 @@ describe("forest chapter", () => {
     save = { ...save, stageWins: { "1": 1, "2": 1 } };
     expect(requiredWordIds(save)).toHaveLength(16);
     expect(wordsUntilBoss(save)).toBe(8);
-    expect(bossUnlockLine(save)).toBe("通过前 4 关并学完 16 个词");
+    expect(bossUnlockLine()).toBe("学完本章词就能挑战");
     expect(explorationCleared(save)).toBe(false);
     expect(bossReady(save)).toBe(false);
     const statuses = stageStatuses(save);

@@ -276,11 +276,11 @@ export function stageLearnMoreLine(remaining: number): string | null {
   return `这一关还有 ${remaining} 个新词可以去学堂学`;
 }
 
-/** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
-export function bossUnlockLine(save: SaveData): string {
-  const boss = FOREST_CHAPTER.stages.find((stage) => stage.type === "boss");
-  const prior = boss?.unlock && "stages_cleared" in boss.unlock ? boss.unlock.stages_cleared.length : 0;
-  return `通过前 ${prior} 关并学完 ${requiredWordIds(save).length} 个词`;
+/** A locked boss opens once this chapter's words have cards. Earlier stages are not required. */
+export const BOSS_LEARN_LINE = "学完本章词就能挑战";
+
+export function bossUnlockLine(): string {
+  return BOSS_LEARN_LINE;
 }
 
 export function chapterLearnedCount(save: SaveData): number {

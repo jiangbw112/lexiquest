@@ -4,6 +4,14 @@ import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./s
 import type { GradeBand, SaveData } from "./types";
 
 const GRADE_ORDER: readonly GradeBand[] = ["G3", "G4", "G5", "G6"];
+const GRADE_SHORT: Record<GradeBand, string> = { G3: "三", G4: "四", G5: "五", G6: "六" };
+
+/** 「四年级」 for one grade, 「四、六年级」 when several are selected. */
+export function selectedGradesLabel(grades: readonly GradeBand[]): string {
+  const ordered = GRADE_ORDER.filter((grade) => grades.includes(grade));
+  if (ordered.length === 0) return "";
+  return `${ordered.map((grade) => GRADE_SHORT[grade]).join("、")}年级`;
+}
 
 export function gradeLabel(grade: GradeBand): string {
   return GRADE_BANDS.find((band) => band.id === grade)?.label ?? grade;
@@ -31,9 +39,11 @@ export function studyBanner(save: SaveData, chapter: PlayChapter): StudyBanner {
   const forest = chapter.id === FOREST_CHAPTER.chapter_id;
   const selected = normalizeGrades(save.selectedGrades);
   let title: string;
+  const grades = selectedGradesLabel(selected);
   if (total === 0) title = "这一章没有要学的新词。";
-  else if (forest && selected.length === 1) title = `${gradeLabel(selected[0]!)} · ${chapter.name}：已学 ${learned}/${total} 个词`;
-  else if (forest) title = `${chapter.name}：已学 ${learned}/${total} 个词`;
+  else if (forest) title = grades
+    ? `${grades} · ${chapter.name}：已学 ${learned}/${total} 个词`
+    : `${chapter.name}：已学 ${learned}/${total} 个词`;
   else {
     const grade = chapter.grade === "mixed" ? selected[0] ?? "G3" : chapter.grade;
     title = `${gradeLabel(grade)} · ${chapter.name}：已学 ${learned}/${total} 个词`;
@@ -111,6 +121,26 @@ export function namedWords(ids: readonly string[]): NamedWord[] {
 
 export function wordLine(words: readonly NamedWord[]): string {
   return words.map((word) => `${word.english} ${word.chinese}`).join("、");
+}
+
+/**
+ * Keep the missing-word list short enough that the buttons under it stay on screen.
+ * A cut list ends with how many words were left off.
+ */
+export function clipMissingWords(lines: readonly string[], maxChars: number): string[] {
+  const words = lines.flatMap((line) => line.split("、").filter((part) => part.length > 0));
+  if (words.length === 0) return [];
+  const full = words.join("、");
+  if ([...full].length <= maxChars) return [full];
+  const kept: string[] = [];
+  for (const word of words) {
+    const next = kept.length === 0 ? word : `${kept.join("、")}、${word}`;
+    if ([...next].length > maxChars) break;
+    kept.push(word);
+  }
+  const hidden = words.length - kept.length;
+  const rest = `还有 ${hidden} 个`;
+  return kept.length > 0 ? [kept.join("、"), rest] : [rest];
 }
 
 /** Grade the shared extras attach to when they still need a card. */

@@ -501,15 +501,59 @@ export function bossGateStudy(save: SaveData, chapterId?: string): { words: stri
       }],
     };
   }
+  const first = gradePracticeEntries(save, missing)[0];
+  if (!first) return { words, entries: [] };
   return {
     words,
-    entries: gradePracticeEntries(save, missing).map((entry) => ({
-      grade: entry.grade,
+    entries: [{
+      grade: first.grade,
       chapterId: chapter.id,
-      wordIds: entry.wordIds,
-      label: entry.label,
-    })),
+      wordIds: first.wordIds,
+      label: first.label,
+    }],
   };
+}
+
+export interface ResultsBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** One academy button and 继续, both inside the results panel, with the word plate above them. */
+export function resultsGateButtons(): { academy: ResultsBox; next: ResultsBox; plate: ResultsBox } {
+  const panel = RESULTS_LAYOUT.panel;
+  const bottom = panel.y + panel.h / 2;
+  const pad = 28;
+  const h = 56;
+  const y = bottom - pad - h / 2;
+  const academyW = 228;
+  const nextW = 220;
+  const gap = 28;
+  const origin = panel.x - (academyW + gap + nextW) / 2;
+  const academy = { x: origin + academyW / 2, y, w: academyW, h };
+  const next = { x: origin + academyW + gap + nextW / 2, y, w: nextW, h };
+  const plateH = 72;
+  const plate = {
+    x: panel.x,
+    y: y - h / 2 - 16 - plateH / 2,
+    w: panel.w - pad * 2,
+    h: plateH,
+  };
+  return { academy, next, plate };
+}
+
+export function resultsBoxInsidePanel(box: ResultsBox, pad = 0): boolean {
+  const panel = RESULTS_LAYOUT.panel;
+  const left = panel.x - panel.w / 2 + pad;
+  const right = panel.x + panel.w / 2 - pad;
+  const top = panel.y - panel.h / 2 + pad;
+  const bottom = panel.y + panel.h / 2 - pad;
+  return box.x - box.w / 2 >= left - 0.01
+    && box.x + box.w / 2 <= right + 0.01
+    && box.y - box.h / 2 >= top - 0.01
+    && box.y + box.h / 2 <= bottom + 0.01;
 }
 
 /** The clear hint only. A small learned set no longer makes the fight repeat those words. */

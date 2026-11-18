@@ -6,6 +6,7 @@ import {
   PRACTICE_LINE_2,
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
+  resultsGateButtons,
   resultsLowerShift,
   resultsRewardDrop,
   resultsSkipHintState,
@@ -21,6 +22,7 @@ import {
   type ResultItem,
 } from "../../domain/battle-results";
 import { skillCardFrame, skillIconFrame, skillLevelFrame, starMark } from "../../domain/skill-card-face";
+import { clipMissingWords } from "../../domain/study-copy";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -385,19 +387,19 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawBossGate(): void {
     const line = this.view.bossGateLine;
     if (!line) return;
-    const words = (this.view.bossGateWords ?? []).join("、");
+    const words = clipMissingWords([(this.view.bossGateWords ?? []).join("、")], 64).join("\n");
     const body = words ? `${line}\n${words}` : line;
-    const y = 690;
-    const plate = this.add.rectangle(835, y, 740, words ? 78 : 36, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
-    const text = this.add.text(835, y, body, {
+    const plateBox = resultsGateButtons().plate;
+    const plate = this.add.rectangle(plateBox.x, plateBox.y, plateBox.w, plateBox.h, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
+    const text = this.add.text(plateBox.x, plateBox.y, body, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       fontStyle: "700",
       color: NOTE,
       align: "center",
-      wordWrap: { width: 700 },
+      wordWrap: { width: plateBox.w - 24 },
     }).setOrigin(0.5);
-    if (text.height > 70) text.setScale(70 / text.height);
+    if (text.height > plateBox.h - 12) text.setScale((plateBox.h - 12) / text.height);
     this.finishing.push(plate, text);
   }
 
@@ -424,6 +426,7 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   private stackNudge(): number {
+    if (this.view.bossGateLine) return 0;
     const view = this.view;
     const mode = !view.won || view.card || view.items.length > 0 ? "tall" : view.practiceOnly ? "practice" : "xp";
     return resultsStackNudge(view.words.length, view.extraWords, mode);
@@ -776,25 +779,20 @@ export class BattleResultsScene extends Phaser.Scene {
     if (this.view.won) {
       const label = this.view.firstChapterClear ? uiLabel("看结局") : uiLabel("继续");
       const spot = RESULTS_LAYOUT.continueButton;
-      const y = this.view.bossGateLine ? 770 : spot.y;
-      if (this.view.bossGateLine) {
-        const study = this.view.bossStudy ?? [];
-        const entries = study.length > 0 ? study : [null];
-        entries.forEach((entry, index) => {
-          const label = entry?.label ?? uiLabel("去学堂");
-          const x = 480 + index * 220;
-          const academy = warmButton(this, x, y, label, () => {
-            if (!this.keysOpen()) return;
-            this.toAcademy(entry ?? undefined);
-          }, { width: entry ? 200 : 200, height: spot.h, tone: "secondary" });
-          academy.setVisible(false);
-          this.buttons.push(academy);
-        });
+      const gate = this.view.bossGateLine ? resultsGateButtons() : null;
+      if (gate) {
+        const entry = (this.view.bossStudy ?? [])[0] ?? null;
+        const academy = warmButton(this, gate.academy.x, gate.academy.y, entry?.label ?? uiLabel("去学堂"), () => {
+          if (!this.keysOpen()) return;
+          this.toAcademy(entry ?? undefined);
+        }, { width: gate.academy.w, height: gate.academy.h, tone: "secondary" });
+        academy.setVisible(false);
+        this.buttons.push(academy);
       }
-      const button = warmButton(this, spot.x, y, label, () => {
+      const button = warmButton(this, gate ? gate.next.x : spot.x, gate ? gate.next.y : spot.y, label, () => {
         if (!this.keysOpen()) return;
         this.continueOn();
-      }, { width: spot.w, height: spot.h });
+      }, { width: gate ? gate.next.w : spot.w, height: gate ? gate.next.h : spot.h });
       button.setVisible(false);
       this.buttons.push(button);
       return;

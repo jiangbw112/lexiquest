@@ -8,6 +8,7 @@ import {
   FOREST_CHAPTER,
   FOREST_TITLE,
   chapterWordIds,
+  BOSS_LEARN_LINE,
   requiredWordIds,
   stageCombat,
   stageStatuses,
@@ -439,7 +440,7 @@ export function mapCounts(save: SaveData, chapter: PlayChapter, stage: ForestSta
   const lockedLine = lockedChapter
     ? "通过上一章后开启"
     : stage.type === "boss"
-      ? `通过前 4 关并学完 ${chapter.wordIds.length} 个词`
+      ? BOSS_LEARN_LINE
       : undefined;
   return {
     wins: playStageWins(save, chapter, stage.id),

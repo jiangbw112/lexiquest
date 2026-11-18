@@ -20,7 +20,7 @@ import { mapPanel } from "./map-panel";
 import { createSave, learnWord, setSelectedGrades } from "./progress";
 import { deserialize, serialize } from "./storage";
 import { FOREST_CHAPTER, bossReady, forestStudyWordIds, requiredWordIds, stageById, wordsUntilBoss } from "./stages";
-import { academyProgressLabel, studyBanner } from "./study-copy";
+import { academyProgressLabel, clipMissingWords, selectedGradesLabel, studyBanner } from "./study-copy";
 import type { GradeBand, SaveData } from "./types";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -237,7 +237,39 @@ describe("study banner", () => {
     expect(studyBanner({ ...done, chapterCleared: true }, forestPlayChapter()).title).toBe("三年级 · 森林冒险：已学 16/16 个词");
 
     const several = fresh(["G3", "G4"]);
-    expect(studyBanner(several, forestPlayChapter()).title.startsWith("森林冒险：已学 0/")).toBe(true);
-    expect(studyBanner(several, forestPlayChapter()).title).not.toContain("年级 ·");
+    expect(studyBanner(several, forestPlayChapter()).title).toBe("三、四年级 · 森林冒险：已学 0/19 个词");
+    expect(studyBanner(pair, forestPlayChapter()).title).toMatch(/^四、六年级 · 森林冒险：已学 \d+\/14 个词$/);
+    const all = fresh(["G3", "G4", "G5", "G6"]);
+    expect(selectedGradesLabel(all.selectedGrades)).toBe("三、四、五、六年级");
+    expect(studyBanner(all, forestPlayChapter()).title).toBe("三、四、五、六年级 · 森林冒险：已学 0/28 个词");
+  });
+});
+
+describe("one academy entry for every selected grade", () => {
+  it("keeps a single learn button for one through four grades and clips a long word list", () => {
+    const stage = FOREST_CHAPTER.stages[4]!;
+    const sets: GradeBand[][] = [["G3"], ["G4", "G6"], ["G3", "G4", "G5"], ["G3", "G4", "G5", "G6"]];
+    for (const grades of sets) {
+      const save = fresh(grades);
+      const panel = mapPanel(save, stage, "locked");
+      const learn = panel.buttons.filter((button) => button.id === "learn");
+      expect(learn, grades.join("+")).toHaveLength(1);
+      expect(learn[0]?.enabled).toBe(true);
+      expect(panel.buttons.at(-1)?.id).toBe("fight");
+      expect(panel.buttons.at(-1)?.enabled).toBe(false);
+      const study = bossGateStudy(save);
+      expect(study.entries, grades.join("+")).toHaveLength(1);
+      expect(study.entries[0]?.wordIds).toEqual(learn[0]?.wordIds);
+      expect(study.entries[0]?.wordIds).not.toContain("cloud");
+    }
+    const four = fresh(["G3", "G4", "G5", "G6"]);
+    const study = bossGateStudy(four);
+    expect(study.entries[0]?.grade).toBe("G3");
+    expect(study.entries[0]?.label).toBe("去三年级学这几个");
+    expect(study.entries[0]?.wordIds).toContain("tree");
+    const clipped = clipMissingWords([study.words.join("、")], 48);
+    expect(clipped.length).toBeGreaterThan(0);
+    expect(clipped.join("")).toContain("还有");
+    expect([...clipped[0]!].length).toBeLessThanOrEqual(48);
   });
 });

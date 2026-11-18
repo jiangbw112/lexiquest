@@ -29,7 +29,7 @@ import {
 import { studyBanner } from "../../domain/study-copy";
 import { uiLabel } from "../../domain/ui-label";
 import { MAP_WORD_CARD_HIT, mapWordCardCenter } from "../hit";
-import { cjkTextWidth, cjkWrap } from "../layout";
+import { cjkTextWidth, cjkWrap, mapLockedBossButtons } from "../layout";
 import { redirectUngraded } from "../grade-route";
 import { resetPlayTimer, restPromptDue, snoozeRest } from "../play-timer";
 import { probeEnter, probeNote } from "../probe";
@@ -458,13 +458,31 @@ export class StageMapScene extends Phaser.Scene {
       this.add.text(panelX - 126, cursor, panel.note, { fontFamily: FONT, fontSize: "16px", color: INK, wordWrap: cjkWrap(252) });
       cursor += 56;
     }
+    const sideBySide = panel.buttons.length === 2
+      && panel.buttons.every((button) => cjkTextWidth(button.label, 22) <= 104);
+    const stacked = panel.buttons.length > 2 || (panel.buttons.length === 2 && !sideBySide);
+    const spots = stacked ? mapLockedBossButtons(panel.buttons.length) : null;
+    const wordCeiling = spots
+      ? Math.min(...spots.map((spot) => spot.y - spot.height / 2)) - 56
+      : Number.POSITIVE_INFINITY;
     for (const line of panel.missingLines) {
+      if (cursor >= wordCeiling) break;
       const missing = this.add.text(panelX - 126, cursor, line, {
         fontFamily: FONT,
         fontSize: "14px",
         color: INK,
         wordWrap: cjkWrap(252),
       });
+      const room = wordCeiling - cursor;
+      if (missing.height > room) {
+        if (room < 16) {
+          missing.destroy();
+          break;
+        }
+        missing.setScale(room / missing.height);
+        cursor = wordCeiling;
+        break;
+      }
       cursor += missing.height + 8;
     }
     panel.words.forEach((face, index) => {
@@ -517,12 +535,10 @@ export class StageMapScene extends Phaser.Scene {
         align: "center",
       }).setOrigin(0.5, 0);
     }
-    const sideBySide = panel.buttons.length === 2
-      && panel.buttons.every((button) => cjkTextWidth(button.label, 22) <= 104);
     panel.buttons.forEach((button, index) => {
-      const stacked = panel.buttons.length > 2 || (panel.buttons.length === 2 && !sideBySide);
-      const x = panel.buttons.length === 1 || stacked ? panelX : panelX - 72 + index * 144;
-      const y = stacked ? panelY + 176 + index * 60 : panelY + 232;
+      const spot = spots?.[index];
+      const x = spot ? spot.x : panel.buttons.length === 1 ? panelX : panelX - 72 + index * 144;
+      const y = spot ? spot.y : panelY + 232;
       warmButton(this, x, y, button.label, () => {
         if (!button.enabled) return;
         if (button.id === "learn") {
@@ -535,7 +551,12 @@ export class StageMapScene extends Phaser.Scene {
           this.scene.start("learn");
         }
         else this.fight(stage.id);
-      }, { width: panel.buttons.length === 1 || stacked ? 248 : 132, height: 52, tone: button.tone, disabled: !button.enabled });
+      }, {
+        width: spot ? spot.width : panel.buttons.length === 1 ? 240 : 132,
+        height: spot ? spot.height : 56,
+        tone: button.tone,
+        disabled: !button.enabled,
+      });
     });
     const chapterLocked = !isChapterUnlocked(save, chapter);
     if (chapterLocked) {

@@ -81,21 +81,25 @@ describe("forest map panel", () => {
     const all = mapPanel(everyGrade, stage, "locked");
     expect(all.goal).toBe("夺回宝藏，通关本章");
     expect(requiredWordIds(everyGrade)).toHaveLength(28);
-    expect(all.unlockLine).toBe("通过前 4 关并学完 28 个词");
-    expect(all.unlockLine).toBe(bossUnlockLine(everyGrade));
+    expect(all.unlockLine).toBe("学完本章词就能挑战");
+    expect(all.unlockLine).toBe(bossUnlockLine());
     expect(all.missingLines.length).toBeGreaterThan(0);
     expect(all.missingLines.join("")).toContain("tree");
-    expect(all.buttons.some((button) => button.id === "learn" && button.enabled && button.label === "去学堂学这几个" || button.label.startsWith("去"))).toBe(true);
+    expect(all.buttons.filter((button) => button.id === "learn")).toEqual([
+      expect.objectContaining({ enabled: true, label: "去三年级学这几个", grade: "G3" }),
+    ]);
     expect(all.buttons.at(-1)).toEqual({ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" });
 
     const grade3 = saveWith(["G3"]);
     const one = mapPanel(grade3, stage, "locked");
     expect(requiredWordIds(grade3)).toHaveLength(16);
-    expect(one.unlockLine).toBe("通过前 4 关并学完 16 个词");
-    expect(one.unlockLine).not.toBe(all.unlockLine);
+    expect(one.unlockLine).toBe("学完本章词就能挑战");
+    expect(one.buttons.filter((button) => button.id === "learn")).toHaveLength(1);
 
     const three = saveWith(["G3", "G4", "G5"]);
-    expect(mapPanel(three, stage, "locked").unlockLine).toBe("通过前 4 关并学完 25 个词");
+    const threePanel = mapPanel(three, stage, "locked");
+    expect(threePanel.unlockLine).toBe("学完本章词就能挑战");
+    expect(threePanel.buttons.filter((button) => button.id === "learn")).toHaveLength(1);
   });
 
   it("reveals a boss word only after that card exists", () => {
