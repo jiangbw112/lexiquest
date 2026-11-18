@@ -23,6 +23,23 @@ export function learnRemainingLine(count: number): string {
   return `本章还可学 ${count} 词`;
 }
 
+export type LearnAdvance =
+  | { kind: "next"; batchIds: readonly string[]; resetBatch: boolean }
+  | { kind: "done" };
+
+/**
+ * After a card is collected, the next word opens immediately.
+ * A finished chapter is the only stop, because there is no next word.
+ */
+export function learnAdvance(view: LearnBatchView): LearnAdvance {
+  if (view.kind === "cards-done" || !view.nextWordId) return { kind: "done" };
+  return {
+    kind: "next",
+    batchIds: view.nextBatchIds,
+    resetBatch: view.kind === "continue-chapter",
+  };
+}
+
 export type LearnBatchKind = "continue-batch" | "continue-chapter" | "cards-done";
 
 export interface LearnBatchView {

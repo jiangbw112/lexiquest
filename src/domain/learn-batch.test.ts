@@ -18,10 +18,12 @@ import {
   LEARN_GO_MAP,
   chapterLearnScope,
   confirmLearnSettlement,
+  learnAdvance,
   learnBatchView,
   learnStageBatches,
   resumeChapterLearn,
 } from "./learn-batch";
+import { NEW_WORD_GOAL_NOTICE, learnDayMeter, setGoalPreset } from "./parent";
 import { createSave, learnWord } from "./progress";
 import { requiredWordIds } from "./stages";
 import type { SaveData } from "./types";
@@ -194,12 +196,74 @@ describe("academy batch settlement", () => {
     expect(view.nextBatchIds.every((id) => scope.includes(id))).toBe(true);
     expect(view.chapterCleared).toBe(false);
   });
+
+  it("goes to the next word without a confirm step, including across a batch", () => {
+    const learned = batches[0]!.slice(0, 1);
+    const mid = learnIds(standing, learned);
+    const view = learnBatchView(mid, batches[0]!, learned, chapter);
+    expect(learnAdvance(view)).toEqual({ kind: "next", batchIds: batches[0], resetBatch: false });
+    expect(view.nextWordId).toBe(batches[0]![1]);
+    const doneBatch = learnIds(standing, batches[0]!);
+    expect(learnAdvance(learnBatchView(doneBatch, batches[0]!, batches[0]!, chapter))).toEqual({
+      kind: "next",
+      batchIds: batches[1],
+      resetBatch: true,
+    });
+    const finished = learnIds(standing, chapter.wordIds);
+    const last = batches[batches.length - 1]!;
+    expect(learnAdvance(learnBatchView(finished, last, last, chapter)).kind).toBe("done");
+  });
+
+  it("keeps counting after the 3/5/8 target and still opens the next word", () => {
+    let save = setGoalPreset(standing, "normal");
+    const ids = batches[0]!;
+    for (const id of ids.slice(0, 4)) save = learnWord(save, id, START);
+    expect(learnDayMeter(save, START)).toMatchObject({ learned: 4, target: 5, label: "4/5", met: false, hint: null, ratio: 0.8 });
+    save = learnWord(save, ids[4]!, START);
+    expect(learnDayMeter(save, START)).toMatchObject({
+      learned: 5,
+      target: 5,
+      label: "5/5",
+      met: true,
+      hint: NEW_WORD_GOAL_NOTICE,
+      ratio: 1,
+    });
+    expect(learnAdvance(learnBatchView(save, ids, ids.slice(0, 5), chapter))).toEqual({
+      kind: "next",
+      batchIds: ids,
+      resetBatch: false,
+    });
+    save = learnWord(save, ids[5]!, START);
+    expect(save.wordCards[ids[5]!]).toBeTruthy();
+    expect(learnDayMeter(save, START)).toMatchObject({ learned: 6, label: "6/5", met: true, ratio: 1 });
+    expect(learnDayMeter(setGoalPreset(standing, "easy"), START).target).toBe(3);
+    expect(learnDayMeter(setGoalPreset(standing, "more"), START).target).toBe(8);
+  });
 });
 
 describe("learn scene settlement wiring", () => {
   const scene = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
 
-  it("keeps settlement off the learn path and sends the map through the existing scene", () => {
+  it("goes straight to the next word and does not ask for confirmation", () => {
+    const grant = scene.slice(scene.indexOf("private grant"), scene.indexOf("private backToVillage"));
+    expect(grant).toContain("learnAdvance");
+    expect(grant).toContain('this.phase = "study"');
+    expect(grant).not.toContain('this.phase = "got"');
+    expect(grant).not.toContain("warmButton");
+    expect(grant).not.toContain("dailyNewWordTargetMet");
+    expect(scene).not.toContain("继续本次");
+    expect(scene).not.toContain("LEARN_CONTINUE_BATCH");
+    expect(scene).not.toContain("LEARN_CONTINUE_CHAPTER");
+    expect(scene).toContain("learnDayMeter");
+    expect(scene).toContain("paintDayMeter");
+    expect(scene).toContain("academyGradeChoices");
+    const picker = scene.slice(scene.indexOf("private drawPicker"), scene.indexOf("private meaningRow"));
+    expect(picker).toContain("academyGradeChoices");
+    expect(picker).not.toContain('"mixed"');
+    expect(picker).not.toContain("森林冒险");
+  });
+
+  it("keeps the finished-chapter screen off the learn path and sends the map through the existing scene", () => {
     const choose = scene.slice(scene.indexOf("private chooseSettlement"), scene.indexOf("private drawSettlement"));
     expect(choose).toContain("confirmLearnSettlement");
     expect(choose).toContain('this.scene.start("stages")');
@@ -207,8 +271,6 @@ describe("learn scene settlement wiring", () => {
     expect(choose).not.toContain("mutate");
     expect(choose).not.toContain("stageWins");
     expect(choose).not.toContain("chapterCleared");
-    expect(scene).toContain("LEARN_CONTINUE_CHAPTER");
-    expect(scene).toContain("LEARN_CONTINUE_BATCH");
     expect(scene).toContain("LEARN_GO_MAP");
     expect(scene).toContain("LEARN_CARDS_DONE");
     expect(scene).toContain("resumeChapterLearn");

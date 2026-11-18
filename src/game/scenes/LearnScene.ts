@@ -7,12 +7,12 @@ import {
   LEARN_RESELECT,
   assessLearnSelection,
   changeLearnDraftGrade,
+  academyGradeChoices,
   confirmLearnSelection,
   initialLearnDraft,
   learnChipLabel,
   learnDraftLine,
   learnGradeEmptyLine,
-  learnGradeOptions,
   learnSceneTitle,
   legalLearnChapters,
   type LearnDraft,
@@ -22,19 +22,18 @@ import {
   LEARN_BACK_VILLAGE,
   LEARN_CARDS_DONE,
   LEARN_CARDS_DONE_CLEARED,
-  LEARN_CONTINUE_BATCH,
-  LEARN_CONTINUE_CHAPTER,
   LEARN_GO_MAP,
   chapterLearnScope,
   chapterWordsRemaining,
   confirmLearnSettlement,
+  learnAdvance,
   learnBatchView,
   learnRemainingLine,
   resumeChapterLearn,
   type LearnBatchView,
 } from "../../domain/learn-batch";
 import { uiLabel } from "../../domain/ui-label";
-import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, reviewFirstNotice } from "../../domain/parent";
+import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, learnDayMeter, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
 import { badgeTone } from "../../domain/review";
 import {
@@ -50,17 +49,17 @@ import { hashSeed } from "../../domain/rng";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
-import { CARD_GOT, LEARN_CHIP_ROW, LEARN_TITLE_PLANK, STUDY_CARD, cjkTextWidth, cjkWrap, learnGradeChipRow, meaningScale, studyNoticeGap, studyRowY } from "../layout";
+import { LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, STUDY_CARD, cjkTextWidth, cjkWrap, learnGradeChipRow, meaningScale, studyNoticeGap, studyRowY } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { getSave, mutate } from "../session";
 import { FONT, listenKeys } from "../ui";
-import { warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
+import { warmBar, warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
-import { ERR_TEXT, FONT_LATIN, FONT_TITLE, INK, MUTED, NOTE, whenGlyphsReady } from "../warm/theme";
+import { ERR_TEXT, FONT_LATIN, INK, MUTED, TEAL_DEEP, whenGlyphsReady } from "../warm/theme";
 
-type Phase = "study" | "quiz" | "listen" | "spell" | "got" | "settle";
+type Phase = "study" | "quiz" | "listen" | "spell" | "settle";
 
 export class LearnScene extends Phaser.Scene {
   private batchIds: string[] = [];
@@ -68,14 +67,13 @@ export class LearnScene extends Phaser.Scene {
   private phase: Phase = "study";
   private retry = 0;
   private missed = false;
-  private justId: string | null = null;
   private question: QuizQuestion | null = null;
   private options: WarmOption[] = [];
   private busy = false;
   private fontSample = "";
   private answerTimer = 0;
   private picking = false;
-  private draft: LearnDraft = { grade: "mixed", chapterId: null };
+  private draft: LearnDraft = { grade: "G3", chapterId: null };
 
   constructor() {
     super("learn");
@@ -139,7 +137,7 @@ export class LearnScene extends Phaser.Scene {
       else this.backToVillage();
       return;
     }
-    if ((this.phase === "got" || this.phase === "settle") && event.code === "Enter") {
+    if (this.phase === "settle" && event.code === "Enter") {
       this.chooseSettlement();
       return;
     }
@@ -243,7 +241,6 @@ export class LearnScene extends Phaser.Scene {
       this.showStudy();
       return;
     }
-    this.justId = id;
     this.missed = false;
     const chapter = this.lessonChapter(after);
     if (!chapter) {
@@ -253,10 +250,23 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, chapter);
-    this.phase = view.kind === "continue-batch" ? "got" : "settle";
-    probeNote("learn:got");
+    const step = learnAdvance(view);
+    this.missed = false;
     document.getElementById("spell-form")?.classList.remove("open");
     showSpellingHint(null);
+    if (step.kind === "next") {
+      if (step.resetBatch) {
+        this.batchIds = [...step.batchIds];
+        this.learnedThisBatch = [];
+      }
+      this.phase = "study";
+      this.question = null;
+      this.draw();
+      probeNote("learn:next");
+      return;
+    }
+    this.phase = "settle";
+    probeNote("learn:settle");
     this.draw();
   }
 
@@ -286,7 +296,6 @@ export class LearnScene extends Phaser.Scene {
     if (view.kind === "continue-chapter") {
       this.batchIds = view.nextBatchIds;
       this.learnedThisBatch = [];
-      this.justId = null;
       this.showStudy();
       return;
     }
@@ -310,27 +319,25 @@ export class LearnScene extends Phaser.Scene {
       }).setOrigin(0.5);
       y += 72;
     }
-    if (view.completed > 0) {
-      this.add.text(640, y, view.completedLine, {
-        fontFamily: FONT,
-        fontSize: "24px",
-        color: INK,
-      }).setOrigin(0.5);
-      y += 40;
-    }
-    this.add.text(640, y, view.remainingLine, {
+    warmButton(this, 500, y + 88, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
+    warmButton(this, 780, y + 88, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
+  }
+
+  /** Leaf while today's 3/5/8 target is open. Gold plus one line once it is met. Learning is not stopped. */
+  private paintDayMeter(save: NonNullable<ReturnType<typeof getSave>>, now: Date): void {
+    const meter = learnDayMeter(save, now);
+    this.add.text(LEARN_DAY_METER.labelX, LEARN_DAY_METER.y, `今日 ${meter.label}`, {
       fontFamily: FONT,
-      fontSize: "24px",
-      color: INK,
+      fontSize: "18px",
+      color: meter.met ? TEAL_DEEP : INK,
+    }).setOrigin(1, 0.5);
+    warmBar(this, LEARN_DAY_METER.barX, LEARN_DAY_METER.y, LEARN_DAY_METER.width, meter.ratio, meter.met ? "gold" : "leaf");
+    if (!meter.hint) return;
+    this.add.text(LEARN_DAY_METER.hintX, LEARN_DAY_METER.hintY, meter.hint, {
+      fontFamily: FONT,
+      fontSize: `${LEARN_DAY_METER.hintFont}px`,
+      color: TEAL_DEEP,
     }).setOrigin(0.5);
-    y += 88;
-    if (view.kind === "cards-done") {
-      warmButton(this, 500, y, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
-      warmButton(this, 780, y, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
-      return;
-    }
-    const label = view.kind === "continue-chapter" ? LEARN_CONTINUE_CHAPTER : LEARN_CONTINUE_BATCH;
-    warmButton(this, 640, y, label, () => this.chooseSettlement(), { width: 280 });
   }
 
   private draw(): void {
@@ -369,30 +376,9 @@ export class LearnScene extends Phaser.Scene {
     const scope = chapterLearnScope(save, chapter);
     const collected = `${scope.filter((id) => save.wordCards[id]).length}/${scope.length}`;
     this.add.text(1100, 36, collected, { fontFamily: FONT_LATIN, fontSize: "22px", fontStyle: "800", color: INK }).setOrigin(0.5);
+    this.paintDayMeter(save, studyNow(save));
     const batchView = learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter);
-    if (this.phase === "got" && batchView.kind === "continue-batch") {
-      const got = wordById(this.justId ?? "");
-      warmPanel(this, 640, 400, 860, 420);
-      this.add.text(640, CARD_GOT.titleY, uiLabel("词卡入手"), {
-        fontFamily: FONT_TITLE,
-        fontSize: `${CARD_GOT.titleFont}px`,
-        color: INK,
-      }).setOrigin(0.5);
-      if (got) this.meaningRow(640, CARD_GOT.rowY, got.english, got.pos, got.chinese, CARD_GOT.englishSize);
-      this.add.text(640, CARD_GOT.noteY, "词卡已经在册子里。熟练徽章还没亮，收集不等于熟练。", {
-        fontFamily: FONT,
-        fontSize: "20px",
-        color: MUTED,
-      }).setOrigin(0.5);
-      this.add.text(640, 514, `${batchView.completedLine}，${batchView.remainingLine}`, {
-        fontFamily: FONT,
-        fontSize: "16px",
-        color: INK,
-      }).setOrigin(0.5);
-      warmButton(this, 640, CARD_GOT.buttonY, LEARN_CONTINUE_BATCH, () => this.chooseSettlement(), { width: 220 });
-      return;
-    }
-    if (this.phase === "settle" || this.phase === "got" || !word) {
+    if (this.phase === "settle" || !word) {
       this.phase = "settle";
       this.drawSettlement(batchView);
       return;
@@ -410,15 +396,16 @@ export class LearnScene extends Phaser.Scene {
       const now = studyNow(save);
       const reviewNote = reviewFirstNotice(save, now);
       const goalNote = dailyNewWordTargetMet(save, now) ? NEW_WORD_GOAL_NOTICE : "";
-      if (goalNote || reviewNote) {
-        this.add.text(640, STUDY_CARD.reviewHintY, [goalNote, reviewNote].filter(Boolean).join(" "), {
+      if (reviewNote) {
+        this.add.text(640, STUDY_CARD.reviewHintY, reviewNote, {
           fontFamily: FONT,
           fontSize: "18px",
-          color: NOTE,
+          color: MUTED,
           wordWrap: cjkWrap(760),
           align: "center",
         }).setOrigin(0.5);
       }
+      if (goalNote) probeNote("learn:goal-open");
       this.meaningRow(640, studyRowY(this.missed), word.english, word.pos, word.chinese, STUDY_CARD.englishSize);
       const gloss = posGloss(word.pos);
       const gradeLabel = GRADE_BANDS.find((grade) => grade.id === word.grade)?.label ?? String(word.grade);
@@ -526,7 +513,6 @@ export class LearnScene extends Phaser.Scene {
     this.picking = false;
     this.batchIds = resumeChapterLearn(updated).batchIds;
     this.learnedThisBatch = [];
-    this.justId = null;
     this.missed = false;
     this.phase = this.batchIds.some((id) => !updated.wordCards[id]) ? "study" : "settle";
     this.draw();
@@ -557,8 +543,7 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private drawPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
-    const grades = learnGradeOptions(save);
-    const gradeChoices: LearnDraft["grade"][] = ["mixed", ...grades];
+    const gradeChoices: LearnDraft["grade"][] = academyGradeChoices(save);
     const chipLabels = gradeChoices.map((grade) => learnChipLabel(grade, save));
     const chips = learnGradeChipRow(chipLabels, (label) => cjkTextWidth(label, LEARN_CHIP_ROW.fontSize));
     gradeChoices.forEach((grade, index) => {
@@ -575,7 +560,7 @@ export class LearnScene extends Phaser.Scene {
     const pairText = this.add.text(640, 270, pair, { fontFamily: FONT, fontSize: "20px", color: INK }).setOrigin(0.5);
     if (pairText.width > 960) pairText.setScale(960 / pairText.width);
     if (chapters.length === 0) {
-      this.add.text(640, 360, learnGradeEmptyLine(this.draft.grade, save.chapterCleared), {
+      this.add.text(640, 360, learnGradeEmptyLine(), {
         fontFamily: FONT,
         fontSize: "22px",
         color: MUTED,

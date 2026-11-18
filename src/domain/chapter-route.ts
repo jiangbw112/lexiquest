@@ -19,8 +19,6 @@ export const LEARN_PICK = "请选章";
 export const LEARN_RESELECT = "请重新选章";
 export const LEARN_LOAD_FAILED = "本章没有载入。";
 export const LEARN_GRADE_EMPTY = "这一年级还没有可学的章";
-/** Grade chapters stay locked until the forest adventure is cleared. */
-export const LEARN_GRADE_LOCKED = "先打完森林冒险，这一年级就会开启";
 export const BATTLE_RETURN_PROGRESS = "返回进度章";
 export const BATTLE_NONE = "暂无可进入章节";
 export const BATTLE_REVIEW = "回顾";
@@ -98,13 +96,34 @@ export function learnDraftLine(grade: LearnGrade, save: SaveData, chapterName: s
   return `${label} · ${chapterName ?? LEARN_PICK}`;
 }
 
-/**
- * An empty grade list before the forest adventure is cleared is the lock, not a missing chapter.
- * The lock itself is unchanged.
- */
-export function learnGradeEmptyLine(grade: LearnGrade, forestCleared: boolean): string {
-  if (grade !== "mixed" && !forestCleared) return LEARN_GRADE_LOCKED;
+/** Shown when an allowed grade has no chapter to list. Battle progress does not produce this line. */
+export function learnGradeEmptyLine(): string {
   return LEARN_GRADE_EMPTY;
+}
+
+/**
+ * Grade the child is in now.
+ * The academy lesson wins. A forest lesson is not a grade, so the battle grade is used instead.
+ * This can name a grade the parent has since turned off. Callers that list academy grades must not add it back.
+ */
+export function currentStudyGrade(save: SaveData): GradeBand | null {
+  const lesson = save.learnSelection?.grade;
+  if (lesson && lesson !== "mixed") return lesson;
+  return save.battleGrade ?? null;
+}
+
+/**
+ * Grades the academy may list.
+ * Parent-open grades are `selectedGrades`: the first grade pick and the parent-page checkboxes write the same field.
+ * The current grade is added only when that field still contains it. A turned-off grade stays on the save and is not listed.
+ * Forest is not a grade on this list.
+ */
+export function academyGradeChoices(save: SaveData): GradeBand[] {
+  const parentOpen = normalizeGrades(save.selectedGrades);
+  const current = currentStudyGrade(save);
+  const allowed = new Set<GradeBand>(parentOpen);
+  if (current && parentOpen.includes(current)) allowed.add(current);
+  return GRADE_ORDER.filter((grade) => allowed.has(grade));
 }
 
 /** Title line. Both the grade and the chapter name are required whenever a pair is shown. */
@@ -116,12 +135,15 @@ export function learnGradeOptions(save: SaveData): GradeBand[] {
   return normalizeGrades(save.selectedGrades);
 }
 
-/** Parent-allowed grades only, and inside a grade only chapters the existing order has opened. */
+/**
+ * Parent-allowed grades only. Forest is not an academy choice.
+ * Every chapter of an allowed grade can be studied. Battle unlock is not consulted.
+ */
 export function legalLearnChapters(save: SaveData, grade: LearnGrade): PlayChapter[] {
-  if (normalizeGrades(save.selectedGrades).length === 0) return [];
-  if (grade === "mixed") return [forestPlayChapter()];
-  if (!normalizeGrades(save.selectedGrades).includes(grade)) return [];
-  return gradeChapters(grade).filter((chapter) => isChapterUnlocked(save, chapter));
+  if (academyGradeChoices(save).length === 0) return [];
+  if (grade === "mixed") return [];
+  if (!academyGradeChoices(save).includes(grade)) return [];
+  return gradeChapters(grade);
 }
 
 export function assessLearnSelection(save: SaveData): LearnAssessment {
@@ -152,15 +174,16 @@ export function changeLearnDraftGrade(draft: LearnDraft, grade: LearnGrade): Lea
 export function initialLearnDraft(save: SaveData): LearnDraft {
   const selection = save.learnSelection;
   const assessed = assessLearnSelection(save);
-  if (assessed.status === "ready" && selection) return { grade: selection.grade, chapterId: selection.chapterId };
-  const options = learnGradeOptions(save);
-  if (selection && (selection.grade === "mixed" || options.includes(selection.grade))) {
+  if (assessed.status === "ready" && selection && selection.grade !== "mixed") {
+    return { grade: selection.grade, chapterId: selection.chapterId };
+  }
+  const options = academyGradeChoices(save);
+  if (selection && selection.grade !== "mixed" && options.includes(selection.grade)) {
     return { grade: selection.grade, chapterId: null };
   }
   const withChapters = options.find((grade) => legalLearnChapters(save, grade).length > 0);
   if (withChapters) return { grade: withChapters, chapterId: null };
-  const forest = legalLearnChapters(save, "mixed")[0];
-  return { grade: "mixed", chapterId: forest?.id ?? null };
+  return { grade: options[0] ?? "G3", chapterId: null };
 }
 
 /** Writes L only when the chapter still belongs to that grade and is legal. Battle fields stay. */

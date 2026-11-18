@@ -23,7 +23,8 @@ import {
   forestGradeLabel,
   initialLearnDraft,
   LEARN_GRADE_EMPTY,
-  LEARN_GRADE_LOCKED,
+  academyGradeChoices,
+  currentStudyGrade,
   learnChipLabel,
   learnDraftLine,
   learnGradeEmptyLine,
@@ -103,10 +104,19 @@ describe("academy lesson L", () => {
     expect(next.chapterProgress).toEqual(before.chapterProgress);
   });
 
-  it("offers the forest lesson before any grade chapter is open, and does not preselect a later chapter", () => {
+  it("lists every chapter of an allowed grade before the forest is cleared, and does not offer the forest", () => {
     const early = fresh(["G3"]);
-    expect(legalLearnChapters(early, "G3")).toEqual([]);
-    expect(initialLearnDraft(early)).toEqual({ grade: "mixed", chapterId: "forest_adventure" });
+    expect(early.chapterCleared).toBe(false);
+    expect(academyGradeChoices(early)).toEqual(["G3"]);
+    expect(legalLearnChapters(early, "mixed")).toEqual([]);
+    expect(legalLearnChapters(early, "G3").map((chapter) => chapter.id)).toEqual(gradeChapters("G3").map((chapter) => chapter.id));
+    expect(isChapterUnlocked(early, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(early, gradeChapters("G3")[1]!)).toBe(false);
+    expect(initialLearnDraft(early)).toEqual({ grade: "G3", chapterId: null });
+    const remembered = { ...early, learnSelection: { grade: "mixed" as const, chapterId: "forest_adventure" } };
+    expect(assessLearnSelection(remembered).status).toBe("reselect");
+    expect(initialLearnDraft(remembered).grade).toBe("G3");
+    expect(remembered.learnSelection).toEqual({ grade: "mixed", chapterId: "forest_adventure" });
     const opened = { ...fresh(["G3", "G5"]), chapterCleared: true };
     expect(initialLearnDraft(opened)).toEqual({ grade: "G3", chapterId: null });
     expect(confirmLearnSelection(opened, "G5", g3[0]!.id)).toBe(opened);
@@ -125,11 +135,14 @@ describe("academy lesson L", () => {
     expect(`${switched.grade}:${switched.chapterId ?? ""}`).not.toBe(`G5:${g3[0]!.id}`);
   });
 
-  it("refuses a paused lower grade and a locked chapter, then asks for a new lesson without the old pool", () => {
+  it("studies a battle-locked chapter and still refuses a paused grade", () => {
     const before = standing();
     const locked = g3[1]!;
     expect(isChapterUnlocked(before, locked)).toBe(false);
-    expect(confirmLearnSelection(before, "G3", locked.id)).toBe(before);
+    const studied = confirmLearnSelection(before, "G3", locked.id);
+    expect(studied.learnSelection).toEqual({ grade: "G3", chapterId: locked.id });
+    expect(battleSnapshot(studied)).toEqual(battleSnapshot(before));
+    expect(commitBattleEntry(before, locked)).toBe(before);
     expect(legalLearnChapters(before, "G4")).toEqual([]);
     expect(confirmLearnSelection(before, "G4", gradeChapters("G4")[0]!.id)).toBe(before);
     const paused = { ...before, selectedGrades: ["G5"] as GradeBand[] };
@@ -189,21 +202,31 @@ describe("forest grade label", () => {
     expect(learnDraftLine("mixed", many, null)).toBe("三年级、五年级、六年级 · 请选章");
   });
 
-  it("explains that a locked grade opens after the forest adventure, and keeps the lock", () => {
-    const early = fresh(["G3"]);
-    const first = gradeChapters("G3")[0]!;
-    expect(early.chapterCleared).toBe(false);
-    expect(isChapterUnlocked(early, first)).toBe(false);
-    expect(legalLearnChapters(early, "G3")).toEqual([]);
-    expect(learnGradeEmptyLine("G3", early.chapterCleared)).toBe(LEARN_GRADE_LOCKED);
-    expect(LEARN_GRADE_LOCKED).toContain("先打完森林冒险");
-    expect(LEARN_GRADE_LOCKED).toContain("就会开启");
-    expect(learnGradeEmptyLine("mixed", false)).toBe(LEARN_GRADE_EMPTY);
+  it("lists the current grade plus the grades the parent left open, and not a closed one", () => {
+    const both = fresh(["G5", "G3"]);
+    expect(currentStudyGrade(both)).toBeNull();
+    expect(academyGradeChoices(both)).toEqual(["G3", "G5"]);
+    const withLesson = {
+      ...both,
+      learnSelection: { grade: "G5" as const, chapterId: gradeChapters("G5")[0]!.id },
+      battleGrade: "G3" as const,
+    };
+    expect(currentStudyGrade(withLesson)).toBe("G5");
+    expect(academyGradeChoices(withLesson)).toEqual(["G3", "G5"]);
+    const closed = { ...withLesson, selectedGrades: ["G3"] as GradeBand[] };
+    expect(currentStudyGrade(closed)).toBe("G5");
+    expect(academyGradeChoices(closed)).toEqual(["G3"]);
+    expect(academyGradeChoices(closed)).not.toContain("G5");
+    expect(legalLearnChapters(closed, "mixed")).toEqual([]);
+    expect(learnGradeEmptyLine()).toBe(LEARN_GRADE_EMPTY);
+    expect(LEARN_GRADE_EMPTY).not.toContain("森林冒险");
     const scene = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
     expect(scene).toContain("learnSceneTitle");
     expect(scene).toContain("learnChipLabel");
     expect(scene).toContain("learnDraftLine");
     expect(scene).toContain("learnGradeEmptyLine");
+    expect(scene).toContain("academyGradeChoices");
+    expect(scene).not.toContain("先打完森林冒险");
   });
 });
 

@@ -760,6 +760,20 @@ export function cjkTextWidth(text: string, fontSize: number): number {
 /** Wood plank behind the academy title. warmTitlePlank scales text into width − inset. */
 export const LEARN_TITLE_PLANK = { x: 560, y: 48, width: 560, inset: 48, fontSize: 28 } as const;
 
+/**
+ * Daily new-word meter on the academy screen.
+ * The bar sits under the title plank and above the study panel, which starts at y 170.
+ */
+export const LEARN_DAY_METER = {
+  labelX: 500,
+  barX: 690,
+  y: 108,
+  width: 260,
+  hintX: 640,
+  hintY: 142,
+  hintFont: 14,
+} as const;
+
 export function learnTitleScale(textWidth: number, plankWidth = LEARN_TITLE_PLANK.width, inset = LEARN_TITLE_PLANK.inset): number {
   const limit = Math.max(1, plankWidth - inset);
   if (textWidth <= limit) return 1;
