@@ -30,6 +30,7 @@ import {
   resultsBoxInsidePanel,
   resultsBoxesOverlap,
   resultsGateButtons,
+  resultsPracticeClearance,
   resultsRewardClearance,
   resultsStudyLines,
   type ResultsBox,
@@ -405,7 +406,9 @@ describe("battle results stars and words", () => {
     expect(scene).toContain("resultsLowerShift");
     expect(scene).toContain("resultsStackNudge");
     expect(scene).toContain("resultsRewardClearance");
+    expect(scene).toContain("resultsPracticeClearance");
     expect(scene).toContain("drawCompactReward");
+    expect(scene).toContain("drawPracticeIn");
     expect(battle.indexOf("this.concealBattleActors()")).toBeLessThan(battle.indexOf('scene.launch("battle-results"'));
   });
 
@@ -515,6 +518,51 @@ describe("stage 4 rewards clear the missing-word plate", () => {
           expect(layout.next, label).toEqual(gate.next);
           expect(layout.plate.h, label).toBe(gate.plate.h);
           expect(layout.plate.y + layout.plate.h / 2, label).toBeLessThanOrEqual(layout.academy.y - layout.academy.h / 2 - 8);
+          expect(resultsBoxInsidePanel(layout.plate, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.academy, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.next, 12), label).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+describe("stage 4 practice card clears the missing-word plate", () => {
+  it("keeps the practice card, rewards, the plate, and both buttons apart", () => {
+    const gate = resultsGateButtons();
+    const modes = [
+      { card: false, item: false },
+      { card: false, item: true },
+      { card: true, item: false },
+      { card: true, item: true },
+    ] as const;
+    for (const missingCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      for (const wordCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        for (const mode of modes) {
+          const layout = resultsPracticeClearance({
+            wordCount,
+            extraWords: 0,
+            missingCount,
+            card: mode.card,
+            item: mode.item,
+          });
+          const label = `practice card ${mode.card} item ${mode.item} missing ${missingCount} shown ${wordCount}`;
+          expect(layout.practice.h, label).toBeGreaterThanOrEqual(88);
+          expect(resultsBoxInsidePanel(layout.practice, 8), label).toBe(true);
+          expect(layout.practice.y + layout.practice.h / 2, label).toBeLessThanOrEqual(layout.plate.y - layout.plate.h / 2 - 8);
+          const extras = [layout.card, layout.item].filter((box): box is ResultsBox => box !== null);
+          expect(extras, label).toHaveLength(Number(mode.card) + Number(mode.item));
+          const regions = [layout.practice, layout.plate, layout.academy, layout.next, layout.words, ...extras].filter(
+            (box): box is ResultsBox => box !== null,
+          );
+          for (let i = 0; i < regions.length; i += 1) {
+            for (let j = i + 1; j < regions.length; j += 1) {
+              expect(resultsBoxesOverlap(regions[i]!, regions[j]!), label).toBe(false);
+            }
+          }
+          expect(layout.academy, label).toEqual(gate.academy);
+          expect(layout.next, label).toEqual(gate.next);
+          expect(layout.plate.h, label).toBe(gate.plate.h);
           expect(resultsBoxInsidePanel(layout.plate, 12), label).toBe(true);
           expect(resultsBoxInsidePanel(layout.academy, 12), label).toBe(true);
           expect(resultsBoxInsidePanel(layout.next, 12), label).toBe(true);

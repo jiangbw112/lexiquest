@@ -8,6 +8,7 @@ import {
   RESULTS_LAYOUT,
   resultsGateButtons,
   resultsLowerShift,
+  resultsPracticeClearance,
   resultsRewardClearance,
   resultsRewardDrop,
   resultsSkipHintState,
@@ -386,6 +387,19 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   /** Stage 4 win, while the boss still needs this chapter's words. The stage itself is already cleared. */
+  /** Practice card moves above the missing-word plate. Null on a rewarded win. */
+  private practiceClearance() {
+    const view = this.view;
+    if (!view.practiceOnly || !view.bossGateLine) return null;
+    return resultsPracticeClearance({
+      wordCount: view.words.length,
+      extraWords: view.extraWords,
+      missingCount: Math.max(1, view.bossGateWords.length),
+      card: Boolean(view.card),
+      item: view.items.length > 0,
+    });
+  }
+
   /** Card or item rewards move above the missing-word plate. Null when the page has neither. */
   private rewardClearance() {
     const view = this.view;
@@ -404,7 +418,7 @@ export class BattleResultsScene extends Phaser.Scene {
     if (!line) return;
     const words = clipMissingWords([(this.view.bossGateWords ?? []).join("、")], 64).join("\n");
     const body = [line, this.view.bossBattleHint, words].filter((part) => Boolean(part)).join("\n");
-    const plateBox = this.rewardClearance()?.plate ?? resultsGateButtons().plate;
+    const plateBox = this.rewardClearance()?.plate ?? this.practiceClearance()?.plate ?? resultsGateButtons().plate;
     const plate = this.add.rectangle(plateBox.x, plateBox.y, plateBox.w, plateBox.h, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
     const text = this.add.text(plateBox.x, plateBox.y, body, {
       fontFamily: FONT_BODY,
@@ -450,6 +464,13 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawWinBody(): void {
     const view = this.view;
     if (view.practiceOnly) {
+      const practice = this.practiceClearance();
+      if (practice) {
+        this.drawPracticeIn(practice.practice);
+        if (practice.card && view.card) this.drawCompactReward(practice.card, view.card);
+        if (practice.item) this.drawCompactItems(practice.item);
+        return;
+      }
       this.practiceCard(view.items.length > 0 ? 110 : 120);
       if (view.items.length > 0) this.drawPracticeItems();
       return;
@@ -478,6 +499,22 @@ export class BattleResultsScene extends Phaser.Scene {
     }
     if (view.card) this.drawCard();
     if (view.items.length > 0) this.drawItemBox(845, this.dy(476), 348, 200, false);
+  }
+
+  /** Practice notice used while the missing-word plate is on the page. */
+  private drawPracticeIn(box: ResultsBox): void {
+    const left = box.x - box.w / 2;
+    const top = box.y - box.h / 2;
+    this.topLeftRow(left, top, box.w, box.h);
+    const icon = Math.min(56, Math.max(32, box.h - 28));
+    const iconX = left + 16;
+    const iconY = top + (box.h - icon) / 2;
+    this.add.image(iconX, iconY, "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(icon, icon);
+    const textX = iconX + icon + 16;
+    const textW = Math.max(40, box.w - (textX - left) - 16);
+    const mid = top + box.h / 2;
+    this.fitLine(textX, mid - 14, PRACTICE_LINE_1, textW, 22, true);
+    this.fitLine(textX, mid + 16, PRACTICE_LINE_2, textW, 18, false, INK);
   }
 
   private practiceCard(height: number): void {
@@ -690,12 +727,20 @@ export class BattleResultsScene extends Phaser.Scene {
     this.fitLine(textX, top + box.h / 2 + 12, item.line, textW, 14, false);
   }
 
-  private fitLine(x: number, y: number, line: string, width: number, fontSize: number, strong: boolean): void {
+  private fitLine(
+    x: number,
+    y: number,
+    line: string,
+    width: number,
+    fontSize: number,
+    strong: boolean,
+    color = strong ? INK : MUTED,
+  ): void {
     const text = this.add.text(x, y, line, {
       fontFamily: FONT_BODY,
       fontSize: `${fontSize}px`,
       fontStyle: strong ? "700" : "400",
-      color: strong ? INK : MUTED,
+      color,
     }).setOrigin(0, 0.5);
     if (text.width > width) text.setScale(width / text.width);
   }

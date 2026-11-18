@@ -656,6 +656,63 @@ export function resultsRewardClearance(input: {
   return { card, item, xp, words, plate, academy: gate.academy, next: gate.next };
 }
 
+const RESULTS_MIN_PRACTICE_H = 88;
+const RESULTS_MAX_PRACTICE_H = 120;
+const RESULTS_PRACTICE_LEFT = 495;
+const RESULTS_PRACTICE_W = 680;
+const RESULTS_COLUMN_GAP = 16;
+
+/**
+ * A practice win draws no experience bar. The practice card, and a card
+ * upgrade or new item when the page also has one, share the band above the
+ * missing-word plate. The plate and the two buttons stay put.
+ */
+export function resultsPracticeClearance(input: {
+  wordCount: number;
+  extraWords: number;
+  missingCount: number;
+  card: boolean;
+  item: boolean;
+}): {
+  practice: ResultsBox;
+  card: ResultsBox | null;
+  item: ResultsBox | null;
+  words: ResultsBox | null;
+  plate: ResultsBox;
+  academy: ResultsBox;
+  next: ResultsBox;
+} {
+  const gate = resultsGateButtons();
+  const listed = Math.min(8, Math.max(1, Math.round(input.missingCount)));
+  const blockBottom = resultsChipBlockBottom(input.wordCount, input.extraWords);
+  const topFloor = blockBottom + RESULTS_REWARD_GAP;
+  const buttonTop = gate.academy.y - gate.academy.h / 2;
+  const plateBottom = Math.min(gate.plate.y + gate.plate.h / 2, buttonTop - RESULTS_REWARD_GAP);
+  const plateFloor = Math.min(gate.plate.h, Math.max(RESULTS_MIN_PLATE_H, 48 + listed * 2));
+  let plateH = gate.plate.h;
+  const room = () => plateBottom - plateH - RESULTS_REWARD_GAP - topFloor;
+  if (room() < RESULTS_MIN_PRACTICE_H) {
+    const fitted = plateBottom - RESULTS_REWARD_GAP - (topFloor + RESULTS_MIN_PRACTICE_H);
+    plateH = Math.max(plateFloor, Math.min(gate.plate.h, fitted));
+  }
+  const bandBottom = plateBottom - plateH - RESULTS_REWARD_GAP;
+  const bandH = Math.min(RESULTS_MAX_PRACTICE_H, Math.max(0, bandBottom - topFloor));
+  const bandTop = bandBottom - bandH;
+  const columns = 1 + (input.card ? 1 : 0) + (input.item ? 1 : 0);
+  const colW = (RESULTS_PRACTICE_W - RESULTS_COLUMN_GAP * (columns - 1)) / columns;
+  let cursor = RESULTS_PRACTICE_LEFT;
+  const practice = centerBox(cursor, bandTop, colW, bandH);
+  cursor += colW + RESULTS_COLUMN_GAP;
+  const card = input.card ? centerBox(cursor, bandTop, colW, bandH) : null;
+  if (input.card) cursor += colW + RESULTS_COLUMN_GAP;
+  const item = input.item ? centerBox(cursor, bandTop, colW, bandH) : null;
+  const plate = centerBox(gate.plate.x - gate.plate.w / 2, plateBottom - plateH, gate.plate.w, plateH);
+  const words = input.wordCount <= 0
+    ? null
+    : centerBox(477, RESULTS_CHIP_TOP, 3 * RESULTS_WORD_CHIP.pitchX + RESULTS_WORD_CHIP.width, blockBottom - RESULTS_CHIP_TOP);
+  return { practice, card, item, words, plate, academy: gate.academy, next: gate.next };
+}
+
 /** True when the two center-based boxes share interior pixels. Touching edges do not count. */
 export function resultsBoxesOverlap(a: ResultsBox, b: ResultsBox): boolean {
   const gapX = Math.abs(a.x - b.x) * 2 - a.w - b.w;
