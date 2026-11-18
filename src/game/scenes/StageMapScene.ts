@@ -11,11 +11,12 @@ import {
   battleReturn,
   commitBattleEntry,
   commitExamReturn,
+  confirmLearnSelection,
   openAcademyForStage,
   selectBattleGrade,
 } from "../../domain/chapter-route";
 import { GRADE_BANDS } from "../../domain/catalog";
-import { battleClearLine, cardProgress, learnedWordsLine } from "../../domain/learn-progress";
+import { battleClearLine } from "../../domain/learn-progress";
 import { mapPanel } from "../../domain/map-panel";
 import { examNodeStatus, examsOnChapter } from "../../domain/exams";
 import { selectionBattleNotice, studyNow } from "../../domain/progress";
@@ -24,12 +25,11 @@ import { browserSpeaker, speakWord } from "../../domain/speech";
 import {
   chapterDueCount,
   masteryLabel,
-  requiredWordIds,
-  wordsUntilBoss,
 } from "../../domain/stages";
+import { studyBanner } from "../../domain/study-copy";
 import { uiLabel } from "../../domain/ui-label";
 import { MAP_WORD_CARD_HIT, mapWordCardCenter } from "../hit";
-import { cjkWrap } from "../layout";
+import { cjkTextWidth, cjkWrap, mapLockedBossButtons } from "../layout";
 import { redirectUngraded } from "../grade-route";
 import { resetPlayTimer, restPromptDue, snoozeRest } from "../play-timer";
 import { probeEnter, probeNote } from "../probe";
@@ -52,6 +52,7 @@ const NODE_AT = [
 
 export class StageMapScene extends Phaser.Scene {
   private selected = 0;
+  private focusBoss = false;
   private lookedAt: string | null = null;
   private fontSample = "";
   private restPrompt = false;
@@ -67,12 +68,18 @@ export class StageMapScene extends Phaser.Scene {
   private blockedReason: "" | "no-grade" | "no-chapter" = "";
   private examNotice = "";
 
-  init(data: { fromBattleEnd?: boolean; retryStageId?: number } = {}): void {
+  init(data: { fromBattleEnd?: boolean; retryStageId?: number; chapterId?: string; focusBoss?: boolean } = {}): void {
     this.restPrompt = Boolean(data.fromBattleEnd) && restPromptDue();
     this.retryStageId = this.restPrompt ? data.retryStageId ?? null : null;
     this.mapLoadFailedKey = "";
     this.chapterMapToken += 1;
     this.placeFromSave();
+    if (typeof data.chapterId === "string" && data.chapterId.length > 0) {
+      this.viewChapterId = data.chapterId;
+      this.anchorChapterId = data.chapterId;
+      this.landedReview = false;
+    }
+    this.focusBoss = data.focusBoss === true;
   }
 
   /** Re-enter from the saved battle grade and P. A locked preview is not restored. */
@@ -116,9 +123,16 @@ export class StageMapScene extends Phaser.Scene {
     }
     if (redirectUngraded(this, save)) return;
     probeEnter("stages");
-    const opened = playStatuses(save, findPlayChapter(save, this.viewChapterId));
-    const openAt = opened.findIndex((status) => status === "open");
-    this.selected = findPlayChapter(save, this.viewChapterId).stages[openAt >= 0 ? openAt : 0]!.id;
+    const openedChapter = findPlayChapter(save, this.viewChapterId);
+    const opened = playStatuses(save, openedChapter);
+    if (this.focusBoss) {
+      const boss = openedChapter.stages.find((stage) => stage.type === "boss");
+      this.selected = boss?.id ?? openedChapter.stages[0]!.id;
+      this.focusBoss = false;
+    } else {
+      const openAt = opened.findIndex((status) => status === "open");
+      this.selected = openedChapter.stages[openAt >= 0 ? openAt : 0]!.id;
+    }
     this.lookedAt = null;
     listenKeys(this, (event) => {
       if (this.restPrompt) return;
@@ -302,7 +316,7 @@ export class StageMapScene extends Phaser.Scene {
     }
     const stage = chapter.stages.find((item) => item.id === this.selected) ?? chapter.stages[0]!;
     const status = statuses[stage.id - 1] ?? "locked";
-    const panel = mapPanel(save, stage, status, mapCounts(save, chapter, stage));
+    const panel = mapPanel(save, stage, status, mapCounts(save, chapter, stage), chapter);
     probeNote(`map:stage:${stage.id}:${status}`);
     const looked = this.lookedAt ? wordById(this.lookedAt) : undefined;
     const sample = [panel.goal, panel.unlockLine, panel.note, looked ? formatMeaning(looked) : ""].filter(Boolean).join("");
@@ -329,35 +343,34 @@ export class StageMapScene extends Phaser.Scene {
       tone: "secondary",
       disabled: chapterIndex >= chapters.length - 1,
     });
-    warmPanel(this, 930, 48, 540, 66);
+    warmPanel(this, 930, 48, 540, 72);
     const forestChapter = chapter.grade === "mixed";
-    const learnIds = forestChapter ? requiredWordIds(save) : chapter.wordIds;
-    const learnedProgress = cardProgress(save, learnIds);
-    const learnedLine = learnedWordsLine(learnedProgress, "已学") ?? "没有要学的词";
+    const banner = studyBanner(save, chapter);
     const mastery = forestChapter
       ? masteryLabel(save, now)
       : `${chapter.wordIds.filter((id) => badgeTone(save.wordCards[id], save.memory[id], now) === "bright").length}/${chapter.wordIds.length}`;
     const due = forestChapter
       ? chapterDueCount(save, now)
       : Object.values(save.memory).filter((memory) => chapter.wordIds.includes(memory.wordId) && isDue(memory, now)).length;
-    const untilBoss = forestChapter
-      ? wordsUntilBoss(save)
-      : chapter.wordIds.filter((id) => !save.wordCards[id]).length;
-    this.add.text(680, 26, learnedLine, {
+    const battle = battleClearLine(statuses.filter((item) => item === "cleared").length, chapter.stages.length);
+    this.add.text(680, 28, banner.title, {
       fontFamily: FONT,
       fontSize: "20px",
       fontStyle: "700",
       color: INK,
     });
-    this.add.text(860, 26, `熟练 ${mastery}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
-    this.add.text(1040, 26, `到期 ${due}`, { fontFamily: FONT, fontSize: "20px", fontStyle: "700", color: INK });
-    const untilLine = forestChapter ? `距林心守护还差 ${untilBoss} 个词` : `距${chapter.bossName}还差 ${untilBoss} 个词`;
-    const battleLine = `${battleClearLine(statuses.filter((item) => item === "cleared").length, chapter.stages.length)} · ${untilLine}`;
-    this.add.text(680, 52, battleLine, {
+    const stats = `熟练 ${mastery}  到期 ${due}`;
+    const withStats = [banner.encourage, battle, stats].filter(Boolean).join("  ");
+    const withoutStats = [banner.encourage, battle].filter(Boolean).join("  ");
+    const headerWidth = 520;
+    const detail = cjkTextWidth(withStats, 14) <= headerWidth ? withStats : withoutStats;
+    const sub = this.add.text(680, 56, detail, {
       fontFamily: FONT,
       fontSize: "14px",
       color: MUTED,
     });
+    const measured = cjkTextWidth(detail, 14);
+    if (measured > headerWidth) sub.setScale(headerWidth / measured);
 
     chapter.stages.forEach((item, index) => {
       const itemStatus = statuses[index] ?? "locked";
@@ -445,6 +458,33 @@ export class StageMapScene extends Phaser.Scene {
       this.add.text(panelX - 126, cursor, panel.note, { fontFamily: FONT, fontSize: "16px", color: INK, wordWrap: cjkWrap(252) });
       cursor += 56;
     }
+    const sideBySide = panel.buttons.length === 2
+      && panel.buttons.every((button) => cjkTextWidth(button.label, 22) <= 104);
+    const stacked = panel.buttons.length > 2 || (panel.buttons.length === 2 && !sideBySide);
+    const spots = stacked ? mapLockedBossButtons(panel.buttons.length) : null;
+    const wordCeiling = spots
+      ? Math.min(...spots.map((spot) => spot.y - spot.height / 2)) - 56
+      : Number.POSITIVE_INFINITY;
+    for (const line of panel.missingLines) {
+      if (cursor >= wordCeiling) break;
+      const missing = this.add.text(panelX - 126, cursor, line, {
+        fontFamily: FONT,
+        fontSize: "14px",
+        color: INK,
+        wordWrap: cjkWrap(252),
+      });
+      const room = wordCeiling - cursor;
+      if (missing.height > room) {
+        if (room < 16) {
+          missing.destroy();
+          break;
+        }
+        missing.setScale(room / missing.height);
+        cursor = wordCeiling;
+        break;
+      }
+      cursor += missing.height + 8;
+    }
     panel.words.forEach((face, index) => {
       const { x, y } = mapWordCardCenter(panelX, cursor, index);
       const frame = face.english ? "map_word_card" : "map_word_unknown";
@@ -496,15 +536,27 @@ export class StageMapScene extends Phaser.Scene {
       }).setOrigin(0.5, 0);
     }
     panel.buttons.forEach((button, index) => {
-      const x = panel.buttons.length === 1 ? panelX : panelX - 72 + index * 144;
-      warmButton(this, x, panelY + 232, button.label, () => {
+      const spot = spots?.[index];
+      const x = spot ? spot.x : panel.buttons.length === 1 ? panelX : panelX - 72 + index * 144;
+      const y = spot ? spot.y : panelY + 232;
+      warmButton(this, x, y, button.label, () => {
         if (!button.enabled) return;
         if (button.id === "learn") {
+          if (button.grade && button.wordIds && button.wordIds.length > 0 && button.chapterId) {
+            mutate((current) => confirmLearnSelection(current, button.grade!, button.chapterId!));
+            this.scene.start("learn", { practiceWordIds: button.wordIds, practiceGrade: button.grade, practiceChapterId: button.chapterId });
+            return;
+          }
           if (chapter.grade === "mixed") mutate((current) => openAcademyForStage(current, stage));
           this.scene.start("learn");
         }
         else this.fight(stage.id);
-      }, { width: panel.buttons.length === 1 ? 240 : 132, tone: button.tone, disabled: !button.enabled });
+      }, {
+        width: spot ? spot.width : panel.buttons.length === 1 ? 240 : 132,
+        height: spot ? spot.height : 56,
+        tone: button.tone,
+        disabled: !button.enabled,
+      });
     });
     const chapterLocked = !isChapterUnlocked(save, chapter);
     if (chapterLocked) {

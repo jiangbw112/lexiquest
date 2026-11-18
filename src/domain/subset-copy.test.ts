@@ -75,12 +75,12 @@ describe("player copy glyphs in the committed subsets", () => {
     const lines = [
       opened.lastNote,
       quoted(guide, "从这一章的词里抽题"),
-      quoted(guide, "本章 Boss 要先学完本章词"),
+      quoted(guide, "本章 Boss 要先在学堂学完本章词"),
       quoted(reveal, "正确答案"),
       bossWordsLeftLine(7),
     ];
     expect(lines[0]).toContain("这一章的词");
-    expect(lines[4]).toBe("Boss 要先学完本章词，还剩 7 个词。");
+    expect(lines[4]).toBe("Boss 要先在学堂学完本章词，还有 7 个没在学堂学过。");
     for (const line of lines) {
       expect(coveredBy(line, body), line).toEqual([]);
       expect(coveredBy(line, bodyBold), line).toEqual([]);

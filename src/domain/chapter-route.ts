@@ -1,4 +1,4 @@
-import { chapterExtraWords, chapterWords, isChapterExtra, GRADE_BANDS, normalizeGrades } from "./catalog";
+import { GRADE_BANDS, normalizeGrades } from "./catalog";
 import {
   forestPlayChapter,
   gradeChapters,
@@ -6,7 +6,7 @@ import {
   isChapterUnlocked,
   type PlayChapter,
 } from "./chapter-plan";
-import { FOREST_CHAPTER, FOREST_TITLE, stageWordIds, type ForestStage } from "./stages";
+import { FOREST_CHAPTER, FOREST_TITLE, forestStudyWordIds, gradeForestStudyWordIds, stageWordIds, type ForestStage } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 import { uiLabel } from "./ui-label";
 
@@ -137,11 +137,7 @@ export function academyGradeChoices(save: SaveData): GradeBand[] {
  * forest chapter carries the full eight instead of only the extras of this grade.
  */
 export function academyForestWordIds(grade: GradeBand): string[] {
-  const gradeWords = chapterWords()
-    .filter((word) => word.grade === grade && !isChapterExtra(word.id))
-    .map((word) => word.id);
-  const common = chapterExtraWords().map((word) => word.id).filter((id) => !gradeWords.includes(id));
-  return [...gradeWords, ...common];
+  return gradeForestStudyWordIds(grade);
 }
 
 /** First academy chapter of an allowed grade. Battle chapters are not this object. */
@@ -184,19 +180,29 @@ export function legalLearnChapters(save: SaveData, grade: LearnGrade): PlayChapt
 }
 
 /**
- * Academy lesson that can teach this forest stage's counted words.
- * One grade's forest chapter is used when it holds every counted word.
- * Otherwise the first allowed grade that still has one of those words is used.
+ * Academy lesson for this forest stage.
+ * Prefer a chapter that still holds this stage's unlearned words.
+ * Otherwise prefer a chapter that still holds an unlearned boss-list word.
+ * A chapter whose cards are already finished is not used while another still has words.
  */
 export function academyLessonForStage(save: SaveData, stage: ForestStage): LearnDraft | null {
   const chapters = academyGradeChoices(save).map((grade) => academyForestChapter(grade));
   if (chapters.length === 0) return null;
   const counted = stageWordIds(save, stage);
-  const missing = counted.filter((id) => !save.wordCards[id]);
-  const queue = missing.length > 0 ? missing : counted;
-  const host = chapters.find((chapter) => queue.length > 0 && queue.every((id) => chapter.wordIds.includes(id)))
-    ?? chapters.find((chapter) => queue.some((id) => chapter.wordIds.includes(id)));
-  const chosen = host ?? chapters[0];
+  const missingStage = counted.filter((id) => !save.wordCards[id]);
+  const bossMissing = new Set(forestStudyWordIds(save.selectedGrades).filter((id) => !save.wordCards[id]));
+  const stillOpen = (chapter: PlayChapter) => chapter.wordIds.some((id) => !save.wordCards[id]);
+  const holdsAll = (chapter: PlayChapter, ids: readonly string[]) =>
+    ids.length > 0 && ids.every((id) => chapter.wordIds.includes(id));
+  const open = chapters.filter(stillOpen);
+  const queue = missingStage.length > 0 ? missingStage : counted;
+  const chosen = open.find((chapter) => holdsAll(chapter, missingStage))
+    ?? open.find((chapter) => chapter.wordIds.some((id) => bossMissing.has(id)))
+    ?? open.find((chapter) => missingStage.some((id) => chapter.wordIds.includes(id)))
+    ?? open[0]
+    ?? chapters.find((chapter) => holdsAll(chapter, queue))
+    ?? chapters.find((chapter) => queue.some((id) => chapter.wordIds.includes(id)))
+    ?? chapters[0];
   if (!chosen || chosen.grade === "mixed") return null;
   return { grade: chosen.grade, chapterId: chosen.id };
 }

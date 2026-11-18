@@ -4,6 +4,7 @@ import { DEFAULT_APPEARANCE } from "./appearance";
 import { createSave, learnWord, setSelectedGrades } from "./progress";
 import { buildResultsView } from "./battle-results";
 import { mapPanel } from "./map-panel";
+import { gradeChapters } from "./chapter-plan";
 import { bossUnlockLine, FOREST_CHAPTER, requiredWordIds, stageCleared, stageLearnMoreLine, stageStatuses, stageWordIds, stageWordsStillToLearn } from "./stages";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -81,20 +82,36 @@ describe("forest map panel", () => {
     const all = mapPanel(everyGrade, stage, "locked");
     expect(all.goal).toBe("夺回宝藏，通关本章");
     expect(requiredWordIds(everyGrade)).toHaveLength(28);
-    expect(all.unlockLine).toBe("通过前 4 关并学完 28 个词");
-    expect(all.unlockLine).toBe(bossUnlockLine(everyGrade));
-    expect(all.words.every((face) => face.english === null)).toBe(true);
-    expect(all.total).toBe(4);
-    expect(all.buttons).toEqual([{ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" }]);
+    expect(all.unlockLine).toBe("在学堂学完本章词就能挑战");
+    expect(all.unlockLine).toBe(bossUnlockLine());
+    expect(all.total).toBe(requiredWordIds(everyGrade).length);
+    expect(all.learned).toBe(0);
+    expect(all.progressLabel).toBe(`本章已学 0/${all.total} 个词`);
+    expect(all.progressLabel).not.toContain("本关");
+    expect(all.missingLines.length).toBeGreaterThan(0);
+    expect(all.missingLines.join("")).toContain("tree");
+    expect(all.buttons.filter((button) => button.id === "learn")).toEqual([
+      expect.objectContaining({ enabled: true, label: "去三年级学", grade: "G3" }),
+    ]);
+    expect(all.buttons.at(-1)).toEqual({ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" });
+
+    const gradeChapter = gradeChapters("G3")[0]!;
+    const gradeBoss = gradeChapter.stages.find((item) => item.type === "boss");
+    if (!gradeBoss) throw new Error("grade boss missing");
+    const gradePanel = mapPanel(everyGrade, gradeBoss, "locked", undefined, gradeChapter);
+    expect(gradePanel.total).toBe(gradeChapter.wordIds.length);
+    expect(gradePanel.progressLabel).toBe(`本章已学 0/${gradeChapter.wordIds.length} 个词`);
 
     const grade3 = saveWith(["G3"]);
     const one = mapPanel(grade3, stage, "locked");
     expect(requiredWordIds(grade3)).toHaveLength(16);
-    expect(one.unlockLine).toBe("通过前 4 关并学完 16 个词");
-    expect(one.unlockLine).not.toBe(all.unlockLine);
+    expect(one.unlockLine).toBe("在学堂学完本章词就能挑战");
+    expect(one.buttons.filter((button) => button.id === "learn")).toHaveLength(1);
 
     const three = saveWith(["G3", "G4", "G5"]);
-    expect(mapPanel(three, stage, "locked").unlockLine).toBe("通过前 4 关并学完 25 个词");
+    const threePanel = mapPanel(three, stage, "locked");
+    expect(threePanel.unlockLine).toBe("在学堂学完本章词就能挑战");
+    expect(threePanel.buttons.filter((button) => button.id === "learn")).toHaveLength(1);
   });
 
   it("reveals a boss word only after that card exists", () => {

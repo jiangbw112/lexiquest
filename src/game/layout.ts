@@ -709,14 +709,50 @@ export const MAP_HEADER = {
   subSize: 14,
 } as const;
 
-export function mapHeaderFits(learned: string, mastery: string, due: string, sub: string): boolean {
-  const learnedEnd = MAP_HEADER.learnedX + cjkTextWidth(learned, MAP_HEADER.titleSize);
-  const masteryEnd = MAP_HEADER.masteryX + cjkTextWidth(mastery, MAP_HEADER.titleSize);
-  const dueEnd = MAP_HEADER.dueX + cjkTextWidth(due, MAP_HEADER.titleSize);
-  return learnedEnd <= MAP_HEADER.masteryX - 8
-    && masteryEnd <= MAP_HEADER.dueX - 8
-    && dueEnd <= MAP_HEADER.textRight
-    && MAP_HEADER.textLeft + cjkTextWidth(sub, MAP_HEADER.subSize) <= MAP_HEADER.textRight;
+export const MAP_STAGE_PANEL = { x: 1024, y: 450, w: 300, h: 560 } as const;
+
+export interface PanelButtonSpot {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Stack from the bottom of the map panel. Two buttons (one grade entry plus the boss) stay inside. */
+export function mapLockedBossButtons(count: number): PanelButtonSpot[] {
+  const height = 52;
+  const gap = 8;
+  const pad = 16;
+  const bottom = MAP_STAGE_PANEL.y + MAP_STAGE_PANEL.h / 2;
+  const width = MAP_STAGE_PANEL.w - 52;
+  const step = height + gap;
+  return Array.from({ length: count }, (_, index) => {
+    const fromBottom = count - 1 - index;
+    return {
+      x: MAP_STAGE_PANEL.x,
+      y: bottom - pad - height / 2 - fromBottom * step,
+      width,
+      height,
+    };
+  });
+}
+
+export function spotInsidePanel(spot: PanelButtonSpot, panel = MAP_STAGE_PANEL, pad = 0): boolean {
+  const left = panel.x - panel.w / 2 + pad;
+  const right = panel.x + panel.w / 2 - pad;
+  const top = panel.y - panel.h / 2 + pad;
+  const bottom = panel.y + panel.h / 2 - pad;
+  return spot.x - spot.width / 2 >= left - 0.01
+    && spot.x + spot.width / 2 <= right + 0.01
+    && spot.y - spot.height / 2 >= top - 0.01
+    && spot.y + spot.height / 2 <= bottom + 0.01;
+}
+
+/** Two full-width lines. The named count is line 1. Encouragement and battle progress share line 2. */
+export function mapHeaderFits(title: string, sub: string): boolean {
+  const width = MAP_HEADER.textRight - MAP_HEADER.textLeft;
+  return cjkTextWidth(title, MAP_HEADER.titleSize) <= width
+    && cjkTextWidth(sub, MAP_HEADER.subSize) <= width;
 }
 
 /** Parent week line starts at 140. The learned count starts at 720 and must stay inside 1140. */

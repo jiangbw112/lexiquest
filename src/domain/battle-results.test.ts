@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import {
+  battleAlsoStudyLine,
+  BATTLE_ALSO_STUDY,
   bossGateReminder,
   bossVictoryBanner,
   bossWordsLeftLine,
@@ -25,6 +27,13 @@ import {
   resultsSkipKind,
   resultsStackNudge,
   RESULTS_LAYOUT,
+  resultsBoxInsidePanel,
+  resultsBoxesOverlap,
+  resultsGateButtons,
+  resultsPracticeClearance,
+  resultsRewardClearance,
+  resultsStudyLines,
+  type ResultsBox,
   starsFor,
   visibleItems,
   wordsForResults,
@@ -37,7 +46,7 @@ import { deviceTimeZone, localDayKey } from "./local-day";
 import { mapPanel } from "./map-panel";
 import { applyBattleOutcome, createSave, levelFromXp } from "./progress";
 import { deserialize, serialize } from "./storage";
-import { bossReady, requiredWordIds, stageById, stageCleared, stageEncounterId, wordsUntilBoss } from "./stages";
+import { bossReady, requiredWordIds, stageById, stageCleared, stageEncounterId, stageWordsStillToLearn, wordsUntilBoss } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
 const NOW = Date.parse("2026-08-12T03:00:00.000Z");
@@ -376,6 +385,11 @@ describe("battle results stars and words", () => {
     expect(main).toContain("BattleResultsScene");
     expect(map).toContain("retryStageId");
     expect(RESULTS_LAYOUT.continueButton.y).toBe(744);
+    const gate = resultsGateButtons();
+    for (const box of [gate.academy, gate.next, gate.plate]) expect(resultsBoxInsidePanel(box, 12)).toBe(true);
+    const gapX = Math.abs(gate.academy.x - gate.next.x) - (gate.academy.w + gate.next.w) / 2;
+    expect(gapX).toBeGreaterThanOrEqual(16);
+    expect(gate.plate.y + gate.plate.h / 2).toBeLessThanOrEqual(gate.academy.y - gate.academy.h / 2);
     expect(RESULTS_LAYOUT.practiceItems.y + RESULTS_LAYOUT.practiceItems.h / 2 + 30)
       .toBeLessThanOrEqual(RESULTS_LAYOUT.continueButton.y - RESULTS_LAYOUT.continueButton.h / 2);
     expect(mapStarCenter(0)).toEqual({ x: 294, y: 711 });
@@ -391,6 +405,10 @@ describe("battle results stars and words", () => {
     expect(scene).toContain("skillIconFrame");
     expect(scene).toContain("resultsLowerShift");
     expect(scene).toContain("resultsStackNudge");
+    expect(scene).toContain("resultsRewardClearance");
+    expect(scene).toContain("resultsPracticeClearance");
+    expect(scene).toContain("drawCompactReward");
+    expect(scene).toContain("drawPracticeIn");
     expect(battle.indexOf("this.concealBattleActors()")).toBeLessThan(battle.indexOf('scene.launch("battle-results"'));
   });
 
@@ -466,6 +484,145 @@ function withCards(save: SaveData, ids: readonly string[]): SaveData {
   return { ...save, wordCards };
 }
 
+describe("stage 4 rewards clear the missing-word plate", () => {
+  it("keeps reward frames, the word plate, and both buttons apart for 1 to 8 missing words", () => {
+    const gate = resultsGateButtons();
+    const modes = ["card", "item", "both"] as const;
+    for (const missingCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      for (const wordCount of [1, 4, 5, 8]) {
+        for (const mode of modes) {
+          const layout = resultsRewardClearance({
+            wordCount,
+            extraWords: 0,
+            missingCount,
+            card: mode !== "item",
+            item: mode !== "card",
+          });
+          const rewards = [layout.card, layout.item].filter((box): box is ResultsBox => box !== null);
+          const label = `${mode} missing ${missingCount} shown ${wordCount}`;
+          expect(rewards, label).toHaveLength(mode === "both" ? 2 : 1);
+          const regions = [layout.xp, layout.plate, layout.academy, layout.next, layout.words, ...rewards].filter(
+            (box): box is ResultsBox => box !== null,
+          );
+          for (let i = 0; i < regions.length; i += 1) {
+            for (let j = i + 1; j < regions.length; j += 1) {
+              expect(resultsBoxesOverlap(regions[i]!, regions[j]!), label).toBe(false);
+            }
+          }
+          for (const reward of rewards) {
+            expect(reward.h, label).toBeGreaterThanOrEqual(64);
+            expect(resultsBoxInsidePanel(reward, 8), label).toBe(true);
+            expect(reward.y + reward.h / 2, label).toBeLessThanOrEqual(layout.plate.y - layout.plate.h / 2 - 8);
+          }
+          expect(layout.academy, label).toEqual(gate.academy);
+          expect(layout.next, label).toEqual(gate.next);
+          expect(layout.plate.h, label).toBe(gate.plate.h);
+          expect(layout.plate.y + layout.plate.h / 2, label).toBeLessThanOrEqual(layout.academy.y - layout.academy.h / 2 - 8);
+          expect(resultsBoxInsidePanel(layout.plate, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.academy, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.next, 12), label).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+describe("stage 4 practice card clears the missing-word plate", () => {
+  it("keeps the practice card, rewards, the plate, and both buttons apart", () => {
+    const gate = resultsGateButtons();
+    const modes = [
+      { card: false, item: false },
+      { card: false, item: true },
+      { card: true, item: false },
+      { card: true, item: true },
+    ] as const;
+    for (const missingCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      for (const wordCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        for (const mode of modes) {
+          const layout = resultsPracticeClearance({
+            wordCount,
+            extraWords: 0,
+            missingCount,
+            card: mode.card,
+            item: mode.item,
+          });
+          const label = `practice card ${mode.card} item ${mode.item} missing ${missingCount} shown ${wordCount}`;
+          expect(layout.practice.h, label).toBeGreaterThanOrEqual(88);
+          expect(resultsBoxInsidePanel(layout.practice, 8), label).toBe(true);
+          expect(layout.practice.y + layout.practice.h / 2, label).toBeLessThanOrEqual(layout.plate.y - layout.plate.h / 2 - 8);
+          const extras = [layout.card, layout.item].filter((box): box is ResultsBox => box !== null);
+          expect(extras, label).toHaveLength(Number(mode.card) + Number(mode.item));
+          const regions = [layout.practice, layout.plate, layout.academy, layout.next, layout.words, ...extras].filter(
+            (box): box is ResultsBox => box !== null,
+          );
+          for (let i = 0; i < regions.length; i += 1) {
+            for (let j = i + 1; j < regions.length; j += 1) {
+              expect(resultsBoxesOverlap(regions[i]!, regions[j]!), label).toBe(false);
+            }
+          }
+          expect(layout.academy, label).toEqual(gate.academy);
+          expect(layout.next, label).toEqual(gate.next);
+          expect(layout.plate.h, label).toBe(gate.plate.h);
+          expect(resultsBoxInsidePanel(layout.plate, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.academy, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.next, 12), label).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+describe("stage hint beside the chapter list", () => {
+  it("hides the stage line when the chapter list is shown, and keeps it when the list is absent", () => {
+    const forest = forestPlayChapter();
+    const open = graded(["G3"]);
+    const stage4 = stageById(4);
+    const stage1 = stageById(1);
+    if (!stage4 || !stage1) throw new Error("forest stage missing");
+    const before = { ...open, stageWins: { "1": 1, "2": 1, "3": 1 } };
+    const after = applyBattleOutcome(before, "win", NOW, stageEncounterId(4), 2, 4);
+    expect(stageWordsStillToLearn(after, stage4)).toBeGreaterThan(0);
+    const stageLine = resultsStudyLines(after, 4, false).learnMoreLine;
+    expect(stageLine).toContain("这一关还有");
+    const listed = buildResultsView({
+      before,
+      after,
+      answers: [
+        { wordId: "tree", correct: true, kind: "meaning" },
+        { wordId: "bird", correct: false, kind: "meaning" },
+      ],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(listed.bossGateWords.length).toBeGreaterThan(0);
+    expect(listed.bossGateLine).toContain("没在学堂学过");
+    expect(listed.learnMoreLine).toBeNull();
+
+    const early = applyBattleOutcome(open, "win", NOW, stageEncounterId(1), 2, 1);
+    expect(stageWordsStillToLearn(early, stage1)).toBeGreaterThan(0);
+    const kept = resultsStudyLines(early, 1, false).learnMoreLine;
+    expect(kept).toContain("这一关还有");
+    const plain = buildResultsView({
+      before: open,
+      after: early,
+      answers: [
+        { wordId: "tree", correct: true, kind: "meaning" },
+        { wordId: "bird", correct: true, kind: "meaning" },
+        { wordId: "fish", correct: false, kind: "meaning" },
+      ],
+      stageId: 1,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(plain.bossGateWords).toEqual([]);
+    expect(plain.bossGateLine).toBeNull();
+    expect(plain.learnMoreLine).toBe(kept);
+  });
+});
+
 describe("stage 4 boss word reminder", () => {
   it("names the same missing words as the boss gate, and only after a stage 4 win", () => {
     const forest = forestPlayChapter();
@@ -477,7 +634,7 @@ describe("stage 4 boss word reminder", () => {
     expect(requiredWordIds(open).filter((id) => !open.wordCards[id])).toHaveLength(forestLeft);
     expect(bossReady(open)).toBe(false);
     expect(bossGateReminder(open, 4, true, forest.id)).toBe(bossWordsLeftLine(forestLeft));
-    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先学完本章词，还剩 ${forestLeft} 个词。`);
+    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先在学堂学完本章词，还有 ${forestLeft} 个没在学堂学过。`);
     for (const stageId of [1, 2, 3, 5]) expect(bossGateReminder(open, stageId, true, forest.id)).toBeNull();
     expect(bossGateReminder(open, 4, false, forest.id)).toBeNull();
 
@@ -508,6 +665,21 @@ describe("stage 4 boss word reminder", () => {
     });
     expect(view.won).toBe(true);
     expect(view.bossGateLine).toBe(bossWordsLeftLine(forestLeft));
+    expect(view.bossBattleHint).toBeNull();
+    const answered = requiredWordIds(after).find((id) => !after.wordCards[id]);
+    if (!answered) throw new Error("missing word");
+    const hinted = buildResultsView({
+      before,
+      after,
+      answers: [{ wordId: answered, correct: true, kind: "meaning" }],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(hinted.bossBattleHint).toBe(BATTLE_ALSO_STUDY);
+    expect(battleAlsoStudyLine([answered], [{ wordId: "other", correct: true }])).toBeNull();
+    expect(after.wordCards[answered]).toBeUndefined();
     for (const stageId of [1, 2, 3]) {
       const quiet = buildResultsView({
         before,
@@ -558,7 +730,8 @@ describe("stage 4 boss word reminder", () => {
     const scene = source("../game/scenes/BattleResultsScene.ts");
     expect(scene).toContain("bossGateLine");
     expect(scene).toContain("去学堂");
-    expect(scene).toContain('this.scene.start("learn", { forestStageId: this.view.stageId })');
+    expect(scene).toContain("forestStageId: this.view.stageId");
+    expect(scene).toContain("practiceWordIds");
     expect(scene).not.toContain("mutate");
   });
 });

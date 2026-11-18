@@ -1,10 +1,10 @@
-import { chapterExtraWords, isChapterExtra, wordById } from "./catalog";
+import { chapterExtraWords, chapterWords, isChapterExtra, normalizeGrades, wordById } from "./catalog";
 import chapterFile from "./chapters/chapter_forest_v1.1.json";
 import rulesFile from "./chapters/forest-stage-rules.json";
 import { isCleared } from "./clearance";
 import { PROVISIONAL } from "./provisional";
 import { badgeTone, isDue } from "./review";
-import type { ClassId, SaveData } from "./types";
+import type { ClassId, GradeBand, SaveData } from "./types";
 
 export type StageUnlock =
   | { after_stage: number }
@@ -214,9 +214,25 @@ function countsTowardBoss(id: string, grades: ReadonlySet<string>): boolean {
   return Boolean(word && grades.has(word.grade));
 }
 
-/** Chapter words in the selected grades, plus every chapter_extra_words id, deduped. */
-export function requiredWordIds(save: SaveData): string[] {
-  const grades = new Set(save.selectedGrades);
+/**
+ * One grade's forest lesson: that grade's formal forest words, then the shared extras.
+ * The extras are the same eight in every grade.
+ */
+export function gradeForestStudyWordIds(grade: GradeBand): string[] {
+  const formal = chapterWords()
+    .filter((word) => word.grade === grade && !isChapterExtra(word.id))
+    .map((word) => word.id);
+  const common = chapterExtraWords().map((word) => word.id).filter((id) => !formal.includes(id));
+  return [...formal, ...common];
+}
+
+/**
+ * Boss list and the forest academy, in grade order.
+ * Each selected grade contributes its formal words, then the shared extras.
+ * The extras stay once. No selected grade leaves only those extras.
+ */
+export function forestStudyWordIds(grades: readonly string[] | undefined): string[] {
+  const selected = normalizeGrades(grades);
   const seen = new Set<string>();
   const ids: string[] = [];
   const push = (id: string) => {
@@ -224,11 +240,25 @@ export function requiredWordIds(save: SaveData): string[] {
     seen.add(id);
     ids.push(id);
   };
-  for (const id of chapterWordIds()) {
-    if (countsTowardBoss(id, grades)) push(id);
+  for (const grade of selected) {
+    for (const id of gradeForestStudyWordIds(grade)) push(id);
   }
-  for (const extra of chapterExtraWords()) push(extra.id);
+  if (selected.length === 0) {
+    for (const extra of chapterExtraWords()) push(extra.id);
+  }
   return ids;
+}
+
+/** The forest boss list. Same ids as forestStudyWordIds(save.selectedGrades). */
+export function requiredWordIds(save: SaveData): string[] {
+  return forestStudyWordIds(save.selectedGrades);
+}
+
+/** Every required forest word has a card. An empty grade list never counts. */
+export function forestStudied(save: SaveData): boolean {
+  if (save.selectedGrades.length === 0) return false;
+  const required = requiredWordIds(save);
+  return required.length > 0 && required.every((id) => save.wordCards[id]);
 }
 
 export function stageWordIds(save: SaveData, stage: ForestStage): string[] {
@@ -246,11 +276,11 @@ export function stageLearnMoreLine(remaining: number): string | null {
   return `这一关还有 ${remaining} 个新词可以去学堂学`;
 }
 
-/** Map lock line. The word count is requiredWordIds, not a fixed chapter size. */
-export function bossUnlockLine(save: SaveData): string {
-  const boss = FOREST_CHAPTER.stages.find((stage) => stage.type === "boss");
-  const prior = boss?.unlock && "stages_cleared" in boss.unlock ? boss.unlock.stages_cleared.length : 0;
-  return `通过前 ${prior} 关并学完 ${requiredWordIds(save).length} 个词`;
+/** A locked boss opens once this chapter's words have academy cards. Earlier stages are not required. */
+export const BOSS_LEARN_LINE = "在学堂学完本章词就能挑战";
+
+export function bossUnlockLine(): string {
+  return BOSS_LEARN_LINE;
 }
 
 export function chapterLearnedCount(save: SaveData): number {
@@ -287,20 +317,28 @@ export function explorationCleared(save: SaveData): boolean {
 }
 
 /**
- * Stages 1–4 cleared, and every required word collected.
- * Required words are the selected grades' chapter words plus chapter_extra_words.
+ * Every required word collected opens the boss, even before stages 1–4 are won.
+ * Those four wins still open the path one stage at a time while words remain.
  * No selected grade means the grade gate should already have stopped the player.
  * If a save still gets here, the boss stays locked.
  */
 export function bossReady(save: SaveData): boolean {
   if (save.selectedGrades.length === 0) return false;
+  if (forestStudied(save)) return true;
   if (FOREST_CHAPTER.boss_unlock.stages_1_to_4_cleared && !explorationCleared(save)) return false;
   if (!FOREST_CHAPTER.boss_unlock.all_28_learned) return explorationCleared(save);
-  const required = requiredWordIds(save);
-  return required.length > 0 && required.every((id) => save.wordCards[id]);
+  return false;
 }
 
 export function stageStatuses(save: SaveData): StageStatus[] {
+  if (forestStudied(save)) {
+    return FOREST_CHAPTER.stages.map((stage) => {
+      if (stage.type === "boss") {
+        return isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER.chapter_id }) ? "cleared" : "open";
+      }
+      return stageCleared(save, stage) ? "cleared" : "open";
+    });
+  }
   const statuses: StageStatus[] = [];
   let gateOpen = true;
   for (const stage of FOREST_CHAPTER.stages) {

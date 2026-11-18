@@ -7,12 +7,13 @@ import { findPlayChapter } from "./chapter-plan";
 import { displayTitle, FOREST_REWARDS } from "./chapter-rewards";
 import { COSMETIC_LABEL } from "./cosmetic-label";
 import { chapterWordsRemaining } from "./learn-batch";
+import { gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { levelFromXp } from "./progress";
 import { skillIconFrame } from "./skill-card-face";
 import { skillById } from "./skills";
 import { stageLearnMoreLine, stageWordsStillToLearn } from "./stages";
-import type { SaveData } from "./types";
+import type { GradeBand, SaveData } from "./types";
 
 export type StarCount = 1 | 2 | 3;
 
@@ -100,6 +101,19 @@ export interface BattleResultsView {
    * Null when those words are already collected, or the fight was not that stage.
    */
   bossGateLine: string | null;
+  /** English and Chinese of the words the boss gate still wants. Empty when the line is hidden. */
+  bossGateWords: string[];
+  /** One academy entry per grade. The scene passes wordIds and does not write them onto the save. */
+  bossStudy: BossStudyEntry[];
+  /** Set when a word answered correctly in this fight is still on the academy list. */
+  bossBattleHint: string | null;
+}
+
+export interface BossStudyEntry {
+  grade: GradeBand;
+  chapterId: string;
+  wordIds: string[];
+  label: string;
 }
 
 /** Integer thresholds. A loss has no stars. Question count and time do not reduce them. */
@@ -267,8 +281,46 @@ export function buildResultsView(input: {
     equippedCosmeticIds: input.after.equippedCosmeticIds,
     equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
-    ...resultsStudyLines(input.after, input.stageId, input.boss),
+    ...stageHintBesideChapterList(
+      resultsStudyLines(input.after, input.stageId, input.boss),
+      bossGateFields(input.after, input.stageId, won, input.chapterId, input.answers),
+    ),
     bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
+  };
+}
+
+/** The stage line sits above the experience bar. The chapter list below replaces it. */
+function stageHintBesideChapterList<T extends { bossGateWords: readonly string[] }>(
+  study: { learnMoreLine: string | null; repeatLine: string | null },
+  gate: T,
+): { learnMoreLine: string | null; repeatLine: string | null } & T {
+  return {
+    ...study,
+    ...gate,
+    learnMoreLine: gate.bossGateWords.length > 0 ? null : study.learnMoreLine,
+  };
+}
+
+function bossGateFields(
+  save: SaveData,
+  stageId: number,
+  won: boolean,
+  chapterId: string | undefined,
+  answers: readonly { wordId: string; correct: boolean }[],
+): {
+  bossGateWords: string[];
+  bossStudy: BossStudyEntry[];
+  bossBattleHint: string | null;
+} {
+  if (!bossGateReminder(save, stageId, won, chapterId)) {
+    return { bossGateWords: [], bossStudy: [], bossBattleHint: null };
+  }
+  const study = bossGateStudy(save, chapterId);
+  const missingIds = studyWordIds(save, findPlayChapter(save, chapterId)).filter((id) => !save.wordCards[id]);
+  return {
+    bossGateWords: study.words,
+    bossStudy: study.entries,
+    bossBattleHint: battleAlsoStudyLine(missingIds, answers),
   };
 }
 
@@ -447,7 +499,18 @@ export function bossWordsStillRequired(save: SaveData, chapterId?: string): numb
 }
 
 export function bossWordsLeftLine(remaining: number): string {
-  return `Boss 要先学完本章词，还剩 ${remaining} 个词。`;
+  return `Boss 要先在学堂学完本章词，还有 ${remaining} 个没在学堂学过。`;
+}
+
+/** Shown when this fight's correct answers are still missing an academy card. */
+export const BATTLE_ALSO_STUDY = "对战答对也要去学堂学一次哦";
+
+export function battleAlsoStudyLine(
+  missingIds: readonly string[],
+  answers: readonly { wordId: string; correct: boolean }[],
+): string | null {
+  const missing = new Set(missingIds);
+  return answers.some((answer) => answer.correct && missing.has(answer.wordId)) ? BATTLE_ALSO_STUDY : null;
 }
 
 /**
@@ -460,6 +523,213 @@ export function bossGateReminder(save: SaveData, stageId: number, won: boolean, 
   const remaining = bossWordsStillRequired(save, chapterId);
   if (remaining <= 0) return null;
   return bossWordsLeftLine(remaining);
+}
+
+/** The unlearned boss-gate words, and one academy entry per grade. */
+export function bossGateStudy(save: SaveData, chapterId?: string): { words: string[]; entries: BossStudyEntry[] } {
+  const chapter = findPlayChapter(save, chapterId);
+  const missing = namedWords(studyWordIds(save, chapter).filter((id) => !save.wordCards[id]));
+  const words = missing.map((word) => `${word.english} ${word.chinese}`);
+  if (missing.length === 0) return { words, entries: [] };
+  if (chapter.grade !== "mixed") {
+    return {
+      words,
+      entries: [{
+        grade: chapter.grade,
+        chapterId: chapter.id,
+        wordIds: missing.map((word) => word.id),
+        label: "去学堂学",
+      }],
+    };
+  }
+  const first = gradePracticeEntries(save, missing)[0];
+  if (!first) return { words, entries: [] };
+  return {
+    words,
+    entries: [{
+      grade: first.grade,
+      chapterId: chapter.id,
+      wordIds: first.wordIds,
+      label: first.label,
+    }],
+  };
+}
+
+export interface ResultsBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** One academy button and 继续, both inside the results panel, with the word plate above them. */
+export function resultsGateButtons(): { academy: ResultsBox; next: ResultsBox; plate: ResultsBox } {
+  const panel = RESULTS_LAYOUT.panel;
+  const bottom = panel.y + panel.h / 2;
+  const pad = 28;
+  const h = 56;
+  const y = bottom - pad - h / 2;
+  const academyW = 228;
+  const nextW = 220;
+  const gap = 28;
+  const origin = panel.x - (academyW + gap + nextW) / 2;
+  const academy = { x: origin + academyW / 2, y, w: academyW, h };
+  const next = { x: origin + academyW + gap + nextW / 2, y, w: nextW, h };
+  const plateH = 88;
+  const plate = {
+    x: panel.x,
+    y: y - h / 2 - 16 - plateH / 2,
+    w: panel.w - pad * 2,
+    h: plateH,
+  };
+  return { academy, next, plate };
+}
+
+const RESULTS_XP_ROW_H = 40;
+const RESULTS_REWARD_GAP = 8;
+const RESULTS_MIN_REWARD_H = 64;
+const RESULTS_MAX_REWARD_H = 200;
+const RESULTS_MIN_PLATE_H = 56;
+const RESULTS_CARD_SLOT = { left: 477, w: 360 } as const;
+const RESULTS_ITEM_SLOT = { left: 845, w: 348 } as const;
+/** Label, bar, and the +经验 capsule. The scene draws all three inside this row. */
+const RESULTS_XP_ROW = { left: 470, right: 1140 } as const;
+
+function resultsChipBlockBottom(wordCount: number, extraWords: number): number {
+  const rows = wordCount <= 0 ? 0 : Math.ceil(wordCount / 4);
+  const bottom = resultsRowsBottom(rows);
+  return extraWords > 0 ? bottom + 28 : bottom;
+}
+
+function centerBox(left: number, top: number, w: number, h: number): ResultsBox {
+  return { x: left + w / 2, y: top + h / 2, w, h };
+}
+
+/**
+ * Stage 4 can show a card upgrade or a new item in the same space as the
+ * missing-word plate. The plate and the two buttons stay put. The reward
+ * frames sit in the band above the plate, under the experience row, and
+ * shrink only when a tall word list leaves less than a readable strip.
+ * `missingCount` is how many words the plate is listing.
+ */
+export function resultsRewardClearance(input: {
+  wordCount: number;
+  extraWords: number;
+  missingCount: number;
+  card: boolean;
+  item: boolean;
+}): {
+  card: ResultsBox | null;
+  item: ResultsBox | null;
+  xp: ResultsBox;
+  words: ResultsBox | null;
+  plate: ResultsBox;
+  academy: ResultsBox;
+  next: ResultsBox;
+} {
+  const gate = resultsGateButtons();
+  const listed = Math.min(8, Math.max(1, Math.round(input.missingCount)));
+  const blockBottom = resultsChipBlockBottom(input.wordCount, input.extraWords);
+  const rewardTopFloor = blockBottom + RESULTS_REWARD_GAP + RESULTS_XP_ROW_H + RESULTS_REWARD_GAP;
+  const buttonTop = gate.academy.y - gate.academy.h / 2;
+  const plateBottom = Math.min(gate.plate.y + gate.plate.h / 2, buttonTop - RESULTS_REWARD_GAP);
+  // One through eight listed words keep the designed plate. It only shrinks
+  // when the reward strip would otherwise be shorter than a readable row.
+  const plateFloor = Math.min(gate.plate.h, Math.max(RESULTS_MIN_PLATE_H, 48 + listed * 2));
+  let plateH = gate.plate.h;
+  const room = () => plateBottom - plateH - RESULTS_REWARD_GAP - rewardTopFloor;
+  if (room() < RESULTS_MIN_REWARD_H) {
+    const fitted = plateBottom - RESULTS_REWARD_GAP - (rewardTopFloor + RESULTS_MIN_REWARD_H);
+    plateH = Math.max(plateFloor, Math.min(gate.plate.h, fitted));
+  }
+  const rewardBottom = plateBottom - plateH - RESULTS_REWARD_GAP;
+  const rewardH = Math.min(RESULTS_MAX_REWARD_H, Math.max(0, rewardBottom - rewardTopFloor));
+  const rewardTop = rewardBottom - rewardH;
+  const xpBottom = rewardTop - RESULTS_REWARD_GAP;
+  const xp = centerBox(RESULTS_XP_ROW.left, xpBottom - RESULTS_XP_ROW_H, RESULTS_XP_ROW.right - RESULTS_XP_ROW.left, RESULTS_XP_ROW_H);
+  const plate = centerBox(gate.plate.x - gate.plate.w / 2, plateBottom - plateH, gate.plate.w, plateH);
+  const words = input.wordCount <= 0
+    ? null
+    : centerBox(477, RESULTS_CHIP_TOP, 3 * RESULTS_WORD_CHIP.pitchX + RESULTS_WORD_CHIP.width, blockBottom - RESULTS_CHIP_TOP);
+  const card = input.card ? centerBox(RESULTS_CARD_SLOT.left, rewardTop, RESULTS_CARD_SLOT.w, rewardH) : null;
+  const item = input.item ? centerBox(RESULTS_ITEM_SLOT.left, rewardTop, RESULTS_ITEM_SLOT.w, rewardH) : null;
+  return { card, item, xp, words, plate, academy: gate.academy, next: gate.next };
+}
+
+const RESULTS_MIN_PRACTICE_H = 88;
+const RESULTS_MAX_PRACTICE_H = 120;
+const RESULTS_PRACTICE_LEFT = 495;
+const RESULTS_PRACTICE_W = 680;
+const RESULTS_COLUMN_GAP = 16;
+
+/**
+ * A practice win draws no experience bar. The practice card, and a card
+ * upgrade or new item when the page also has one, share the band above the
+ * missing-word plate. The plate and the two buttons stay put.
+ */
+export function resultsPracticeClearance(input: {
+  wordCount: number;
+  extraWords: number;
+  missingCount: number;
+  card: boolean;
+  item: boolean;
+}): {
+  practice: ResultsBox;
+  card: ResultsBox | null;
+  item: ResultsBox | null;
+  words: ResultsBox | null;
+  plate: ResultsBox;
+  academy: ResultsBox;
+  next: ResultsBox;
+} {
+  const gate = resultsGateButtons();
+  const listed = Math.min(8, Math.max(1, Math.round(input.missingCount)));
+  const blockBottom = resultsChipBlockBottom(input.wordCount, input.extraWords);
+  const topFloor = blockBottom + RESULTS_REWARD_GAP;
+  const buttonTop = gate.academy.y - gate.academy.h / 2;
+  const plateBottom = Math.min(gate.plate.y + gate.plate.h / 2, buttonTop - RESULTS_REWARD_GAP);
+  const plateFloor = Math.min(gate.plate.h, Math.max(RESULTS_MIN_PLATE_H, 48 + listed * 2));
+  let plateH = gate.plate.h;
+  const room = () => plateBottom - plateH - RESULTS_REWARD_GAP - topFloor;
+  if (room() < RESULTS_MIN_PRACTICE_H) {
+    const fitted = plateBottom - RESULTS_REWARD_GAP - (topFloor + RESULTS_MIN_PRACTICE_H);
+    plateH = Math.max(plateFloor, Math.min(gate.plate.h, fitted));
+  }
+  const bandBottom = plateBottom - plateH - RESULTS_REWARD_GAP;
+  const bandH = Math.min(RESULTS_MAX_PRACTICE_H, Math.max(0, bandBottom - topFloor));
+  const bandTop = bandBottom - bandH;
+  const columns = 1 + (input.card ? 1 : 0) + (input.item ? 1 : 0);
+  const colW = (RESULTS_PRACTICE_W - RESULTS_COLUMN_GAP * (columns - 1)) / columns;
+  let cursor = RESULTS_PRACTICE_LEFT;
+  const practice = centerBox(cursor, bandTop, colW, bandH);
+  cursor += colW + RESULTS_COLUMN_GAP;
+  const card = input.card ? centerBox(cursor, bandTop, colW, bandH) : null;
+  if (input.card) cursor += colW + RESULTS_COLUMN_GAP;
+  const item = input.item ? centerBox(cursor, bandTop, colW, bandH) : null;
+  const plate = centerBox(gate.plate.x - gate.plate.w / 2, plateBottom - plateH, gate.plate.w, plateH);
+  const words = input.wordCount <= 0
+    ? null
+    : centerBox(477, RESULTS_CHIP_TOP, 3 * RESULTS_WORD_CHIP.pitchX + RESULTS_WORD_CHIP.width, blockBottom - RESULTS_CHIP_TOP);
+  return { practice, card, item, words, plate, academy: gate.academy, next: gate.next };
+}
+
+/** True when the two center-based boxes share interior pixels. Touching edges do not count. */
+export function resultsBoxesOverlap(a: ResultsBox, b: ResultsBox): boolean {
+  const gapX = Math.abs(a.x - b.x) * 2 - a.w - b.w;
+  const gapY = Math.abs(a.y - b.y) * 2 - a.h - b.h;
+  return gapX < -0.01 && gapY < -0.01;
+}
+
+export function resultsBoxInsidePanel(box: ResultsBox, pad = 0): boolean {
+  const panel = RESULTS_LAYOUT.panel;
+  const left = panel.x - panel.w / 2 + pad;
+  const right = panel.x + panel.w / 2 - pad;
+  const top = panel.y - panel.h / 2 + pad;
+  const bottom = panel.y + panel.h / 2 - pad;
+  return box.x - box.w / 2 >= left - 0.01
+    && box.x + box.w / 2 <= right + 0.01
+    && box.y - box.h / 2 >= top - 0.01
+    && box.y + box.h / 2 <= bottom + 0.01;
 }
 
 /** The clear hint only. A small learned set no longer makes the fight repeat those words. */

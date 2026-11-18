@@ -6,7 +6,10 @@ import {
   PRACTICE_LINE_2,
   PRACTICE_NOTICE,
   RESULTS_LAYOUT,
+  resultsGateButtons,
   resultsLowerShift,
+  resultsPracticeClearance,
+  resultsRewardClearance,
   resultsRewardDrop,
   resultsSkipHintState,
   resultsSkipKind,
@@ -17,9 +20,12 @@ import {
   xpBarSegments,
   type XpFillSegment,
   type BattleResultsView,
+  type BossStudyEntry,
   type ResultItem,
+  type ResultsBox,
 } from "../../domain/battle-results";
 import { skillCardFrame, skillIconFrame, skillLevelFrame, starMark } from "../../domain/skill-card-face";
+import { clipMissingWords } from "../../domain/study-copy";
 import { browserSpeaker, speakWord } from "../../domain/speech";
 import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
@@ -381,17 +387,48 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   /** Stage 4 win, while the boss still needs this chapter's words. The stage itself is already cleared. */
+  /** Practice card moves above the missing-word plate. Null on a rewarded win. */
+  private practiceClearance() {
+    const view = this.view;
+    if (!view.practiceOnly || !view.bossGateLine) return null;
+    return resultsPracticeClearance({
+      wordCount: view.words.length,
+      extraWords: view.extraWords,
+      missingCount: Math.max(1, view.bossGateWords.length),
+      card: Boolean(view.card),
+      item: view.items.length > 0,
+    });
+  }
+
+  /** Card or item rewards move above the missing-word plate. Null when the page has neither. */
+  private rewardClearance() {
+    const view = this.view;
+    if (!view.bossGateLine || (!view.card && view.items.length === 0)) return null;
+    return resultsRewardClearance({
+      wordCount: view.words.length,
+      extraWords: view.extraWords,
+      missingCount: Math.max(1, view.bossGateWords.length),
+      card: Boolean(view.card),
+      item: view.items.length > 0,
+    });
+  }
+
   private drawBossGate(): void {
     const line = this.view.bossGateLine;
     if (!line) return;
-    const y = 720;
-    const plate = this.add.rectangle(835, y, 740, 36, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
-    const text = this.add.text(835, y, line, {
+    const words = clipMissingWords([(this.view.bossGateWords ?? []).join("、")], 64).join("\n");
+    const body = [line, this.view.bossBattleHint, words].filter((part) => Boolean(part)).join("\n");
+    const plateBox = this.rewardClearance()?.plate ?? this.practiceClearance()?.plate ?? resultsGateButtons().plate;
+    const plate = this.add.rectangle(plateBox.x, plateBox.y, plateBox.w, plateBox.h, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
+    const text = this.add.text(plateBox.x, plateBox.y, body, {
       fontFamily: FONT_BODY,
       fontSize: "18px",
       fontStyle: "700",
       color: NOTE,
+      align: "center",
+      wordWrap: { width: plateBox.w - 24 },
     }).setOrigin(0.5);
+    if (text.height > plateBox.h - 12) text.setScale((plateBox.h - 12) / text.height);
     this.finishing.push(plate, text);
   }
 
@@ -418,6 +455,7 @@ export class BattleResultsScene extends Phaser.Scene {
   }
 
   private stackNudge(): number {
+    if (this.view.bossGateLine) return 0;
     const view = this.view;
     const mode = !view.won || view.card || view.items.length > 0 ? "tall" : view.practiceOnly ? "practice" : "xp";
     return resultsStackNudge(view.words.length, view.extraWords, mode);
@@ -426,18 +464,32 @@ export class BattleResultsScene extends Phaser.Scene {
   private drawWinBody(): void {
     const view = this.view;
     if (view.practiceOnly) {
+      const practice = this.practiceClearance();
+      if (practice) {
+        this.drawPracticeIn(practice.practice);
+        if (practice.card && view.card) this.drawCompactReward(practice.card, view.card);
+        if (practice.item) this.drawCompactItems(practice.item);
+        return;
+      }
       this.practiceCard(view.items.length > 0 ? 110 : 120);
       if (view.items.length > 0) this.drawPracticeItems();
       return;
     }
-    this.add.text(480, this.dy(430), "经验", {
+    const layout = this.rewardClearance();
+    const xpCenter = layout ? layout.xp.y : this.dy(430);
+    this.add.text(480, xpCenter, "经验", {
       fontFamily: FONT_BODY,
       fontSize: "22px",
       fontStyle: "700",
       color: INK,
     }).setOrigin(0, 0.5);
-    this.drawXpBar();
-    this.goldCapsule(1080, this.dy(430), uiLabel("+经验"));
+    this.drawXpBar(xpCenter);
+    this.goldCapsule(1080, xpCenter, uiLabel("+经验"));
+    if (layout) {
+      if (layout.card && view.card) this.drawCompactReward(layout.card, view.card);
+      if (layout.item) this.drawCompactItems(layout.item);
+      return;
+    }
     if (view.thirdReplayReward) {
       this.add.text(540, this.dy(460), PRACTICE_NOTICE, {
         fontFamily: FONT_BODY,
@@ -447,6 +499,22 @@ export class BattleResultsScene extends Phaser.Scene {
     }
     if (view.card) this.drawCard();
     if (view.items.length > 0) this.drawItemBox(845, this.dy(476), 348, 200, false);
+  }
+
+  /** Practice notice used while the missing-word plate is on the page. */
+  private drawPracticeIn(box: ResultsBox): void {
+    const left = box.x - box.w / 2;
+    const top = box.y - box.h / 2;
+    this.topLeftRow(left, top, box.w, box.h);
+    const icon = Math.min(56, Math.max(32, box.h - 28));
+    const iconX = left + 16;
+    const iconY = top + (box.h - icon) / 2;
+    this.add.image(iconX, iconY, "atlas_ui_core", "icon_hint").setOrigin(0, 0).setDisplaySize(icon, icon);
+    const textX = iconX + icon + 16;
+    const textW = Math.max(40, box.w - (textX - left) - 16);
+    const mid = top + box.h / 2;
+    this.fitLine(textX, mid - 14, PRACTICE_LINE_1, textW, 22, true);
+    this.fitLine(textX, mid + 16, PRACTICE_LINE_2, textW, 18, false, INK);
   }
 
   private practiceCard(height: number): void {
@@ -497,9 +565,9 @@ export class BattleResultsScene extends Phaser.Scene {
     });
   }
 
-  private drawXpBar(): void {
+  private drawXpBar(centerY: number): void {
     const x = 540;
-    const y = this.dy(416);
+    const y = centerY - 14;
     const width = 470;
     const height = 28;
     warmSlice(this, "atlas_ui_core", "progress_frame", width, height).setPosition(x + width / 2, y + height / 2);
@@ -622,6 +690,59 @@ export class BattleResultsScene extends Phaser.Scene {
     this.fixedCapsule(x, y, text.width + 36, 40, GOLD);
     text.setDepth(12);
     this.finishing.push(text);
+  }
+
+  /** Short reward row used while the missing-word plate is on the page. */
+  private drawCompactReward(box: ResultsBox, card: NonNullable<BattleResultsView["card"]>): void {
+    const left = box.x - box.w / 2;
+    const top = box.y - box.h / 2;
+    this.topLeftRow(left, top, box.w, box.h);
+    const icon = Math.min(40, box.h - 16);
+    const iconX = left + 12;
+    const iconY = top + (box.h - icon) / 2;
+    const frame = skillIconFrame(card.id);
+    if (this.textures.exists("atlas_skills") && this.textures.get("atlas_skills").has(frame)) {
+      this.add.image(iconX + icon / 2, iconY + icon / 2, "atlas_skills", frame).setDisplaySize(icon, icon);
+    }
+    const textX = iconX + icon + 12;
+    const textW = Math.max(40, box.w - (textX - left) - 12);
+    this.fitLine(textX, top + box.h / 2 - 12, "卡牌升级", textW, 16, true);
+    this.fitLine(textX, top + box.h / 2 + 12, `${card.name}  ${starMark(card.from)} 到 ${starMark(card.to)}`, textW, 18, true);
+  }
+
+  private drawCompactItems(box: ResultsBox): void {
+    const left = box.x - box.w / 2;
+    const top = box.y - box.h / 2;
+    this.topLeftRow(left, top, box.w, box.h);
+    const { shown, extra } = visibleItems(this.view.items, false);
+    const item = shown[0];
+    if (!item) return;
+    const iconX = left + 12;
+    this.thumb(item, iconX, top + (box.h - 48) / 2);
+    const textX = iconX + 48 + 12;
+    const badgeW = extra > 0 ? 96 : 0;
+    if (extra > 0) this.moreBadge(left + box.w - 8, top + 18, extra);
+    const textW = Math.max(40, box.w - (textX - left) - 12 - badgeW);
+    this.fitLine(textX, top + box.h / 2 - 12, item.heading, textW, 16, true);
+    this.fitLine(textX, top + box.h / 2 + 12, item.line, textW, 14, false);
+  }
+
+  private fitLine(
+    x: number,
+    y: number,
+    line: string,
+    width: number,
+    fontSize: number,
+    strong: boolean,
+    color = strong ? INK : MUTED,
+  ): void {
+    const text = this.add.text(x, y, line, {
+      fontFamily: FONT_BODY,
+      fontSize: `${fontSize}px`,
+      fontStyle: strong ? "700" : "400",
+      color,
+    }).setOrigin(0, 0.5);
+    if (text.width > width) text.setScale(width / text.width);
   }
 
   private drawCard(): void {
@@ -770,19 +891,20 @@ export class BattleResultsScene extends Phaser.Scene {
     if (this.view.won) {
       const label = this.view.firstChapterClear ? uiLabel("看结局") : uiLabel("继续");
       const spot = RESULTS_LAYOUT.continueButton;
-      const y = this.view.bossGateLine ? 770 : spot.y;
-      if (this.view.bossGateLine) {
-        const academy = warmButton(this, 560, y, uiLabel("去学堂"), () => {
+      const gate = this.view.bossGateLine ? resultsGateButtons() : null;
+      if (gate) {
+        const entry = (this.view.bossStudy ?? [])[0] ?? null;
+        const academy = warmButton(this, gate.academy.x, gate.academy.y, entry?.label ?? uiLabel("去学堂"), () => {
           if (!this.keysOpen()) return;
-          this.toAcademy();
-        }, { width: 200, height: spot.h, tone: "secondary" });
+          this.toAcademy(entry ?? undefined);
+        }, { width: gate.academy.w, height: gate.academy.h, tone: "secondary" });
         academy.setVisible(false);
         this.buttons.push(academy);
       }
-      const button = warmButton(this, spot.x, y, label, () => {
+      const button = warmButton(this, gate ? gate.next.x : spot.x, gate ? gate.next.y : spot.y, label, () => {
         if (!this.keysOpen()) return;
         this.continueOn();
-      }, { width: spot.w, height: spot.h });
+      }, { width: gate ? gate.next.w : spot.w, height: gate ? gate.next.h : spot.h });
       button.setVisible(false);
       this.buttons.push(button);
       return;
@@ -802,10 +924,15 @@ export class BattleResultsScene extends Phaser.Scene {
     this.buttons.push(again, map);
   }
 
-  private toAcademy(): void {
+  private toAcademy(entry?: BossStudyEntry): void {
     probeNote(`battle:results:academy:${this.view.stageId}`);
     this.scene.stop("battle");
-    this.scene.start("learn", { forestStageId: this.view.stageId });
+    this.scene.start("learn", {
+      forestStageId: this.view.stageId,
+      practiceWordIds: entry?.wordIds,
+      practiceGrade: entry?.grade,
+      practiceChapterId: entry?.chapterId,
+    });
   }
 
   private continueOn(): void {

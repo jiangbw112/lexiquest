@@ -192,8 +192,8 @@ describe("saved progress", () => {
 
   it("states the forest quest and clears the chapter only after the boss", () => {
     let save = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
-    expect(questLine(save)).toContain("林缘小径");
-    expect(questLine(save)).toContain("熟练 0/28");
+    expect(questLine(save)).toContain("森林冒险：已学 0/28 个词");
+    expect(questLine(save)).toContain("还有 28 个没在学堂学过");
     for (const word of sampleWords().slice(0, 4)) save = learnWord(save, word.id, START);
     const earlyBoss = applyBattleOutcome(save, "win", START.getTime() + 1, "canopy");
     expect(earlyBoss.chapterCleared).toBe(false);
@@ -201,7 +201,7 @@ describe("saved progress", () => {
     expect(earlyBoss.wordCards).toBe(save.wordCards);
 
     save = learnSample(save);
-    expect(questLine(save)).toContain("林缘小径");
+    expect(questLine(save)).toContain("森林冒险：已学");
     save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     const memory = save.memory;
     const cards = save.wordCards;
@@ -215,8 +215,8 @@ describe("saved progress", () => {
     expect(cleared.titles).toContain(displayTitle(FOREST_REWARDS, FOREST_REWARDS.clear_reward.title_id).shownZh);
     expect(cleared.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
     expect(cleared.rewardQueue.filter((notice) => notice.title === "对战胜利")).toHaveLength(0);
-    expect(questLine(cleared)).toContain("熟练 0/28");
-    expect(questLine(cleared)).toContain("通关");
+    expect(questLine(cleared)).toContain("森林冒险：已学 28/28 个词");
+    expect(questLine(cleared)).toContain("这一章打完啦，真棒！");
     const again = applyBattleOutcome(cleared, "win", START.getTime() + 3, "canopy");
     expect(again.rewardQueue.filter((notice) => notice.title === "外观奖励")).toHaveLength(0);
     expect(again.clearRewardClaimed).toBe(true);

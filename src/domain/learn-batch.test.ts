@@ -12,8 +12,7 @@ import {
 } from "./chapter-plan";
 import {
   LEARN_BACK_VILLAGE,
-  LEARN_CARDS_DONE,
-  LEARN_GO_MAP,
+  LEARN_FIGHT_BOSS,
   chapterLearnScope,
   confirmLearnSettlement,
   learnAdvance,
@@ -110,18 +109,18 @@ describe("academy batch settlement", () => {
     expect(view.kind).toBe("cards-done");
     expect(view.remaining).toBe(0);
     expect(view.completed).toBe(last.length);
-    expect(view.primaryLabel).toBe(LEARN_GO_MAP);
+    expect(view.primaryLabel).toBe(LEARN_FIGHT_BOSS);
     expect(view.secondaryLabel).toBe(LEARN_BACK_VILLAGE);
-    expect(view.message).toBe(LEARN_CARDS_DONE);
+    expect(view.message).toBe("本章词都学会了！去对战挑战 Boss 吧");
     expect(view.nextWordId).toBeNull();
-    expect(view.primaryLabel).toBe(LEARN_GO_MAP);
+    expect(view.settlement?.focusBoss).toBe(true);
     expect(readFileSync(new URL("./learn-batch.ts", import.meta.url), "utf8")).not.toContain("继续本次");
     expect(readFileSync(new URL("./learn-batch.ts", import.meta.url), "utf8")).not.toContain("继续学本章");
     expect(isChapterCleared(finished, chapter)).toBe(false);
     expect(finished.chapterCleared).toBe(standing.chapterCleared);
     expect(finished.chapterProgress).toEqual(standing.chapterProgress);
     expect(finished.stageWins).toEqual(standing.stageWins);
-    expect(playStatuses(finished, chapter)).toEqual(["open", "locked", "locked", "locked", "locked"]);
+    expect(playStatuses(finished, chapter)).toEqual(["open", "open", "open", "open", "open"]);
   });
 
   it("does not unlock the next chapter or invent exploration wins when every card exists", () => {
@@ -130,13 +129,13 @@ describe("academy batch settlement", () => {
     expect(next).toBeTruthy();
     expect(isChapterUnlocked(finished, next!)).toBe(false);
     expect(isChapterCleared(finished, chapter)).toBe(false);
-    expect(chapterBossReady(finished, chapter.id)).toBe(false);
-    expect(playStatuses(finished, chapter).some((status) => status === "cleared")).toBe(false);
+    expect(chapterBossReady(finished, chapter.id)).toBe(true);
+    expect(playStatuses(finished, chapter)).toEqual(["open", "open", "open", "open", "open"]);
     expect(finished.stageWins).toEqual({});
     expect(finished.chapterProgress?.[chapter.id]?.stageWins).toBeUndefined();
     const view = learnBatchView(finished, [], [], chapter);
     expect(view.kind).toBe("cards-done");
-    expect(view.primaryLabel).toBe(LEARN_GO_MAP);
+    expect(view.primaryLabel).toBe(LEARN_FIGHT_BOSS);
     expect(confirmLearnSettlement(finished)).toBe(finished);
   });
 
@@ -184,7 +183,7 @@ describe("academy batch settlement", () => {
     expect(scope.length).toBeLessThan(forest.wordIds.length);
     expect(scope.length).not.toBe(11);
     const stageBatches = learnStageBatches(save, forest);
-    expect(stageBatches.flat()).toEqual(scope);
+    expect(stageBatches.flat().sort()).toEqual([...scope].sort());
     expect(stageBatches[0]!.length).toBeGreaterThan(0);
     expect(stageBatches[0]!.length).not.toBe(scope.length);
     const done = learnIds(save, stageBatches[0]!);
@@ -277,7 +276,7 @@ describe("learn scene settlement wiring", () => {
     expect(choose).not.toContain("stageWins");
     expect(choose).not.toContain("chapterCleared");
     expect(scene).toContain("LEARN_GO_MAP");
-    expect(scene).toContain("LEARN_CARDS_DONE");
+    expect(scene).toContain("view.settlement");
     expect(scene).toContain("resumeChapterLearn");
     expect(scene).toContain("confirmLearnSelection");
     expect(scene).toContain("LEARN_RESELECT");

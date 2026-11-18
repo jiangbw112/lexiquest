@@ -21,9 +21,8 @@ import {
 import { GRADE_BANDS, posGloss, wordById, type WordDef } from "../../domain/catalog";
 import {
   LEARN_BACK_VILLAGE,
-  LEARN_CARDS_DONE,
-  LEARN_CARDS_DONE_CLEARED,
   LEARN_GO_MAP,
+  LEARN_PRACTICE_DONE,
   chapterLearnScope,
   chapterWordsRemaining,
   confirmLearnSettlement,
@@ -32,7 +31,10 @@ import {
   learnRemainingLine,
   resumeChapterLearn,
   type LearnBatchView,
+  type LearnSettlement,
 } from "../../domain/learn-batch";
+import { academyProgressLabel } from "../../domain/study-copy";
+import type { GradeBand } from "../../domain/types";
 import { uiLabel } from "../../domain/ui-label";
 import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, learnDayMeter, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
@@ -76,13 +78,23 @@ export class LearnScene extends Phaser.Scene {
   private picking = false;
   private draft: LearnDraft = { grade: "G3", chapterId: null };
   private forestStageId: number | null = null;
+  private practiceWordIds: string[] | null = null;
+  private practiceGrade: GradeBand | null = null;
+  private practiceChapterId: string | null = null;
 
   constructor() {
     super("learn");
   }
 
-  init(data: { forestStageId?: number } = {}): void {
+  init(data: { forestStageId?: number; practiceWordIds?: string[]; practiceGrade?: GradeBand; practiceChapterId?: string } = {}): void {
     this.forestStageId = typeof data.forestStageId === "number" ? data.forestStageId : null;
+    this.practiceWordIds = Array.isArray(data.practiceWordIds)
+      ? data.practiceWordIds.filter((id) => typeof id === "string" && id.length > 0)
+      : null;
+    this.practiceGrade = data.practiceGrade === "G3" || data.practiceGrade === "G4" || data.practiceGrade === "G5" || data.practiceGrade === "G6"
+      ? data.practiceGrade
+      : null;
+    this.practiceChapterId = typeof data.practiceChapterId === "string" ? data.practiceChapterId : null;
   }
 
   preload(): void {
@@ -98,7 +110,11 @@ export class LearnScene extends Phaser.Scene {
     if (redirectUngraded(this, save)) return;
     const stageId = this.forestStageId;
     this.forestStageId = null;
-    if (stageId !== null) {
+    if (this.practiceGrade && this.practiceChapterId) {
+      const next = confirmLearnSelection(save, this.practiceGrade, this.practiceChapterId);
+      if (next !== save) mutate(() => next);
+      save = getSave() ?? next;
+    } else if (stageId !== null) {
       const chapter = findPlayChapter(save);
       const stage = chapter.grade === "mixed" ? chapter.stages.find((item) => item.id === stageId) : undefined;
       if (stage) {
@@ -114,7 +130,8 @@ export class LearnScene extends Phaser.Scene {
     const assessed = assessLearnSelection(save);
     this.picking = assessed.status !== "ready";
     const resume = resumeChapterLearn(save);
-    this.batchIds = assessed.status === "ready" ? resume.batchIds : [];
+    const practice = this.practiceWordIds?.filter((id) => !save.wordCards[id]) ?? null;
+    this.batchIds = practice ? practice : assessed.status === "ready" ? resume.batchIds : [];
     this.learnedThisBatch = [];
     listenKeys(this, (event) => this.onKey(event));
     const form = document.getElementById("spell-form");
@@ -259,7 +276,19 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     this.missed = false;
-    const chapter = this.lessonChapter(after);
+    const real = this.lessonChapter(after);
+    if (
+      real
+      && this.practiceWordIds
+      && this.practiceWordIds.length > 0
+      && this.practiceWordIds.every((id) => after.wordCards[id])
+    ) {
+      this.phase = "settle";
+      this.question = null;
+      this.draw();
+      return;
+    }
+    const chapter = real ? this.studyChapter(after, real) : null;
     if (!chapter) {
       this.picking = true;
       this.phase = "study";
@@ -292,10 +321,29 @@ export class LearnScene extends Phaser.Scene {
     this.scene.start("overworld");
   }
 
-  private goToChapterMap(): void {
+  private goToChapterMap(chapterId?: string, focusBoss?: boolean): void {
     const save = getSave();
     if (save && confirmLearnSettlement(save) !== save) return;
-    this.scene.start("stages");
+    this.scene.start("stages", { chapterId, focusBoss });
+  }
+
+  private startGradePractice(settlement: LearnSettlement): void {
+    const save = getSave();
+    if (!save || !settlement.grade || !settlement.wordIds || settlement.wordIds.length === 0) return;
+    const chapterId = settlement.mapChapterId ?? "forest_adventure";
+    const next = confirmLearnSelection(save, settlement.grade, chapterId);
+    if (next !== save) mutate(() => next);
+    this.practiceGrade = settlement.grade;
+    this.practiceChapterId = chapterId;
+    this.practiceWordIds = [...settlement.wordIds];
+    const current = getSave() ?? next;
+    this.batchIds = settlement.wordIds.filter((id) => !current.wordCards[id]);
+    this.learnedThisBatch = [];
+    this.phase = "study";
+    this.picking = false;
+    this.question = null;
+    this.missed = false;
+    this.draw();
   }
 
   private chooseSettlement(): void {
@@ -307,23 +355,42 @@ export class LearnScene extends Phaser.Scene {
 
   private drawSettlement(view: LearnBatchView): void {
     probeNote(`learn:settle:${view.kind}`);
-    warmPanel(this, 640, 420, 860, 420);
+    const settlement = view.settlement;
+    warmPanel(this, 640, 430, 900, 460);
+    const headline = settlement?.message ?? null;
     let y = 280;
-    const headline = view.kind === "cards-done"
-      ? (view.chapterCleared ? LEARN_CARDS_DONE_CLEARED : LEARN_CARDS_DONE)
-      : null;
     if (headline) {
-      this.add.text(640, y, headline, {
+      const text = this.add.text(640, y, headline, {
         fontFamily: FONT,
-        fontSize: "28px",
+        fontSize: "24px",
         color: INK,
-        wordWrap: cjkWrap(760),
+        wordWrap: cjkWrap(780),
         align: "center",
-      }).setOrigin(0.5);
-      y += 72;
+      }).setOrigin(0.5, 0);
+      y += Math.max(72, text.height + 28);
     }
-    warmButton(this, 500, y + 88, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
-    warmButton(this, 780, y + 88, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
+    const primary = settlement?.primaryLabel ?? LEARN_GO_MAP;
+    const secondary = settlement?.secondaryLabel ?? uiLabel(LEARN_BACK_VILLAGE);
+    warmButton(this, secondary ? 500 : 640, y + 40, primary, () => {
+      if (settlement?.primary === "grade") this.startGradePractice(settlement);
+      else if (settlement?.primary === "village") this.backToVillage();
+      else this.goToChapterMap(settlement?.mapChapterId, settlement?.focusBoss);
+    }, { width: 240 });
+    if (secondary) {
+      warmButton(this, 780, y + 40, secondary, () => this.backToVillage(), { width: 200, tone: "secondary" });
+    }
+  }
+
+  private drawPracticeDone(): void {
+    probeNote("learn:practice-done");
+    warmPanel(this, 640, 420, 860, 320);
+    this.add.text(640, 340, LEARN_PRACTICE_DONE, {
+      fontFamily: FONT,
+      fontSize: "28px",
+      color: INK,
+    }).setOrigin(0.5);
+    warmButton(this, 500, 460, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
+    warmButton(this, 780, 460, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
   }
 
   /** Leaf while today's 3/5/8 target is open. Gold plus one line once it is met. Learning is not stopped. */
@@ -361,6 +428,17 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     const chapter = assessed.chapter;
+    const studied = this.studyChapter(save, chapter);
+    if (
+      this.practiceWordIds
+      && this.practiceWordIds.length > 0
+      && this.practiceWordIds.every((id) => save.wordCards[id])
+      && chapterWordsRemaining(save, chapter) > 0
+    ) {
+      this.drawLessonHeading(save, chapter);
+      this.drawPracticeDone();
+      return;
+    }
     this.drawLessonHeading(save, chapter);
     warmButton(this, 980, 48, LEARN_SWITCH, () => this.openPicker(save), { width: 140, tone: "secondary" });
     if (this.picking) {
@@ -380,7 +458,7 @@ export class LearnScene extends Phaser.Scene {
     const collected = `${scope.filter((id) => save.wordCards[id]).length}/${scope.length}`;
     this.add.text(1100, 36, collected, { fontFamily: FONT_LATIN, fontSize: "22px", fontStyle: "800", color: INK }).setOrigin(0.5);
     this.paintDayMeter(save, studyNow(save));
-    const batchView = learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter);
+    const batchView = learnBatchView(save, this.batchIds, this.learnedThisBatch, studied);
     if (this.phase === "settle" || !word) {
       this.phase = "settle";
       this.drawSettlement(batchView);
@@ -472,6 +550,22 @@ export class LearnScene extends Phaser.Scene {
   private lessonChapter(save: NonNullable<ReturnType<typeof getSave>>): PlayChapter | null {
     const assessed = assessLearnSelection(save);
     return assessed.status === "ready" ? assessed.chapter : null;
+  }
+
+  /** While a scene entry named specific words, the academy practices only those. */
+  private studyChapter(save: NonNullable<ReturnType<typeof getSave>>, chapter: PlayChapter): PlayChapter {
+    if (!this.practiceWordIds || this.practiceWordIds.length === 0) return chapter;
+    const left = this.practiceWordIds.filter((id) => !save.wordCards[id]);
+    if (left.length === 0) return chapter;
+    const allowed = new Set(this.practiceWordIds);
+    return {
+      ...chapter,
+      wordIds: chapter.wordIds.filter((id) => allowed.has(id)),
+      stages: chapter.stages.map((stage) => ({
+        ...stage,
+        new_words: stage.new_words.filter((id) => allowed.has(id)),
+      })),
+    };
   }
 
   private drawLessonHeading(save: NonNullable<ReturnType<typeof getSave>>, chapter: PlayChapter): void {
@@ -573,14 +667,16 @@ export class LearnScene extends Phaser.Scene {
       const column = index % 2;
       const row = Math.floor(index / 2);
       const x = column === 0 ? 460 : 820;
-      const y = 330 + row * 62;
+      const y = 336 + row * 74;
+      const caption = academyProgressLabel(save, chapter);
       warmButton(this, x, y, chapter.name, () => {
         if (!legalLearnChapters(save, this.draft.grade).some((item) => item.id === chapter.id)) return;
         this.draft = { grade: this.draft.grade, chapterId: chapter.id };
         this.draw();
       }, {
         width: 320,
-        height: 52,
+        height: caption ? 64 : 52,
+        caption: caption || undefined,
         tone: this.draft.chapterId === chapter.id ? "primary" : "secondary",
       });
     });

@@ -1,17 +1,20 @@
 import { assessLearnSelection } from "./chapter-route";
-import { activeChapter, isChapterCleared, type PlayChapter } from "./chapter-plan";
-import { requiredWordIds } from "./stages";
-import type { SaveData } from "./types";
+import { activeChapter, gradeChapters, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
+import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./stages";
+import { gradeLabel, gradePracticeEntries, namedWords, otherGradeForestLine } from "./study-copy";
+import type { GradeBand, SaveData } from "./types";
+import { isCleared } from "./clearance";
 
 /**
  * Settlement copy stays inside the committed Noto subset.
  * 尚 / 往 are not in that subset, and the source fonts are not in the repo.
- * 还可学、还没通关、去本章地图 say the same thing with glyphs the game already ships.
  */
 export const LEARN_GO_MAP = "去本章地图";
 export const LEARN_BACK_VILLAGE = "返回村庄";
-export const LEARN_CARDS_DONE = "本章词卡已学完，章节还没通关";
 export const LEARN_CARDS_DONE_CLEARED = "本章词卡已学完。";
+export const LEARN_PRACTICE_DONE = "这几个词学完了。";
+export const LEARN_FIGHT_BOSS = "去挑战 Boss";
+export const LEARN_GO_BATTLE = "去对战";
 
 export function learnRemainingLine(count: number): string {
   return `本章还可学 ${count} 词`;
@@ -52,6 +55,18 @@ export interface LearnBatchView {
   secondaryLabel: string | null;
   message: string | null;
   remainingLine: string;
+  settlement: LearnSettlement | null;
+}
+
+export interface LearnSettlement {
+  message: string;
+  primaryLabel: string;
+  secondaryLabel: string | null;
+  primary: "map" | "village" | "grade";
+  grade?: GradeBand;
+  wordIds?: string[];
+  mapChapterId?: string;
+  focusBoss?: boolean;
 }
 
 export interface ChapterLearnResume {
@@ -62,10 +77,83 @@ export interface ChapterLearnResume {
   nextWordId: string | null;
 }
 
-/** Forest counts the selected grades plus extras. A later chapter counts its own word list. */
+/** Forest battle uses forestStudyWordIds. A graded forest lesson uses that grade's slice, or a shorter list when the scene named specific words. */
 export function chapterLearnScope(save: SaveData, chapter: PlayChapter = activeChapter(save)): string[] {
-  if (chapter.grade === "mixed") return requiredWordIds(save);
+  if (chapter.id === FOREST_CHAPTER.chapter_id && chapter.grade === "mixed") return forestStudyWordIds(save.selectedGrades);
+  if (
+    chapter.id === FOREST_CHAPTER.chapter_id
+    && (chapter.grade === "G3" || chapter.grade === "G4" || chapter.grade === "G5" || chapter.grade === "G6")
+  ) {
+    const full = new Set(gradeForestStudyWordIds(chapter.grade));
+    const listed = chapter.wordIds.filter((id) => full.has(id));
+    return listed.length > 0 ? listed : [...full];
+  }
   return [...chapter.wordIds];
+}
+
+function blockingMapChapterId(save: SaveData, chapter: PlayChapter): string {
+  const forestId = FOREST_CHAPTER.chapter_id;
+  if (!isCleared(save, { kind: "chapter", chapterId: forestId })) return forestId;
+  if (chapter.grade === "mixed") return chapter.id;
+  const same = gradeChapters(chapter.grade);
+  const at = same.findIndex((item) => item.id === chapter.id);
+  if (at > 0) return same[at - 1]!.id;
+  return forestId;
+}
+
+/** Four mutually exclusive lines for a chapter whose own cards are finished. */
+export function learnCardsDoneCopy(save: SaveData, chapter: PlayChapter): LearnSettlement {
+  const forestId = FOREST_CHAPTER.chapter_id;
+  const cleared = isChapterCleared(save, chapter);
+  if (chapter.id === forestId && chapter.grade !== "mixed") {
+    const missing = namedWords(forestStudyWordIds(save.selectedGrades).filter((id) => !save.wordCards[id]));
+    const groups = gradePracticeEntries(save, missing);
+    const first = groups[0];
+    if (missing.length > 0 && first) {
+      return {
+        message: otherGradeForestLine(chapter.grade, groups),
+        primaryLabel: `去${gradeLabel(first.grade)}学`,
+        secondaryLabel: LEARN_BACK_VILLAGE,
+        primary: "grade",
+        grade: first.grade,
+        wordIds: first.wordIds,
+        mapChapterId: forestId,
+      };
+    }
+  }
+  if (cleared) {
+    return {
+      message: LEARN_CARDS_DONE_CLEARED,
+      primaryLabel: LEARN_GO_MAP,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "map",
+      mapChapterId: chapter.id,
+      focusBoss: false,
+    };
+  }
+  const unlocked = chapter.id === forestId || isChapterUnlocked(save, chapter);
+  if (unlocked) {
+    const forest = chapter.id === forestId;
+    return {
+      message: forest ? "本章词都学会了！去对战挑战林心守护者吧" : "本章词都学会了！去对战挑战 Boss 吧",
+      primaryLabel: LEARN_FIGHT_BOSS,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "map",
+      mapChapterId: forest ? forestId : chapter.id,
+      focusBoss: true,
+    };
+  }
+  const forestBeaten = isCleared(save, { kind: "chapter", chapterId: forestId });
+  return {
+    message: forestBeaten
+      ? "本章词都学会了。对战里先打完上一章，这一章才能挑战。"
+      : "本章词都学会了。对战里先打完森林冒险，这一章才能挑战。",
+    primaryLabel: LEARN_GO_BATTLE,
+    secondaryLabel: LEARN_BACK_VILLAGE,
+    primary: "map",
+    mapChapterId: blockingMapChapterId(save, chapter),
+    focusBoss: false,
+  };
 }
 
 /**
@@ -156,6 +244,7 @@ export function learnBatchView(
   let primaryLabel: string | null = null;
   let secondaryLabel: string | null = null;
   let message: string | null = null;
+  let settlement: LearnSettlement | null = null;
   if (batchRemaining.length > 0) {
     kind = "continue-batch";
     nextWordId = batchRemaining[0] ?? null;
@@ -166,9 +255,10 @@ export function learnBatchView(
     nextWordId = nextBatchIds.find((id) => !save.wordCards[id]) ?? remaining[0] ?? null;
   } else {
     kind = "cards-done";
-    primaryLabel = LEARN_GO_MAP;
-    secondaryLabel = LEARN_BACK_VILLAGE;
-    message = cleared ? LEARN_CARDS_DONE_CLEARED : LEARN_CARDS_DONE;
+    settlement = learnCardsDoneCopy(save, chapter);
+    primaryLabel = settlement.primaryLabel;
+    secondaryLabel = settlement.secondaryLabel;
+    message = settlement.message;
   }
   return {
     chapterId: chapter.id,
@@ -184,6 +274,7 @@ export function learnBatchView(
     secondaryLabel,
     message,
     remainingLine: learnRemainingLine(remaining.length),
+    settlement,
   };
 }
 

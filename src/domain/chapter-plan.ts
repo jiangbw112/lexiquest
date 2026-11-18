@@ -8,6 +8,7 @@ import {
   FOREST_CHAPTER,
   FOREST_TITLE,
   chapterWordIds,
+  BOSS_LEARN_LINE,
   requiredWordIds,
   stageCombat,
   stageStatuses,
@@ -342,10 +343,23 @@ function playStageCleared(save: SaveData, chapter: PlayChapter, stage: ForestSta
   return isCleared(save, { kind: "stage", chapterId: chapter.id, stage });
 }
 
-/** Same gate as the forest: one open stage at a time, boss after stages 1–4 and every word. */
+function chapterWordsStudied(save: SaveData, wordIds: readonly string[]): boolean {
+  return wordIds.length > 0 && wordIds.every((id) => save.wordCards[id]);
+}
+
+/**
+ * A studied chapter opens all five stages, including the boss.
+ * Chapter-to-chapter locks stay. While words remain, stages still open one at a time.
+ */
 export function playStatuses(save: SaveData, chapter: PlayChapter): Array<"locked" | "open" | "cleared" | "skipped"> {
   if (chapter.id === FOREST_CHAPTER.chapter_id) return stageStatuses(save);
   if (!isChapterUnlocked(save, chapter)) return chapter.stages.map(() => "locked");
+  if (chapterWordsStudied(save, chapter.wordIds)) {
+    return chapter.stages.map((stage) => {
+      if (stage.type === "boss") return isChapterCleared(save, chapter) ? "cleared" : "open";
+      return playStageCleared(save, chapter, stage) ? "cleared" : "open";
+    });
+  }
   const statuses: Array<"locked" | "open" | "cleared" | "skipped"> = [];
   let gateOpen = true;
   for (const stage of chapter.stages) {
@@ -372,9 +386,10 @@ export function chapterBossReady(save: SaveData, chapterId: string): boolean {
   if (save.selectedGrades.length === 0) return false;
   const chapter = visibleChapters(save.selectedGrades).find((item) => item.id === chapterId);
   if (!chapter || chapter.id === FOREST_CHAPTER.chapter_id) return false;
+  if (chapterWordsStudied(save, chapter.wordIds)) return true;
   const exploration = chapter.stages.filter((stage) => stage.type !== "boss");
   if (!exploration.every((stage) => playStageCleared(save, chapter, stage))) return false;
-  return chapter.wordIds.length > 0 && chapter.wordIds.every((id) => save.wordCards[id]);
+  return false;
 }
 
 /** Forest stars stay keyed by "1"…"5". Later chapters use their own key. */
@@ -425,7 +440,7 @@ export function mapCounts(save: SaveData, chapter: PlayChapter, stage: ForestSta
   const lockedLine = lockedChapter
     ? "通过上一章后开启"
     : stage.type === "boss"
-      ? `通过前 4 关并学完 ${chapter.wordIds.length} 个词`
+      ? BOSS_LEARN_LINE
       : undefined;
   return {
     wins: playStageWins(save, chapter, stage.id),

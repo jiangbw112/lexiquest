@@ -9,7 +9,7 @@ import { CATALOG_WORDS, formatMeaning, wordById } from "../domain/catalog";
 import { reviewDeskLayout } from "./dev-mode";
 import { REVIEW_DESK_LIMIT } from "../domain/review";
 import { shellCopy } from "../domain/host-copy";
-import { COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkTextWidth, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, learnGradeChipRow, learnTitleScale, mapHeaderFits, meaningScale, optionTextBounds, parentGateLayout, parentProgressFits, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
+import { COLLECTION_CARD, FITTED_LINE_GAP, GAME_H, GAME_W, LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, OPTION_BADGE_CENTER, PARENT_GATE_BACK, PARENT_GATE_SIDE_BY_SIDE_MIN, RESULTS_WORD_CHIP, REVIEW_DESK, REVIEW_ROW, SAFE, STUDY_CARD, STRUGGLE_LIST, WARDROBE_TITLE_Y, cjkTextWidth, cjkWrap, fitTextBox, fittedBlockHeight, fittedLineBoxes, learnGradeChipRow, learnTitleScale, mapHeaderFits, mapLockedBossButtons, meaningScale, optionTextBounds, parentGateLayout, parentProgressFits, pinFormPlacement, resultsGlossBox, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, reviewTextRight, rewardDialogChrome, spotInsidePanel, struggleButtonTop, struggleWindow, studyHintStackGap, studyNoticeGap, studyReviewHintGap, wrapCjkText, type FittedText, type ParentGateLayout, type TextBox } from "./layout";
 
 const START = new Date("2026-03-01T02:00:00Z");
 
@@ -414,9 +414,9 @@ describe("boot and renderer guards", () => {
     expect(map).toContain("battleReturn");
     expect(map).toContain("上一章");
     expect(map).toContain("this.tweens.killAll()");
-    expect(map).toContain("learnedWordsLine");
+    expect(map).toContain("studyBanner");
     expect(map).toContain("battleClearLine");
-    expect(map).toContain("requiredWordIds(save)");
+    expect(map).toContain("studyBanner(save, chapter)");
     expect(map).not.toContain("FOREST_WORD_COUNT");
   });
 });
@@ -625,16 +625,32 @@ describe("academy title and grade chips", () => {
 
 describe("learning progress stays inside the map header and the parent row", () => {
   it("keeps the longest learning and battle labels from overlapping", () => {
+    const fourGrades = "三、四、五、六年级 · 森林冒险：已学 28/28 个词";
     expect(mapHeaderFits(
-      "已学 28/28 个词",
-      "熟练 28/28",
-      "到期 99",
-      "战斗 5/5 关通过 · 距营养餐盘守护者还差 28 个词",
+      "六年级 · 不一样的朋友：已学 28/28 个词",
+      "本章全学会了，真棒！  战斗 5/5 关通过  熟练 28/28  到期 99",
+    )).toBe(true);
+    expect(mapHeaderFits(
+      fourGrades,
+      "还有 28 个没在学堂学过  战斗 4/5 关通过  熟练 28/28  到期 99",
+    )).toBe(true);
+    expect(720 + cjkTextWidth("还有 28 个没在学堂学过。对战里要先打完上一章。", 14)).toBeLessThanOrEqual(1240);
+    expect(cjkTextWidth("本章已学 0/28 个词", 16)).toBeLessThanOrEqual(252);
+    expect(cjkTextWidth("在学堂学完本章词就能挑战", 15)).toBeLessThanOrEqual(252);
+    expect(parentProgressFits(
+      "近 7 天：新学 128 个 · 复习过 128 个词",
+      "三年级 · 森林冒险：已学 10/16 个词",
     )).toBe(true);
     expect(parentProgressFits(
       "近 7 天：新学 128 个 · 复习过 128 个词",
-      "本章已学 28/28 个词",
+      fourGrades,
     )).toBe(true);
+    const spots = mapLockedBossButtons(2);
+    expect(spots).toHaveLength(2);
+    for (const spot of spots) expect(spotInsidePanel(spot, undefined, 12)).toBe(true);
+    const [learn, fight] = spots;
+    expect(learn && fight).toBeTruthy();
+    expect(learn!.y + learn!.height / 2).toBeLessThanOrEqual(fight!.y - fight!.height / 2);
     expect(cjkTextWidth("本关已学 21/21 个词", 16)).toBeLessThanOrEqual(252);
   });
 });

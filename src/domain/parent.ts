@@ -2,13 +2,12 @@ import { Rating, type Grade } from "ts-fsrs";
 import { isMastered } from "./cards";
 import { formatMeaning, GRADE_BANDS, normalizeGrades, wordById, wordsForGrades } from "./catalog";
 import { FOREST_CHAPTER_ID, isCleared } from "./clearance";
-import { activeChapter, forestPlayChapter, scopeBadgeCount, spellingSkipIds } from "./chapter-plan";
-import { cardProgress, learnedWordsLine } from "./learn-progress";
+import { activeChapter, scopeBadgeCount, spellingSkipIds } from "./chapter-plan";
+import { studyBanner } from "./study-copy";
 import { PROPOSALS } from "./proposals";
 import { withRewardDefaults } from "./chapter-rewards";
 import { deviceTimeZone, localDayKey } from "./local-day";
 import { badgeTone, isDue, type BadgeTone } from "./review";
-import { requiredWordIds } from "./stages";
 import type {
   DailyGoal,
   DailyStat,
@@ -509,6 +508,8 @@ export interface ParentView {
   masteredLine: string;
   /** Word cards in the current chapter. Separate from masteredLine's chapter-clear count. */
   learnedLine: string | null;
+  /** Same encouragement as the village and the map, for the chapter this page is about. */
+  encourageLine: string;
   clockNote: string | null;
   masteredNote: string;
   gradesLine: string;
@@ -594,9 +595,9 @@ export function parentView(
   }
   const struggleLine = struggle.length === 0 ? "最近没有特别吃力的词，继续保持就好。" : "这些词最近复习时容易错，一起再练练：";
   const scope = scopeBadgeCount(save, now);
-  const chapter = activeChapter(save);
-  const chapterWords = chapter.id === forestPlayChapter().id ? requiredWordIds(save) : chapter.wordIds;
-  const learnedLine = learnedWordsLine(cardProgress(save, chapterWords), "本章");
+  const banner = studyBanner(save, activeChapter(save));
+  const learnedLine = banner.title;
+  const encourageLine = banner.encourage;
   return {
     learnedToday,
     learned7d: uniqueAcross(save, week, "learnedWordIds"),
@@ -622,6 +623,7 @@ export function parentView(
     restoredMasteredLine: "重新掌握：0 个",
     masteredLine: `${isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER_ID }) ? "已通关森林。" : ""}已通关 ${scope.clearedChapters}/${scope.chapters} 章。已认识 ${cards.length} 个，已掌握 ${masteredNow} 个。徽章亮起 ${scope.lit} / ${scope.total}。目前亮着徽章的词：${brightNow} 个`,
     learnedLine,
+    encourageLine,
     masteredNote: "徽章变灰只是提醒该复习了，单词卡还在。",
     gradesLine: `正在学：${gradesLabel}`,
     struggleLine,
@@ -644,6 +646,7 @@ export function parentFacingLines(view: ParentView): string[] {
     view.firstMasteredLine,
     view.restoredMasteredLine,
     view.learnedLine ?? "",
+    view.encourageLine,
     view.masteredLine,
     view.clockNote ?? "",
     view.masteredNote,
