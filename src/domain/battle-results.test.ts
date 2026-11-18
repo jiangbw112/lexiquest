@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
 import {
+  battleAlsoStudyLine,
+  BATTLE_ALSO_STUDY,
   bossGateReminder,
   bossVictoryBanner,
   bossWordsLeftLine,
@@ -484,7 +486,7 @@ describe("stage 4 boss word reminder", () => {
     expect(requiredWordIds(open).filter((id) => !open.wordCards[id])).toHaveLength(forestLeft);
     expect(bossReady(open)).toBe(false);
     expect(bossGateReminder(open, 4, true, forest.id)).toBe(bossWordsLeftLine(forestLeft));
-    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先学完本章词，还剩 ${forestLeft} 个词。`);
+    expect(bossWordsLeftLine(forestLeft)).toBe(`Boss 要先在学堂学完本章词，还有 ${forestLeft} 个没在学堂学过。`);
     for (const stageId of [1, 2, 3, 5]) expect(bossGateReminder(open, stageId, true, forest.id)).toBeNull();
     expect(bossGateReminder(open, 4, false, forest.id)).toBeNull();
 
@@ -515,6 +517,21 @@ describe("stage 4 boss word reminder", () => {
     });
     expect(view.won).toBe(true);
     expect(view.bossGateLine).toBe(bossWordsLeftLine(forestLeft));
+    expect(view.bossBattleHint).toBeNull();
+    const answered = requiredWordIds(after).find((id) => !after.wordCards[id]);
+    if (!answered) throw new Error("missing word");
+    const hinted = buildResultsView({
+      before,
+      after,
+      answers: [{ wordId: answered, correct: true, kind: "meaning" }],
+      stageId: 4,
+      boss: false,
+      now: NOW,
+      chapterId: forest.id,
+    });
+    expect(hinted.bossBattleHint).toBe(BATTLE_ALSO_STUDY);
+    expect(battleAlsoStudyLine([answered], [{ wordId: "other", correct: true }])).toBeNull();
+    expect(after.wordCards[answered]).toBeUndefined();
     for (const stageId of [1, 2, 3]) {
       const quiet = buildResultsView({
         before,

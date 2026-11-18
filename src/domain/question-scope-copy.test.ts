@@ -46,7 +46,7 @@ describe("question pool copy", () => {
     const guide = readFileSync(new URL("../game/scenes/GuideScene.ts", import.meta.url), "utf8");
     expect(battle).toContain("技能卡会从这一章的词里抽题。");
     expect(guide).toContain("打出技能卡时，从这一章的词里抽题。");
-    expect(guide).toContain("本章 Boss 要先学完本章词。");
+    expect(guide).toContain("本章 Boss 要先在学堂学完本章词。");
     expect(guide).toContain("这一关的新词可以去学堂学。");
 
     const opened = startBattle({

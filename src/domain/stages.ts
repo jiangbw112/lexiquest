@@ -276,8 +276,8 @@ export function stageLearnMoreLine(remaining: number): string | null {
   return `这一关还有 ${remaining} 个新词可以去学堂学`;
 }
 
-/** A locked boss opens once this chapter's words have cards. Earlier stages are not required. */
-export const BOSS_LEARN_LINE = "学完本章词就能挑战";
+/** A locked boss opens once this chapter's words have academy cards. Earlier stages are not required. */
+export const BOSS_LEARN_LINE = "在学堂学完本章词就能挑战";
 
 export function bossUnlockLine(): string {
   return BOSS_LEARN_LINE;

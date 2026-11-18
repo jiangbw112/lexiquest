@@ -388,7 +388,7 @@ export class BattleResultsScene extends Phaser.Scene {
     const line = this.view.bossGateLine;
     if (!line) return;
     const words = clipMissingWords([(this.view.bossGateWords ?? []).join("、")], 64).join("\n");
-    const body = words ? `${line}\n${words}` : line;
+    const body = [line, this.view.bossBattleHint, words].filter((part) => Boolean(part)).join("\n");
     const plateBox = resultsGateButtons().plate;
     const plate = this.add.rectangle(plateBox.x, plateBox.y, plateBox.w, plateBox.h, 0xfff4dc).setStrokeStyle(3, 0x3b2a20);
     const text = this.add.text(plateBox.x, plateBox.y, body, {

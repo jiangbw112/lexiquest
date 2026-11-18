@@ -105,6 +105,8 @@ export interface BattleResultsView {
   bossGateWords: string[];
   /** One academy entry per grade. The scene passes wordIds and does not write them onto the save. */
   bossStudy: BossStudyEntry[];
+  /** Set when a word answered correctly in this fight is still on the academy list. */
+  bossBattleHint: string | null;
 }
 
 export interface BossStudyEntry {
@@ -281,17 +283,31 @@ export function buildResultsView(input: {
     praise: stars ? praiseFor(stars) : "",
     ...resultsStudyLines(input.after, input.stageId, input.boss),
     bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
-    ...bossGateFields(input.after, input.stageId, won, input.chapterId),
+    ...bossGateFields(input.after, input.stageId, won, input.chapterId, input.answers),
   };
 }
 
-function bossGateFields(save: SaveData, stageId: number, won: boolean, chapterId?: string): {
+function bossGateFields(
+  save: SaveData,
+  stageId: number,
+  won: boolean,
+  chapterId: string | undefined,
+  answers: readonly { wordId: string; correct: boolean }[],
+): {
   bossGateWords: string[];
   bossStudy: BossStudyEntry[];
+  bossBattleHint: string | null;
 } {
-  if (!bossGateReminder(save, stageId, won, chapterId)) return { bossGateWords: [], bossStudy: [] };
+  if (!bossGateReminder(save, stageId, won, chapterId)) {
+    return { bossGateWords: [], bossStudy: [], bossBattleHint: null };
+  }
   const study = bossGateStudy(save, chapterId);
-  return { bossGateWords: study.words, bossStudy: study.entries };
+  const missingIds = studyWordIds(save, findPlayChapter(save, chapterId)).filter((id) => !save.wordCards[id]);
+  return {
+    bossGateWords: study.words,
+    bossStudy: study.entries,
+    bossBattleHint: battleAlsoStudyLine(missingIds, answers),
+  };
 }
 
 /** Listed rows stay as rows. Anything past the cap is a "+N 件" badge, not a button. */
@@ -469,7 +485,18 @@ export function bossWordsStillRequired(save: SaveData, chapterId?: string): numb
 }
 
 export function bossWordsLeftLine(remaining: number): string {
-  return `Boss 要先学完本章词，还剩 ${remaining} 个词。`;
+  return `Boss 要先在学堂学完本章词，还有 ${remaining} 个没在学堂学过。`;
+}
+
+/** Shown when this fight's correct answers are still missing an academy card. */
+export const BATTLE_ALSO_STUDY = "对战答对也要去学堂学一次哦";
+
+export function battleAlsoStudyLine(
+  missingIds: readonly string[],
+  answers: readonly { wordId: string; correct: boolean }[],
+): string | null {
+  const missing = new Set(missingIds);
+  return answers.some((answer) => answer.correct && missing.has(answer.wordId)) ? BATTLE_ALSO_STUDY : null;
 }
 
 /**
@@ -534,7 +561,7 @@ export function resultsGateButtons(): { academy: ResultsBox; next: ResultsBox; p
   const origin = panel.x - (academyW + gap + nextW) / 2;
   const academy = { x: origin + academyW / 2, y, w: academyW, h };
   const next = { x: origin + academyW + gap + nextW / 2, y, w: nextW, h };
-  const plateH = 72;
+  const plateH = 88;
   const plate = {
     x: panel.x,
     y: y - h / 2 - 16 - plateH / 2,

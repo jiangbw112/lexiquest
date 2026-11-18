@@ -127,7 +127,7 @@ describe("forest study list", () => {
       boss: false,
       now: START.getTime(),
     });
-    expect(view.bossGateLine).toContain("还剩 2 个词");
+    expect(view.bossGateLine).toContain("还有 2 个没在学堂学过");
     expect(view.bossGateWords).toEqual(study.words);
     expect(view.bossStudy.map((entry) => entry.wordIds)).toEqual([["cloud", "climb"]]);
   });
@@ -221,15 +221,15 @@ describe("study banner", () => {
   it("names the grade and chapter, then one encouragement for each state", () => {
     const none = fresh(["G3"]);
     expect(studyBanner(none, forestPlayChapter()).title).toBe("三年级 · 森林冒险：已学 0/16 个词");
-    expect(studyBanner(none, forestPlayChapter()).encourage).toBe("再学 16 个就能挑战 Boss 啦！");
+    expect(studyBanner(none, forestPlayChapter()).encourage).toBe("还有 16 个没在学堂学过");
 
     let pair = fresh(["G4", "G6"]);
     pair = learnIds(pair, requiredWordIds(pair).filter((id) => id !== "run" && id !== "rain" && id !== "weather"));
-    expect(studyBanner(pair, forestPlayChapter()).encourage).toBe("再学 3 个就能挑战 Boss 啦！去四年级学。");
+    expect(studyBanner(pair, forestPlayChapter()).encourage).toBe("还有 3 个没在学堂学过。去四年级学。");
 
     const second = gradeChapters("G3")[1]!;
     const locked = fresh(["G3"]);
-    expect(studyBanner(locked, second).encourage).toBe(`再学 ${second.wordIds.length} 个词。对战里要先打完上一章。`);
+    expect(studyBanner(locked, second).encourage).toBe(`还有 ${second.wordIds.length} 个没在学堂学过。对战里要先打完上一章。`);
 
     const done = learnIds(fresh(["G3"]), requiredWordIds(fresh(["G3"])));
     expect(studyBanner(done, forestPlayChapter()).encourage).toBe("本章全学会了，真棒！");

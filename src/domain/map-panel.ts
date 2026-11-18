@@ -5,7 +5,7 @@ import { deviceTimeZone, localDayKey } from "./local-day";
 import { studyNow } from "./progress";
 import { clipMissingWords, gradePracticeEntries, namedWords, studyWordIds } from "./study-copy";
 import { uiLabel } from "./ui-label";
-import { bossUnlockLine, FOREST_CHAPTER, stageLearnMoreLine, stageWins, stageWordIds, stageWordsStillToLearn, type ForestStage, type StageStatus } from "./stages";
+import { bossUnlockLine, FOREST_CHAPTER, forestStudyWordIds, stageLearnMoreLine, stageWins, stageWordIds, stageWordsStillToLearn, type ForestStage, type StageStatus } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 import type { PlayChapter } from "./chapter-plan";
 
@@ -85,11 +85,15 @@ export function mapPanel(
   counts?: MapPanelCounts,
   chapter?: Pick<PlayChapter, "id" | "grade" | "wordIds">,
 ): MapPanel {
-  const progress = cardProgress(save, stageWordIds(save, stage));
+  const boss = stage.type === "boss";
+  const lockedBoss = boss && status === "locked";
+  const progressIds = lockedBoss
+    ? (chapter && chapter.id !== FOREST_CHAPTER.chapter_id ? [...chapter.wordIds] : forestStudyWordIds(save.selectedGrades))
+    : stageWordIds(save, stage);
+  const progress = cardProgress(save, progressIds);
   const learned = progress.learned;
   const total = progress.total;
-  const boss = stage.type === "boss";
-  const progressLabel = learnedWordsLine(progress, "本关");
+  const progressLabel = learnedWordsLine(progress, lockedBoss ? "本章" : "本关");
   const base = {
     stageId: stage.id,
     title: stage.name_zh,

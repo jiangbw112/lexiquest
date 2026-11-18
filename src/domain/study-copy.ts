@@ -58,9 +58,9 @@ function studyEncouragement(save: SaveData, chapter: PlayChapter, ids: readonly 
   if (missing.length === 0) return cleared ? "这一章打完啦，真棒！" : "本章全学会了，真棒！";
   const forest = chapter.id === FOREST_CHAPTER.chapter_id;
   if (!forest && !isChapterUnlocked(save, chapter)) {
-    return `再学 ${missing.length} 个词。对战里要先打完上一章。`;
+    return `还有 ${missing.length} 个没在学堂学过。对战里要先打完上一章。`;
   }
-  let line = `再学 ${missing.length} 个就能挑战 Boss 啦！`;
+  let line = `还有 ${missing.length} 个没在学堂学过`;
   const formalGrades = GRADE_ORDER.filter((grade) =>
     missing.some((id) => !isChapterExtra(id) && wordById(id)?.grade === grade),
   );
@@ -68,7 +68,7 @@ function studyEncouragement(save: SaveData, chapter: PlayChapter, ids: readonly 
   const here: GradeBand | null = forest
     ? (selected.length === 1 ? selected[0]! : null)
     : (chapter.grade === "mixed" ? null : chapter.grade);
-  if (formalGrades.length === 1 && formalGrades[0] !== here) line += `去${gradeLabel(formalGrades[0]!)}学。`;
+  if (formalGrades.length === 1 && formalGrades[0] !== here) line += `。去${gradeLabel(formalGrades[0]!)}学。`;
   return line;
 }
 
@@ -139,7 +139,7 @@ export function clipMissingWords(lines: readonly string[], maxChars: number): st
     kept.push(word);
   }
   const hidden = words.length - kept.length;
-  const rest = `还有 ${hidden} 个`;
+  const rest = `还有 ${hidden} 个没在学堂学过`;
   return kept.length > 0 ? [kept.join("、"), rest] : [rest];
 }
 

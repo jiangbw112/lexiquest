@@ -193,7 +193,7 @@ describe("saved progress", () => {
   it("states the forest quest and clears the chapter only after the boss", () => {
     let save = setSelectedGrades(newSave(), ["G3", "G4", "G5", "G6"]);
     expect(questLine(save)).toContain("森林冒险：已学 0/28 个词");
-    expect(questLine(save)).toContain("再学 28 个就能挑战 Boss 啦！");
+    expect(questLine(save)).toContain("还有 28 个没在学堂学过");
     for (const word of sampleWords().slice(0, 4)) save = learnWord(save, word.id, START);
     const earlyBoss = applyBattleOutcome(save, "win", START.getTime() + 1, "canopy");
     expect(earlyBoss.chapterCleared).toBe(false);

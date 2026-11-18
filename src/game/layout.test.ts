@@ -630,7 +630,13 @@ describe("learning progress stays inside the map header and the parent row", () 
       "六年级 · 不一样的朋友：已学 28/28 个词",
       "本章全学会了，真棒！  战斗 5/5 关通过  熟练 28/28  到期 99",
     )).toBe(true);
-    expect(mapHeaderFits(fourGrades, "再学 28 个就能挑战 Boss 啦！  战斗 4/5 关通过")).toBe(true);
+    expect(mapHeaderFits(
+      fourGrades,
+      "还有 28 个没在学堂学过  战斗 4/5 关通过  熟练 28/28  到期 99",
+    )).toBe(true);
+    expect(720 + cjkTextWidth("还有 28 个没在学堂学过。对战里要先打完上一章。", 14)).toBeLessThanOrEqual(1240);
+    expect(cjkTextWidth("本章已学 0/28 个词", 16)).toBeLessThanOrEqual(252);
+    expect(cjkTextWidth("在学堂学完本章词就能挑战", 15)).toBeLessThanOrEqual(252);
     expect(parentProgressFits(
       "近 7 天：新学 128 个 · 复习过 128 个词",
       "三年级 · 森林冒险：已学 10/16 个词",
