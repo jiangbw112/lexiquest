@@ -28,8 +28,11 @@ import {
   resultsStackNudge,
   RESULTS_LAYOUT,
   resultsBoxInsidePanel,
+  resultsBoxesOverlap,
   resultsGateButtons,
+  resultsRewardClearance,
   resultsStudyLines,
+  type ResultsBox,
   starsFor,
   visibleItems,
   wordsForResults,
@@ -401,6 +404,8 @@ describe("battle results stars and words", () => {
     expect(scene).toContain("skillIconFrame");
     expect(scene).toContain("resultsLowerShift");
     expect(scene).toContain("resultsStackNudge");
+    expect(scene).toContain("resultsRewardClearance");
+    expect(scene).toContain("drawCompactReward");
     expect(battle.indexOf("this.concealBattleActors()")).toBeLessThan(battle.indexOf('scene.launch("battle-results"'));
   });
 
@@ -475,6 +480,49 @@ function withCards(save: SaveData, ids: readonly string[]): SaveData {
   for (const id of ids) wordCards[id] = { wordId: id, collectedAt: NOW, masteryBadge: false };
   return { ...save, wordCards };
 }
+
+describe("stage 4 rewards clear the missing-word plate", () => {
+  it("keeps reward frames, the word plate, and both buttons apart for 1 to 8 missing words", () => {
+    const gate = resultsGateButtons();
+    const modes = ["card", "item", "both"] as const;
+    for (const missingCount of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      for (const wordCount of [1, 4, 5, 8]) {
+        for (const mode of modes) {
+          const layout = resultsRewardClearance({
+            wordCount,
+            extraWords: 0,
+            missingCount,
+            card: mode !== "item",
+            item: mode !== "card",
+          });
+          const rewards = [layout.card, layout.item].filter((box): box is ResultsBox => box !== null);
+          const label = `${mode} missing ${missingCount} shown ${wordCount}`;
+          expect(rewards, label).toHaveLength(mode === "both" ? 2 : 1);
+          const regions = [layout.xp, layout.plate, layout.academy, layout.next, layout.words, ...rewards].filter(
+            (box): box is ResultsBox => box !== null,
+          );
+          for (let i = 0; i < regions.length; i += 1) {
+            for (let j = i + 1; j < regions.length; j += 1) {
+              expect(resultsBoxesOverlap(regions[i]!, regions[j]!), label).toBe(false);
+            }
+          }
+          for (const reward of rewards) {
+            expect(reward.h, label).toBeGreaterThanOrEqual(64);
+            expect(resultsBoxInsidePanel(reward, 8), label).toBe(true);
+            expect(reward.y + reward.h / 2, label).toBeLessThanOrEqual(layout.plate.y - layout.plate.h / 2 - 8);
+          }
+          expect(layout.academy, label).toEqual(gate.academy);
+          expect(layout.next, label).toEqual(gate.next);
+          expect(layout.plate.h, label).toBe(gate.plate.h);
+          expect(layout.plate.y + layout.plate.h / 2, label).toBeLessThanOrEqual(layout.academy.y - layout.academy.h / 2 - 8);
+          expect(resultsBoxInsidePanel(layout.plate, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.academy, 12), label).toBe(true);
+          expect(resultsBoxInsidePanel(layout.next, 12), label).toBe(true);
+        }
+      }
+    }
+  });
+});
 
 describe("stage hint beside the chapter list", () => {
   it("hides the stage line when the chapter list is shown, and keeps it when the list is absent", () => {

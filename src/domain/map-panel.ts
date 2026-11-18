@@ -220,7 +220,7 @@ function bossGateFaces(
       lines: clipMissingWords([missing.map((word) => `${word.english} ${word.chinese}`).join("、")], 48),
       entries: [{
         id: "learn",
-        label: "去学堂学这几个",
+        label: "去学堂学",
         enabled: true,
         tone: "secondary",
         grade: scope.grade,

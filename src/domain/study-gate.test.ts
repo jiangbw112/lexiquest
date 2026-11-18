@@ -107,7 +107,7 @@ describe("forest study list", () => {
         grade: "G6",
         chapterId: "forest_adventure",
         wordIds: ["cloud", "climb"],
-        label: "去学堂学这几个",
+        label: "去学堂学",
       },
     ]);
     const panel = mapPanel(opened, FOREST_CHAPTER.stages[4]!, "locked");
@@ -115,7 +115,7 @@ describe("forest study list", () => {
     expect(panel.missingLines.join("")).toContain(`climb ${climb!.chinese}`);
     expect(panel.buttons.find((button) => button.id === "learn")).toMatchObject({
       enabled: true,
-      label: "去学堂学这几个",
+      label: "去学堂学",
       grade: "G6",
       wordIds: ["cloud", "climb"],
     });
@@ -265,7 +265,7 @@ describe("one academy entry for every selected grade", () => {
     const four = fresh(["G3", "G4", "G5", "G6"]);
     const study = bossGateStudy(four);
     expect(study.entries[0]?.grade).toBe("G3");
-    expect(study.entries[0]?.label).toBe("去三年级学这几个");
+    expect(study.entries[0]?.label).toBe("去三年级学");
     expect(study.entries[0]?.wordIds).toContain("tree");
     const clipped = clipMissingWords([study.words.join("、")], 48);
     expect(clipped.length).toBeGreaterThan(0);

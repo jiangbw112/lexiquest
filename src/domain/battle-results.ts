@@ -538,7 +538,7 @@ export function bossGateStudy(save: SaveData, chapterId?: string): { words: stri
         grade: chapter.grade,
         chapterId: chapter.id,
         wordIds: missing.map((word) => word.id),
-        label: "去学堂学这几个",
+        label: "去学堂学",
       }],
     };
   }
@@ -583,6 +583,84 @@ export function resultsGateButtons(): { academy: ResultsBox; next: ResultsBox; p
     h: plateH,
   };
   return { academy, next, plate };
+}
+
+const RESULTS_XP_ROW_H = 40;
+const RESULTS_REWARD_GAP = 8;
+const RESULTS_MIN_REWARD_H = 64;
+const RESULTS_MAX_REWARD_H = 200;
+const RESULTS_MIN_PLATE_H = 56;
+const RESULTS_CARD_SLOT = { left: 477, w: 360 } as const;
+const RESULTS_ITEM_SLOT = { left: 845, w: 348 } as const;
+/** Label, bar, and the +经验 capsule. The scene draws all three inside this row. */
+const RESULTS_XP_ROW = { left: 470, right: 1140 } as const;
+
+function resultsChipBlockBottom(wordCount: number, extraWords: number): number {
+  const rows = wordCount <= 0 ? 0 : Math.ceil(wordCount / 4);
+  const bottom = resultsRowsBottom(rows);
+  return extraWords > 0 ? bottom + 28 : bottom;
+}
+
+function centerBox(left: number, top: number, w: number, h: number): ResultsBox {
+  return { x: left + w / 2, y: top + h / 2, w, h };
+}
+
+/**
+ * Stage 4 can show a card upgrade or a new item in the same space as the
+ * missing-word plate. The plate and the two buttons stay put. The reward
+ * frames sit in the band above the plate, under the experience row, and
+ * shrink only when a tall word list leaves less than a readable strip.
+ * `missingCount` is how many words the plate is listing.
+ */
+export function resultsRewardClearance(input: {
+  wordCount: number;
+  extraWords: number;
+  missingCount: number;
+  card: boolean;
+  item: boolean;
+}): {
+  card: ResultsBox | null;
+  item: ResultsBox | null;
+  xp: ResultsBox;
+  words: ResultsBox | null;
+  plate: ResultsBox;
+  academy: ResultsBox;
+  next: ResultsBox;
+} {
+  const gate = resultsGateButtons();
+  const listed = Math.min(8, Math.max(1, Math.round(input.missingCount)));
+  const blockBottom = resultsChipBlockBottom(input.wordCount, input.extraWords);
+  const rewardTopFloor = blockBottom + RESULTS_REWARD_GAP + RESULTS_XP_ROW_H + RESULTS_REWARD_GAP;
+  const buttonTop = gate.academy.y - gate.academy.h / 2;
+  const plateBottom = Math.min(gate.plate.y + gate.plate.h / 2, buttonTop - RESULTS_REWARD_GAP);
+  // One through eight listed words keep the designed plate. It only shrinks
+  // when the reward strip would otherwise be shorter than a readable row.
+  const plateFloor = Math.min(gate.plate.h, Math.max(RESULTS_MIN_PLATE_H, 48 + listed * 2));
+  let plateH = gate.plate.h;
+  const room = () => plateBottom - plateH - RESULTS_REWARD_GAP - rewardTopFloor;
+  if (room() < RESULTS_MIN_REWARD_H) {
+    const fitted = plateBottom - RESULTS_REWARD_GAP - (rewardTopFloor + RESULTS_MIN_REWARD_H);
+    plateH = Math.max(plateFloor, Math.min(gate.plate.h, fitted));
+  }
+  const rewardBottom = plateBottom - plateH - RESULTS_REWARD_GAP;
+  const rewardH = Math.min(RESULTS_MAX_REWARD_H, Math.max(0, rewardBottom - rewardTopFloor));
+  const rewardTop = rewardBottom - rewardH;
+  const xpBottom = rewardTop - RESULTS_REWARD_GAP;
+  const xp = centerBox(RESULTS_XP_ROW.left, xpBottom - RESULTS_XP_ROW_H, RESULTS_XP_ROW.right - RESULTS_XP_ROW.left, RESULTS_XP_ROW_H);
+  const plate = centerBox(gate.plate.x - gate.plate.w / 2, plateBottom - plateH, gate.plate.w, plateH);
+  const words = input.wordCount <= 0
+    ? null
+    : centerBox(477, RESULTS_CHIP_TOP, 3 * RESULTS_WORD_CHIP.pitchX + RESULTS_WORD_CHIP.width, blockBottom - RESULTS_CHIP_TOP);
+  const card = input.card ? centerBox(RESULTS_CARD_SLOT.left, rewardTop, RESULTS_CARD_SLOT.w, rewardH) : null;
+  const item = input.item ? centerBox(RESULTS_ITEM_SLOT.left, rewardTop, RESULTS_ITEM_SLOT.w, rewardH) : null;
+  return { card, item, xp, words, plate, academy: gate.academy, next: gate.next };
+}
+
+/** True when the two center-based boxes share interior pixels. Touching edges do not count. */
+export function resultsBoxesOverlap(a: ResultsBox, b: ResultsBox): boolean {
+  const gapX = Math.abs(a.x - b.x) * 2 - a.w - b.w;
+  const gapY = Math.abs(a.y - b.y) * 2 - a.h - b.h;
+  return gapX < -0.01 && gapY < -0.01;
 }
 
 export function resultsBoxInsidePanel(box: ResultsBox, pad = 0): boolean {

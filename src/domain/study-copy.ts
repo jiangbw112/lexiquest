@@ -188,7 +188,7 @@ export function gradePracticeEntries(save: SaveData, missing: readonly NamedWord
     return {
       grade,
       wordIds: words.map((word) => word.id),
-      label: grades.length === 1 ? "去学堂学这几个" : `去${gradeLabel(grade)}学这几个`,
+      label: grades.length === 1 ? "去学堂学" : `去${gradeLabel(grade)}学`,
       line: wordLine(words),
     };
   });

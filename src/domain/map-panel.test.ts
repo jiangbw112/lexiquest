@@ -91,7 +91,7 @@ describe("forest map panel", () => {
     expect(all.missingLines.length).toBeGreaterThan(0);
     expect(all.missingLines.join("")).toContain("tree");
     expect(all.buttons.filter((button) => button.id === "learn")).toEqual([
-      expect.objectContaining({ enabled: true, label: "去三年级学这几个", grade: "G3" }),
+      expect.objectContaining({ enabled: true, label: "去三年级学", grade: "G3" }),
     ]);
     expect(all.buttons.at(-1)).toEqual({ id: "fight", label: "挑战林心守护者", enabled: false, tone: "coral" });
 
