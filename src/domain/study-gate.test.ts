@@ -211,7 +211,8 @@ describe("academy settlement", () => {
 
     const cleared = learnCardsDoneCopy({ ...forest, chapterCleared: true }, forestPlayChapter());
     expect(cleared.message).toBe("本章词卡已学完。");
-    expect(cleared.primaryLabel).toBe("去本章地图");
+    expect(cleared.primaryLabel).toBe("返回选择章节");
+    expect(cleared.primary).toBe("chapters");
     expect(learnBatchView(forest, [], [], forestPlayChapter()).message).toBe(ready.message);
     expect(JSON.stringify(waiting)).not.toContain("通关");
   });

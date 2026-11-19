@@ -55,3 +55,10 @@ export function mutate(update: (save: SaveData) => SaveData): SaveData | null {
   commit(next);
   return next;
 }
+
+/** Same write as mutate, plus whether the cache accepted it. A failed write keeps the new save in memory. */
+export function mutateCommitted(update: (save: SaveData) => SaveData): { save: SaveData | null; saved: boolean } {
+  if (!current) return { save: null, saved: false };
+  const next = update(current);
+  return { save: next, saved: commit(next) };
+}

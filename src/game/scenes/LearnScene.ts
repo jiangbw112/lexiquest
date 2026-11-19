@@ -23,18 +23,20 @@ import {
   LEARN_BACK_VILLAGE,
   LEARN_GO_MAP,
   LEARN_PRACTICE_DONE,
+  LEARN_RETURN_CHAPTERS,
   chapterLearnScope,
   chapterWordsRemaining,
   confirmLearnSettlement,
   learnAdvance,
   learnBatchView,
+  learnChapterFinishRoute,
   learnRemainingLine,
   resumeChapterLearn,
   type LearnBatchView,
   type LearnSettlement,
 } from "../../domain/learn-batch";
 import { academyProgressLabel } from "../../domain/study-copy";
-import type { GradeBand } from "../../domain/types";
+import type { GradeBand, SaveData } from "../../domain/types";
 import { uiLabel } from "../../domain/ui-label";
 import { NEW_WORD_GOAL_NOTICE, dailyNewWordTargetMet, learnDayMeter, reviewFirstNotice } from "../../domain/parent";
 import { learnWord, studyNow } from "../../domain/progress";
@@ -56,7 +58,7 @@ import { LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, STUDY_CARD, cjkText
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
-import { getSave, mutate } from "../session";
+import { commit, getSave, mutate, mutateCommitted } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
@@ -81,6 +83,8 @@ export class LearnScene extends Phaser.Scene {
   private practiceWordIds: string[] | null = null;
   private practiceGrade: GradeBand | null = null;
   private practiceChapterId: string | null = null;
+  private chapterDoneHint: string | null = null;
+  private chapterDoneTimer = 0;
 
   constructor() {
     super("learn");
@@ -124,6 +128,8 @@ export class LearnScene extends Phaser.Scene {
       }
     }
     probeEnter("learn");
+    window.clearTimeout(this.chapterDoneTimer);
+    this.chapterDoneHint = null;
     this.input.setDefaultCursor("default");
     this.phase = "study";
     this.draft = initialLearnDraft(save);
@@ -144,6 +150,7 @@ export class LearnScene extends Phaser.Scene {
       form?.removeEventListener("submit", submit);
       form?.classList.remove("open");
       window.clearTimeout(this.answerTimer);
+      window.clearTimeout(this.chapterDoneTimer);
     });
     this.draw();
     probeNote("learn:ready");
@@ -267,8 +274,11 @@ export class LearnScene extends Phaser.Scene {
 
   private grant(id: string): void {
     const before = getSave();
-    mutate((current) => learnWord(current, id, studyNow(current)));
-    const after = getSave();
+    if (!before) return;
+    const lessonBefore = this.lessonChapter(before);
+    const remainingBefore = lessonBefore ? chapterWordsRemaining(before, lessonBefore) : 0;
+    const committed = mutateCommitted((current) => learnWord(current, id, studyNow(current)));
+    const after = committed.save;
     const added = Boolean(before && after && !before.wordCards[id] && after.wordCards[id]);
     if (added && !this.learnedThisBatch.includes(id)) this.learnedThisBatch.push(id);
     if (!added || !after) {
@@ -276,19 +286,33 @@ export class LearnScene extends Phaser.Scene {
       return;
     }
     this.missed = false;
-    const real = this.lessonChapter(after);
+    document.getElementById("spell-form")?.classList.remove("open");
+    showSpellingHint(null);
+    const lesson = this.lessonChapter(after);
+    const remainingAfter = lesson ? chapterWordsRemaining(after, lesson) : remainingBefore;
+    const route = learnChapterFinishRoute({
+      saved: committed.saved,
+      cardAdded: added,
+      remainingBefore,
+      remainingAfter,
+    });
+    if (route.kind === "chapter-select") {
+      this.openChapterSelect(after, route.hint, true);
+      probeNote("learn:chapter-select");
+      return;
+    }
     if (
-      real
+      lesson
       && this.practiceWordIds
       && this.practiceWordIds.length > 0
-      && this.practiceWordIds.every((id) => after.wordCards[id])
+      && this.practiceWordIds.every((wordId) => after.wordCards[wordId])
     ) {
       this.phase = "settle";
       this.question = null;
       this.draw();
       return;
     }
-    const chapter = real ? this.studyChapter(after, real) : null;
+    const chapter = lesson ? this.studyChapter(after, lesson) : null;
     if (!chapter) {
       this.picking = true;
       this.phase = "study";
@@ -297,8 +321,6 @@ export class LearnScene extends Phaser.Scene {
     }
     const view = learnBatchView(after, this.batchIds, this.learnedThisBatch, chapter);
     const step = learnAdvance(view);
-    document.getElementById("spell-form")?.classList.remove("open");
-    showSpellingHint(null);
     if (step.kind === "next") {
       if (step.resetBatch) {
         this.batchIds = [...step.batchIds];
@@ -347,10 +369,60 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private chooseSettlement(): void {
+    this.activateSettlement();
+  }
+
+  /** Chapter select after a stored card. A failed cache write stays on this screen and keeps the card. */
+  private openChapterSelect(save: SaveData, hint: string | null, saved: boolean): void {
+    if (!saved && !commit(save)) return;
+    this.practiceWordIds = null;
+    this.practiceGrade = null;
+    this.practiceChapterId = null;
+    this.question = null;
+    this.missed = false;
+    this.phase = "study";
+    this.picking = true;
+    this.draft = initialLearnDraft(save);
+    this.armChapterHint(hint);
+    this.draw();
+  }
+
+  private armChapterHint(hint: string | null): void {
+    window.clearTimeout(this.chapterDoneTimer);
+    this.chapterDoneHint = hint;
+    if (!hint) return;
+    this.chapterDoneTimer = window.setTimeout(() => {
+      this.chapterDoneHint = null;
+      if (this.scene.isActive() && this.picking) this.draw();
+    }, 5000);
+  }
+
+  private practiceListDone(save: NonNullable<ReturnType<typeof getSave>>): boolean {
+    const lesson = this.lessonChapter(save);
+    return Boolean(
+      lesson
+      && this.practiceWordIds
+      && this.practiceWordIds.length > 0
+      && this.practiceWordIds.every((id) => save.wordCards[id])
+      && chapterWordsRemaining(save, lesson) > 0,
+    );
+  }
+
+  private activateSettlement(): void {
     const save = getSave();
     if (!save) return;
     if (confirmLearnSettlement(save) !== save) return;
-    this.scene.start("stages");
+    if (this.practiceListDone(save)) {
+      this.openChapterSelect(save, null, false);
+      return;
+    }
+    const lesson = this.lessonChapter(save);
+    const chapter = lesson ? this.studyChapter(save, lesson) : null;
+    const settlement = chapter ? learnBatchView(save, this.batchIds, this.learnedThisBatch, chapter).settlement : null;
+    if (settlement?.primary === "grade") this.startGradePractice(settlement);
+    else if (settlement?.primary === "village") this.backToVillage();
+    else if (settlement?.primary === "chapters") this.openChapterSelect(save, null, false);
+    else this.goToChapterMap(settlement?.mapChapterId, settlement?.focusBoss);
   }
 
   private drawSettlement(view: LearnBatchView): void {
@@ -371,11 +443,10 @@ export class LearnScene extends Phaser.Scene {
     }
     const primary = settlement?.primaryLabel ?? LEARN_GO_MAP;
     const secondary = settlement?.secondaryLabel ?? uiLabel(LEARN_BACK_VILLAGE);
+    const primaryWidth = settlement?.primary === "chapters" ? 260 : 240;
     warmButton(this, secondary ? 500 : 640, y + 40, primary, () => {
-      if (settlement?.primary === "grade") this.startGradePractice(settlement);
-      else if (settlement?.primary === "village") this.backToVillage();
-      else this.goToChapterMap(settlement?.mapChapterId, settlement?.focusBoss);
-    }, { width: 240 });
+      this.activateSettlement();
+    }, { width: primaryWidth });
     if (secondary) {
       warmButton(this, 780, y + 40, secondary, () => this.backToVillage(), { width: 200, tone: "secondary" });
     }
@@ -389,7 +460,7 @@ export class LearnScene extends Phaser.Scene {
       fontSize: "28px",
       color: INK,
     }).setOrigin(0.5);
-    warmButton(this, 500, 460, LEARN_GO_MAP, () => this.goToChapterMap(), { width: 240 });
+    warmButton(this, 500, 460, LEARN_RETURN_CHAPTERS, () => this.activateSettlement(), { width: 260 });
     warmButton(this, 780, 460, uiLabel(LEARN_BACK_VILLAGE), () => this.backToVillage(), { width: 200, tone: "secondary" });
   }
 
@@ -640,6 +711,13 @@ export class LearnScene extends Phaser.Scene {
   }
 
   private drawPicker(save: NonNullable<ReturnType<typeof getSave>>): void {
+    if (this.chapterDoneHint) {
+      this.add.text(LEARN_DAY_METER.hintX, LEARN_DAY_METER.hintY, this.chapterDoneHint, {
+        fontFamily: FONT,
+        fontSize: `${LEARN_DAY_METER.hintFont}px`,
+        color: TEAL_DEEP,
+      }).setOrigin(0.5);
+    }
     const gradeChoices: LearnDraft["grade"][] = academyGradeChoices(save);
     const chipLabels = gradeChoices.map((grade) => learnChipLabel(grade, save));
     const chips = learnGradeChipRow(chipLabels, (label) => cjkTextWidth(label, LEARN_CHIP_ROW.fontSize));

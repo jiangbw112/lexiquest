@@ -11,6 +11,7 @@ import { isCleared } from "./clearance";
  */
 export const LEARN_GO_MAP = "去本章地图";
 export const LEARN_BACK_VILLAGE = "返回村庄";
+export const LEARN_RETURN_CHAPTERS = "返回选择章节";
 export const LEARN_CARDS_DONE_CLEARED = "本章词卡已学完。";
 export const LEARN_PRACTICE_DONE = "这几个词学完了。";
 export const LEARN_FIGHT_BOSS = "去挑战 Boss";
@@ -62,7 +63,7 @@ export interface LearnSettlement {
   message: string;
   primaryLabel: string;
   secondaryLabel: string | null;
-  primary: "map" | "village" | "grade";
+  primary: "map" | "village" | "grade" | "chapters";
   grade?: GradeBand;
   wordIds?: string[];
   mapChapterId?: string;
@@ -124,11 +125,9 @@ export function learnCardsDoneCopy(save: SaveData, chapter: PlayChapter): LearnS
   if (cleared) {
     return {
       message: LEARN_CARDS_DONE_CLEARED,
-      primaryLabel: LEARN_GO_MAP,
+      primaryLabel: LEARN_RETURN_CHAPTERS,
       secondaryLabel: LEARN_BACK_VILLAGE,
-      primary: "map",
-      mapChapterId: chapter.id,
-      focusBoss: false,
+      primary: "chapters",
     };
   }
   const unlocked = chapter.id === forestId || isChapterUnlocked(save, chapter);
@@ -276,6 +275,27 @@ export function learnBatchView(
     remainingLine: learnRemainingLine(remaining.length),
     settlement,
   };
+}
+
+export type LearnChapterFinish =
+  | { kind: "chapter-select"; hint: string }
+  | { kind: "stay" };
+
+/**
+ * After the card that finishes this chapter is stored.
+ * Opening a chapter that was already finished stays on its dialog.
+ * A failed save stays put and does not drop the in-memory card.
+ */
+export function learnChapterFinishRoute(input: {
+  saved: boolean;
+  cardAdded: boolean;
+  remainingBefore: number;
+  remainingAfter: number;
+}): LearnChapterFinish {
+  if (input.cardAdded && input.saved && input.remainingBefore > 0 && input.remainingAfter === 0) {
+    return { kind: "chapter-select", hint: LEARN_CARDS_DONE_CLEARED };
+  }
+  return { kind: "stay" };
 }
 
 /**

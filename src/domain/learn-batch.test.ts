@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "./appearance";
+import { sampleWords } from "./catalog";
 import {
   activeChapter,
   chapterBossReady,
@@ -10,18 +11,24 @@ import {
   playStatuses,
   visibleChapters,
 } from "./chapter-plan";
+import { academyForestChapter } from "./chapter-route";
 import {
   LEARN_BACK_VILLAGE,
+  LEARN_CARDS_DONE_CLEARED,
   LEARN_FIGHT_BOSS,
+  LEARN_RETURN_CHAPTERS,
   chapterLearnScope,
+  chapterWordsRemaining,
   confirmLearnSettlement,
   learnAdvance,
   learnBatchView,
+  learnCardsDoneCopy,
+  learnChapterFinishRoute,
   learnStageBatches,
   resumeChapterLearn,
 } from "./learn-batch";
 import { NEW_WORD_GOAL_NOTICE, learnDayMeter, setGoalPreset } from "./parent";
-import { createSave, learnWord } from "./progress";
+import { LEARN_XP, createSave, learnWord } from "./progress";
 import { requiredWordIds } from "./stages";
 import type { SaveData } from "./types";
 
@@ -265,17 +272,43 @@ describe("learn scene settlement wiring", () => {
     expect(picker).not.toContain("森林冒险");
   });
 
-  it("keeps the finished-chapter screen off the learn path and sends the map through the existing scene", () => {
-    const choose = scene.slice(scene.indexOf("private chooseSettlement"), scene.indexOf("private drawSettlement"));
-    expect(choose).toContain("confirmLearnSettlement");
-    expect(choose).toContain('this.scene.start("stages")');
-    expect(choose).not.toContain("continue-batch");
-    expect(choose).not.toContain("continue-chapter");
+  it("returns a just-finished chapter to the picker and keeps the battle map on the other buttons", () => {
+    const grant = scene.slice(scene.indexOf("private grant"), scene.indexOf("private backToVillage"));
+    const learnAt = grant.indexOf("learnWord(current, id, studyNow(current))");
+    const routeAt = grant.indexOf("learnChapterFinishRoute");
+    const openAt = grant.indexOf("openChapterSelect");
+    expect(learnAt).toBeGreaterThan(-1);
+    expect(routeAt).toBeGreaterThan(learnAt);
+    expect(openAt).toBeGreaterThan(routeAt);
+    expect(grant).toContain("committed.saved");
+    expect(grant).not.toContain('this.scene.start("stages")');
+    const choose = scene.slice(scene.indexOf("private chooseSettlement"), scene.indexOf("private openChapterSelect"));
+    expect(choose).toContain("activateSettlement");
     expect(choose).not.toContain("learnWord");
-    expect(choose).not.toContain("mutate");
-    expect(choose).not.toContain("stageWins");
-    expect(choose).not.toContain("chapterCleared");
+    expect(choose).not.toContain('this.scene.start("stages")');
+    const activate = scene.slice(scene.indexOf("private activateSettlement"), scene.indexOf("private drawSettlement"));
+    expect(activate).toContain("confirmLearnSettlement");
+    expect(activate).toContain('settlement?.primary === "chapters"');
+    expect(activate).toContain("openChapterSelect");
+    expect(activate).toContain("goToChapterMap");
+    expect(activate).not.toContain("learnWord");
+    expect(activate).not.toContain("mutate");
+    expect(activate).not.toContain("chapterCleared");
+    const opener = scene.slice(scene.indexOf("private openChapterSelect"), scene.indexOf("private armChapterHint"));
+    expect(opener).toContain("this.picking = true");
+    expect(opener).not.toContain('this.scene.start("stages")');
+    expect(opener).not.toContain("learnWord");
+    expect(opener).not.toContain("mutate");
+    const confirm = scene.slice(scene.indexOf("private confirmPick"), scene.indexOf("private drawLearnGate"));
+    expect(confirm).not.toContain("openChapterSelect");
+    expect(confirm).not.toContain("learnChapterFinishRoute");
+    expect(confirm).toContain("this.batchIds.some");
+    const draw = scene.slice(scene.indexOf("  private draw():"), scene.indexOf("  private lessonChapter"));
+    expect(draw).not.toContain("openChapterSelect");
+    expect(draw).not.toContain("learnChapterFinishRoute");
+    expect(scene).toContain("LEARN_RETURN_CHAPTERS");
     expect(scene).toContain("LEARN_GO_MAP");
+    expect(scene).toContain('this.scene.start("stages"');
     expect(scene).toContain("view.settlement");
     expect(scene).toContain("resumeChapterLearn");
     expect(scene).toContain("confirmLearnSelection");
@@ -284,5 +317,140 @@ describe("learn scene settlement wiring", () => {
     expect(scene).not.toContain("已开放章节");
     expect(scene).not.toContain("所选年级里没有这一章的词");
     expect(scene).not.toContain("所选年级没有这一章的词");
+  });
+});
+
+describe("chapter finish returns to the academy picker", () => {
+  it("sends a finished forest lesson and a finished grade chapter to chapter select", () => {
+    const forest = academyForestChapter("G3");
+    let forestSave = fresh(["G3"]);
+    forestSave = { ...forestSave, learnSelection: { grade: "G3", chapterId: forest.id } };
+    const forestIds = chapterLearnScope(forestSave, forest);
+    const forestLast = forestIds[forestIds.length - 1]!;
+    const forestBefore = learnIds(forestSave, forestIds.filter((id) => id !== forestLast));
+    expect(chapterWordsRemaining(forestBefore, forest)).toBe(1);
+    const forestXp = forestBefore.xp;
+    const forestWins = forestBefore.stageWins;
+    const forestAfter = learnWord(forestBefore, forestLast, START);
+    expect(chapterWordsRemaining(forestAfter, forest)).toBe(0);
+    expect(forestAfter.wordCards[forestLast]?.wordId).toBe(forestLast);
+    expect(forestAfter.xp).toBe(forestXp + LEARN_XP);
+    expect(forestAfter.stageWins).toEqual(forestWins);
+    expect(forestAfter.chapterCleared).toBe(false);
+    expect(isChapterCleared(forestAfter, forest)).toBe(false);
+    expect(isChapterUnlocked(forestAfter, gradeChapters("G3")[0]!)).toBe(false);
+    expect(learnWord(forestAfter, forestLast, START)).toBe(forestAfter);
+    expect(learnChapterFinishRoute({
+      saved: true,
+      cardAdded: true,
+      remainingBefore: 1,
+      remainingAfter: 0,
+    })).toEqual({ kind: "chapter-select", hint: LEARN_CARDS_DONE_CLEARED });
+    expect(learnChapterFinishRoute({
+      saved: false,
+      cardAdded: true,
+      remainingBefore: 1,
+      remainingAfter: 0,
+    })).toEqual({ kind: "stay" });
+    expect(learnChapterFinishRoute({
+      saved: true,
+      cardAdded: false,
+      remainingBefore: 0,
+      remainingAfter: 0,
+    })).toEqual({ kind: "stay" });
+    expect(learnCardsDoneCopy(forestAfter, forest).primaryLabel).toBe(LEARN_FIGHT_BOSS);
+    const forestCleared = learnCardsDoneCopy({ ...forestAfter, chapterCleared: true }, forest);
+    expect(forestCleared).toMatchObject({
+      message: LEARN_CARDS_DONE_CLEARED,
+      primaryLabel: LEARN_RETURN_CHAPTERS,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "chapters",
+    });
+    expect(forestCleared.mapChapterId).toBeUndefined();
+
+    const chapter = gradeChapters("G3")[0]!;
+    const next = gradeChapters("G3")[1]!;
+    let gradeSave = fresh(["G3"]);
+    gradeSave = { ...gradeSave, learnSelection: { grade: "G3", chapterId: chapter.id }, currentChapterId: chapter.id };
+    const gradeLast = chapter.wordIds[chapter.wordIds.length - 1]!;
+    const gradeBefore = learnIds(gradeSave, chapter.wordIds.filter((id) => id !== gradeLast));
+    expect(chapterWordsRemaining(gradeBefore, chapter)).toBe(1);
+    const gradeAfter = learnWord(gradeBefore, gradeLast, START);
+    expect(chapterWordsRemaining(gradeAfter, chapter)).toBe(0);
+    expect(gradeAfter.xp).toBe(gradeBefore.xp + LEARN_XP);
+    expect(gradeAfter.stageWins).toEqual(gradeBefore.stageWins);
+    expect(gradeAfter.chapterProgress).toEqual(gradeBefore.chapterProgress);
+    expect(isChapterCleared(gradeAfter, chapter)).toBe(false);
+    expect(isChapterUnlocked(gradeAfter, next)).toBe(false);
+    expect(learnWord(gradeAfter, gradeLast, START)).toBe(gradeAfter);
+    expect(learnCardsDoneCopy(gradeAfter, chapter).primaryLabel).toBe("去对战");
+    expect(learnCardsDoneCopy(gradeAfter, chapter).primary).toBe("map");
+    const gradeCleared = learnCardsDoneCopy({
+      ...gradeAfter,
+      chapterProgress: { [chapter.id]: { cleared: true, stageWins: {} } },
+    }, chapter);
+    expect(gradeCleared).toMatchObject({
+      message: LEARN_CARDS_DONE_CLEARED,
+      primaryLabel: LEARN_RETURN_CHAPTERS,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "chapters",
+    });
+    expect(gradeCleared.mapChapterId).toBeUndefined();
+  });
+
+  it("keeps the other grade, the sash, and the unlock rules when several grades are open", () => {
+    let paired = fresh(["G4", "G6"]);
+    const fourth = academyForestChapter("G4");
+    const sixth = academyForestChapter("G6");
+    const ids = chapterLearnScope(paired, fourth);
+    const last = ids[ids.length - 1]!;
+    paired = learnIds(paired, ids.filter((id) => id !== last));
+    const sixthBefore = chapterWordsRemaining(paired, sixth);
+    const unlocked = isChapterUnlocked(paired, gradeChapters("G4")[0]!);
+    const after = learnWord(paired, last, START);
+    expect(chapterWordsRemaining(after, fourth)).toBe(0);
+    const shared = chapterLearnScope(paired, sixth).includes(last) ? 1 : 0;
+    expect(chapterWordsRemaining(after, sixth)).toBe(sixthBefore - shared);
+    expect(sixthBefore).toBeGreaterThan(shared);
+    for (const id of chapterLearnScope(paired, sixth)) {
+      if (id === last) expect(after.wordCards[id]?.wordId).toBe(id);
+      else expect(after.wordCards[id]).toBe(paired.wordCards[id]);
+    }
+    expect(isChapterUnlocked(after, gradeChapters("G4")[0]!)).toBe(unlocked);
+    expect(isChapterCleared(after, fourth)).toBe(false);
+    expect(after.ownedOutfitIds).not.toContain("star-sash");
+    expect(after.rewardQueue).toEqual(paired.rewardQueue);
+    expect(learnWord(after, last, START)).toBe(after);
+    expect(learnChapterFinishRoute({
+      saved: true,
+      cardAdded: true,
+      remainingBefore: 1,
+      remainingAfter: chapterWordsRemaining(after, fourth),
+    }).kind).toBe("chapter-select");
+    const handoff = learnCardsDoneCopy(after, fourth);
+    expect(handoff.primary).toBe("grade");
+    expect(handoff.primaryLabel).toBe("去六年级学");
+    expect(handoff.secondaryLabel).toBe(LEARN_BACK_VILLAGE);
+
+    const words = sampleWords();
+    const sashWord = words[words.length - 1]!;
+    let all = fresh(["G3", "G4", "G5", "G6"]);
+    all = learnIds(all, words.map((word) => word.id).filter((id) => id !== sashWord.id));
+    const sashChapter = academyForestChapter(sashWord.grade);
+    expect(sashChapter.wordIds).toContain(sashWord.id);
+    expect(chapterWordsRemaining(all, sashChapter)).toBe(1);
+    expect(all.ownedOutfitIds).not.toContain("star-sash");
+    const rewarded = learnWord(all, sashWord.id, START);
+    expect(rewarded.xp).toBe(all.xp + LEARN_XP);
+    expect(rewarded.ownedOutfitIds.filter((id) => id === "star-sash")).toEqual(["star-sash"]);
+    expect(rewarded.rewardQueue.filter((notice) => notice.title === "得到星光绶带")).toHaveLength(1);
+    expect(learnWord(rewarded, sashWord.id, START)).toBe(rewarded);
+    expect(isChapterCleared(rewarded, sashChapter)).toBe(false);
+    expect(learnChapterFinishRoute({
+      saved: true,
+      cardAdded: true,
+      remainingBefore: chapterWordsRemaining(all, sashChapter),
+      remainingAfter: chapterWordsRemaining(rewarded, sashChapter),
+    })).toEqual({ kind: "chapter-select", hint: LEARN_CARDS_DONE_CLEARED });
   });
 });
