@@ -66,7 +66,7 @@ describe("release notes", () => {
     expect(section).toContain("学习、复习、词卡、通关、外观、年级、每日目标，以及只发一次的奖励，都记在这个角色自己的文件里。");
     expect(section).toContain("换角色时，正在用的这一份会先放下。");
     expect(section).toContain("以前只有一份存档时，那一份还留着，并搬成一个角色。");
-    expect(section).toContain("原来那一份没有被改过时，这次搬迁可以退回去，别的角色还在。");
+    expect(section).not.toContain("可以退回去");
     expect(section).toContain("读入一份存档只会新加一个角色，不会盖掉已经有的。");
     expect(section).toContain("删除角色要先通过家长密码，再确认一次。");
     expect(section).toContain("读不了的角色可以在选择页删掉");
