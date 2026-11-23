@@ -33,7 +33,7 @@ export class BootScene extends Phaser.Scene {
     const cap = new Promise<void>((resolve) => window.setTimeout(resolve, 1500));
     void Promise.all([Promise.race([ready, cap]), ensureChapterPlan()]).then(() => {
       probeNote("boot:ready", { bootMs: Math.round(performance.now()) });
-      this.scene.start("title");
+      this.scene.start("profiles");
     });
   }
 }

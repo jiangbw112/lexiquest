@@ -5,7 +5,7 @@ import { rewardBatch } from "../../domain/reward-dialog";
 import { destroyDrawn } from "../destroy-drawn";
 import { redirectUngraded } from "../grade-route";
 import { probeEnter, probeNote } from "../probe";
-import { getSave, mutate } from "../session";
+import { getSave, mutate, releaseSession } from "../session";
 import { containerHitArea, VILLAGE_BUILDING_HEIGHT, VILLAGE_BUILDING_WIDTH, villageSignLocal } from "../hit";
 import { listenKeys } from "../ui";
 import { directionFromDelta } from "../art/class-atlas";
@@ -35,7 +35,7 @@ export class OverworldScene extends Phaser.Scene {
   create(): void {
     const save = getSave();
     if (!save) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     if (redirectUngraded(this, save)) return;
@@ -161,6 +161,10 @@ export class OverworldScene extends Phaser.Scene {
     if (save.chapterCleared) {
       warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }
+    warmButton(this, 200, 140, "换角色", () => {
+      releaseSession();
+      this.scene.start("profiles");
+    }, { width: 160, height: 56, tone: "secondary" });
     const batch = rewardBatch(save.rewardQueue);
     if (this.toast || batch) {
       const chrome = rewardDialogChrome();

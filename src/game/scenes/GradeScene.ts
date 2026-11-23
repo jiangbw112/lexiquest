@@ -30,7 +30,7 @@ export class GradeScene extends Phaser.Scene {
   create(): void {
     const gated = this.mode === "migrate" || this.mode === "ask-parent";
     if (gated && !getSave()) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     if (gated && getSave() && !needsGradeChoice(getSave()!)) {
@@ -42,14 +42,14 @@ export class GradeScene extends Phaser.Scene {
     probeNote(`grades:${this.grades.join(",") || "none"}`);
     listenKeys(this, (event) => {
       if (this.mode === "ask-parent") {
-        if (event.code === "Escape") this.scene.start("title");
+        if (event.code === "Escape") this.scene.start(getSave() ? "title" : "profiles");
         if (event.code === "Enter") this.scene.start("guide");
         return;
       }
       const index = ["Digit3", "Digit4", "Digit5", "Digit6"].indexOf(event.code);
       if (index >= 0) this.toggle(GRADE_BANDS[index]!.id);
       if (event.code === "Enter") this.confirm();
-      if (event.code === "Escape" && this.mode === "new") this.scene.start("title");
+      if (event.code === "Escape" && this.mode === "new") this.scene.start(getSave() ? "title" : "profiles");
     });
     this.draw();
     warmInBackground(this, ["atlas_village"], ["bg_village", "bg_room"]);
@@ -91,7 +91,7 @@ export class GradeScene extends Phaser.Scene {
         wordWrap: cjkWrap(900),
       });
       warmButton(this, 360, 480, "去给家长", () => this.scene.start("guide"), { width: 220 });
-      warmButton(this, 640, 480, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
+      warmButton(this, 640, 480, uiLabel("返回"), () => this.scene.start(getSave() ? "title" : "profiles"), { width: 160, tone: "secondary" });
       return;
     }
     const migrating = this.mode === "migrate";
@@ -130,7 +130,7 @@ export class GradeScene extends Phaser.Scene {
       disabled: !ready,
     });
     if (!migrating) {
-      warmButton(this, 700, 560, uiLabel("返回"), () => this.scene.start("title"), { width: 160, tone: "secondary" });
+      warmButton(this, 700, 560, uiLabel("返回"), () => this.scene.start(getSave() ? "title" : "profiles"), { width: 160, tone: "secondary" });
     }
   }
 }

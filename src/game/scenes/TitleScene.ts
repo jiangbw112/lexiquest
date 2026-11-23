@@ -3,7 +3,8 @@ import { ClassSideSprite } from "../art/class-sprite";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
 import { probeEnter, probeNote } from "../probe";
 import { redirectUngraded } from "../grade-route";
-import { getSave } from "../session";
+import { MAX_PROFILES } from "../../domain/profiles";
+import { getSave, liveProfileCount, releaseSession } from "../session";
 import { listenKeys } from "../ui";
 import { TITLE_START } from "../layout";
 import { warmButton } from "../warm/kit";
@@ -36,10 +37,14 @@ export class TitleScene extends Phaser.Scene {
     const save = getSave();
     const label = save ? "继续冒险 Enter" : "开始冒险 Enter";
     warmButton(this, TITLE_START.x, TITLE_START.y, label, () => this.go(Boolean(save)), { width: 280, height: 64 });
-    if (save) warmButton(this, 640, 640, "新的冒险 N", () => this.scene.start("grades", { mode: "new" }), { width: 220, height: 56, tone: "secondary" });
+    if (save) warmButton(this, 480, 640, "新的冒险 N", () => this.createAnother(), { width: 220, height: 56, tone: "secondary" });
+    if (save) warmButton(this, 800, 640, "换角色", () => {
+      releaseSession();
+      this.scene.start("profiles");
+    }, { width: 180, height: 56, tone: "secondary" });
     listenKeys(this, (event) => {
       if (event.code === "Enter") this.go(Boolean(getSave()));
-      if (event.code === "KeyN" && getSave()) this.scene.start("grades", { mode: "new" });
+      if (event.code === "KeyN" && getSave()) this.createAnother();
     });
     this.measureFps();
   }
@@ -63,6 +68,18 @@ export class TitleScene extends Phaser.Scene {
     plate.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
     plate.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
     this.children.moveBelow(plate, label);
+  }
+
+  private createAnother(): void {
+    if (liveProfileCount() >= MAX_PROFILES) {
+      this.add.text(640, 700, "已经有 6 个角色，不能再新建。", {
+        fontFamily: FONT_BODY,
+        fontSize: "18px",
+        color: INK,
+      }).setOrigin(0.5);
+      return;
+    }
+    this.scene.start("grades", { mode: "new" });
   }
 
   private go(hasSave: boolean): void {

@@ -108,7 +108,7 @@ export class LearnScene extends Phaser.Scene {
   create(): void {
     let save = getSave();
     if (!save) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     if (redirectUngraded(this, save)) return;

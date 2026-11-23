@@ -274,7 +274,7 @@ describe("local character files", () => {
     const ada = make("小林");
     expect(addProfile(store, ada, NOW, "p_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").ok).toBe(true);
     const before = store.snapshot();
-    expect(importNewProfile(store, "not-json", NOW).reason).toBe("corrupt");
+    expect(importNewProfile(store, "not-json", NOW)).toEqual({ ok: false, reason: "corrupt" });
     expect(store.snapshot()).toEqual(before);
     expect(importNewProfile(store, serialize(ada), NOW)).toMatchObject({ ok: false, reason: "collision" });
     expect(store.snapshot()).toEqual(before);

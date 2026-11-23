@@ -118,7 +118,7 @@ export class StageMapScene extends Phaser.Scene {
   create(): void {
     const save = getSave();
     if (!save) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     if (redirectUngraded(this, save)) return;

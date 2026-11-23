@@ -1,5 +1,7 @@
 /**
  * Browser localStorage cache for this MVP only.
+ * Live play writes one file per character (`lexiquest.profile.v1.*`).
+ * `lexiquest.save.v1` stays the untouched legacy copy after migration.
  * It is not authoritative progress: another device, a cleared browser, or a
  * future account server would not honor it. Rewards granted here must be
  * re-checked before any server grants the same reward.

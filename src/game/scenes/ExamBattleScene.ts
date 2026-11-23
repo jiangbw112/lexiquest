@@ -55,7 +55,7 @@ import {
 } from "../../domain/exams";
 import { gradeIsOpen } from "../../domain/progress";
 import { checkSpelling } from "../../domain/questions";
-import { SAVE_KEY, serialize } from "../../domain/storage";
+import { serialize } from "../../domain/storage";
 import { equipTitleParts, markTitleReceiptPresented, titlePartText } from "../../domain/titles";
 import type { SaveData } from "../../domain/types";
 import { EXAM_ANSWER_REVEAL, paintAnswerReveal } from "../answer-reveal";
@@ -64,7 +64,7 @@ import { ExamBossSprite } from "../art/exam-boss-sprite";
 import { examBackground, queueExamArt, EXAM_UI_KEY } from "../art/exam-art";
 import { cjkWrap } from "../layout";
 import { attachExamDev, detachExamDev } from "./exam-battle-dev";
-import { commit, getSave } from "../session";
+import { captureProfileBinding, commit, getSave, sessionAccepts } from "../session";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { FONT_BODY, INK } from "../warm/theme";
 
@@ -102,6 +102,9 @@ export class ExamBattleScene extends Phaser.Scene {
   private checkpoint: SaveData | null = null;
   private baseRaw = "";
   private lockToken = "";
+  private generation = -1;
+  private boundProfileId = "";
+  private profileKey = "";
   private freshSitting = true;
   private fxFrom: number | null = null;
   private resultIds: string[] = [];
@@ -127,6 +130,9 @@ export class ExamBattleScene extends Phaser.Scene {
     this.checkpoint = null;
     this.baseRaw = "";
     this.lockToken = "";
+    this.generation = -1;
+    this.boundProfileId = "";
+    this.profileKey = "";
     this.freshSitting = true;
     this.fxFrom = null;
     this.resultIds = [];
@@ -142,6 +148,14 @@ export class ExamBattleScene extends Phaser.Scene {
     const exam = this.exam;
     if (!save || !exam) {
       this.scene.start("stages");
+      return;
+    }
+    const bound = captureProfileBinding();
+    this.generation = bound?.generation ?? -1;
+    this.boundProfileId = bound?.profileId ?? "";
+    this.profileKey = bound?.key ?? "";
+    if (!this.profileKey || bound?.profileId !== save.profileId) {
+      this.notice(EXAM_SAVE_FAILED, true);
       return;
     }
     const form = document.getElementById("spell-form");
@@ -204,14 +218,15 @@ export class ExamBattleScene extends Phaser.Scene {
   }
 
   private alignDisk(save: SaveData): boolean {
-    const raw = localStorage.getItem(SAVE_KEY);
+    if (!sessionAccepts(this.generation, this.boundProfileId) || !this.profileKey) return false;
+    const raw = localStorage.getItem(this.profileKey);
     if (raw === null) return false;
     const stamped = serialize(save);
     if (raw !== stamped) {
-      if (!commitExamSnapshot(browserStore, SAVE_KEY, raw, stamped)) return false;
-      commit(save);
+      if (!commitExamSnapshot(browserStore, this.profileKey, raw, stamped)) return false;
+      if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(save)) return false;
     }
-    this.baseRaw = localStorage.getItem(SAVE_KEY) ?? stamped;
+    this.baseRaw = localStorage.getItem(this.profileKey) ?? stamped;
     this.checkpoint = getSave();
     this.draft = this.checkpoint;
     return this.checkpoint !== null;
@@ -460,10 +475,12 @@ export class ExamBattleScene extends Phaser.Scene {
   }
 
   private persist(next: SaveData): boolean {
+    if (!this.profileKey || next.profileId !== this.boundProfileId) return false;
+    if (!sessionAccepts(this.generation, this.boundProfileId)) return false;
     const raw = serialize(next);
-    if (!commitExamSnapshot(browserStore, SAVE_KEY, this.baseRaw, raw)) return false;
-    commit(next);
-    this.baseRaw = localStorage.getItem(SAVE_KEY) ?? raw;
+    if (!commitExamSnapshot(browserStore, this.profileKey, this.baseRaw, raw)) return false;
+    if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(next)) return false;
+    this.baseRaw = localStorage.getItem(this.profileKey) ?? raw;
     this.checkpoint = next;
     this.draft = next;
     return true;

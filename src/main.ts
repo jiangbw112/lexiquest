@@ -14,6 +14,7 @@ import { EndingScene } from "./game/scenes/EndingScene";
 import { GuideScene } from "./game/scenes/GuideScene";
 import { LearnScene } from "./game/scenes/LearnScene";
 import { OverworldScene } from "./game/scenes/OverworldScene";
+import { ProfilesScene } from "./game/scenes/ProfilesScene";
 import { ReviewScene } from "./game/scenes/ReviewScene";
 import { SkillsScene } from "./game/scenes/SkillsScene";
 import { StageMapScene } from "./game/scenes/StageMapScene";
@@ -57,6 +58,7 @@ if (!webglAvailable()) {
     audio: { disableWebAudio: false },
     scene: [
       BootScene,
+      ProfilesScene,
       TitleScene,
       GradeScene,
       CreateScene,

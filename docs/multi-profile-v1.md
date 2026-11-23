@@ -6,6 +6,7 @@
 - 提交说明：`Merge pull request #45 from jiangbw112/cursor/academy-chapter-select-9b92`
 - 本地 `HEAD` 与 `origin/main` 一致
 - 远程分支和已合并的 PR 里没有同功能的多角色存档实现。本分支从该 SHA 新建，不平行复制一套存档。
+- 存储与迁移实现：`f127082effcfe07d195c5fdd270d3fb7acd86908`
 
 这是这台电脑上的学习记录，不是账号，也不同步到服务器。角色没有单独密码。家长密码仍是原来的本地门槛，键不变。
 
