@@ -10,35 +10,7 @@ const shots = process.env.LEXIQUEST_SHOTS ?? "/opt/cursor/artifacts";
 const userData = fs.mkdtempSync(path.join(os.tmpdir(), "lexiquest-desktop-"));
 const probe = "lexiquest.desktop.probe";
 const saveKey = "lexiquest.save.v1";
-const save = JSON.stringify({
-  version: 1,
-  createdAt: 1_700_000_000_000,
-  player: {
-    name: "小林",
-    classId: "warrior",
-    appearance: {
-      skinId: "peach",
-      hairStyle: "bob",
-      hairColorId: "brown",
-      eyeStyle: "bright",
-      clothColorId: "fern",
-      glasses: false,
-      freckles: true,
-    },
-  },
-  wordCards: {},
-  memory: {},
-  skillLevels: { "warrior-bash": 1 },
-  unlockedSkillIds: ["warrior-bash"],
-  equippedSkillIds: ["warrior-bash"],
-  ownedOutfitIds: ["traveler"],
-  equippedOutfitId: "traveler",
-  rewardQueue: [],
-  xp: 0,
-  clockOffsetMs: 0,
-  battlesWon: 0,
-  battlesLost: 0,
-});
+const save = JSON.stringify(JSON.parse(fs.readFileSync(new URL("./legacy-smoke-save.json", import.meta.url), "utf8")));
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -196,6 +168,20 @@ function stayedHome(state) {
   return Boolean(state && state.game && typeof state.href === "string" && state.href.startsWith("app://lexiquest/"));
 }
 
+async function waitScene(page, key) {
+  try {
+    await page.waitForFunction((expected) => document.documentElement.dataset.lexiScene === expected, key, { timeout: 20000 });
+  } catch (error) {
+    const state = await page.evaluate((saveKey) => ({
+      scene: document.documentElement.dataset.lexiScene ?? null,
+      canvas: Boolean(document.querySelector("canvas")),
+      legacy: localStorage.getItem(saveKey),
+      roster: localStorage.getItem("lexiquest.profiles.v1"),
+    }), "lexiquest.save.v1").catch(() => ({ scene: "unreadable" }));
+    throw new Error(`scene ${key} did not open: ${JSON.stringify(state)}`, { cause: error });
+  }
+}
+
 const afterBlank = await poke(first.page, "about:blank");
 await first.page.evaluate((state) => {
   const panel = document.createElement("div");
@@ -232,13 +218,31 @@ await shot(first.page, "elec2-copy.png");
 await closeApp(first);
 
 const second = await launch();
+await waitScene(second.page, "profiles");
 const restored = await second.page.evaluate(
-  ({ probe, saveKey }) => ({
-    probe: localStorage.getItem(probe),
-    name: JSON.parse(localStorage.getItem(saveKey) ?? "{}")?.player?.name ?? null,
-  }),
+  ({ probe, saveKey }) => {
+    const roster = JSON.parse(localStorage.getItem("lexiquest.profiles.v1") || "null");
+    const slot = roster?.slots?.[0];
+    const profile = slot ? JSON.parse(localStorage.getItem(`lexiquest.profile.v1.${slot.id}`) || "null") : null;
+    return {
+      probe: localStorage.getItem(probe),
+      name: JSON.parse(localStorage.getItem(saveKey) ?? "{}")?.player?.name ?? null,
+      legacy: localStorage.getItem(saveKey),
+      scene: document.documentElement.dataset.lexiScene ?? "",
+      migration: roster?.migration?.status ?? null,
+      slots: roster?.slots?.length ?? 0,
+      profileName: profile?.player?.name ?? null,
+    };
+  },
   { probe, saveKey },
 );
+if (restored.scene !== "profiles") {
+  throw new Error(`restart did not stop on the character picker: ${restored.scene}`);
+}
+await second.page.click("canvas");
+await second.page.keyboard.press("Digit1");
+await waitScene(second.page, "title");
+const selectedScene = await second.page.evaluate(() => document.documentElement.dataset.lexiScene ?? "");
 await second.page.evaluate((name) => {
   const panel = document.createElement("div");
   panel.textContent = `restart save ${name ?? "missing"}`;
@@ -258,6 +262,10 @@ const report = {
   windowOpenDenied: opened === false,
   probeRestored: restored.probe === "kept",
   saveNameRestored: restored.name === "小林",
+  legacyFrozen: restored.legacy === save,
+  restartOnPicker: restored.scene === "profiles",
+  migrationDone: restored.migration === "done" && restored.slots === 1 && restored.profileName === "小林",
+  selectedTitle: selectedScene === "title",
   aboutBlankStayed: stayedHome(afterBlank),
   aboutSrcdocStayed: stayedHome(afterSrcdoc),
   aboutBlankHref: afterBlank?.href ?? null,
@@ -283,6 +291,10 @@ const ok =
   report.windowOpenDenied &&
   report.probeRestored &&
   report.saveNameRestored &&
+  report.legacyFrozen &&
+  report.restartOnPicker &&
+  report.migrationDone &&
+  report.selectedTitle &&
   report.aboutBlankStayed &&
   report.aboutSrcdocStayed &&
   desktopWording;

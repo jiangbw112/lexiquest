@@ -20,7 +20,7 @@ import { queueClassPortraits } from "../art/class-load";
 import { cjkWrap } from "../layout";
 import { P0_APPEARANCE } from "../p0";
 import { probeEnter, probeNote } from "../probe";
-import { commit, getSave } from "../session";
+import { createProfile, getSave } from "../session";
 import { FONT, listenKeys, paper } from "../ui";
 import { warmButton, warmPanel } from "../warm/kit";
 import { paintRoom, queueWarm } from "../warm/load";
@@ -61,7 +61,7 @@ export class CreateScene extends Phaser.Scene {
     const error = document.getElementById("name-error");
     form?.classList.add("open");
     if (input instanceof HTMLInputElement) {
-      input.value = "";
+      input.value = "学习者";
       window.setTimeout(() => input.focus(), 30);
     }
     if (error) error.textContent = "";
@@ -73,7 +73,15 @@ export class CreateScene extends Phaser.Scene {
         return;
       }
       const classId = resolvedClassId(this.classId, getSave());
-      commit(createSave({ name, classId, appearance: P0_APPEARANCE, now: Date.now(), grades: this.grades }));
+      const added = createProfile(createSave({ name, classId, appearance: P0_APPEARANCE, now: Date.now(), grades: this.grades }));
+      if (!added.ok) {
+        if (error) {
+          error.textContent = added.reason === "full"
+            ? "已经有 6 个角色，没有写入。"
+            : "没有存进去，已有角色保持原样。";
+        }
+        return;
+      }
       probeNote(`class:${this.classId}`);
       this.leave("overworld");
     };

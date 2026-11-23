@@ -38,7 +38,7 @@ export class SkillsScene extends Phaser.Scene {
 
   create(): void {
     if (!getSave()) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     probeEnter("skills");

@@ -15,7 +15,7 @@ import { gradePauseNotice, learnedCountInGrade, setSelectedGrades, studyNow } fr
 import { PROVISIONAL } from "../../domain/provisional";
 import type { GoalPreset, GradeBand } from "../../domain/types";
 import { isDesktopShell, shellCopy } from "../../domain/host-copy";
-import { commit, getSave, mutate, saveCacheNotice } from "../session";
+import { clearAllProfiles, deleteActiveProfile, getSave, mutate, saveCacheNotice } from "../session";
 import { PARENT_GATE_BACK, STRUGGLE_LIST, cjkWrap, parentGateLayout, pinFormPlacement, struggleWindow } from "../layout";
 import { clearPinErrorText } from "../pin-error";
 import { probeEnter, probeNote } from "../probe";
@@ -35,6 +35,7 @@ const PRESETS: { id: GoalPreset; label: string }[] = [
 
 export class GuideScene extends Phaser.Scene {
   private confirming = false;
+  private deleting = false;
   private notice = "";
   private gradeDraft: GradeBand[] = [];
   private tab: GuideTab = "progress";
@@ -64,7 +65,7 @@ export class GuideScene extends Phaser.Scene {
     mutate((save) => ensureDailyGoal(save, studyNow(save)));
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (event.code === "Escape") this.scene.start("overworld");
-      if (event.code === "KeyY" && this.pinSession.unlocked && this.confirming && this.tab === "notes") this.clearSave();
+      if (event.code === "KeyY" && this.pinSession.unlocked && this.confirming && !this.deleting && this.tab === "notes") this.clearSave();
     });
     this.bindPinForm();
     clearPinErrorText(document);
@@ -243,8 +244,20 @@ export class GuideScene extends Phaser.Scene {
   }
 
   private clearSave(): void {
-    commit(null);
-    this.scene.start("title");
+    if (!this.pinSession.unlocked) return;
+    if (!clearAllProfiles()) return;
+    this.scene.start("profiles");
+  }
+
+  private deleteCharacter(): void {
+    if (!this.pinSession.unlocked) return;
+    if (!deleteActiveProfile()) {
+      this.notice = "没有删掉，这个角色还在。";
+      this.deleting = false;
+      this.draw();
+      return;
+    }
+    this.scene.start("profiles");
   }
 
   private draw(): void {
@@ -402,6 +415,23 @@ export class GuideScene extends Phaser.Scene {
     });
     probeNote(`grades:save:${canSave ? "open" : "blocked"}`);
     warmButton(this, 1100, 230, "保存年级", () => this.saveGrades(), { width: 160, disabled: !canSave });
+    warmButton(
+      this,
+      900,
+      640,
+      this.deleting ? "再按一次，删除这个角色" : "删除这个角色",
+      () => {
+        if (!this.pinSession.unlocked) return;
+        if (!this.deleting) {
+          this.deleting = true;
+          this.confirming = false;
+          this.draw();
+          return;
+        }
+        this.deleteCharacter();
+      },
+      { width: this.deleting ? 460 : 240 },
+    );
     this.add.text(140, 280, lines.join("\n"), {
       fontFamily: FONT,
       fontSize: "14px",
@@ -415,8 +445,10 @@ export class GuideScene extends Phaser.Scene {
       730,
       uiLabel(this.confirming ? "再按一次，清除这台电脑上的存档" : shellCopy(isDesktopShell()).clearCacheLabel),
       () => {
+        if (!this.pinSession.unlocked) return;
         if (!this.confirming) {
           this.confirming = true;
+          this.deleting = false;
           this.draw();
           return;
         }

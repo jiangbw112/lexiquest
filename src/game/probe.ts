@@ -46,6 +46,7 @@ export function probeEnter(scene: string): void {
   snapshot.learned = extra.learned;
   snapshot.equippedSkills = extra.equippedSkills;
   snapshot.battlePhase = scene === "battle" ? snapshot.battlePhase : null;
+  if (typeof document !== "undefined") document.documentElement.dataset.lexiScene = scene;
   probeNote(`scene:${scene}`);
 }
 

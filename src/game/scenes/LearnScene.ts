@@ -58,7 +58,7 @@ import { LEARN_CHIP_ROW, LEARN_DAY_METER, LEARN_TITLE_PLANK, STUDY_CARD, cjkText
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter, probeNote, probeQuestion } from "../probe";
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
-import { commit, getSave, mutate, mutateCommitted } from "../session";
+import { captureProfileBinding, commit, getSave, mutate, mutateCommitted } from "../session";
 import { FONT, listenKeys } from "../ui";
 import { warmBar, warmButton, warmChip, warmOption, warmPanel, warmTitlePlank, type WarmOption } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
@@ -108,7 +108,7 @@ export class LearnScene extends Phaser.Scene {
   create(): void {
     let save = getSave();
     if (!save) {
-      this.scene.start("title");
+      this.scene.start("profiles");
       return;
     }
     if (redirectUngraded(this, save)) return;
@@ -374,7 +374,8 @@ export class LearnScene extends Phaser.Scene {
 
   /** Chapter select after a stored card. A failed cache write stays on this screen and keeps the card. */
   private openChapterSelect(save: SaveData, hint: string | null, saved: boolean): void {
-    if (!saved && !commit(save)) return;
+    const lease = captureProfileBinding();
+    if (!saved && (!lease || !commit(save, lease.generation))) return;
     this.practiceWordIds = null;
     this.practiceGrade = null;
     this.practiceChapterId = null;
