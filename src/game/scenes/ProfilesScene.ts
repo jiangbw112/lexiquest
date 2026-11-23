@@ -1,6 +1,7 @@
 import Phaser from "phaser";
-import { MAX_PROFILES, type ProfileFailure } from "../../domain/profiles";
+import { MAX_PROFILES, unreadableDeleteStep, type ProfileFailure } from "../../domain/profiles";
 import {
+  deleteUnreadableProfile,
   importProfileText,
   listProfileCards,
   liveProfileCount,
@@ -12,6 +13,17 @@ import { FONT, listenKeys } from "../ui";
 import { warmButton, warmPanel } from "../warm/kit";
 import { queueWarm, warmBackground } from "../warm/load";
 import { ERR_TEXT, FONT_TITLE, INK, MUTED } from "../warm/theme";
+import {
+  browserParentPinVault,
+  cooldownLabel,
+  createParentPinSession,
+  pbkdf2PinGate,
+  pinFormTitle,
+  type ParentPinSession,
+} from "../../domain/parent-pin";
+import { isDesktopShell } from "../../domain/host-copy";
+import { clearPinErrorText } from "../pin-error";
+import { paintShellDom } from "../shell-dom";
 
 const FAILURE: Record<ProfileFailure, string> = {
   full: "已经有 6 个角色，没有写入。",
@@ -25,6 +37,9 @@ const FAILURE: Record<ProfileFailure, string> = {
 
 export class ProfilesScene extends Phaser.Scene {
   private notice = "";
+  private armedSlotId: string | null = null;
+  private pinSession!: ParentPinSession;
+  private pinBusy = false;
 
   constructor() {
     super("profiles");
@@ -36,6 +51,9 @@ export class ProfilesScene extends Phaser.Scene {
 
   create(): void {
     probeEnter("profiles");
+    this.pinSession = createParentPinSession({ gate: pbkdf2PinGate, vault: browserParentPinVault() });
+    this.pinBusy = false;
+    this.armedSlotId = null;
     const issue = profileBootIssue();
     this.notice = issue ? FAILURE[issue] : "";
     const input = document.getElementById("profile-import");
@@ -51,7 +69,14 @@ export class ProfilesScene extends Phaser.Scene {
       });
     };
     input?.addEventListener("change", onFile);
-    this.events.once("shutdown", () => input?.removeEventListener("change", onFile));
+    this.bindPinForm();
+    clearPinErrorText(document);
+    const clock = window.setInterval(() => this.renderPinClock(), 1000);
+    this.events.once("shutdown", () => {
+      input?.removeEventListener("change", onFile);
+      window.clearInterval(clock);
+      clearPinErrorText(document);
+    });
     listenKeys(this, (event) => {
       if (event.target instanceof HTMLInputElement) return;
       const index = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6"].indexOf(event.code);
@@ -130,19 +155,158 @@ export class ProfilesScene extends Phaser.Scene {
       if (preset) this.add.text(x, y + 28, preset, { fontFamily: FONT, fontSize: "16px", color: INK }).setOrigin(0.5);
       if (card.readable) {
         warmButton(this, x, y + 58, "选这个", () => this.choose(index), { width: 140, height: 44 });
+      } else {
+        const armed = this.pinSession.unlocked && this.armedSlotId === card.slotId;
+        warmButton(this, x, y + 58, armed ? "再按一次" : "请家长删", () => this.askDelete(index), {
+          width: armed ? 180 : 160,
+          height: 44,
+        });
       }
     });
     if (this.notice) {
+      warmPanel(this, 640, 620, 560, 48);
       this.add.text(640, 620, this.notice, {
         fontFamily: FONT,
         fontSize: "18px",
         color: ERR_TEXT,
         align: "center",
-        wordWrap: { width: 900 },
+        wordWrap: { width: 520 },
       }).setOrigin(0.5);
     }
     const full = liveProfileCount() >= MAX_PROFILES;
     warmButton(this, 420, 700, "新建角色", () => this.createNew(), { width: 220, disabled: full });
     warmButton(this, 860, 700, "读入存档", () => this.readFile(), { width: 220, tone: "secondary", disabled: full });
+  }
+
+  private askDelete(index: number): void {
+    const card = listProfileCards()[index];
+    if (!card || card.readable) return;
+    if (!this.pinSession.unlocked) {
+      this.armedSlotId = null;
+      this.notice = "先输入家长密码。";
+      this.draw();
+      this.renderPinForm();
+      return;
+    }
+    const step = unreadableDeleteStep({
+      unlocked: true,
+      armedSlotId: this.armedSlotId,
+      slotId: card.slotId,
+      readable: card.readable,
+    });
+    this.armedSlotId = step.armedSlotId;
+    if (!step.remove) {
+      this.notice = "再按一次，删除这个角色";
+      this.draw();
+      return;
+    }
+    if (!deleteUnreadableProfile(card.slotId, { unlocked: true, confirmed: true })) {
+      this.armedSlotId = null;
+      this.notice = "没有删掉，这个角色还在。";
+      this.draw();
+      return;
+    }
+    this.armedSlotId = null;
+    this.notice = "已删掉读不了的角色。";
+    this.draw();
+  }
+
+  private bindPinForm(): void {
+    const form = document.getElementById("pin-form");
+    const forgot = document.getElementById("pin-forgot-button");
+    const submit = (event: Event) => {
+      event.preventDefault();
+      void this.submitPin();
+    };
+    const startForgot = () => {
+      this.pinSession.beginForgot();
+      const error = document.getElementById("pin-error");
+      if (error) error.textContent = "";
+      this.renderPinForm();
+    };
+    form?.addEventListener("submit", submit);
+    forgot?.addEventListener("click", startForgot);
+    this.events.once("shutdown", () => {
+      form?.removeEventListener("submit", submit);
+      forgot?.removeEventListener("click", startForgot);
+      form?.classList.remove("open");
+      if (form instanceof HTMLFormElement) {
+        form.style.left = "";
+        form.style.top = "";
+        form.style.width = "";
+        form.style.transform = "";
+      }
+    });
+  }
+
+  private renderPinForm(): void {
+    const form = document.getElementById("pin-form");
+    const title = document.getElementById("pin-title");
+    const error = document.getElementById("pin-error");
+    const confirmLabel = document.getElementById("pin-confirm-label");
+    const entry = document.getElementById("pin-entry");
+    const forgot = document.getElementById("pin-forgot");
+    const challenge = document.getElementById("pin-challenge");
+    if (this.pinSession.unlocked) {
+      form?.classList.remove("open");
+      return;
+    }
+    paintShellDom(document, isDesktopShell());
+    form?.classList.add("open");
+    if (title) title.textContent = pinFormTitle(this.pinSession.phase);
+    confirmLabel?.classList.toggle("hidden", this.pinSession.phase !== "setup");
+    entry?.classList.toggle("hidden", this.pinSession.phase === "forgot");
+    forgot?.classList.toggle("hidden", this.pinSession.phase !== "forgot");
+    if (challenge) challenge.textContent = this.pinSession.challenge ? `请计算 ${this.pinSession.challenge.prompt}` : "";
+    if (error && !error.textContent) error.textContent = this.pinSession.notice ?? "";
+    this.renderPinClock();
+    this.positionPinForm();
+  }
+
+  private positionPinForm(): void {
+    const form = document.getElementById("pin-form");
+    if (!(form instanceof HTMLFormElement) || !form.classList.contains("open")) return;
+    const rect = this.game.canvas.getBoundingClientRect();
+    const scale = rect.width / 1280;
+    form.style.width = "360px";
+    form.style.left = `${rect.left + 460 * scale}px`;
+    form.style.top = `${rect.top + 180 * scale}px`;
+    form.style.transformOrigin = "top left";
+    form.style.transform = `scale(${scale})`;
+  }
+
+  private renderPinClock(): void {
+    const form = document.getElementById("pin-form");
+    if (!form?.classList.contains("open")) return;
+    const cooldown = document.getElementById("pin-cooldown");
+    const submit = document.getElementById("pin-submit");
+    const remaining = this.pinSession.cooldownRemaining(Date.now());
+    const waiting = remaining > 0 && this.pinSession.phase !== "forgot";
+    if (cooldown) cooldown.textContent = waiting ? cooldownLabel(remaining) : "";
+    if (submit instanceof HTMLButtonElement) submit.disabled = waiting || this.pinBusy;
+  }
+
+  private async submitPin(): Promise<void> {
+    if (this.pinBusy || this.pinSession.unlocked || !this.scene.isActive()) return;
+    const input = document.getElementById("pin-input");
+    const confirm = document.getElementById("pin-confirm");
+    const answer = document.getElementById("pin-answer");
+    const error = document.getElementById("pin-error");
+    const pin = input instanceof HTMLInputElement ? input.value.trim() : "";
+    const again = confirm instanceof HTMLInputElement ? confirm.value.trim() : "";
+    const typed = answer instanceof HTMLInputElement ? answer.value.trim() : "";
+    this.pinBusy = true;
+    this.renderPinClock();
+    const result = this.pinSession.phase === "forgot"
+      ? this.pinSession.submitForgot(typed, Date.now())
+      : await this.pinSession.submitPin(pin, again, Date.now());
+    this.pinBusy = false;
+    if (!this.scene.isActive()) return;
+    if (error) error.textContent = result.ok ? (this.pinSession.notice ?? "") : result.message;
+    if (input instanceof HTMLInputElement) input.value = "";
+    if (confirm instanceof HTMLInputElement) confirm.value = "";
+    if (answer instanceof HTMLInputElement) answer.value = "";
+    this.renderPinForm();
+    if (result.ok && this.pinSession.unlocked) this.draw();
   }
 }

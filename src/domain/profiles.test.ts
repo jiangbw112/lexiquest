@@ -13,6 +13,7 @@ import {
   profileKey,
   readRoster,
   rollbackLegacyMigration,
+  unreadableDeleteStep,
   writeProfile,
   type ByteStore,
 } from "./profiles";
@@ -390,5 +391,49 @@ describe("local character files", () => {
     expect(legacyWrites).toBe(1);
     expect(store.get(SAVE_KEY)).toBe(legacySmokeSave);
     expect(deserialize(store.get(profileKey(opened.roster.slots[0]?.id ?? "")) ?? "")?.player.name).toBe("小林");
+  });
+
+  it("requires the parent gate and a second press before an unreadable slot can be removed", () => {
+    expect(unreadableDeleteStep({
+      unlocked: false,
+      armedSlotId: "p_bad",
+      slotId: "p_bad",
+      readable: false,
+    })).toEqual({ armedSlotId: null, remove: false });
+    const first = unreadableDeleteStep({
+      unlocked: true,
+      armedSlotId: null,
+      slotId: "p_bad",
+      readable: false,
+    });
+    expect(first).toEqual({ armedSlotId: "p_bad", remove: false });
+    expect(unreadableDeleteStep({
+      unlocked: true,
+      armedSlotId: first.armedSlotId,
+      slotId: "p_bad",
+      readable: false,
+    })).toEqual({ armedSlotId: null, remove: true });
+    expect(unreadableDeleteStep({
+      unlocked: true,
+      armedSlotId: "p_bad",
+      slotId: "p_good",
+      readable: true,
+    })).toEqual({ armedSlotId: null, remove: false });
+
+    const store = memoryStore();
+    const good = addProfile(store, make("小林"), NOW, "p_goodgoodgoodgoodgoodgoodgoodgood");
+    const bad = addProfile(store, make("Ada"), NOW, "p_badbadbadbadbadbadbadbadbadbad");
+    expect(good.ok && bad.ok).toBe(true);
+    if (!good.ok || !bad.ok) return;
+    const goodKey = profileKey(good.slotId);
+    const badKey = profileKey(bad.slotId);
+    const goodRaw = store.get(goodKey);
+    store.set(badKey, "{");
+    const before = store.snapshot();
+    expect(deleteProfile(store, bad.slotId)).toBe(true);
+    expect(store.get(goodKey)).toBe(goodRaw);
+    expect(store.get(badKey)).toBeNull();
+    expect(store.get(SAVE_KEY) ?? null).toBe(before[SAVE_KEY] ?? null);
+    expect(readRoster(store)?.slots.map((slot) => slot.id)).toEqual([good.slotId]);
   });
 });

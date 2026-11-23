@@ -147,7 +147,11 @@ export function importProfileText(text: string): ProfileWrite {
 
 export function deleteActiveProfile(): boolean {
   if (!slotId) return false;
-  const target = slotId;
+  return deleteStoredProfile(slotId);
+}
+
+/** Removes one roster slot. The caller has to decide that this delete is allowed. */
+function deleteStoredProfile(target: string): boolean {
   const seen = generation;
   try {
     if (!deleteProfile(browserStore, target)) return false;
@@ -156,6 +160,20 @@ export function deleteActiveProfile(): boolean {
   }
   if (generation === seen && slotId === target) releaseSession();
   return true;
+}
+
+/** Deletes one unreadable slot. A locked gate, a first press, or a readable slot does not write. */
+export function deleteUnreadableProfile(target: string, confirmation: { unlocked: boolean; confirmed: boolean }): boolean {
+  if (!confirmation.unlocked || !confirmation.confirmed) return false;
+  let cardReadable: boolean;
+  try {
+    const card = listProfileCards().find((item) => item.slotId === target);
+    cardReadable = card?.readable !== false;
+  } catch {
+    return false;
+  }
+  if (cardReadable) return false;
+  return deleteStoredProfile(target);
 }
 
 export function clearAllProfiles(): boolean {

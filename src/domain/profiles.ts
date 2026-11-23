@@ -394,6 +394,18 @@ function readImport(text: string): SaveData | null {
   return deserialize(text);
 }
 
+/** Second press on the same unreadable slot, after the parent PIN is open. */
+export function unreadableDeleteStep(input: {
+  unlocked: boolean;
+  armedSlotId: string | null;
+  slotId: string;
+  readable: boolean;
+}): { armedSlotId: string | null; remove: boolean } {
+  if (!input.unlocked || input.readable || input.slotId.length === 0) return { armedSlotId: null, remove: false };
+  if (input.armedSlotId !== input.slotId) return { armedSlotId: input.slotId, remove: false };
+  return { armedSlotId: null, remove: true };
+}
+
 export function deleteProfile(store: ByteStore, slotId: string): boolean {
   const roster = readRoster(store);
   if (!roster || !roster.slots.some((slot) => slot.id === slotId)) return false;

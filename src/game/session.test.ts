@@ -12,6 +12,7 @@ import {
   commit,
   createProfile,
   deleteActiveProfile,
+  deleteUnreadableProfile,
   getSave,
   importProfileText,
   listProfileCards,
@@ -225,6 +226,50 @@ describe("write lease on disk", () => {
     expectKept(key, kept);
     expect(localStorage.getItem(otherKey)).toBe(otherRaw);
     expect(diskText(otherKey)).toBe(otherRaw);
+  });
+
+  it("deletes one unreadable slot only after the parent gate and a second press", () => {
+    installDisk();
+    expect(bootSave()).toBeNull();
+    const good = createProfile(make("小林"));
+    const other = createProfile(make("Ada"));
+    if (!good.ok || !other.ok) throw new Error("create");
+    const badId = "p_badbadbadbadbadbadbadbadbadbad";
+    const roster = JSON.parse(localStorage.getItem("lexiquest.profiles.v1") ?? "{}") as { slots: { id: string; createdAt: number }[] };
+    roster.slots.push({ id: badId, createdAt: NOW });
+    localStorage.setItem("lexiquest.profiles.v1", JSON.stringify(roster));
+    localStorage.setItem(`lexiquest.profile.v1.${badId}`, "{");
+    const goodKey = `lexiquest.profile.v1.${good.slotId}`;
+    const otherKey = `lexiquest.profile.v1.${other.slotId}`;
+    const goodRaw = localStorage.getItem(goodKey);
+    const otherRaw = localStorage.getItem(otherKey);
+    expect(deleteUnreadableProfile(badId, { unlocked: false, confirmed: true })).toBe(false);
+    expect(deleteUnreadableProfile(badId, { unlocked: true, confirmed: false })).toBe(false);
+    expect(deleteUnreadableProfile(good.slotId, { unlocked: true, confirmed: true })).toBe(false);
+    expect(localStorage.getItem(goodKey)).toBe(goodRaw);
+    expect(localStorage.getItem(otherKey)).toBe(otherRaw);
+    expect(diskText(goodKey)).toBe(goodRaw);
+    expect(diskText(otherKey)).toBe(otherRaw);
+    expect(localStorage.getItem(`lexiquest.profile.v1.${badId}`)).toBe("{");
+    expect(deleteUnreadableProfile(badId, { unlocked: true, confirmed: true })).toBe(true);
+    expect(localStorage.getItem(goodKey)).toBe(goodRaw);
+    expect(localStorage.getItem(otherKey)).toBe(otherRaw);
+    expect(diskText(goodKey)).toBe(goodRaw);
+    expect(diskText(otherKey)).toBe(otherRaw);
+    expect(localStorage.getItem(`lexiquest.profile.v1.${badId}`)).toBeNull();
+    expect(JSON.parse(localStorage.getItem("lexiquest.profiles.v1") ?? "{}").slots).toHaveLength(2);
+
+    const ids = ["p_bad00000000000000000000000001", "p_bad00000000000000000000000002", "p_bad00000000000000000000000003", "p_bad00000000000000000000000004", "p_bad00000000000000000000000005", "p_bad00000000000000000000000006"];
+    const full = { version: 1, slots: ids.map((id) => ({ id, createdAt: NOW })), migration: null };
+    localStorage.setItem("lexiquest.profiles.v1", JSON.stringify(full));
+    for (const id of ids) localStorage.setItem(`lexiquest.profile.v1.${id}`, `{${id}`);
+    expect(deleteUnreadableProfile(ids[0]!, { unlocked: false, confirmed: true })).toBe(false);
+    expect(deleteUnreadableProfile(ids[0]!, { unlocked: true, confirmed: false })).toBe(false);
+    for (const id of ids) expect(diskText(`lexiquest.profile.v1.${id}`)).toBe(`{${id}`);
+    expect(deleteUnreadableProfile(ids[0]!, { unlocked: true, confirmed: true })).toBe(true);
+    expect(localStorage.getItem(`lexiquest.profile.v1.${ids[0]}`)).toBeNull();
+    for (const id of ids.slice(1)) expect(diskText(`lexiquest.profile.v1.${id}`)).toBe(`{${id}`);
+    expect(JSON.parse(localStorage.getItem("lexiquest.profiles.v1") ?? "{}").slots).toHaveLength(5);
   });
 });
 
