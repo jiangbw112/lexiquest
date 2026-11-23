@@ -161,7 +161,7 @@ export class OverworldScene extends Phaser.Scene {
     if (save.chapterCleared) {
       warmButton(this, 1100, 140, "回顾结局", () => this.scene.start("ending"), { width: 160, height: 56 });
     }
-    warmButton(this, 200, 140, "换角色", () => {
+    warmButton(this, 1100, 250, "换角色", () => {
       releaseSession();
       this.scene.start("profiles");
     }, { width: 160, height: 56, tone: "secondary" });
