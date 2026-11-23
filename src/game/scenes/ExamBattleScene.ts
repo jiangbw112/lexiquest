@@ -224,7 +224,7 @@ export class ExamBattleScene extends Phaser.Scene {
     const stamped = serialize(save);
     if (raw !== stamped) {
       if (!commitExamSnapshot(browserStore, this.profileKey, raw, stamped)) return false;
-      if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(save)) return false;
+      if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(save, this.generation)) return false;
     }
     this.baseRaw = localStorage.getItem(this.profileKey) ?? stamped;
     this.checkpoint = getSave();
@@ -479,7 +479,7 @@ export class ExamBattleScene extends Phaser.Scene {
     if (!sessionAccepts(this.generation, this.boundProfileId)) return false;
     const raw = serialize(next);
     if (!commitExamSnapshot(browserStore, this.profileKey, this.baseRaw, raw)) return false;
-    if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(next)) return false;
+    if (!sessionAccepts(this.generation, this.boundProfileId) || !commit(next, this.generation)) return false;
     this.baseRaw = localStorage.getItem(this.profileKey) ?? raw;
     this.checkpoint = next;
     this.draft = next;

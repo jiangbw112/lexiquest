@@ -1,7 +1,10 @@
-import { readFileSync } from "node:fs";
-import { beforeEach, describe, expect, it } from "vitest";
+import { existsSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DEFAULT_APPEARANCE } from "../domain/appearance";
-import { createSave } from "../domain/progress";
+import { applyChapterRewards } from "../domain/chapter-rewards";
+import { createSave, learnWord } from "../domain/progress";
 import { SAVE_KEY, deserialize, serialize } from "../domain/storage";
 import {
   bootSave,
@@ -13,8 +16,11 @@ import {
   importProfileText,
   listProfileCards,
   loadStoredProfile,
+  mutateCommitted,
+  releaseSession,
   selectProfile,
   sessionAccepts,
+  writeActiveProfile,
 } from "./session";
 
 const NOW = Date.parse("2026-03-01T02:00:00Z");
@@ -104,6 +110,121 @@ describe("character session", () => {
     expect(importProfileText(serialize(stale))).toMatchObject({ ok: false, reason: "collision" });
     expect(localStorage.getItem(SAVE_KEY)).toBe(before);
     expect(deserialize(localStorage.getItem(`lexiquest.profile.v1.${bound.slotId}`) ?? "")?.player.name).toBe("小林");
+  });
+});
+
+describe("write lease on disk", () => {
+  let dir = "";
+
+  afterEach(() => {
+    if (dir) rmSync(dir, { recursive: true, force: true });
+    dir = "";
+  });
+
+  function installDisk(): void {
+    dir = mkdtempSync(join(tmpdir(), "lexiquest-lease-"));
+    const fileOf = (key: string) => join(dir, encodeURIComponent(key));
+    const storage: Storage = {
+      get length() {
+        return 0;
+      },
+      clear() {},
+      getItem(key) {
+        const file = fileOf(key);
+        return existsSync(file) ? readFileSync(file, "utf8") : null;
+      },
+      key() {
+        return null;
+      },
+      removeItem(key) {
+        const file = fileOf(key);
+        if (existsSync(file)) unlinkSync(file);
+      },
+      setItem(key, value) {
+        writeFileSync(fileOf(key), String(value));
+      },
+    };
+    Object.defineProperty(globalThis, "localStorage", { value: storage, configurable: true });
+  }
+
+  function diskText(key: string): string {
+    return readFileSync(join(dir, encodeURIComponent(key)), "utf8");
+  }
+
+  function playToSixteen(): { slotId: string; key: string; stale: NonNullable<ReturnType<typeof getSave>>; staleGen: number; raw: string } {
+    installDisk();
+    expect(bootSave()).toBeNull();
+    const added = createProfile(make("小林"));
+    if (!added.ok) throw new Error(added.reason);
+    const learned = mutateCommitted((save) => learnWord(save, "tree", new Date(NOW)));
+    expect(learned.saved).toBe(true);
+    const stale = getSave();
+    const lease = captureProfileBinding();
+    if (!stale || !lease) throw new Error("stale");
+    const rewarded = mutateCommitted((save) => applyChapterRewards({
+      ...learnWord(save, "arm", new Date(NOW)),
+      chapterCleared: true,
+    }, 0, 28));
+    expect(rewarded.saved).toBe(true);
+    const key = `lexiquest.profile.v1.${added.slotId}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error("raw");
+    const fresh = deserialize(raw);
+    expect(fresh?.xp).toBe(16);
+    expect(fresh?.wordCards.tree).toBeTruthy();
+    expect(fresh?.wordCards.arm).toBeTruthy();
+    expect(fresh?.equippedCosmeticIds).toContain("forest_leaf_cape");
+    expect(fresh?.rewardQueue.length).toBeGreaterThan(0);
+    return { slotId: added.slotId, key, stale, staleGen: lease.generation, raw };
+  }
+
+  function expectKept(key: string, raw: string): void {
+    expect(localStorage.getItem(key)).toBe(raw);
+    expect(diskText(key)).toBe(raw);
+    const fresh = deserialize(raw);
+    expect(fresh?.xp).toBe(16);
+    expect(fresh?.wordCards.tree).toBeTruthy();
+    expect(fresh?.wordCards.arm).toBeTruthy();
+    expect(fresh?.equippedCosmeticIds).toContain("forest_leaf_cape");
+    expect(fresh?.rewardQueue.length).toBeGreaterThan(0);
+  }
+
+  it("rejects the old snapshot after the same character is selected again", () => {
+    const { slotId, key, stale, staleGen } = playToSixteen();
+    releaseSession();
+    expect(selectProfile(slotId)?.xp).toBe(16);
+    const kept = localStorage.getItem(key);
+    if (!kept) throw new Error("kept");
+    expectKept(key, kept);
+    expect(commit(stale)).toBe(false);
+    expect(commit(stale, staleGen)).toBe(false);
+    expect(writeActiveProfile(stale, staleGen)).toBe(false);
+    expectKept(key, kept);
+    expect(mutateCommitted((save) => learnWord(save, "apple", new Date(NOW))).saved).toBe(true);
+    expect(loadStoredProfile(slotId)?.xp).toBe(24);
+    expect(commit(stale, staleGen)).toBe(false);
+    expect(writeActiveProfile(stale, staleGen)).toBe(false);
+    expect(loadStoredProfile(slotId)?.xp).toBe(24);
+    expect(loadStoredProfile(slotId)?.wordCards.arm).toBeTruthy();
+    expect(loadStoredProfile(slotId)?.wordCards.tree).toBeTruthy();
+    expect(diskText(key)).toBe(localStorage.getItem(key));
+  });
+
+  it("rejects the old snapshot after switching away and back", () => {
+    const { slotId, key, stale, staleGen } = playToSixteen();
+    const other = createProfile(make("Momo"));
+    if (!other.ok) throw new Error(other.reason);
+    const otherKey = `lexiquest.profile.v1.${other.slotId}`;
+    const otherRaw = localStorage.getItem(otherKey);
+    expect(selectProfile(slotId)?.player.name).toBe("小林");
+    const kept = localStorage.getItem(key);
+    if (!kept) throw new Error("kept");
+    expect(commit(stale)).toBe(false);
+    expect(commit(stale, staleGen)).toBe(false);
+    expect(writeActiveProfile(stale, staleGen)).toBe(false);
+    expectKept(key, kept);
+    expect(localStorage.getItem(otherKey)).toBe(otherRaw);
+    expect(diskText(otherKey)).toBe(otherRaw);
   });
 });
 

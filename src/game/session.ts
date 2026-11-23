@@ -109,13 +109,14 @@ export function selectProfile(nextSlotId: string): SaveData | null {
   if (!loaded?.profileId) return null;
   const synced = syncUnlocks(loaded);
   generation += 1;
+  const issued = generation;
   slotId = nextSlotId;
   profileId = synced.profileId ?? null;
   current = synced;
   if (profileId && raw) {
     try {
       const stored = JSON.parse(raw) as SaveData;
-      if (wardrobeWearDiffers(stored, synced)) writeProfile(browserStore, nextSlotId, synced);
+      if (wardrobeWearDiffers(stored, synced)) writeActiveProfile(synced, issued);
     } catch {
       /* the selected character is already in memory */
     }
@@ -179,15 +180,48 @@ export function getSave(): SaveData | null {
   return current;
 }
 
-export function commit(next: SaveData | null): boolean {
-  if (!next || !slotId || !profileId || next.profileId !== profileId) {
+function leaseHolds(next: SaveData, seenGeneration: number): boolean {
+  return slotId !== null && profileId === next.profileId && seenGeneration === generation && next.profileId.length > 0;
+}
+
+/** Writes the active slot only while `seenGeneration` is still the current lease. */
+export function writeActiveProfile(next: SaveData, seenGeneration: number): boolean {
+  if (!leaseHolds(next, seenGeneration) || !slotId) return false;
+  const slot = slotId;
+  const ownedId = profileId;
+  let dropped = false;
+  const guarded: ByteStore = {
+    get(key) {
+      return browserStore.get(key);
+    },
+    set(key, value) {
+      if (!leaseHolds(next, seenGeneration) || slotId !== slot || profileId !== ownedId) {
+        dropped = true;
+        throw new Error("lease");
+      }
+      browserStore.set(key, value);
+    },
+    remove(key) {
+      browserStore.remove(key);
+    },
+  };
+  const ok = writeProfile(guarded, slot, next);
+  return ok && !dropped && leaseHolds(next, seenGeneration) && slotId === slot && profileId === ownedId;
+}
+
+export function commit(next: SaveData | null, seenGeneration?: number): boolean {
+  if (!next || seenGeneration === undefined || !leaseHolds(next, seenGeneration)) {
     probeNote("save:failed");
     return false;
   }
-  const ok = writeProfile(browserStore, slotId, next);
-  if (profileId === next.profileId && slotId) current = next;
-  probeNote(ok ? "save:cache" : "save:failed");
-  return ok;
+  const ok = writeActiveProfile(next, seenGeneration);
+  if (!ok || !leaseHolds(next, seenGeneration)) {
+    probeNote("save:failed");
+    return false;
+  }
+  current = next;
+  probeNote("save:cache");
+  return true;
 }
 
 export function mutate(update: (save: SaveData) => SaveData): SaveData | null {
@@ -195,7 +229,7 @@ export function mutate(update: (save: SaveData) => SaveData): SaveData | null {
   const seen = generation;
   const next = update(current);
   if (generation !== seen) return null;
-  commit(next);
+  commit(next, seen);
   return next;
 }
 
@@ -205,7 +239,7 @@ export function mutateCommitted(update: (save: SaveData) => SaveData): { save: S
   const seen = generation;
   const next = update(current);
   if (generation !== seen) return { save: current, saved: false };
-  return { save: next, saved: commit(next) };
+  return { save: next, saved: commit(next, seen) };
 }
 
 function publishProbe(): void {
