@@ -10,35 +10,7 @@ const shots = process.env.LEXIQUEST_SHOTS ?? "/opt/cursor/artifacts";
 const userData = fs.mkdtempSync(path.join(os.tmpdir(), "lexiquest-desktop-"));
 const probe = "lexiquest.desktop.probe";
 const saveKey = "lexiquest.save.v1";
-const save = JSON.stringify({
-  version: 1,
-  createdAt: 1_700_000_000_000,
-  player: {
-    name: "小林",
-    classId: "warrior",
-    appearance: {
-      skinId: "peach",
-      hairStyle: "bob",
-      hairColorId: "brown",
-      eyeStyle: "bright",
-      clothColorId: "fern",
-      glasses: false,
-      freckles: true,
-    },
-  },
-  wordCards: {},
-  memory: {},
-  skillLevels: { "warrior-bash": 1 },
-  unlockedSkillIds: ["warrior-bash"],
-  equippedSkillIds: ["warrior-bash"],
-  ownedOutfitIds: ["traveler"],
-  equippedOutfitId: "traveler",
-  rewardQueue: [],
-  xp: 0,
-  clockOffsetMs: 0,
-  battlesWon: 0,
-  battlesLost: 0,
-});
+const save = JSON.stringify(JSON.parse(fs.readFileSync(new URL("./legacy-smoke-save.json", import.meta.url), "utf8")));
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -232,13 +204,46 @@ await shot(first.page, "elec2-copy.png");
 await closeApp(first);
 
 const second = await launch();
+await second.page.waitForFunction(() => {
+  const game = window.__LEXI_GAME__;
+  const scenes = game?.scene?.getScenes?.(true) ?? [];
+  return scenes.some((scene) => (scene?.scene?.key || scene?.sys?.settings?.key) === "profiles");
+}, null, { timeout: 20000 });
 const restored = await second.page.evaluate(
-  ({ probe, saveKey }) => ({
-    probe: localStorage.getItem(probe),
-    name: JSON.parse(localStorage.getItem(saveKey) ?? "{}")?.player?.name ?? null,
-  }),
+  ({ probe, saveKey }) => {
+    const game = window.__LEXI_GAME__;
+    const scenes = game?.scene?.getScenes?.(true) ?? [];
+    const keys = scenes.map((scene) => scene?.scene?.key || scene?.sys?.settings?.key || "");
+    const roster = JSON.parse(localStorage.getItem("lexiquest.profiles.v1") || "null");
+    const slot = roster?.slots?.[0];
+    const profile = slot ? JSON.parse(localStorage.getItem(`lexiquest.profile.v1.${slot.id}`) || "null") : null;
+    return {
+      probe: localStorage.getItem(probe),
+      name: JSON.parse(localStorage.getItem(saveKey) ?? "{}")?.player?.name ?? null,
+      legacy: localStorage.getItem(saveKey),
+      scenes: keys,
+      migration: roster?.migration?.status ?? null,
+      slots: roster?.slots?.length ?? 0,
+      profileName: profile?.player?.name ?? null,
+    };
+  },
   { probe, saveKey },
 );
+if (!restored.scenes.includes("profiles") || restored.scenes.includes("overworld")) {
+  throw new Error(`restart did not stop on the character picker: ${restored.scenes.join(",")}`);
+}
+await second.page.click("canvas");
+await second.page.keyboard.press("Digit1");
+await second.page.waitForFunction(() => {
+  const game = window.__LEXI_GAME__;
+  const scenes = game?.scene?.getScenes?.(true) ?? [];
+  return scenes.some((scene) => (scene?.scene?.key || scene?.sys?.settings?.key) === "title");
+}, null, { timeout: 8000 });
+const selectedScene = await second.page.evaluate(() => {
+  const game = window.__LEXI_GAME__;
+  const scenes = game?.scene?.getScenes?.(true) ?? [];
+  return scenes.map((scene) => scene?.scene?.key || scene?.sys?.settings?.key || "");
+});
 await second.page.evaluate((name) => {
   const panel = document.createElement("div");
   panel.textContent = `restart save ${name ?? "missing"}`;
@@ -258,6 +263,10 @@ const report = {
   windowOpenDenied: opened === false,
   probeRestored: restored.probe === "kept",
   saveNameRestored: restored.name === "小林",
+  legacyFrozen: restored.legacy === save,
+  restartOnPicker: restored.scenes.includes("profiles") && !restored.scenes.includes("overworld"),
+  migrationDone: restored.migration === "done" && restored.slots === 1 && restored.profileName === "小林",
+  selectedTitle: selectedScene.includes("title") && !selectedScene.includes("profiles"),
   aboutBlankStayed: stayedHome(afterBlank),
   aboutSrcdocStayed: stayedHome(afterSrcdoc),
   aboutBlankHref: afterBlank?.href ?? null,
@@ -283,6 +292,10 @@ const ok =
   report.windowOpenDenied &&
   report.probeRestored &&
   report.saveNameRestored &&
+  report.legacyFrozen &&
+  report.restartOnPicker &&
+  report.migrationDone &&
+  report.selectedTitle &&
   report.aboutBlankStayed &&
   report.aboutSrcdocStayed &&
   desktopWording;

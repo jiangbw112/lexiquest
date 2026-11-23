@@ -18,6 +18,7 @@ import {
 } from "./profiles";
 import { createSave, learnWord, reviewWord, setSelectedGrades } from "./progress";
 import { sha256Hex } from "./sha256";
+import { readFileSync } from "node:fs";
 import { SAVE_KEY, deserialize, serialize } from "./storage";
 import type { SaveData } from "./types";
 
@@ -351,5 +352,43 @@ describe("local character files", () => {
     expect(ensureProfiles(store, NOW)).toEqual({ ok: false, reason: "roster" });
     expect(importNewProfile(store, serialize(make("Nori")), NOW)).toEqual({ ok: false, reason: "roster" });
     expect(store.snapshot()).toEqual(before);
+  });
+
+  it("migrates the desktop smoke legacy file without rewriting those bytes", () => {
+    const legacySmokeSave = JSON.stringify(JSON.parse(readFileSync(new URL("../../desktop/legacy-smoke-save.json", import.meta.url), "utf8")));
+    const data = new Map<string, string>();
+    let legacyWrites = 0;
+    const store: ByteStore = {
+      get: (key) => data.get(key) ?? null,
+      set(key, value) {
+        if (key === SAVE_KEY) legacyWrites += 1;
+        data.set(key, value);
+      },
+      remove(key) {
+        data.delete(key);
+      },
+    };
+    const empty = ensureProfiles(store, NOW);
+    expect(empty.ok).toBe(true);
+    if (!empty.ok) return;
+    expect(empty.roster.slots).toEqual([]);
+    store.set(SAVE_KEY, legacySmokeSave);
+    expect(legacyWrites).toBe(1);
+    const opened = ensureProfiles(store, NOW + 5);
+    expect(opened.ok).toBe(true);
+    if (!opened.ok) return;
+    expect(opened.migrated).toBe(true);
+    expect(opened.roster.migration?.status).toBe("done");
+    expect(opened.roster.slots).toHaveLength(1);
+    expect(store.get(SAVE_KEY)).toBe(legacySmokeSave);
+    const loaded = deserialize(store.get(profileKey(opened.roster.slots[0]?.id ?? "")) ?? "");
+    expect(loaded?.player.name).toBe("小林");
+    const again = ensureProfiles(store, NOW + 10);
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+    expect(again.migrated).toBe(false);
+    expect(legacyWrites).toBe(1);
+    expect(store.get(SAVE_KEY)).toBe(legacySmokeSave);
+    expect(deserialize(store.get(profileKey(opened.roster.slots[0]?.id ?? "")) ?? "")?.player.name).toBe("小林");
   });
 });

@@ -75,14 +75,25 @@ describe("character session", () => {
     if (!stale) throw new Error("stale");
     expect(createProfile(make("Momo")).ok).toBe(true);
     expect(getSave()?.player.name).toBe("Momo");
+    const momoSlot = captureProfileBinding()?.slotId ?? "";
+    const linKey = `lexiquest.profile.v1.${bound.slotId}`;
+    const momoKey = `lexiquest.profile.v1.${momoSlot}`;
+    const linRaw = localStorage.getItem(linKey);
+    const momoRaw = localStorage.getItem(momoKey);
     expect(sessionAccepts(bound.generation, bound.profileId)).toBe(false);
-    expect(commit({ ...stale, xp: stale.xp + 5 })).toBe(false);
+    expect(commit({
+      ...stale,
+      xp: stale.xp + 5,
+      selectedGrades: ["G6"],
+      player: { ...stale.player, appearance: { ...stale.player.appearance, hairStyle: "ponytail" } },
+    })).toBe(false);
+    expect(localStorage.getItem(linKey)).toBe(linRaw);
+    expect(localStorage.getItem(momoKey)).toBe(momoRaw);
     expect(getSave()?.player.name).toBe("Momo");
     expect(getSave()?.xp).toBe(0);
     expect(loadStoredProfile(bound.slotId)?.xp).toBe(stale.xp);
     expect(loadStoredProfile(bound.slotId)?.player.name).toBe("小林");
     expect(localStorage.getItem(SAVE_KEY)).toBe(legacy);
-    const momoSlot = captureProfileBinding()?.slotId ?? "";
     expect(deleteActiveProfile()).toBe(true);
     expect(getSave()).toBeNull();
     expect(loadStoredProfile(bound.slotId)?.player.name).toBe("小林");
@@ -97,7 +108,7 @@ describe("character session", () => {
 });
 
 describe("character screens", () => {
-  it("opens the picker first, keeps exam writes on the captured character, and gates deletion", () => {
+  it("keeps the picker, exam key, and parent-delete wiring in source", () => {
     const boot = readFileSync(new URL("./scenes/BootScene.ts", import.meta.url), "utf8");
     expect(boot).toContain('this.scene.start("profiles")');
     const profiles = readFileSync(new URL("./scenes/ProfilesScene.ts", import.meta.url), "utf8");

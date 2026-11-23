@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "createdAt": 1700000000000,
+  "player": {
+    "name": "小林",
+    "classId": "warrior",
+    "appearance": {
+      "skinId": "peach",
+      "hairStyle": "bob",
+      "hairColorId": "brown",
+      "eyeStyle": "bright",
+      "clothColorId": "fern",
+      "glasses": false,
+      "freckles": true
+    }
+  },
+  "wordCards": {},
+  "memory": {},
+  "skillLevels": { "warrior-bash": 1 },
+  "unlockedSkillIds": ["warrior-bash"],
+  "equippedSkillIds": ["warrior-bash"],
+  "ownedOutfitIds": ["traveler"],
+  "equippedOutfitId": "traveler",
+  "rewardQueue": [],
+  "xp": 0,
+  "clockOffsetMs": 0,
+  "battlesWon": 0,
+  "battlesLost": 0
+}
