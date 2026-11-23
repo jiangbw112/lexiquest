@@ -168,6 +168,20 @@ function stayedHome(state) {
   return Boolean(state && state.game && typeof state.href === "string" && state.href.startsWith("app://lexiquest/"));
 }
 
+async function waitScene(page, key) {
+  try {
+    await page.waitForFunction((expected) => document.documentElement.dataset.lexiScene === expected, key, { timeout: 20000 });
+  } catch (error) {
+    const state = await page.evaluate((saveKey) => ({
+      scene: document.documentElement.dataset.lexiScene ?? null,
+      canvas: Boolean(document.querySelector("canvas")),
+      legacy: localStorage.getItem(saveKey),
+      roster: localStorage.getItem("lexiquest.profiles.v1"),
+    }), "lexiquest.save.v1").catch(() => ({ scene: "unreadable" }));
+    throw new Error(`scene ${key} did not open: ${JSON.stringify(state)}`, { cause: error });
+  }
+}
+
 const afterBlank = await poke(first.page, "about:blank");
 await first.page.evaluate((state) => {
   const panel = document.createElement("div");
@@ -204,16 +218,9 @@ await shot(first.page, "elec2-copy.png");
 await closeApp(first);
 
 const second = await launch();
-await second.page.waitForFunction(() => {
-  const game = window.__LEXI_GAME__;
-  const scenes = game?.scene?.getScenes?.(true) ?? [];
-  return scenes.some((scene) => (scene?.scene?.key || scene?.sys?.settings?.key) === "profiles");
-}, null, { timeout: 20000 });
+await waitScene(second.page, "profiles");
 const restored = await second.page.evaluate(
   ({ probe, saveKey }) => {
-    const game = window.__LEXI_GAME__;
-    const scenes = game?.scene?.getScenes?.(true) ?? [];
-    const keys = scenes.map((scene) => scene?.scene?.key || scene?.sys?.settings?.key || "");
     const roster = JSON.parse(localStorage.getItem("lexiquest.profiles.v1") || "null");
     const slot = roster?.slots?.[0];
     const profile = slot ? JSON.parse(localStorage.getItem(`lexiquest.profile.v1.${slot.id}`) || "null") : null;
@@ -221,7 +228,7 @@ const restored = await second.page.evaluate(
       probe: localStorage.getItem(probe),
       name: JSON.parse(localStorage.getItem(saveKey) ?? "{}")?.player?.name ?? null,
       legacy: localStorage.getItem(saveKey),
-      scenes: keys,
+      scene: document.documentElement.dataset.lexiScene ?? "",
       migration: roster?.migration?.status ?? null,
       slots: roster?.slots?.length ?? 0,
       profileName: profile?.player?.name ?? null,
@@ -229,21 +236,13 @@ const restored = await second.page.evaluate(
   },
   { probe, saveKey },
 );
-if (!restored.scenes.includes("profiles") || restored.scenes.includes("overworld")) {
-  throw new Error(`restart did not stop on the character picker: ${restored.scenes.join(",")}`);
+if (restored.scene !== "profiles") {
+  throw new Error(`restart did not stop on the character picker: ${restored.scene}`);
 }
 await second.page.click("canvas");
 await second.page.keyboard.press("Digit1");
-await second.page.waitForFunction(() => {
-  const game = window.__LEXI_GAME__;
-  const scenes = game?.scene?.getScenes?.(true) ?? [];
-  return scenes.some((scene) => (scene?.scene?.key || scene?.sys?.settings?.key) === "title");
-}, null, { timeout: 8000 });
-const selectedScene = await second.page.evaluate(() => {
-  const game = window.__LEXI_GAME__;
-  const scenes = game?.scene?.getScenes?.(true) ?? [];
-  return scenes.map((scene) => scene?.scene?.key || scene?.sys?.settings?.key || "");
-});
+await waitScene(second.page, "title");
+const selectedScene = await second.page.evaluate(() => document.documentElement.dataset.lexiScene ?? "");
 await second.page.evaluate((name) => {
   const panel = document.createElement("div");
   panel.textContent = `restart save ${name ?? "missing"}`;
@@ -264,9 +263,9 @@ const report = {
   probeRestored: restored.probe === "kept",
   saveNameRestored: restored.name === "小林",
   legacyFrozen: restored.legacy === save,
-  restartOnPicker: restored.scenes.includes("profiles") && !restored.scenes.includes("overworld"),
+  restartOnPicker: restored.scene === "profiles",
   migrationDone: restored.migration === "done" && restored.slots === 1 && restored.profileName === "小林",
-  selectedTitle: selectedScene.includes("title") && !selectedScene.includes("profiles"),
+  selectedTitle: selectedScene === "title",
   aboutBlankStayed: stayedHome(afterBlank),
   aboutSrcdocStayed: stayedHome(afterSrcdoc),
   aboutBlankHref: afterBlank?.href ?? null,
