@@ -46,37 +46,43 @@ describe("release notes", () => {
     const pkg = readFileSync(new URL("../package.json", import.meta.url), "utf8");
     const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
     const version = JSON.parse(pkg).version;
-    expect(version).toBe("1.0.7");
+    expect(version).toBe("1.0.8");
     expect(readme).toContain(`当前版本：${version}。这一版的更新写在 [更新说明](RELEASE_NOTES.md)。安装方式没有变。`);
     const section = releaseNotesFromFiles(notes, pkg);
-    expect(section.startsWith("## 1.0.7\n")).toBe(true);
-    expect(section).toContain("这一章最后一个还没学的词存好以后");
-    expect(section).toContain("词卡和该给的奖励已经记下");
-    expect(section).toContain("会直接回到选择章节");
-    expect(section).toContain("不用再点一次才能离开");
-    expect(section).toContain("选章页大约 5 秒写着「本章词卡已学完。」");
-    expect(section).toContain("森林冒险和普通年级的章节都是这样。");
-    expect(section).toContain("已经在对战里打完的章节再进去");
-    expect(section).toContain("按钮写「返回选择章节」");
-    expect(section).toContain("点了回到选择章节");
-    expect(section).toContain("只学完这几个词、这一章还有别的词时，按钮也写「返回选择章节」。");
-    expect(section).toContain("这台电脑最多 6 个角色");
-    expect(section).toContain("每次打开都先到「先选角色」");
-    expect(section).toContain("不会自动接着上次那个");
-    expect(section).toContain("学习、复习、词卡、通关、外观、年级、每日目标，以及只发一次的奖励，都记在这个角色自己的文件里。");
-    expect(section).toContain("换角色时，正在用的这一份会先放下。");
-    expect(section).toContain("以前只有一份存档时，那一份还留着，并搬成一个角色。");
-    expect(section).not.toContain("可以退回去");
-    expect(section).toContain("读入一份存档只会新加一个角色，不会盖掉已经有的。");
-    expect(section).toContain("删除角色要先通过家长密码，再确认一次。");
-    expect(section).toContain("读不了的角色可以在选择页删掉");
-    expect(section).toContain("别的角色的原文不动");
-    expect(section).toContain("角色没有单独密码");
-    expect(section).toContain("没有账号，也不会同步到另一台电脑。");
-    expect(section).toContain("发明家仍要先打败任意一个期末大 Boss 才能选。这一版没有改。");
+    expect(section.startsWith("## 1.0.8\n")).toBe(true);
+    expect(section).toContain("复习桌在原来的「拼写」旁边增加「盖住拼」。");
+    expect(section).toContain("提交前不显示英文。");
+    expect(section).toContain("可以点「再听一次」。");
+    expect(section).toContain("用键盘输入后提交。");
+    expect(section).toContain("只有这个词第一次从没掌握变成已掌握，才加 30 经验，并和已掌握一起记下。");
+    expect(section).toContain("同一个词再拼一次不加。");
+    expect(section).toContain("Boss 或考试里已经掌握的，也不补这 30。");
+    expect(section).toContain("当天新学的词可以练。最早要到这台电脑的下一个自然日，才能记成已掌握。");
+    expect(section).toContain("答错或点「不会」后，当天会看到英文。");
+    expect(section).toContain("这一天再练只算练习，不记掌握，也不加经验。");
+    expect(section).toContain("这些记在这个角色自己的文件里。");
+    expect(section).toContain("换角色不会写到别人身上。");
+    expect(section).toContain("退出后再打开，还在。");
+    expect(section).toContain("保存没有写进去时，这次不算成功。");
+    expect(section).toContain("设计上会提示「没保存上。掌握和经验都没有记下。再试一次。」");
+    expect(section).not.toContain("提示是「没保存上。掌握和经验都没有记下。再试一次。」");
+    expect(section).toContain("这里的「已掌握」不是复习桌那一行的「熟练」或「未熟练」。");
+    expect(section).toContain("那一行仍是熟练徽章。");
+    expect(section).toContain("盖住拼不点亮熟练徽章，也不改复习时间。");
+    expect(section).toContain("这一版没有把这两套说法合成一套，也没有改成所有练习都走同一条规则。");
+    expect(section).toContain("这 30 经验可能让等级往上跨了一级。");
+    expect(section).toContain("盖住拼当场不发这一级的称号。");
+    expect(section).toContain("称号仍只在对战或考试自己跨过这一级时给，不会回头补。");
+    expect(section).toContain("学堂学会一个词时加上的经验也是这样。");
+    expect(section).toContain("盖住拼功能已在 PR48 的 af4c727b 版本上，用本地标准生产构建的 Linux 程序做过上述窄界面及真实目录核对，并检查过该构建的 app.asar，未发现测试用保存失败入口。这不代表 1.0.8 正式安装包已完成验包；正式三资产生成后另行核验。");
+    expect(section).not.toContain("Linux 生产包已经单独做过窄界面核对");
+    expect(section).toContain("Windows 和 macOS 没有在真机上启动。");
+    expect(section).toContain("打包检查通过，不等于在这两台系统上打开过。");
+    expect(section).toContain("还没核对：界面上真实的保存失败、真实的午夜换日、实际听得见的发音，以及其他评分快捷键。");
     expect(section).not.toContain("学习工具");
     expect(section).toContain("安装方式没有变");
-    expect(section).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(section).not.toContain("Windows 和 macOS 的安装包只做了文件级核验");
+    expect(section).not.toContain("## 1.0.7");
     expect(section).not.toContain("## 1.0.6");
     expect(section).not.toContain("## 1.0.5");
     expect(section).not.toContain("## 1.0.4");
@@ -95,9 +101,10 @@ describe("release notes", () => {
     expect(section).not.toContain("就是职业原本的衣服");
   });
 
-  it("selects 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6, and 1.0.7 separately and fails when that section is missing", () => {
+  it("selects 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6, 1.0.7, and 1.0.8 separately and fails when that section is missing", () => {
     const notes = readFileSync(new URL("../RELEASE_NOTES.md", import.meta.url), "utf8");
-    const latest = extractReleaseSection(notes, "1.0.7");
+    const latest = extractReleaseSection(notes, "1.0.8");
+    const notes107 = extractReleaseSection(notes, "1.0.7");
     const notes106 = extractReleaseSection(notes, "1.0.6");
     const current = extractReleaseSection(notes, "1.0.5");
     const previousNotes = extractReleaseSection(notes, "1.0.4");
@@ -105,13 +112,29 @@ describe("release notes", () => {
     const earlier = extractReleaseSection(notes, "1.0.2");
     const older = extractReleaseSection(notes, "1.0.1");
     const first = extractReleaseSection(notes, "1.0.0");
-    expect(latest.startsWith("## 1.0.7\n")).toBe(true);
-    expect(latest).toContain("会直接回到选择章节");
-    expect(latest).toContain("返回选择章节");
-    expect(latest).toContain("这台电脑最多 6 个角色");
+    expect(latest.startsWith("## 1.0.8\n")).toBe(true);
+    expect(latest).toContain("盖住拼");
+    expect(latest).toContain("才加 30 经验");
+    expect(latest).toContain("也不补这 30");
+    expect(latest).toContain("熟练徽章");
+    expect(latest).toContain("当场不发这一级的称号");
+    expect(latest).toContain("这不代表 1.0.8 正式安装包已完成验包；正式三资产生成后另行核验。");
+    expect(latest).toContain("app.asar");
+    expect(latest).toContain("设计上会提示");
+    expect(latest).toContain("没有在真机上启动");
+    expect(latest).toContain("实际听得见的发音");
     expect(latest).not.toContain("学习工具");
-    expect(latest).not.toContain("## 1.0.6");
+    expect(latest).not.toContain("## 1.0.7");
     expect(latest.split("游戏").length - 1).toBe(0);
+    expect(notes107.startsWith("## 1.0.7\n")).toBe(true);
+    expect(notes107).toContain("会直接回到选择章节");
+    expect(notes107).toContain("返回选择章节");
+    expect(notes107).toContain("这台电脑最多 6 个角色");
+    expect(notes107).not.toContain("学习工具");
+    expect(notes107).not.toContain("## 1.0.8");
+    expect(notes107).not.toContain("## 1.0.6");
+    expect(notes107).not.toContain("盖住拼");
+    expect(notes107.split("游戏").length - 1).toBe(0);
     expect(notes106.startsWith("## 1.0.6\n")).toBe(true);
     expect(notes106).toContain("学堂选章时，词都学完的章显示「已学完」。");
     expect(notes106).toContain("学了一部分的章写出已经学了几个、一共几个。");
@@ -142,6 +165,7 @@ describe("release notes", () => {
     expect(notes106).not.toContain("学习工具");
     expect(notes106).toContain("安装方式没有变");
     expect(notes106).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(notes106).not.toContain("## 1.0.8");
     expect(notes106).not.toContain("## 1.0.7");
     expect(notes106).not.toContain("## 1.0.5");
     expect(notes106.split("游戏").length - 1).toBe(0);
@@ -158,6 +182,7 @@ describe("release notes", () => {
     expect(current).toContain("已知问题：学完一个年级的森林课后，另一个年级的森林课一开始就显示已经学了 8 个共用词。");
     expect(current).toContain("安装方式没有变");
     expect(current).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(current).not.toContain("## 1.0.8");
     expect(current).not.toContain("## 1.0.7");
     expect(current).not.toContain("## 1.0.6");
     expect(current).not.toContain("## 1.0.4");
@@ -192,6 +217,7 @@ describe("release notes", () => {
     expect(previousNotes).not.toContain("还显示不出来");
     expect(previousNotes).toContain("安装方式没有变");
     expect(previousNotes).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(previousNotes).not.toContain("## 1.0.8");
     expect(previousNotes).not.toContain("## 1.0.7");
     expect(previousNotes).not.toContain("## 1.0.6");
     expect(previousNotes).not.toContain("## 1.0.5");
@@ -215,6 +241,7 @@ describe("release notes", () => {
     expect(previous).toContain("本章 Boss（如林心守护者）仍要先通过前面的关卡，并且所选年级的本章词都学完（都有词卡）才能挑战");
     expect(previous).toContain("安装方式没有变");
     expect(previous).toContain("Windows 和 macOS 的安装包只做了文件级核验（构建产物存在、大小和校验），没有在真机上启动测试。");
+    expect(previous).not.toContain("## 1.0.8");
     expect(previous).not.toContain("## 1.0.7");
     expect(previous).not.toContain("## 1.0.6");
     expect(previous).not.toContain("## 1.0.5");
@@ -227,6 +254,7 @@ describe("release notes", () => {
     expect(previous).not.toContain("章节 Boss");
     expect(previous).not.toContain("考试");
     expect(earlier.startsWith("## 1.0.2\n")).toBe(true);
+    expect(earlier).not.toContain("## 1.0.8");
     expect(earlier).not.toContain("## 1.0.7");
     expect(earlier).not.toContain("## 1.0.6");
     expect(earlier).not.toContain("## 1.0.5");
@@ -242,6 +270,7 @@ describe("release notes", () => {
     expect(older.startsWith("## 1.0.1\n")).toBe(true);
     expect(older).toContain("取消每日新词硬上限");
     expect(older).toContain("Windows 和 Mac 的安装包只做了文件级核验（产物存在、文件名、大小），没有做真机启动测试。");
+    expect(older).not.toContain("## 1.0.8");
     expect(older).not.toContain("## 1.0.7");
     expect(older).not.toContain("## 1.0.6");
     expect(older).not.toContain("## 1.0.5");
@@ -253,6 +282,7 @@ describe("release notes", () => {
     expect(older).not.toContain("拼写练习时不再露出答案");
     expect(first.startsWith("## 1.0.0\n")).toBe(true);
     expect(first).toContain("清除这台电脑上的存档");
+    expect(first).not.toContain("## 1.0.8");
     expect(first).not.toContain("## 1.0.7");
     expect(first).not.toContain("## 1.0.6");
     expect(first).not.toContain("## 1.0.5");
@@ -261,8 +291,8 @@ describe("release notes", () => {
     expect(first).not.toContain("## 1.0.2");
     expect(first).not.toContain("## 1.0.1");
     expect(first).not.toContain("取消每日新词硬上限");
-    expect(() => extractReleaseSection(notes, "1.0.8")).toThrow(
-      "RELEASE_NOTES.md 没有与版本 1.0.8 对应的「## 1.0.8」一节，已停止，不会创建 Release。",
+    expect(() => extractReleaseSection(notes, "1.0.9")).toThrow(
+      "RELEASE_NOTES.md 没有与版本 1.0.9 对应的「## 1.0.9」一节，已停止，不会创建 Release。",
     );
     expect(() => extractReleaseSection("## 1.0.10\n\n- 别的版本。\n", "1.0.1")).toThrow("不会创建 Release");
     expect(() => extractReleaseSection("## 1.0.20\n\n- 别的版本。\n", "1.0.2")).toThrow("不会创建 Release");
