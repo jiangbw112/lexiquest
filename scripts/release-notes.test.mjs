@@ -64,7 +64,8 @@ describe("release notes", () => {
     expect(section).toContain("换角色不会写到别人身上。");
     expect(section).toContain("退出后再打开，还在。");
     expect(section).toContain("保存没有写进去时，这次不算成功。");
-    expect(section).toContain("没保存上。掌握和经验都没有记下。再试一次。");
+    expect(section).toContain("设计上会提示「没保存上。掌握和经验都没有记下。再试一次。」");
+    expect(section).not.toContain("提示是「没保存上。掌握和经验都没有记下。再试一次。」");
     expect(section).toContain("这里的「已掌握」不是复习桌那一行的「熟练」或「未熟练」。");
     expect(section).toContain("那一行仍是熟练徽章。");
     expect(section).toContain("盖住拼不点亮熟练徽章，也不改复习时间。");
@@ -73,9 +74,8 @@ describe("release notes", () => {
     expect(section).toContain("盖住拼当场不发这一级的称号。");
     expect(section).toContain("称号仍只在对战或考试自己跨过这一级时给，不会回头补。");
     expect(section).toContain("学堂学会一个词时加上的经验也是这样。");
-    expect(section).toContain("Linux 生产包已经单独做过窄界面核对：第一次加 30、再拼不加、退出再打开不补；当天新学只练习，看过答案的当天也只练习。");
-    expect(section).toContain("进度写在这台电脑的真实目录里。");
-    expect(section).toContain("生产程序文件和打进安装目录的 app.asar 也单独核对过，没有测试用的保存失败入口。");
+    expect(section).toContain("盖住拼功能已在 PR48 的 af4c727b 版本上，用本地标准生产构建的 Linux 程序做过上述窄界面及真实目录核对，并检查过该构建的 app.asar，未发现测试用保存失败入口。这不代表 1.0.8 正式安装包已完成验包；正式三资产生成后另行核验。");
+    expect(section).not.toContain("Linux 生产包已经单独做过窄界面核对");
     expect(section).toContain("Windows 和 macOS 没有在真机上启动。");
     expect(section).toContain("打包检查通过，不等于在这两台系统上打开过。");
     expect(section).toContain("还没核对：界面上真实的保存失败、真实的午夜换日、实际听得见的发音，以及其他评分快捷键。");
@@ -118,8 +118,9 @@ describe("release notes", () => {
     expect(latest).toContain("也不补这 30");
     expect(latest).toContain("熟练徽章");
     expect(latest).toContain("当场不发这一级的称号");
-    expect(latest).toContain("真实目录");
+    expect(latest).toContain("这不代表 1.0.8 正式安装包已完成验包；正式三资产生成后另行核验。");
     expect(latest).toContain("app.asar");
+    expect(latest).toContain("设计上会提示");
     expect(latest).toContain("没有在真机上启动");
     expect(latest).toContain("实际听得见的发音");
     expect(latest).not.toContain("学习工具");
