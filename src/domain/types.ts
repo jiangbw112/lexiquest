@@ -34,8 +34,15 @@ export interface WordCardRecord {
    * Set when the child spelled the word without the answer on screen.
    * A quiz, or a spelling attempt that showed the word, does not set this.
    * No spelling review interval is stored here.
+   * Boss, exam, and 盖住拼 all use this one field. It is not the 熟练徽章.
    */
   spelledAloneAt?: number;
+  /**
+   * Local calendar day (YYYY-MM-DD) when 盖住拼 showed this word's spelling.
+   * Mastery and the first +30 are refused while this day is still today.
+   * A later local day ignores a past day. Missing means it was not shown.
+   */
+  coverSpellRevealDay?: string;
 }
 
 export interface StoredFsrs {
