@@ -202,9 +202,24 @@ function leaseHolds(next: SaveData, seenGeneration: number): boolean {
   return slotId !== null && profileId === next.profileId && seenGeneration === generation && next.profileId.length > 0;
 }
 
+let profileWriteFailures = 0;
+
+/**
+ * The next `count` active-profile writes fail before touching storage.
+ * Used by tests and by the dev `coverFail=1` reproduction. A rejected lease
+ * does not consume a failure.
+ */
+export function armProfileWriteFailures(count: number): void {
+  profileWriteFailures = Number.isInteger(count) && count > 0 ? count : 0;
+}
+
 /** Writes the active slot only while `seenGeneration` is still the current lease. */
 export function writeActiveProfile(next: SaveData, seenGeneration: number): boolean {
   if (!leaseHolds(next, seenGeneration) || !slotId) return false;
+  if (profileWriteFailures > 0) {
+    profileWriteFailures -= 1;
+    return false;
+  }
   const slot = slotId;
   const ownedId = profileId;
   let dropped = false;
@@ -251,7 +266,7 @@ export function mutate(update: (save: SaveData) => SaveData): SaveData | null {
   return next;
 }
 
-/** Same write as mutate, plus whether the cache accepted it. A failed write keeps the new save in memory. */
+/** Same write as mutate, plus whether the cache accepted it. A failed write leaves the cache and disk on the previous save. The returned save is the unsaved next object, so callers have to check `saved`. */
 export function mutateCommitted(update: (save: SaveData) => SaveData): { save: SaveData | null; saved: boolean } {
   if (!current || !slotId) return { save: null, saved: false };
   const seen = generation;

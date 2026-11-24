@@ -38,6 +38,13 @@
         padding: 0;
         background: transparent;
       }
+      #spell-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        background: transparent;
+      }
+      #spell-scrim[hidden] { display: none; }
       #spell-form {
         left: 50%;
         top: 62%;
@@ -76,6 +83,7 @@
       #spell-input, #spell-form button { width: 100%; }
       #name-error, #spell-error, #pin-error { color: #834735; margin: 0; min-height: 1.2em; }
       #spell-hint, #spell-prompt { margin: 0; color: #61402d; min-height: 1.2em; }
+      #spell-form button[hidden] { display: none; }
       #pin-title { margin: 0; color: #fff4dc; background: #3b2a20; border-radius: 12px; padding: 8px 12px; text-align: center; font-size: 22px; }
       #pin-note, #pin-cooldown, #pin-challenge { margin: 0; color: #46363a; font-size: 14px; }
       #pin-note .keep-word { white-space: nowrap; }
@@ -118,11 +126,14 @@
       <p id="name-error"></p>
       <button type="submit">出发</button>
     </form>
+    <div id="spell-scrim" hidden></div>
     <form id="spell-form">
-      <label>拼写<input id="spell-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></label>
+      <label><span id="spell-label">拼写</span><input id="spell-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="" /></label>
       <p id="spell-prompt"></p>
       <p id="spell-hint"></p>
       <p id="spell-error"></p>
+      <button id="spell-replay" type="button" hidden>再听一次</button>
+      <button id="spell-give-up" type="button" hidden>不会</button>
       <button type="submit">确认</button>
     </form>
     <form id="pin-form">
