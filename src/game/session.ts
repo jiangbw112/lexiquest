@@ -20,6 +20,7 @@ import { syncUnlocks } from "../domain/progress";
 import { deserialize } from "../domain/storage";
 import { wardrobeWearDiffers } from "../domain/wardrobe-list";
 import type { SaveData } from "../domain/types";
+import { consumeProfileWriteFailure } from "./profile-write-fault";
 import { probeNote, setProbeProvider } from "./probe";
 
 let generation = 0;
@@ -205,6 +206,10 @@ function leaseHolds(next: SaveData, seenGeneration: number): boolean {
 /** Writes the active slot only while `seenGeneration` is still the current lease. */
 export function writeActiveProfile(next: SaveData, seenGeneration: number): boolean {
   if (!leaseHolds(next, seenGeneration) || !slotId) return false;
+  // Production builds replace `import.meta.env.DEV` with false and drop this block.
+  if (import.meta.env.DEV) {
+    if (consumeProfileWriteFailure()) return false;
+  }
   const slot = slotId;
   const ownedId = profileId;
   let dropped = false;
@@ -251,7 +256,7 @@ export function mutate(update: (save: SaveData) => SaveData): SaveData | null {
   return next;
 }
 
-/** Same write as mutate, plus whether the cache accepted it. A failed write keeps the new save in memory. */
+/** Same write as mutate, plus whether the cache accepted it. A failed write leaves the cache and disk on the previous save. The returned save is the unsaved next object, so callers have to check `saved`. */
 export function mutateCommitted(update: (save: SaveData) => SaveData): { save: SaveData | null; saved: boolean } {
   if (!current || !slotId) return { save: null, saved: false };
   const seen = generation;

@@ -159,13 +159,29 @@ describe("study card and option alignment", () => {
       w: REVIEW_ROW.spellWidth,
       h: REVIEW_ROW.spellHeight,
     };
+    const cover: Box = {
+      x: REVIEW_ROW.coverCenter - REVIEW_ROW.coverWidth / 2,
+      y: REVIEW_ROW.coverOffset - REVIEW_ROW.coverHeight / 2,
+      w: REVIEW_ROW.coverWidth,
+      h: REVIEW_ROW.coverHeight,
+    };
     const rates: Box[] = [0, 1, 2, 3].map((index) => ({
-      x: REVIEW_ROW.rateCenter + index * 120 - REVIEW_ROW.rateWidth / 2,
+      x: REVIEW_ROW.rateCenter + index * REVIEW_ROW.ratePitch - REVIEW_ROW.rateWidth / 2,
       y: REVIEW_ROW.rateOffset - REVIEW_ROW.rateHeight / 2,
       w: REVIEW_ROW.rateWidth,
       h: REVIEW_ROW.rateHeight,
     }));
+    const safeRight = SAFE.x + SAFE.width;
     expect(reviewTextRight()).toBeLessThanOrEqual(spell.x - REVIEW_ROW.gap);
+    expect(spell.x + spell.w + REVIEW_ROW.gap).toBeLessThanOrEqual(cover.x);
+    expect(cover.x + cover.w + REVIEW_ROW.gap).toBeLessThanOrEqual(rates[0]!.x);
+    expect(hits(cover, spell)).toBe(false);
+    expect(hits(cover, reveal)).toBe(false);
+    expect(hits(cover, rates[0]!)).toBe(false);
+    expect(cover.x).toBeGreaterThanOrEqual(SAFE.x);
+    expect(cover.x + cover.w).toBeLessThanOrEqual(safeRight);
+    expect(rates[3]!.x + rates[3]!.w).toBeLessThanOrEqual(safeRight);
+    for (let index = 0; index < rates.length - 1; index += 1) expect(hits(rates[index]!, rates[index + 1]!)).toBe(false);
     expect(spell.x).toBeLessThan(rates[0]!.x);
     expect(REVIEW_ROW.textX + REVIEW_ROW.englishMaxWidth).toBeLessThanOrEqual(reveal.x - REVIEW_ROW.gap);
     expect(REVIEW_ROW.blockHeight).toBeLessThanOrEqual(REVIEW_ROW.statusOffset);
@@ -196,7 +212,9 @@ describe("study card and option alignment", () => {
       const meaningRect: Box = { x: meaningBox.x, y: 0, w: lineWidth(meaning), h: fittedBlockHeight(meaning.fontSize, meaning.lines.length) };
       expect(hits(englishBox, reveal), `${word.id} unopened`).toBe(false);
       expect(hits(englishBox, spell), `${word.id} unopened spell`).toBe(false);
+      expect(hits(englishBox, cover), `${word.id} unopened cover`).toBe(false);
       expect(hits(meaningRect, spell), `${word.id} opened spell`).toBe(false);
+      expect(hits(meaningRect, cover), `${word.id} opened cover`).toBe(false);
       for (const rate of rates) {
         expect(hits(meaningRect, rate), `${word.id} opened rate`).toBe(false);
         expect(hits(englishBox, rate), `${word.id} english rate`).toBe(false);
@@ -276,6 +294,8 @@ describe("study card and option alignment", () => {
     expect(review).toContain("reviewMeaningBox");
     expect(review).toContain("REVIEW_ROW.revealCenter");
     expect(review).toContain("REVIEW_ROW.spellCenter");
+    expect(review).toContain("REVIEW_ROW.coverCenter");
+    expect(review).toContain("REVIEW_ROW.ratePitch");
     expect(review).toContain("reviewRowSlice");
     expect(review).toContain("reviewRowTextY");
     expect(review).toContain("REVIEW_DESK.backY");
