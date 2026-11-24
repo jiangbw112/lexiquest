@@ -1,0 +1,13 @@
+{
+  "pages": ["pages/game/index"],
+  "window": {
+    "navigationBarTitleText": "词境练习家",
+    "navigationStyle": "custom",
+    "backgroundColor": "#143d2c",
+    "backgroundColorTop": "#143d2c",
+    "backgroundColorBottom": "#143d2c",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
