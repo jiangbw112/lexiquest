@@ -4,8 +4,8 @@ import { applyCoverSpell } from "../domain/cover-spell";
 import { createSave, learnWord, noteIndependentSpelling } from "../domain/progress";
 import { deserialize, serialize } from "../domain/storage";
 import type { SaveData } from "../domain/types";
+import { armProfileWriteFailures } from "./profile-write-fault";
 import {
-  armProfileWriteFailures,
   captureProfileBinding,
   commit,
   createProfile,

@@ -21,7 +21,8 @@ import { devModeEnabled, reviewClockCommand, reviewClockDelta, reviewDeskLayout 
 import { applyFittedText, cjkWrap, reviewEnglishBox, reviewMeaningBox, reviewRowSlice, reviewRowTextY, REVIEW_DESK, REVIEW_ROW } from "../layout";
 import { recordPlayAnswer } from "../play-timer";
 import { probeEnter } from "../probe";
-import { armProfileWriteFailures, getSave, mutate, mutateCommitted } from "../session";
+import { armProfileWriteFailures } from "../profile-write-fault";
+import { getSave, mutate, mutateCommitted } from "../session";
 import { FONT, paper } from "../ui";
 import { warmButton, warmPanel, warmSlice } from "../warm/kit";
 import { paintRoom, queueWarm } from "../warm/load";
@@ -61,7 +62,12 @@ export class ReviewScene extends Phaser.Scene {
     }
     probeEnter("review");
     this.dev = devModeEnabled(window.location.search);
-    if (this.dev && new URLSearchParams(window.location.search).get("coverFail") === "1") armProfileWriteFailures(1);
+    // Production builds replace `import.meta.env.DEV` with false and drop this block,
+    // including the `coverFail` query and the write-failure arm.
+    if (import.meta.env.DEV) {
+      const coverFail = new URLSearchParams(window.location.search).get("coverFail") === "1";
+      if (this.dev && coverFail) armProfileWriteFailures(1);
+    }
     const form = document.getElementById("spell-form");
     const submit = (event: Event) => {
       event.preventDefault();

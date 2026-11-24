@@ -20,6 +20,7 @@ import { syncUnlocks } from "../domain/progress";
 import { deserialize } from "../domain/storage";
 import { wardrobeWearDiffers } from "../domain/wardrobe-list";
 import type { SaveData } from "../domain/types";
+import { consumeProfileWriteFailure } from "./profile-write-fault";
 import { probeNote, setProbeProvider } from "./probe";
 
 let generation = 0;
@@ -202,23 +203,12 @@ function leaseHolds(next: SaveData, seenGeneration: number): boolean {
   return slotId !== null && profileId === next.profileId && seenGeneration === generation && next.profileId.length > 0;
 }
 
-let profileWriteFailures = 0;
-
-/**
- * The next `count` active-profile writes fail before touching storage.
- * Used by tests and by the dev `coverFail=1` reproduction. A rejected lease
- * does not consume a failure.
- */
-export function armProfileWriteFailures(count: number): void {
-  profileWriteFailures = Number.isInteger(count) && count > 0 ? count : 0;
-}
-
 /** Writes the active slot only while `seenGeneration` is still the current lease. */
 export function writeActiveProfile(next: SaveData, seenGeneration: number): boolean {
   if (!leaseHolds(next, seenGeneration) || !slotId) return false;
-  if (profileWriteFailures > 0) {
-    profileWriteFailures -= 1;
-    return false;
+  // Production builds replace `import.meta.env.DEV` with false and drop this block.
+  if (import.meta.env.DEV) {
+    if (consumeProfileWriteFailure()) return false;
   }
   const slot = slotId;
   const ownedId = profileId;
