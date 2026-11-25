@@ -1,0 +1,19 @@
+OK boot nodes 0
+OK profiles nodes 16
+OK title nodes 29
+OK grades nodes 52
+OK create nodes 0
+OK overworld nodes 0
+OK learn nodes 0
+OK stages nodes 0
+OK battle nodes 0
+OK exam-battle nodes 0
+OK battle-results nodes 46 with a loss fixture; without payload: Cannot read properties of undefined (reading 'won')
+OK collection nodes 0
+OK review nodes 0
+OK skills nodes 0
+OK wardrobe nodes 0
+OK ending nodes 0
+OK duel nodes 0
+OK guide nodes 10
+scene-smoke 18/18

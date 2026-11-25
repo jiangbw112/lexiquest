@@ -1,0 +1,132 @@
+{
+  "source": "Node. Not WeChat DevTools, not a simulator, not a phone.",
+  "rows": [
+    {
+      "key": "boot",
+      "ok": true,
+      "nodes": 0,
+      "failures": 10,
+      "payload": "none"
+    },
+    {
+      "key": "profiles",
+      "ok": true,
+      "nodes": 16,
+      "failures": 12,
+      "payload": "none"
+    },
+    {
+      "key": "title",
+      "ok": true,
+      "nodes": 29,
+      "failures": 17,
+      "payload": "none"
+    },
+    {
+      "key": "grades",
+      "ok": true,
+      "nodes": 52,
+      "failures": 19,
+      "payload": "none"
+    },
+    {
+      "key": "create",
+      "ok": true,
+      "nodes": 0,
+      "failures": 23,
+      "payload": "none"
+    },
+    {
+      "key": "overworld",
+      "ok": true,
+      "nodes": 0,
+      "failures": 31,
+      "payload": "none"
+    },
+    {
+      "key": "learn",
+      "ok": true,
+      "nodes": 0,
+      "failures": 35,
+      "payload": "none"
+    },
+    {
+      "key": "stages",
+      "ok": true,
+      "nodes": 0,
+      "failures": 43,
+      "payload": "none"
+    },
+    {
+      "key": "battle",
+      "ok": true,
+      "nodes": 0,
+      "failures": 66,
+      "payload": "none"
+    },
+    {
+      "key": "exam-battle",
+      "ok": true,
+      "nodes": 0,
+      "failures": 73,
+      "payload": "none"
+    },
+    {
+      "key": "battle-results",
+      "ok": true,
+      "nodes": 46,
+      "failures": 99,
+      "payload": "node fixture, not a played battle",
+      "withoutPayload": "Cannot read properties of undefined (reading 'won')"
+    },
+    {
+      "key": "collection",
+      "ok": true,
+      "nodes": 0,
+      "failures": 102,
+      "payload": "none"
+    },
+    {
+      "key": "review",
+      "ok": true,
+      "nodes": 0,
+      "failures": 106,
+      "payload": "none"
+    },
+    {
+      "key": "skills",
+      "ok": true,
+      "nodes": 0,
+      "failures": 114,
+      "payload": "none"
+    },
+    {
+      "key": "wardrobe",
+      "ok": true,
+      "nodes": 0,
+      "failures": 126,
+      "payload": "none"
+    },
+    {
+      "key": "ending",
+      "ok": true,
+      "nodes": 0,
+      "failures": 138,
+      "payload": "none"
+    },
+    {
+      "key": "duel",
+      "ok": true,
+      "nodes": 0,
+      "failures": 141,
+      "payload": "none"
+    },
+    {
+      "key": "guide",
+      "ok": true,
+      "nodes": 10,
+      "failures": 144,
+      "payload": "none"
+    }
+  ]
+}
