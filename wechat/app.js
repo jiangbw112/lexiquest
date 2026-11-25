@@ -5,7 +5,8 @@ App({
   onLaunch() {
     const host = typeof wx === "undefined" ? null : wx;
     if (!host || typeof host.loadSubpackage !== "function") return;
-    for (const name of ["art-ui", "art-world", "fonts"]) {
+    const names = require("./packages/subpackage-names.js");
+    for (const name of names) {
       host.loadSubpackage({
         name,
         fail(err) {

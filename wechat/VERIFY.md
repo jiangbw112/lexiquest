@@ -5,7 +5,7 @@
 - 结论：未通过。开发者工具、真机、主包体积、场景重排、词音频、字体加载和 `host-copy` 都没有完成。
 - 续修后的结论仍是未通过。页面链、词表、战斗到结算、逻辑像素和磁盘分包口径有新的实测，见文末「续修」。开发者工具和真机仍待授权验证。
 
-下面两节是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。当前只看文末「当前（父提交 ec88639 之后）」。
+下面的旧节都是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。`上一轮（父提交 ec88639，head 0ea60bd）` 停在 `0ea60bd`。`上一轮（父提交 0ea60bd，head 068d837）` 停在 `068d837`。当前只看文末「当前（父提交 068d837 之后）」。
 
 ## 逐项结果（历史，首轮）
 
@@ -169,7 +169,7 @@
 
 默认存档只有 traveler，列表不溢出。这次把目录里的 forest-cape、star-sash、forest_leaf_cape、acorn_pin、forest_wreath 写进衣柜已经在读的那个存档，用来让第 4 行落到窗口外。这不是新衣服。`board.add` 会把子节点从场景根上拿掉，所以 `check-page-chain` 的根节点数变少，文字数除衣柜外不变。旧的矩阵留在 `evidence/w8-chain-r2-before-clip.json`。衣柜文字从 12 变成 7，是因为行标签改在 mask 里画，不再进货架。p05 仍是 checks 452。`check-engine` 通过。用户链和桌面 vitest 这次没有重跑，`src` 没有改。
 
-## 当前（父提交 0ea60bd 之后）
+## 上一轮（父提交 0ea60bd，head 068d837）
 
 门禁：未通过。这一轮只收了裁剪和衣柜构图。开发者工具、真机、字形缓存、276 张未入包的图、词 mp3、`libVersion` 3.5.5 都还没做完。下面这张表只引用这一轮真的重跑过的日志。`w10-size-r2.log`、`w11-p05-clip.log`、`w3-engine-clip.log`、`w7-user-chain.log`、`w11-vitest-r2.log` 不是这一轮的结果。
 
@@ -188,4 +188,23 @@
 | 开发者工具和真机 | 未验证。没有打开微信开发者工具，没有真机，没有测 `wx` canvas 的 clip | 无 | 待授权 |
 
 844×390 上 scale 是 0.4875，列表 mask 是世界坐标 `fillRect(140, 168, 680, 288)`。衣柜字按设计行放在这个窗口外面，字号收到下一行之前，最小 14。返回的字在按钮盒内：按钮 x 573.1、y 342.2、w 87.8、h 27.3，文字 x 581、y 347.4、w 72.1、h 17。`src` 没有改。p05、engine、用户链、vitest、page-chain 这一轮都没有重跑。
+
+## 当前（父提交 068d837 之后）
+
+门禁：未通过。编码上能做完的几项有了新日志，体积、词音、字体真机加载、图集 JSON、场景截图比对、开发者工具和真机仍然挡住全部门。`w3-clip.log`、`w7-user-chain.log`、`w10-size-r3.log` 保持上一轮的字节。这一轮的新文件是 `w3-clip-r2.log`、`w3-glyph.log`、`w7-user-chain-r3.log`、`w10-size-r4.log`。桌面 vitest 和 web boot 这一轮没有重跑，不能当作微信验收。p05 没有重跑。
+
+| 项 | 当前 | 证据 | 来源 |
+|---|---|---|---|
+| 字形纹理 | 通过这一项。第一遍主画布 `fillText` 0 次、`drawImage` 1 次、新建纹理 1 张。第二遍 `fillText` 仍是 0、`drawImage` 1 次、复用 1 次。画面上有墨点 | `evidence/w3-glyph.log` | Chrome 画布，`wechat/lib/game.cjs.js`。不是开发者工具，不是真机 |
+| 单层、嵌套、容器裁剪 | 仍通过。窗口外 `[32,32,32]`，窗口内 `[206,215,192]`。滚轮 168 到 -32。窗口内点击把装备改成 forest-cape。嵌套交点 `[255,204,0]`，缝和圆外接角是 `[32,32,32]`。容器翻转后 `[255,0,0]`，旋转后 `[0,0,255]`，转出 mask 的点不命中 | `evidence/w3-clip-r2.log`，`evidence/w3-wardrobe-before-r2.png`，`evidence/w3-wardrobe-after-r2.png`，`evidence/w3-wardrobe-scrolled-r2.png` | Chrome。不是开发者工具，不是真机 |
+| 逻辑像素重排 | 通过这一项的几何。学堂、战斗、结算、词卡册、复习在 844×390、667×375、915×412、1024×768 上 `overlap` 0、`overflow` 0、`minGap` 是 8 或 10、`minFont` 不少于 14、热区不少于 44。宽度来自 Chrome `measureText`。占视口 18% 以上的羊皮纸和 62% 以上的底图不挡字，更小的图和衣柜列表 mask 挡字 | `evidence/w7-user-chain-r3.log` | Chrome 量宽，Node 点按钮。不是开发者工具，不是真机 |
+| 用户点击链 | 通过这条路径，不代表门禁。新建角色、三年级、名字表单「小林」、学堂听一听、战斗胜利 1 场。词卡册是「已收集 1 个」并且看得到 tree。复习桌先显示 tree 和「大约 10 分钟后」。村子上第一次点「复习桌」没有离开 overworld，第二次进入。`?dev=1` 后沙漏按钮出现，点「沙漏 +10 分钟」「翻看释义」「记得」后 `reviewInstants` 从 1 变成 2 | `evidence/w7-user-chain-r3.log`，`evidence/w7-user-chain-r3.json`，`evidence/w3-browser-canvas-r3.png` | 同上 |
+| 其余场景 | 未完成对照。skills、wardrobe、guide、ending、duel、exam-battle、title 能在这条存档上构造，文字盒 `overlap` 0、`overflow` 0。没有和 web 截图比对，没有开发者工具进出记录 | `evidence/w7-user-chain-r3.log` 的 scene 行 | Node 构造。不是开发者工具，不是真机 |
+| 可导入包 | 失败。主包 1165988。art-ui 1986863。art-world 384080。fonts 999279。art-extra-01 到 art-extra-16 见 `w10-size-r4.log`，最大的是 art-extra-02 的 1983633。合计 33687659，超过 20971520，也超过 31457280。退出码 2。`game.cjs.js` 是 705876 字节 | `evidence/w10-size-r4.log`，`evidence/w10-resource-r4.json` | 磁盘。不是开发者工具上传体积 |
+| 拆包 | 没有删图。累计到 art-extra-08 是 19595367，仍在 20MB 内。art-extra-09 起超过 20MB。累计到 art-extra-14 是 31263160，仍在 30MB 内。art-extra-15 起超过 30MB。班级图 25 张、5667914 字节，章节类图 148 张、17997908 字节，都在 art-extra 里。图集 JSON 旁路文件 158 个、1203952 字节仍只在 public，没有进 `assets/atlas-json`，所以裁剪日志里的 15 条缺资源不能当成已经消失 | `evidence/w10-pack-plan.json`，`evidence/w10-size-r4.log`，`evidence/w3-clip-r2.log` | 文件系统。JSON 这一条没有重跑启动 |
+| 词音 | 调用和素材分开。`听一听` 记下 `word audio missing: tree`。状态行是 `atlas load failed: packed · word audio missing: tree`。包内 mp3 0，public 词 mp3 0。没有生成或购买音频 | `evidence/w7-user-chain-r3.log`，`evidence/w10-size-r4.log` | Node 点击。不是微信内置音频 |
+| 字体 | 12 个 TTF 仍在 fonts 分包。这一轮 `loadPackedFonts` 又跑了 12 次，全部失败，原因写明没有 `wx.loadFontFace`，官方 source 是 https，或基础库 3.7.9 起的 Data URL。`project.config.json` 的 `libVersion` 已改成 3.7.9。没有编造 https 地址。开发者工具的 private config 仍可能覆盖这个版本，这一轮没有打开工具，所以字体没有真正加载成功 | `evidence/w7-user-chain-r3.log`，`wechat/project.config.json` | Node。不是开发者工具 |
+| 开发者工具和真机 | 未验证 | 无 | 待授权 |
+
+已修的编码：嵌套 mask 与容器变换、字形纹理、四个视口上文字不压插图和列表、点击链写到词卡和一次到期复习、276 张图按分包进包、状态带能看见缺词音、基础库配置改到官方 Data URL 的 3.7.9。仍缺的编码：图集 JSON 没有接进资源读取，所以上一节的缺资源启动错误还在；W8 没有截图差。外部素材：词 mp3 0/863，图集 JSON 158 个还在 public。未授权：微信开发者工具、真机、上传体积。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
 

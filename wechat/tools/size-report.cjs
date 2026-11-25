@@ -10,7 +10,8 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 const mainLimit = 2 * 1024 * 1024;
 const totalLimit = 20 * 1024 * 1024;
-const subRoots = ["packages/art-ui", "packages/art-world", "packages/fonts"];
+const app = JSON.parse(fs.readFileSync(path.join(root, "app.json"), "utf8"));
+const subRoots = (app.subpackages || []).map((item) => item.root);
 
 function walk(dir, base = dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -63,7 +64,7 @@ console.log(`packed fonts ${packedFonts.length} bytes ${sum(packedFonts)}`);
 console.log(`packed mp3 ${packedAudio.length}`);
 console.log(`public bytes ${sum(publicFiles)} excluded from the mini program`);
 console.log(`public images ${publicImages.length} bytes ${sum(publicImages)}`);
-console.log(`warm images copied into subpackages ${packedPublic.size}`);
+console.log(`art-index images ${packedPublic.size}`);
 console.log(`required-but-not-packed images ${unpackedImages.length} bytes ${sum(unpackedImages)}`);
 const gap = {
   source: "filesystem. Not an IDE upload size.",
@@ -75,12 +76,21 @@ const gap = {
   packedMp3: packedAudio.length,
   publicBytes: sum(publicFiles),
   publicImages: publicImages.length,
-  warmPacked: packedPublic.size,
+  artIndexImages: packedPublic.size,
   requiredButNotPackedImages: unpackedImages.length,
   requiredButNotPackedBytes: sum(unpackedImages),
   publicWordMp3: publicAudio.length,
 };
-fs.writeFileSync(path.join(root, "evidence/w10-resource-r2.json"), JSON.stringify(gap, null, 2));
+const outName = process.argv[2] || "w10-resource-r4.json";
+fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
+fs.writeFileSync(path.join(root, "evidence", outName), JSON.stringify(gap, null, 2));
+console.log(`wrote evidence/${outName}`);
+let running = sum(main);
+console.log(`budget running main ${running}`);
+for (const sub of subRoots) {
+  running += sum(subs[sub]);
+  console.log(`budget running ${sub} cumulative ${running}${running > totalLimit ? " OVER_20MB" : ""}`);
+}
 console.log(`public word mp3 ${publicAudio.length}`);
 console.log("source: filesystem after project.config.json packOptions.ignore, split by app.json subpackage roots.");
 console.log("https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages");

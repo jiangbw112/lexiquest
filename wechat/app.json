@@ -1,10 +1,151 @@
 {
-  "pages": ["pages/game/index"],
-  "subpackages": [
-    { "root": "packages/art-ui", "name": "art-ui", "pages": ["pages/hold/index"] },
-    { "root": "packages/art-world", "name": "art-world", "pages": ["pages/hold/index"] },
-    { "root": "packages/fonts", "name": "fonts", "pages": ["pages/hold/index"] }
+  "pages": [
+    "pages/game/index"
   ],
+  "subpackages": [
+    {
+      "root": "packages/art-ui",
+      "name": "art-ui",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-world",
+      "name": "art-world",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/fonts",
+      "name": "fonts",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-01",
+      "name": "art-extra-01",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-02",
+      "name": "art-extra-02",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-03",
+      "name": "art-extra-03",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-04",
+      "name": "art-extra-04",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-05",
+      "name": "art-extra-05",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-06",
+      "name": "art-extra-06",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-07",
+      "name": "art-extra-07",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-08",
+      "name": "art-extra-08",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-09",
+      "name": "art-extra-09",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-10",
+      "name": "art-extra-10",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-11",
+      "name": "art-extra-11",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-12",
+      "name": "art-extra-12",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-13",
+      "name": "art-extra-13",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-14",
+      "name": "art-extra-14",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-15",
+      "name": "art-extra-15",
+      "pages": [
+        "pages/hold/index"
+      ]
+    },
+    {
+      "root": "packages/art-extra-16",
+      "name": "art-extra-16",
+      "pages": [
+        "pages/hold/index"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/game/index": {
+      "network": "all",
+      "packages": [
+        "art-ui",
+        "fonts"
+      ]
+    }
+  },
   "resizable": true,
   "window": {
     "navigationBarTitleText": "词境练习家",

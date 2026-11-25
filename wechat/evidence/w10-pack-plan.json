@@ -1,0 +1,108 @@
+{
+  "source": "filesystem copy of existing public images. Not an IDE upload size. No file was dropped to fit 2MB or 20MB.",
+  "addedPackages": [
+    {
+      "name": "art-extra-01",
+      "bytes": 1761765,
+      "files": 4,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-02",
+      "bytes": 1983238,
+      "files": 6,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-03",
+      "bytes": 1729802,
+      "files": 6,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-04",
+      "bytes": 1808076,
+      "files": 7,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-05",
+      "bytes": 1925654,
+      "files": 9,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-06",
+      "bytes": 1950434,
+      "files": 11,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-07",
+      "bytes": 1976980,
+      "files": 12,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-08",
+      "bytes": 1920048,
+      "files": 13,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-09",
+      "bytes": 1952754,
+      "files": 15,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-10",
+      "bytes": 1975769,
+      "files": 17,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-11",
+      "bytes": 1907769,
+      "files": 18,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-12",
+      "bytes": 1971153,
+      "files": 20,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-13",
+      "bytes": 1916659,
+      "files": 22,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-14",
+      "bytes": 1941319,
+      "files": 28,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-15",
+      "bytes": 1983133,
+      "files": 49,
+      "oversize": false
+    },
+    {
+      "name": "art-extra-16",
+      "bytes": 440576,
+      "files": 39,
+      "oversize": false
+    }
+  ],
+  "addedImages": 276,
+  "addedBytes": 29145129,
+  "classImages": 25,
+  "classBytes": 5667914,
+  "chapterImages": 148,
+  "chapterBytes": 17997908,
+  "publicWordMp3": 0
+}
