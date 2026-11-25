@@ -181,6 +181,11 @@ export class GameNode {
 
   destroy(): void {
     this.visible = false;
+    this.inputEnabled = false;
+    const list = (this.parent as { list?: GameNode[] } | null)?.list;
+    if (!list) return;
+    const index = list.indexOf(this);
+    if (index >= 0) list.splice(index, 1);
   }
 
   getBounds(): { x: number; y: number; width: number; height: number } {

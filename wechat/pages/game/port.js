@@ -7,10 +7,19 @@
 const domain = require("../../lib/domain.cjs.js");
 const game = require("../../lib/game.cjs.js");
 const atlasText = require("../../assets/atlas-json/index.js");
+const packedImages = require("../../packages/art-index.js");
 
 if (typeof globalThis.__LEXI_READ_ASSET__ !== "function") {
   globalThis.__LEXI_READ_ASSET__ = (url) => (Object.prototype.hasOwnProperty.call(atlasText, url) ? atlasText[url] : null);
 }
+globalThis.__LEXI_PACKED_IMAGE__ = (url) => (Object.prototype.hasOwnProperty.call(packedImages, url) ? packedImages[url] : null);
+globalThis.__LEXI_WORD_ID__ = (english) => {
+  const word = domain.CATALOG_WORDS.find((item) => item.english === english);
+  return word ? word.id : "";
+};
+globalThis.__LEXI_HAS_WORD_AUDIO__ = () => false;
+const NATIVE_FIELDS = ["name-form", "hero-name", "name-error", "spell-form", "spell-input", "spell-give-up", "spell-replay", "pin-form", "pin-input", "pin-confirm", "pin-answer", "pin-error", "pin-title", "pin-forgot-button", "pin-submit", "profile-import"];
+for (const id of NATIVE_FIELDS) game.bindField(id);
 
 function box(view) {
   return { w: view && view.w > 0 ? view.w : 844, h: view && view.h > 0 ? view.h : 390 };
@@ -19,7 +28,15 @@ function box(view) {
 function attach(canvas, view) {
   const catalog = domain.CATALOG_WORDS.length;
   if (catalog !== 863) throw new Error(`catalog ${catalog}`);
+  const early = [];
+  globalThis.__LEXI_SPEECH_GAP__ = (reason) => early.push(reason);
   const runtime = game.createGame(canvas, box(view));
+  globalThis.__LEXI_SPEECH_GAP__ = (reason) => runtime.failures.push(reason);
+  for (const reason of early) runtime.failures.push(reason);
+  const fonts = game.bootFonts();
+  fonts.then((rows) => {
+    for (const row of rows) if (!row.ok) runtime.failures.push(`font: ${row.family}: ${row.reason}`);
+  });
   let practice = null;
   let route = "boot";
   if (view && view.route === "practice") {
@@ -37,6 +54,29 @@ function attach(canvas, view) {
     copy: game.shellCopy(false).pinNote,
     screenFontPx: game.screenFontPx,
     save: () => game.getSave(),
+    fonts,
+    field(id) {
+      return game.bindField(id);
+    },
+    packedImages: () => packedImages,
+    armImages(canvas) {
+      if (!canvas || typeof canvas.createImage !== "function") {
+        runtime.failures.push("canvas.createImage is not available; packed images were not decoded in this runtime");
+        return 0;
+      }
+      const table = globalThis.__LEXI_IMAGE_BITMAPS__ || (globalThis.__LEXI_IMAGE_BITMAPS__ = {});
+      let started = 0;
+      for (const url of Object.keys(packedImages)) {
+        const image = canvas.createImage();
+        image.onload = () => {
+          table[url] = image;
+        };
+        image.onerror = () => runtime.failures.push(`image decode failed: ${packedImages[url]}`);
+        image.src = `/${packedImages[url]}`;
+        started += 1;
+      }
+      return started;
+    },
     start(key, data) {
       return runtime.start(key, data);
     },

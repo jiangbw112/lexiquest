@@ -25,6 +25,11 @@ export function speakWordFile(wordId: string, hasFile: boolean): { ok: boolean; 
   return { ok: true, reason: "" };
 }
 
+export function stopWordAudio(): void {
+  current?.stop();
+  current = null;
+}
+
 export function missingWordAudio(): readonly string[] {
   return missing;
 }

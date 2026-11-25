@@ -1,0 +1,18 @@
+{
+  "source": "Node clicks through pages/game/port.js. Chrome canvas measureText and one drawImage replay. Not WeChat DevTools and not a phone.",
+  "name": "小林",
+  "grades": [
+    "G3"
+  ],
+  "cards": [
+    "tree"
+  ],
+  "battlesWon": 1,
+  "battlesLost": 0,
+  "speech": [
+    "word audio missing: tree"
+  ],
+  "fontOk": 0,
+  "drawCalls": 57,
+  "sampleColors": 29
+}

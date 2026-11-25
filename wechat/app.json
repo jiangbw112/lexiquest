@@ -1,5 +1,10 @@
 {
   "pages": ["pages/game/index"],
+  "subpackages": [
+    { "root": "packages/art-ui", "name": "art-ui", "pages": ["pages/hold/index"] },
+    { "root": "packages/art-world", "name": "art-world", "pages": ["pages/hold/index"] },
+    { "root": "packages/fonts", "name": "fonts", "pages": ["pages/hold/index"] }
+  ],
   "resizable": true,
   "window": {
     "navigationBarTitleText": "词境练习家",

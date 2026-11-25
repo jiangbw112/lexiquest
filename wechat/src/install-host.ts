@@ -134,8 +134,27 @@ if (typeof root.document === "undefined") {
       remove: (name: string) => {
         this.classes.delete(name);
       },
+      toggle: (name: string, force?: boolean) => {
+        const next = force ?? !this.classes.has(name);
+        if (next) this.classes.add(name);
+        else this.classes.delete(name);
+        return next;
+      },
       contains: (name: string) => this.classes.has(name),
     };
+    private listeners = new Map<string, Set<(event: { type: string; preventDefault: () => void; stopPropagation: () => void; target: Field }) => void>>();
+    addEventListener(type: string, fn: (event: { type: string; preventDefault: () => void; stopPropagation: () => void; target: Field }) => void): void {
+      const set = this.listeners.get(type) ?? new Set();
+      set.add(fn);
+      this.listeners.set(type, set);
+    }
+    removeEventListener(type: string, fn: (event: { type: string; preventDefault: () => void; stopPropagation: () => void; target: Field }) => void): void {
+      this.listeners.get(type)?.delete(fn);
+    }
+    dispatch(type: string): void {
+      const event = { type, preventDefault: () => undefined, stopPropagation: () => undefined, target: this };
+      for (const fn of [...(this.listeners.get(type) ?? [])]) fn(event);
+    }
     focus(): void {
       const host = (globalThis as { __LEXI_NATIVE_INPUT__?: (id: string) => void }).__LEXI_NATIVE_INPUT__;
       host?.(this.id);
@@ -167,8 +186,10 @@ if (typeof root.document === "undefined") {
   };
 }
 
-export function bindField(id: string): { value: string } {
-  const doc = root.document as { adopt?: (id: string, node: object) => void; createElement?: () => { id: string; value: string } };
+export function bindField(id: string): { value: string; dispatch?: (type: string) => void } {
+  const doc = root.document as { getElementById?: (id: string) => { value: string; dispatch?: (type: string) => void } | null; adopt?: (id: string, node: object) => void; createElement?: () => { id: string; value: string } };
+  const existing = doc.getElementById?.(id);
+  if (existing) return existing;
   const node = doc.createElement ? doc.createElement() : { id, value: "" };
   node.id = id;
   doc.adopt?.(id, node);

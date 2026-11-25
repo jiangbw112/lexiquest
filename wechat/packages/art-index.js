@@ -1,0 +1,23 @@
+module.exports = {
+  "assets/warm/backgrounds/bg_map_forest_2x.webp": "packages/art-ui/backgrounds__bg_map_forest_2x.webp",
+  "assets/warm/backgrounds/bg_village_2x.webp": "packages/art-ui/backgrounds__bg_village_2x.webp",
+  "assets/warm/atlas/atlas_skills.png": "packages/art-ui/atlas__atlas_skills.png",
+  "assets/warm/atlas/atlas_fx_projectiles.png": "packages/art-ui/atlas__atlas_fx_projectiles.png",
+  "assets/warm/atlas/atlas_village.png": "packages/art-ui/atlas__atlas_village.png",
+  "assets/warm/atlas/atlas_monsters.png": "packages/art-ui/atlas__atlas_monsters.png",
+  "assets/warm/atlas/atlas_map.png": "packages/art-ui/atlas__atlas_map.png",
+  "assets/warm/atlas/atlas_ui_core.png": "packages/art-ui/atlas__atlas_ui_core.png",
+  "assets/warm/atlas/atlas_battle.png": "packages/art-ui/atlas__atlas_battle.png",
+  "assets/warm/backgrounds/bg_ending_2x.webp": "packages/art-ui/backgrounds__bg_ending_2x.webp",
+  "assets/warm/backgrounds/bg_home_2x.webp": "packages/art-world/backgrounds__bg_home_2x.webp",
+  "assets/warm/backgrounds/bg_forest_battle_2x.webp": "packages/art-world/backgrounds__bg_forest_battle_2x.webp",
+  "assets/warm/backgrounds/bg_room_2x.webp": "packages/art-world/backgrounds__bg_room_2x.webp",
+  "assets/warm/atlas/atlas_wardrobe.png": "packages/art-ui/atlas__atlas_wardrobe.png",
+  "assets/warm/logo/logo_title_2x.webp": "packages/art-world/logo__logo_title_2x.webp",
+  "assets/warm/backgrounds/bg_learn_blur_2x.webp": "packages/art-world/backgrounds__bg_learn_blur_2x.webp",
+  "assets/warm/backgrounds/bg_parent_paper_2x.webp": "packages/art-world/backgrounds__bg_parent_paper_2x.webp",
+  "assets/warm/atlas/atlas_parent.png": "packages/art-world/atlas__atlas_parent.png",
+  "assets/warm/atlas/atlas_results.png": "packages/art-world/atlas__atlas_results.png",
+  "assets/warm/atlas/atlas_map_results.png": "packages/art-world/atlas__atlas_map_results.png",
+  "assets/warm/atlas/atlas_ui_pages.png": "packages/art-ui/atlas__atlas_ui_pages.png"
+};

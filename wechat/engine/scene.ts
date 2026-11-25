@@ -140,17 +140,21 @@ class Loader extends Emitter {
     for (const file of this.queue) {
       if (file.kind === "atlas" || file.kind === "json") {
         const text = reader ? reader(file.urls[file.kind === "atlas" ? 1 : 0]) : null;
+        const imageUrl = file.urls[0] ?? "";
         if (!text) scene.game.failures.push(`asset text missing: ${file.urls.join(" ")}`);
         else {
           try {
-            scene.textures.add(file.key, JSON.parse(text), file.urls[0] ?? "");
+            scene.textures.add(file.key, JSON.parse(text), imageUrl, packedPath(imageUrl));
           } catch (error) {
             scene.game.failures.push(`asset json failed: ${file.key} ${error instanceof Error ? error.message : ""}`);
           }
         }
+        if (file.kind === "atlas" && imageUrl && !packedPath(imageUrl)) scene.game.failures.push(`atlas pixels not in package: ${imageUrl}`);
       } else {
-        scene.textures.add(file.key, null, file.urls[0]);
-        scene.game.failures.push(`image pixels not decoded: ${file.key}`);
+        const imageUrl = file.urls[0] ?? "";
+        const packed = packedPath(imageUrl);
+        scene.textures.add(file.key, null, imageUrl, packed);
+        if (!packed) scene.game.failures.push(`image not in package: ${imageUrl}`);
       }
     }
     this.queue.length = 0;
@@ -162,12 +166,47 @@ class Loader extends Emitter {
   }
 }
 
+function packedPath(url: string): string {
+  const reader = (globalThis as { __LEXI_PACKED_IMAGE__?: (url: string) => string | null }).__LEXI_PACKED_IMAGE__;
+  if (!url || typeof reader !== "function") return "";
+  return reader(url) || "";
+}
+
+export interface FrameRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export function frameRectOf(data: unknown, name: string): FrameRect | null {
+  if (!data || typeof data !== "object") return null;
+  const frames = (data as { frames?: Record<string, { frame?: FrameRect }> }).frames;
+  if (name && frames?.[name]?.frame) {
+    const frame = frames[name].frame;
+    if (!frame || frame.w <= 0 || frame.h <= 0) return null;
+    return { x: frame.x, y: frame.y, w: frame.w, h: frame.h };
+  }
+  const size = (data as { meta?: { size?: { w?: number; h?: number } } }).meta?.size;
+  if (!name && size && size.w && size.h) return { x: 0, y: 0, w: size.w, h: size.h };
+  return null;
+}
+
 class TextureStore {
-  private readonly items = new Map<string, { key: string; data: unknown; image: string }>();
+  private readonly items = new Map<string, { key: string; data: unknown; image: string; packed: string }>();
   exists(key: string): boolean {
     return this.items.has(key);
   }
-  get(key: string): { key: string; data: unknown; image: string; missing: boolean; getFrameNames: () => string[] } {
+  get(key: string): {
+    key: string;
+    data: unknown;
+    image: string;
+    packed: string;
+    missing: boolean;
+    getFrameNames: () => string[];
+    has: (frame: string) => boolean;
+    frameRect: (frame: string) => FrameRect | null;
+  } {
     const item = this.items.get(key);
     const data = item?.data;
     const frames = data && typeof data === "object" && "frames" in data ? Object.keys((data as { frames: object }).frames) : [];
@@ -175,13 +214,15 @@ class TextureStore {
       key,
       data: data ?? null,
       image: item?.image ?? "",
+      packed: item?.packed ?? "",
       missing: !item,
       getFrameNames: () => frames,
       has: (frame: string) => frames.includes(frame),
+      frameRect: (frame: string) => frameRectOf(data, frame),
     };
   }
-  add(key: string, data: unknown, image: string): void {
-    this.items.set(key, { key, data, image });
+  add(key: string, data: unknown, image: string, packed = ""): void {
+    this.items.set(key, { key, data, image, packed: packed || packedPath(image) });
   }
 }
 
@@ -226,6 +267,8 @@ export class ImageNode extends GameNode {
     this.texture = texture;
     this.frame = frame;
     this.pixelMissing = true;
+    this.originX = 0.5;
+    this.originY = 0.5;
     this.width = 1;
     this.height = 1;
     this.playback = new SpritePlayback((next) => {
@@ -274,6 +317,8 @@ class ContainerNode extends GameNode {
   list: GameNode[] = [];
   constructor(scene: unknown, x: number, y: number) {
     super("container", scene, x, y);
+    this.originX = 0.5;
+    this.originY = 0.5;
   }
   add(...node: Array<GameNode | GameNode[]>): this {
     const nodes = node.flat();
@@ -312,6 +357,8 @@ class RectangleNode extends GameNode {
   fillColor = 0xffffff;
   constructor(scene: unknown, x: number, y: number, width: number, height: number, fill?: number) {
     super("rectangle", scene, x, y);
+    this.originX = 0.5;
+    this.originY = 0.5;
     this.width = width;
     this.height = height;
     if (typeof fill === "number") this.fillColor = fill;
@@ -444,7 +491,18 @@ export class RuntimeScene {
       image: (x, y, key, frame) => addNode(new ImageNode(this, x, y, key, frame, "image")),
       sprite: (x, y, key, frame) => addNode(new SpriteNode(this, x, y, key, frame)),
       rectangle: (x, y, width, height, fill) => addNode(new RectangleNode(this, x, y, width, height, fill)),
-      container: (x = 0, y = 0) => addNode(new ContainerNode(this, x, y)),
+      container: (x = 0, y = 0, children?: GameNode[]) => {
+        // 原来：container(x, y, children) 把子节点留在场景根上，按钮字和热区被拆开。
+        // 现在：传入的子节点从场景列表挪进容器，父级就是这个热区。
+        // 为什么：点文字必须命中同一个按钮。Phaser 的第三个参数就是这些子节点。
+        const node = addNode(new ContainerNode(this, x, y));
+        for (const child of children ?? []) {
+          const index = this.children.list.indexOf(child);
+          if (index >= 0) this.children.list.splice(index, 1);
+          node.add(child);
+        }
+        return node;
+      },
       graphics: () => addNode(new GameGraphics(this)),
       zone: (x, y, width, height) => addNode(new ZoneNode(this, x, y, width, height)),
       nineslice: (x, y, texture, frame, width, height, left, right, top, bottom) => {

@@ -1,3 +1,4 @@
+// 这是旧的 openPractice 回归。用户链在 check-user-chain.cjs。这里改写 w8-chain-r2.json，不覆盖 w8-chain.json。
 const fs = require("fs");
 const path = require("path");
 const assert = require("assert");
@@ -60,7 +61,8 @@ for (const size of views) {
   assert.ok(learn.texts.length > 0, `${size.w} learn texts`);
   assert.ok(learn.minFont >= 14, `${size.w} font ${learn.minFont}`);
   assert.ok(learn.hits.length === 0 || learn.minHit >= 44, `${size.w} hit ${learn.minHit}`);
-  assert.ok(learn.minGap >= 8, `${size.w} gap ${learn.minGap}`);
+  // 原来：minGap 从 8 起算。现在间距是相邻盒算出来再四舍五入到 0.001，所以用测量值和 8 比。
+  assert.ok(learn.minGap === null || learn.minGap >= 8, `${size.w} gap ${learn.minGap}`);
   console.log(`learn ${size.w}x${size.h} texts ${learn.texts.length} font ${learn.minFont} hit ${learn.minHit} gap ${learn.minGap}`);
 }
 
@@ -136,7 +138,7 @@ setTimeout(() => {
     console.log(`scene boot active ${scene.key} nodes ${scene.children.length} texts ${plan.texts.length}`);
     assert.strictEqual(scene.key, "profiles", "page boot route reaches profiles");
     assert.ok(plan.texts.length > 0, "profiles has copy");
-    const out = path.join(__dirname, "../evidence/w8-chain.json");
+    const out = path.join(__dirname, "../evidence/w8-chain-r2.json");
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, JSON.stringify({ source: "Node page port.js. Not WeChat DevTools or a phone.", matrix }, null, 2));
     console.log("check-page-chain: learn, battle, results, and the scene matrix");

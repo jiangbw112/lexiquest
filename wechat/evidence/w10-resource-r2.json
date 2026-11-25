@@ -1,0 +1,19 @@
+{
+  "source": "filesystem. Not an IDE upload size.",
+  "mainBytes": 1100496,
+  "subpackages": {
+    "packages/art-ui": 1986863,
+    "packages/art-world": 384080,
+    "packages/fonts": 999279
+  },
+  "importableBytes": 4470718,
+  "packedFontBytes": 998884,
+  "packedFontFiles": 12,
+  "packedMp3": 0,
+  "publicBytes": 33613886,
+  "publicImages": 297,
+  "warmPacked": 21,
+  "requiredButNotPackedImages": 276,
+  "requiredButNotPackedBytes": 29145129,
+  "publicWordMp3": 0
+}

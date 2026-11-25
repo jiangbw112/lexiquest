@@ -41,6 +41,8 @@ export class NineSlice extends GameNode {
     readonly insets: SliceInsets,
   ) {
     super("nineslice", scene, x, y);
+    this.originX = 0.5;
+    this.originY = 0.5;
     this.width = width;
     this.height = height;
   }

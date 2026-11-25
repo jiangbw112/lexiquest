@@ -1,0 +1,58 @@
+
+> lexiquest@1.0.8 build
+> node tools/extract-strings.mjs --check && python3 tools/verify_fonts.py && tsc --noEmit && vite build && node scripts/prod-probes.mjs && node tools/boot-budget.mjs
+
+charset files match the source
+NotoSansSC-Regular-core.woff2 141276 bytes ok
+NotoSansSC-Bold-core.woff2 144344 bytes ok
+ZCOOLKuaiLe-ui.woff2 27780 bytes ok
+NotoSansSC-Regular-g3.woff2 23192 bytes ok
+NotoSansSC-Bold-g3.woff2 23548 bytes ok
+NotoSansSC-Regular-g4.woff2 19188 bytes ok
+NotoSansSC-Bold-g4.woff2 19484 bytes ok
+NotoSansSC-Regular-g5.woff2 23376 bytes ok
+NotoSansSC-Bold-g5.woff2 23852 bytes ok
+NotoSansSC-Regular-g6.woff2 14896 bytes ok
+NotoSansSC-Bold-g6.woff2 15128 bytes ok
+Nunito-latin.woff2 36148 bytes ok
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 132 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                         4.77 kB │ gzip:   1.87 kB
+dist/assets/gloss_overlap_pairs_v0.2-AAQiAoE_.json     45.97 kB │ gzip:   5.90 kB
+dist/assets/chapters_v0.2-cP0Ak13i.json                75.14 kB │ gzip:  13.83 kB
+dist/assets/index-DPx_UgPr.js                       1,747.19 kB │ gzip: 473.07 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 891ms
+prod probes: none in /agent/repos/lexiquest-full-port/dist
+33892	public/assets/atlases/actors.png
+3097	public/assets/atlases/actors.json
+7462	public/assets/chapter/forest/v0.1/atlas/char_cos_acornPin_e@2x.json
+11253	public/assets/chapter/forest/v0.1/atlas/char_cos_acornPin_e@2x.png
+7675	public/assets/chapter/forest/v0.1/atlas/char_cos_forestLeafCape_e@2x.json
+123134	public/assets/chapter/forest/v0.1/atlas/char_cos_forestLeafCape_e@2x.png
+7586	public/assets/chapter/forest/v0.1/atlas/char_cos_forestWreath_e@2x.json
+64460	public/assets/chapter/forest/v0.1/atlas/char_cos_forestWreath_e@2x.png
+818	public/assets/chapter/forest/v0.1/atlas/ui_title_forest@2x.json
+4483	public/assets/chapter/forest/v0.1/atlas/ui_title_forest@2x.png
+18083	public/assets/warm/atlas/atlas_ui_core.json
+162482	public/assets/warm/atlas/atlas_ui_core.png
+7246	public/assets/warm/atlas/atlas_village.json
+183554	public/assets/warm/atlas/atlas_village.png
+99712	public/assets/warm/backgrounds/bg_home_2x.webp
+272136	public/assets/warm/backgrounds/bg_village_2x.webp
+34286	public/assets/warm/logo/logo_title_2x.webp
+23897	public/fonts/fonts.css
+144344	public/fonts/NotoSansSC-Bold-core.woff2
+141276	public/fonts/NotoSansSC-Regular-core.woff2
+36148	public/fonts/Nunito-latin.woff2
+27780	public/fonts/ZCOOLKuaiLe-ui.woff2
+1747198	dist/assets/index-DPx_UgPr.js
+boot total 3162002 bytes, warning 3800000, budget 4194304

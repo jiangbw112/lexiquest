@@ -33,6 +33,8 @@ import { initialMapStageId, stageStatuses } from "../../src/domain/stages";
 import { bootSave, createProfile, getSave } from "../../src/game/session";
 import { shellCopy } from "../platform/host-copy";
 import { missingSpeech } from "../platform/speech";
+import { bindField } from "./install-host";
+import { fontCalls, loadPackedFonts } from "../platform/font";
 
 /**
  * 原来：src/main.ts 用 Phaser.WEBGL 把 18 个场景挂到 #game。
@@ -106,8 +108,14 @@ export function openPractice(now = Date.parse("2026-03-01T00:00:00Z")) {
   return { save: live, chapterId: chapter.id, stageId: initialMapStageId(stageStatuses(live)) };
 }
 
+export function bootFonts() {
+  return loadPackedFonts();
+}
+
 export {
   Phaser,
+  bindField,
+  fontCalls,
   TEXT_CACHE_FIELDS,
   easeValue,
   hitContains,

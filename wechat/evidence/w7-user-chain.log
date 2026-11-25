@@ -1,0 +1,38 @@
+fonts Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Noto Sans SC ok=false | Nunito ok=false | ZCOOL KuaiLe ok=false
+font reasons wx.loadFontFace is not available in this runtime. Official source is an https URL, or a Data URL from base library 3.7.9. No cloud URL was created.
+created 小林 G3 cards 0
+speech word audio missing: tree
+listen 返回 | 换一章 | 0/16 | 学堂 · 三年级 · 森林冒险 | 今日 0/5 | 听一听，选出意思。 | 1 | n. 树 | 2 | adj. 大的 | 3 | n. 鸟 | 再听一次
+learned cards tree won 0
+study 844x390 font 16 hit 44 gap 8 pairs 25 overflow 0 texts 13 images 51 measured true
+study 667x375 font 16 hit 44 gap 8 pairs 31 overflow 0 texts 13 images 51 measured true
+study 915x412 font 16 hit 44 gap 8 pairs 25 overflow 0 texts 13 images 51 measured true
+study 1024x768 font 16 hit 44 gap 8 pairs 24 overflow 0 texts 13 images 52 measured true
+battle 844x390 font 14 hit 44 gap 8 pairs 17 overflow 0 texts 13 images 75 measured true
+battle 667x375 font 14 hit 44 gap 8 pairs 17 overflow 0 texts 13 images 72 measured true
+battle 915x412 font 14 hit 44 gap 8 pairs 15 overflow 0 texts 13 images 75 measured true
+battle 1024x768 font 14 hit 44 gap 8 pairs 13 overflow 0 texts 13 images 81 measured true
+results won 1 lost 0 cards tree
+results 844x390 font 14 hit 44 gap 8 pairs 148 overflow 0 texts 34 images 57 measured true
+results 667x375 font 14 hit 44 gap 8 pairs 152 overflow 0 texts 34 images 57 measured true
+results 915x412 font 14 hit 44 gap 8 pairs 143 overflow 0 texts 34 images 57 measured true
+results 1024x768 font 14 hit 44 gap 8 pairs 131 overflow 0 texts 34 images 57 measured true
+browser canvas drawCalls 57 colors 29 at 349,77 file /agent/repos/lexiquest-full-port/wechat/evidence/w3-browser-canvas.png
+drawImage ops 57 with source rect 57 origin-offset 57 rotation 0 flip 0 tint 0
+sample crop {"url":"assets/warm/atlas/atlas_ui_core.png","packed":"packages/art-ui/atlas__atlas_ui_core.png","sx":680,"sy":2,"sw":40,"sh":40,"x":329.375,"y":56.55,"w":40,"h":40,"alpha":1,"rotation":0,"flipX":false,"tint":16777215}
+battle images 75 study images 51
+after results stages
+collection 词卡册 | 已收集 1 个 · 词卡不会因为徽章变灰而消失 | tree | n. 树 | 未熟练 | 返回 Esc
+collection 844x390 font 14 hit 44 gap 8 pairs 9 overflow 0 texts 6 images 21 measured true
+collection 667x375 font 14 hit 44 gap 8 pairs 9 overflow 0 texts 6 images 21 measured true
+collection 915x412 font 14 hit 44 gap 8 pairs 9 overflow 0 texts 6 images 21 measured true
+collection 1024x768 font 14 hit 44 gap 8 pairs 9 overflow 0 texts 6 images 23 measured true
+review 复习桌 | 在不同的两天都记住它，就能点亮徽章。同一天反复练习不会点亮徽章。 | 现在没有到复习时间的词。 | tree | n. 树 | 拼写 | 盖住拼 | 大约 10 分钟后 | 未熟练 | 返回 Esc
+review clock buttons are drawn only when devModeEnabled(location.search) is on. This run did not set that flag.
+review 844x390 font 14 hit 44 gap 8 pairs 16 overflow 0 texts 9 images 34 measured true
+review 667x375 font 14 hit 44 gap 8 pairs 19 overflow 0 texts 9 images 34 measured true
+review 915x412 font 14 hit 44 gap 8 pairs 16 overflow 0 texts 9 images 34 measured true
+review 1024x768 font 14 hit 44 gap 8 pairs 16 overflow 0 texts 9 images 37 measured true
+node image gap canvas.createImage is not available; packed images were not decoded in this runtime
+check-user-chain: profiles, name, learn, battle, results, collection, review
+clicks: Node page adapter. geometry: Chrome canvas measureText. pixels: Chrome canvas drawImage. Not WeChat DevTools. Not a phone.

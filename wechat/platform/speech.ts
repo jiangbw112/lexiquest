@@ -4,6 +4,8 @@
  * 为什么：仓库没有合法词录音，不能生成 mp3。缺词必须能被页面读到，不能再静默返回。
  */
 
+import { speakWordFile, stopWordAudio } from "./tts";
+
 export interface WordSpeaker {
   speak(text: string): void;
   cancel(): void;
@@ -34,13 +36,21 @@ export function placeholderSpeaker(log: string[] = []): WordSpeaker {
 export function browserSpeaker(): WordSpeaker {
   return {
     speak(text: string) {
-      const reason = `word audio missing: ${text}`;
-      missing.push(reason);
-      const hook = (globalThis as { __LEXI_SPEECH_GAP__?: (reason: string) => void }).__LEXI_SPEECH_GAP__;
-      hook?.(reason);
+      // 原来：这里只把缺词推进数组，speakWordFile 没有被调用。
+      // 现在：先按英文找词 id，再调用 speakWordFile。仓库里没有 mp3，hasFile 为 false，原因进入可见名单。
+      // 为什么：缺文件和没调用是两件事。调用必须发生，文件缺失单独记录。
+      const lookup = (globalThis as { __LEXI_WORD_ID__?: (english: string) => string }).__LEXI_WORD_ID__;
+      const wordId = lookup?.(text) || text;
+      const hasFile = (globalThis as { __LEXI_HAS_WORD_AUDIO__?: (id: string) => boolean }).__LEXI_HAS_WORD_AUDIO__?.(wordId) === true;
+      const result = speakWordFile(wordId, hasFile);
+      if (!result.ok) {
+        missing.push(result.reason);
+        const hook = (globalThis as { __LEXI_SPEECH_GAP__?: (reason: string) => void }).__LEXI_SPEECH_GAP__;
+        hook?.(result.reason);
+      }
     },
     cancel() {
-      return undefined;
+      stopWordAudio();
     },
   };
 }

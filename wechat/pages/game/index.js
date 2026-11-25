@@ -492,11 +492,20 @@ Page({
     try {
       const port = require("./port.js");
       this._port = port.attach(canvas, { w: this._viewW, h: this._viewH, route: "boot" });
+      this.armImages(canvas);
       this.armPortLoop();
     } catch (err) {
       this._portError = String(err && err.message ? err.message : err);
       this._failures.atlas = this._portError;
     }
+  },
+
+  // 原来：图集 JSON 进了包，PNG 没有解码入口。
+  // 现在：对已打包的原图调用 canvas.createImage。没有这个接口就记一条可见失败。
+  // 为什么：drawImage 需要位图。Node 里没有 createImage，不能把缺解码写成已经画出原画。
+  armImages(canvas) {
+    if (!this._port || typeof this._port.armImages !== "function") return;
+    this._port.armImages(canvas);
   },
 
   armPortLoop() {
