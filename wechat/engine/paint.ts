@@ -23,6 +23,7 @@ export interface PaintBox {
   h: number;
   interactive: boolean;
   nested: boolean;
+  onPaper?: boolean;
   node: GameNode;
   lines?: string[];
   polygon?: Array<{ x: number; y: number }>;
@@ -59,6 +60,7 @@ export interface FramePlan {
   gapPairs: number;
   overflow: number;
   overlap: number;
+  overlapLabels: string[];
   measured: boolean;
 }
 
@@ -199,6 +201,7 @@ interface Unit {
   w: number;
   h: number;
   lines: string[];
+  onPaper?: boolean;
 }
 
 function shapeBounds(shapes: MaskShape[]): WorldRect | null {
@@ -246,11 +249,24 @@ function intersectsBox(a: WorldRect, b: WorldRect): boolean {
   return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 }
 
-function isBackground(box: WorldRect, view: ViewBox): boolean {
-  // 整屏底图，以及占视口 18% 以上的羊皮纸中心。更小的图是角色、图标和边框，文字不能压上去。
+function plateKind(box: WorldRect, view: ViewBox): "room" | "paper" | "art" {
   const area = box.w * box.h;
-  const viewArea = view.w * view.h;
-  return area >= viewArea * 0.62 || area >= viewArea * 0.18;
+  const viewArea = Math.max(1, view.w * view.h);
+  if (area >= viewArea * 0.62) return "room";
+  if (area >= viewArea * 0.18) return "paper";
+  return "art";
+}
+
+function paperInterior(box: WorldRect): WorldRect {
+  const inset = Math.max(16, Math.round(Math.min(box.w, box.h) * 0.08));
+  const w = box.w - inset * 2;
+  const h = box.h - inset * 2;
+  if (w < 48 || h < 48) return box;
+  return { x: box.x + inset, y: box.y + inset, w, h };
+}
+
+function boxInside(inner: WorldRect, outer: WorldRect): boolean {
+  return inner.x >= outer.x - 0.5 && inner.y >= outer.y - 0.5 && inner.x + inner.w <= outer.x + outer.w + 0.5 && inner.y + inner.h <= outer.y + outer.h + 0.5;
 }
 
 interface Occupancy {
@@ -260,13 +276,13 @@ interface Occupancy {
   step: number;
 }
 
-function markBox(grid: Occupancy, box: WorldRect): void {
+function markBox(grid: Occupancy, box: WorldRect, value = 1): void {
   const x0 = Math.max(0, Math.floor(box.x / grid.step));
   const y0 = Math.max(0, Math.floor(box.y / grid.step));
   const x1 = Math.min(grid.cols - 1, Math.floor((box.x + Math.max(0, box.w) - 0.01) / grid.step));
   const y1 = Math.min(grid.rows - 1, Math.floor((box.y + Math.max(0, box.h) - 0.01) / grid.step));
   for (let y = y0; y <= y1; y += 1) {
-    for (let x = x0; x <= x1; x += 1) grid.blocked[y * grid.cols + x] = 1;
+    for (let x = x0; x <= x1; x += 1) grid.blocked[y * grid.cols + x] = value;
   }
 }
 
@@ -297,9 +313,9 @@ function placeUnits(
   worldBoxes: WorldRect[],
   measure: MeasureText | undefined,
 ): void {
-  // 原来：从 (12, 58) 向右排，文字落在已经画好的世界面板上。minGap 若从 8 起算，重叠也会被说成通过。
-  // 现在：面板、角色、列表窗口占格。UI 只放进剩余格子，按钮至少 44，相邻格子空 8。放不下的落到视口下沿，记入 overflow。
-  // 为什么：只看有没有画出屏幕，会把盖住插图的字当成 0。整屏底图不占格，其余图都占。
+  // 原来：占视口 18% 的羊皮纸整张不算障碍，标题就排到纸面上，结算左侧还留着场景自己的字。
+  // 现在：整屏底图不占格。羊皮纸只留内边距给说明文字，木框、角色和图标占格。说明字放不进纸面就落到视口下沿，不再铺到左侧空白上。
+  // 为什么：把大图排除出 overlap，会把压在面板上的字算成 0。
   const step = 4;
   const grid: Occupancy = {
     blocked: new Uint8Array(Math.ceil(view.w / step) * Math.ceil(view.h / step)),
@@ -311,8 +327,16 @@ function placeUnits(
   markBox(grid, { x: 0, y: view.h - 4, w: view.w, h: 4 });
   markBox(grid, { x: 0, y: 0, w: 8, h: view.h });
   markBox(grid, { x: view.w - 4, y: 0, w: 4, h: view.h });
+  const interiors: WorldRect[] = [];
   for (const box of worldBoxes) {
-    if (box.w <= 0 || box.h <= 0 || isBackground(box, view)) continue;
+    if (box.w <= 0 || box.h <= 0 || plateKind(box, view) !== "paper") continue;
+    const interior = paperInterior(box);
+    interiors.push(interior);
+    markBox(grid, box);
+    markBox(grid, interior, 0);
+  }
+  for (const box of worldBoxes) {
+    if (box.w <= 0 || box.h <= 0 || plateKind(box, view) !== "art") continue;
     markBox(grid, box);
   }
   if (scene) {
@@ -322,7 +346,35 @@ function placeUnits(
       if (band) markBox(grid, band);
     }
   }
-  const ordered = [...units].sort((a, b) => Number(b.interactive) - Number(a.interactive) || a.text.length - b.text.length || a.design.y - b.design.y);
+  const flow = interiors.map((region) => ({ region, x: region.x, y: region.y, rowH: 0 }));
+  const placeFlow = (unit: Unit): boolean => {
+    for (const row of flow) {
+      const width = Math.max(28, row.region.w);
+      fitText(unit, width, measure);
+      if (unit.h > row.region.h) continue;
+      const advance = () => {
+        row.x = row.region.x;
+        row.y += row.rowH + UI_GAP;
+        row.rowH = 0;
+      };
+      if (row.x > row.region.x && row.x + unit.w > row.region.x + row.region.w) advance();
+      if (row.y + unit.h > row.region.y + row.region.h) continue;
+      if (!cellFree(grid, row.x, row.y, unit.w, unit.h)) {
+        row.x += grid.step;
+        if (row.x + unit.w > row.region.x + row.region.w) advance();
+        if (row.y + unit.h > row.region.y + row.region.h || !cellFree(grid, row.x, row.y, unit.w, unit.h)) continue;
+      }
+      unit.x = row.x;
+      unit.y = row.y;
+      unit.onPaper = true;
+      markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+      row.x += unit.w + UI_GAP;
+      row.rowH = Math.max(row.rowH, unit.h);
+      return true;
+    }
+    return false;
+  };
+  const ordered = [...units].sort((a, b) => Number(b.interactive) - Number(a.interactive) || a.design.y - b.design.y || a.design.x - b.design.x);
   let overflowY = view.h;
   const spansAt = (y: number, h: number) => {
     const spans: Array<{ x: number; w: number }> = [];
@@ -340,7 +392,7 @@ function placeUnits(
     if (run >= 0) spans.push({ x: run, w: xEnd - run });
     return spans.filter((span) => span.w >= 16);
   };
-  const tryPlace = (unit: Unit, natural: number): boolean => {
+  const tryPlace = (unit: Unit, natural: number, regions: WorldRect[] | null): boolean => {
     const probes = unit.interactive ? [UI_HIT] : [1, 2, 3, 4, 6, 8, 12].map((lines) => Math.max(14, unit.fontPx) * lines);
     for (const probe of probes) {
       const yMax = view.h - 4 - probe;
@@ -356,6 +408,7 @@ function placeUnits(
             if (unit.h > probe) continue;
           }
           if (y + unit.h > view.h - 4) continue;
+          if (regions && regions.length && !regions.some((region) => boxInside({ x: span.x, y, w: unit.w, h: unit.h }, region))) continue;
           if (!cellFree(grid, span.x, y, unit.w, unit.h)) continue;
           unit.x = span.x;
           unit.y = y;
@@ -368,7 +421,9 @@ function placeUnits(
   };
   for (const unit of ordered) {
     const natural = Math.max(16, unit.w);
-    if (tryPlace(unit, natural)) continue;
+    const regions = unit.interactive || interiors.length === 0 ? null : interiors;
+    if (!unit.interactive && regions && placeFlow(unit)) continue;
+    if (tryPlace(unit, natural, regions)) continue;
     if (!unit.interactive && unit.text.length > 1) {
       const snapshot = grid.blocked.slice();
       let split = false;
@@ -379,7 +434,7 @@ function placeUnits(
         let all = true;
         for (const line of lines) {
           const piece: Unit = { ...unit, text: line, lines: [line], w: width, h: unit.fontPx };
-          if (!tryPlace(piece, width)) {
+          if (!tryPlace(piece, width, regions)) {
             all = false;
             break;
           }
@@ -395,6 +450,7 @@ function placeUnits(
       if (split) continue;
       grid.blocked.set(snapshot);
     }
+    if (regions && tryPlace(unit, natural, null)) continue;
     unit.x = 8;
     unit.y = overflowY;
     overflowY += Math.max(unit.h, unit.fontPx || UI_HIT) + UI_GAP;
@@ -831,6 +887,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       nested: false,
       node: unit.node,
       lines: unit.lines,
+      onPaper: unit.onPaper,
     });
     if (!unit.interactive) continue;
     const design = unit.design;
@@ -923,11 +980,25 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   const overflow = items.filter((item) => item.y < 50 || item.y + item.h > view.h - 4 || item.x < 8 || item.x + item.w > view.w - 4).length;
   const mask = scene ? firstMask(scene) : null;
   const maskShapes = mask ? screenShapes(mask.shapes, view) : [];
-  const overlap = texts.filter((item) => {
+  const overlapLabels: string[] = [];
+  for (const item of texts) {
+    const before = overlapLabels.length;
     const box = { x: item.x, y: item.y, w: item.w, h: item.h };
-    if (worldBoxes.some((art) => art.w > 0 && art.h > 0 && !isBackground(art, view) && intersectsBox(box, art))) return true;
-    return maskShapes.some((shape) => boxHitsShape(box, shape));
-  }).length;
+    for (const art of worldBoxes) {
+      if (art.w <= 0 || art.h <= 0 || !intersectsBox(box, art)) continue;
+      const kind = plateKind(art, view);
+      if (kind === "room") continue;
+      if (kind === "paper") {
+        const interior = paperInterior(art);
+        const slack = { x: interior.x - 4, y: interior.y - 4, w: interior.w + 8, h: interior.h + 8 };
+        if (boxInside(box, slack)) continue;
+      }
+      overlapLabels.push(`${item.text.slice(0, 16)} on ${kind} ${Math.round(art.x)},${Math.round(art.y)} ${Math.round(art.w)}x${Math.round(art.h)}`);
+      break;
+    }
+    if (overlapLabels.length === before && maskShapes.some((shape) => boxHitsShape(box, shape))) overlapLabels.push(`${item.text.slice(0, 16)} on mask`);
+  }
+  const overlap = overlapLabels.length;
   return {
     items,
     texts,
@@ -940,6 +1011,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     gapPairs: gaps.length,
     overflow,
     overlap,
+    overlapLabels,
     measured: Boolean(measure),
   };
 }
@@ -1158,6 +1230,10 @@ function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintC
 function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.kind === "text" && item.text) {
+      if (!item.nested && !item.onPaper) {
+        ctx.fillStyle = "#f3e2c2";
+        ctx.fillRect(item.x, item.y, item.w, item.h);
+      }
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
       paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
       continue;

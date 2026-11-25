@@ -60,7 +60,15 @@ async function main() {
           super("probe-text");
         }
         create() {
-          this.add.text(20, 20, "词境练习", { fontFamily: "sans-serif", fontSize: "20px", color: "#17352a" });
+          const rows = [
+            ["词境练习", "20px", "#17352a"],
+            ["胜利", "28px", "#17352a"],
+            ["答对 3 题", "16px", "#1f7a4d"],
+            ["复习桌", "18px", "#6d5bd0"],
+          ];
+          rows.forEach(([text, fontSize, color], index) => {
+            this.add.text(20, 24 + index * 36, text, { fontFamily: "sans-serif", fontSize, color });
+          });
         }
       }
       const runtime = new game.Phaser.Game({ canvas, width: 844, height: 390, scene: [Probe] });
@@ -81,16 +89,18 @@ async function main() {
     log(`second ${JSON.stringify(result.second)}`);
     log(`ink samples ${result.ink}`);
     assert.strictEqual(result.first.fill, 0, "first paint wrote fillText on the main canvas");
-    assert.ok(result.first.draw >= 1, "first paint did not drawImage a texture");
-    assert.ok(result.first.stats.created >= 1, "no texture was created");
+    assert.strictEqual(result.first.draw, 4, "first paint did not draw four distinct textures");
+    assert.strictEqual(result.first.stats.created, 4, "four strings did not create four textures");
+    assert.strictEqual(result.first.stats.reused, 0, "first paint reused a texture before it existed");
     assert.strictEqual(result.second.fill, 0, "second paint fell back to fillText");
-    assert.ok(result.second.draw >= 1, "second paint did not drawImage");
-    assert.ok(result.second.stats.reused >= 1, "second paint did not reuse the texture");
+    assert.strictEqual(result.second.draw, 4, "second paint did not redraw the four textures");
+    assert.strictEqual(result.second.stats.created, 4, "second paint created more textures");
+    assert.strictEqual(result.second.stats.reused, 4, "second paint did not reuse each texture");
     assert.ok(result.ink > 0, "cached glyph left the canvas blank");
-    const out = path.join(root, "evidence/w3-glyph.log");
+    const out = path.join(root, "evidence/w3-glyph-r2.log");
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, `${lines.join("\n")}\n`);
-    fs.copyFileSync(out, "/opt/cursor/artifacts/w3-glyph.log");
+    fs.copyFileSync(out, "/opt/cursor/artifacts/w3-glyph-r2.log");
   } finally {
     await browser.close();
   }

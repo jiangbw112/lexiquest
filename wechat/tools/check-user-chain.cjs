@@ -127,8 +127,18 @@ function assertGeometry(tag, size, plan) {
   if (plan.overflow) {
     const bad = [...plan.texts, ...plan.hits].filter((item) => item.y < 50 || item.y + item.h > size.h - 4 || item.x < 8 || item.x + item.w > size.w - 4);
     for (const item of bad) log(` overflow ${tag} ${item.nested ? "nested" : "root"} ${JSON.stringify(item.text || "")} ${item.x.toFixed(0)},${item.y.toFixed(0)} ${item.w.toFixed(0)}x${item.h.toFixed(0)}`);
+    const plates = [...plan.images, ...plan.fills]
+      .map((item) => ({ x: Math.round(item.x), y: Math.round(item.y), w: Math.round(item.w), h: Math.round(item.h), area: item.w * item.h }))
+      .filter((item) => item.area >= size.w * size.h * 0.1)
+      .sort((a, b) => b.area - a.area)
+      .slice(0, 4);
+    log(` plates ${JSON.stringify(plates)}`);
   }
   assert.strictEqual(plan.overflow, 0, `${tag} ${size.w} overflow ${plan.overflow}`);
+  if (plan.overlap) {
+    const texts = plan.texts.filter((item) => item.y < size.h).slice(0, 12);
+    log(` overlap-labels ${JSON.stringify(plan.overlapLabels)}`);
+  }
   assert.strictEqual(plan.overlap, 0, `${tag} ${size.w} overlap ${plan.overlap}`);
   log(`${tag} ${size.w}x${size.h} font ${plan.minFont} hit ${plan.minHit} gap ${plan.minGap} pairs ${plan.gapPairs} overflow ${plan.overflow} overlap ${plan.overlap} texts ${plan.texts.length} images ${plan.images.length} measured ${plan.measured}`);
 }
@@ -189,8 +199,12 @@ async function shoot(page, plan, file) {
       ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
     }
     ctx.textBaseline = "top";
-    ctx.fillStyle = "#17352a";
     for (const item of texts) {
+      if (!item.onPaper && !item.nested) {
+        ctx.fillStyle = "#f3e2c2";
+        ctx.fillRect(item.x, item.y, item.w, item.h);
+      }
+      ctx.fillStyle = "#17352a";
       const rows = item.lines && item.lines.length ? item.lines : [item.text];
       ctx.font = `${item.fontPx}px sans-serif`;
       rows.forEach((row, index) => ctx.fillText(row, item.x, item.y + index * item.fontPx));
@@ -204,7 +218,7 @@ async function shoot(page, plan, file) {
     return { drawCalls, colors: colors.size, at: [px, py] };
   }, {
     ops: plan.images.map((op) => ({ url: op.url, packed: op.packed, sx: op.sx, sy: op.sy, sw: op.sw, sh: op.sh, x: op.x, y: op.y, w: op.w, h: op.h, rotation: op.rotation, flipX: op.flipX, tint: op.tint })),
-    texts: plan.texts.map((item) => ({ text: item.text, lines: item.lines || [], x: item.x, y: item.y, fontPx: item.fontPx })),
+    texts: plan.texts.map((item) => ({ text: item.text, lines: item.lines || [], x: item.x, y: item.y, w: item.w, h: item.h, fontPx: item.fontPx, onPaper: Boolean(item.onPaper), nested: Boolean(item.nested) })),
     images,
     fills: plan.fills.map((fill) => ({ x: fill.x, y: fill.y, w: fill.w, h: fill.h, color: fill.color })),
     w: view.w,
@@ -216,7 +230,15 @@ async function shoot(page, plan, file) {
 
 const SKIP = /攻击|格挡|治疗|返回|基础招式|盾击|听一听|正确答案|效果减弱|能量不够|^★/;
 
+function installJsonRead() {
+  globalThis.__LEXI_READ_FILE__ = (rel) => {
+    const full = path.join(root, rel);
+    return fs.existsSync(full) ? fs.readFileSync(full, "utf8") : null;
+  };
+}
+
 async function main() {
+  installJsonRead();
   const canvas = {
     width: view.w,
     height: view.h,
@@ -308,8 +330,8 @@ async function main() {
     log(`results won ${fought.battlesWon} lost ${fought.battlesLost} cards ${Object.keys(fought.wordCards).join(",")}`);
     port.step(400);
     const results = await geometry("results", port, page);
-    const shot = path.join(root, "evidence/w3-browser-canvas.png");
-    const artifact = "/opt/cursor/artifacts/wechat-browser-canvas.png";
+    const shot = path.join(root, "evidence/w3-results-after.png");
+    const artifact = "/opt/cursor/artifacts/w3-results-after.png";
     fs.mkdirSync(path.dirname(shot), { recursive: true });
     fs.mkdirSync("/opt/cursor/artifacts", { recursive: true });
     const sample = await shoot(page, results, shot);
@@ -343,8 +365,10 @@ async function main() {
 
     assert.ok(press(port, "返回"), "离开册子");
     port.step(400);
+    assert.strictEqual(port.runtime.active().key, "overworld", "离开册子后回到村子");
     assert.ok(press(port, "复习桌"), "复习桌");
-    port.step(500);
+    port.step(400);
+    log(`review entered ${port.runtime.active().key} after one click and 400ms`);
     assert.strictEqual(port.runtime.active().key, "review");
     const waiting = port.paint(null, view).texts.map((item) => item.text).join(" | ");
     log(`review waiting ${waiting}`);
@@ -352,16 +376,12 @@ async function main() {
     const instantsBefore = (port.save().memory.tree && port.save().memory.tree.reviewInstants || []).length;
     globalThis.location.search = "?dev=1";
     assert.ok(press(port, "返回"), "离开复习");
-    port.step(300);
+    port.step(400);
     log(`after review back ${port.runtime.active().key} ${port.paint(null, view).texts.map((item) => item.text).join(" | ")}`);
-    assert.ok(press(port, "复习桌"), "带沙漏再进复习桌");
-    port.step(300);
-    log(`reentered ${port.runtime.active().key}`);
-    if (port.runtime.active().key !== "review") {
-      assert.ok(press(port, "复习桌"), "再按一次复习桌");
-      port.step(300);
-      log(`reentered-2 ${port.runtime.active().key} ${port.paint(null, view).texts.map((item) => item.text).slice(0, 12).join(" | ")}`);
-    }
+    assert.strictEqual(port.runtime.active().key, "overworld");
+    assert.ok(press(port, "复习桌"), "沙漏只用于到期写回，进门仍是一次点击");
+    port.step(400);
+    log(`review reentered ${port.runtime.active().key} after one click and 400ms`);
     assert.strictEqual(port.runtime.active().key, "review");
     assert.ok(press(port, "沙漏 +10 分钟"), "沙漏 +10 分钟");
     port.step(200);
@@ -393,20 +413,24 @@ async function main() {
         const plan = port.paint(null, view);
         const row = { key, ok: true, texts: plan.texts.length, overlap: plan.overlap, overflow: plan.overflow };
         sceneReport.push(row);
-        log(`scene ${key} texts ${row.texts} overlap ${row.overlap} overflow ${row.overflow}`);
+        const painted = await measuredPlan(port.runtime.active(), view, page);
+        const sceneShot = path.join(root, `evidence/w8-r4-${key}.png`);
+        await shoot(page, painted, sceneShot);
+        row.shot = sceneShot;
+        log(`scene ${key} texts ${row.texts} overlap ${row.overlap} overflow ${row.overflow} chrome ${sceneShot}`);
       } catch (error) {
         sceneReport.push({ key, ok: false, error: String(error && error.message ? error.message : error) });
         log(`scene ${key} unfinished ${error && error.message ? error.message : error}`);
       }
     }
-    log("scene sweep is Node construction on the save this click chain wrote. It is not a WeChat screenshot diff and not DevTools.");
+    log("scene shots are Chrome replays of this adapter's layout. There is no web pixel diff. Not DevTools. Not a phone.");
 
     const nodeGap = port.runtime.failures.find((item) => String(item).includes("createImage"));
     log(`node image gap ${nodeGap}`);
     assert.ok(nodeGap, "Node records that pixels were not decoded");
     log("check-user-chain: profiles, name, learn, battle, results, collection, review");
     log("clicks: Node page adapter. geometry: Chrome canvas measureText. pixels: Chrome canvas drawImage. Not WeChat DevTools. Not a phone.");
-    const out = path.join(root, "evidence/w7-user-chain.json");
+    const out = path.join(root, "evidence/w7-user-chain-r4.json");
     fs.writeFileSync(out, JSON.stringify({
       source: "Node clicks through pages/game/port.js. Chrome canvas measureText and one drawImage replay. Not WeChat DevTools and not a phone.",
       name: port.save().player.name,
@@ -420,7 +444,7 @@ async function main() {
       sampleColors: sample.colors,
       scenes: sceneReport,
     }, null, 2));
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain.log"), `${lines.join("\n")}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r4.log"), `${lines.join("\n")}\n`);
   } finally {
     await browser.close();
   }
@@ -430,7 +454,7 @@ main().then(() => process.exit(0)).catch((error) => {
   console.error(error && error.stack ? error.stack : error);
   try {
     fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r4.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
   } catch (writeError) {
     console.error(writeError);
   }
