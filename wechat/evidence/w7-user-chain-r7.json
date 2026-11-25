@@ -1,0 +1,76 @@
+{
+  "source": "Node clicks through pages/game/port.js. Chrome canvas measureText and one drawImage replay. Not WeChat DevTools and not a phone.",
+  "name": "小林",
+  "grades": [
+    "G3"
+  ],
+  "cards": [
+    "tree"
+  ],
+  "battlesWon": 1,
+  "battlesLost": 0,
+  "speech": [
+    "word audio missing: tree"
+  ],
+  "fontOk": 0,
+  "drawCalls": 69,
+  "sampleColors": 37,
+  "scenes": [
+    {
+      "key": "skills",
+      "ok": true,
+      "texts": 17,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-skills.png"
+    },
+    {
+      "key": "wardrobe",
+      "ok": true,
+      "texts": 7,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-wardrobe.png"
+    },
+    {
+      "key": "guide",
+      "ok": true,
+      "texts": 3,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-guide.png"
+    },
+    {
+      "key": "ending",
+      "ok": true,
+      "texts": 9,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-ending.png"
+    },
+    {
+      "key": "duel",
+      "ok": true,
+      "texts": 6,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-duel.png"
+    },
+    {
+      "key": "exam-battle",
+      "ok": true,
+      "texts": 20,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-exam-battle.png"
+    },
+    {
+      "key": "title",
+      "ok": true,
+      "texts": 4,
+      "overlap": 0,
+      "overflow": 0,
+      "shot": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r7-title.png"
+    }
+  ]
+}
