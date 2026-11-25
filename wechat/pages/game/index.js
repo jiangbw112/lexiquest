@@ -49,6 +49,7 @@ function frameOf(name) {
 Page({
   data: {
     showCanvas: true,
+    showNativeInput: false,
     canvasNodeMissing: false,
     canvasNodeMissingText: "",
     canvasContextMissing: false,
