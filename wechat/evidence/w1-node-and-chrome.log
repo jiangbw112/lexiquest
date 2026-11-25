@@ -1,0 +1,74 @@
+=== p05 ===
+deadlock fixed sequence
+after start: {"id":7,"target":"play","cancelled":false} action null
+end changedTouches id 9, liveTouches []: {"id":null,"target":null,"cancelled":false} action null
+next start: {"id":8,"target":"play","cancelled":false} action null
+next end: {"id":null,"target":null,"cancelled":false} action play
+p05-check: static/unit/layout only — not WeChat DevTools, not a device, not a wx mock runtime
+checks 452
+landscape 844x390 scale 0.4875 offset 110,0 play 44x44
+safeArea swapped sample edges 44,0,778,375 sideUncertain true
+safeArea right<=bottom kept right 300 bottom 390 swapped false
+debug win 844x390 dpr 3 backing 2532x1170 scale 0.4875 off 110,0 safe 0,0,844,390 frames play=btn_up reset=mark safeArea ok rect 0,0 point none
+P05:0
+=== atlas ===
+check-atlas-match: js fields equal json fields
+source: Node
+ATLAS:0
+=== debug ===
+"develop" -> true expected true ok
+"trial" -> true expected true ok
+"release" -> false expected false ok
+undefined -> true expected true ok
+"" -> true expected true ok
+source: Node pure function. A release package was not built.
+check-debug-line: 5 inputs, 0 failed
+DEBUG:0
+=== status ===
+844x390 fail 12,8 343.31x16.00 title 118.00,50.00 160.00x32.00
+667x375 fail 12,8 343.31x16.00 title 41.50,50.00 160.00x32.00
+915x412 fail 12,8 343.31x16.00 title 135.90,50.00 160.00x32.00
+1024x768 fail 12,8 343.31x16.00 title 8.00,114.00 175.94x35.20
+844x390-recorded-safe fail 59,8 343.31x16.00 title 118.00,50.00 160.00x32.00
+check-status-band: 5 view rows, 0 problems
+source: browser canvas (Chrome). Not WeChat.
+STATUS:0
+=== original p06 ===
+file:///agent/repos/lexiquest-full-port/wechat/pages/game/layout.js:791
+module.exports = {
+^
+
+ReferenceError: module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and '/agent/repos/lexiquest-full-port/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///agent/repos/lexiquest-full-port/wechat/pages/game/layout.js:791:1
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:454:37)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:445:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1600:24)
+    at Module._compile (node:internal/modules/cjs/loader:1763:5)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at Module.require (node:internal/modules/cjs/loader:1527:12)
+
+Node.js v22.23.4
+ADV:1
+file:///agent/repos/lexiquest-full-port/wechat/pages/game/probe.js:14
+const { layoutProbe, auditProbe } = require("./layout.js");
+                                    ^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+This file is being treated as an ES module because it has a '.js' file extension and '/agent/repos/lexiquest-full-port/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///agent/repos/lexiquest-full-port/wechat/pages/game/probe.js:14:37
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:454:37)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:445:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1600:24)
+    at Module._compile (node:internal/modules/cjs/loader:1763:5)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at Module.require (node:internal/modules/cjs/loader:1527:12)
+
+Node.js v22.23.4
+SMOKE:1

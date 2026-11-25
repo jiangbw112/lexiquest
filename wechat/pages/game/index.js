@@ -5,8 +5,9 @@
  * 现在：本页只有 type="2d" canvas，按窗口逻辑像素 letterbox。P0.5 补横屏、单指触摸、前后台、重排和可见失败。
  * 为什么：这一阶段只修补骨架。场景迁移、mini-engine、存档都不在这里。
  *
- * 需要复核的偏差：canvas node 缺失时没有 2d context，不能把 “canvas node missing” 画到不存在的画布上。
- * 这一类只显示 cover-view 原生文本，不是 canvas fillText。图集和音频失败仍画在 canvas 上。
+ * 需要复核：node 缺失和 context 缺失分成两条路径。验收记录里 cover-view 和普通 view 在原生画布还在时都看不见。
+ * 现在两条都把 canvas 从树上摘掉，再用普通 view 写原因和页面路径。没有新的模拟器截图，可见性仍未验证。
+ * 图集和音频失败仍画在 canvas 上。?p06= 探针入口保留。
  */
 
 const {
@@ -26,13 +27,19 @@ const {
   showsDebugLine,
   safeAreaDebugNote,
   formatDebugLine,
+  statusBoxes,
   CANVAS_NODE_MISSING,
   CANVAS_CONTEXT_MISSING,
 } = require("./layout.js");
-const atlas = require("../../assets/atlas/skeleton-atlas.json");
+const { isProbeFrame, drawProbe } = require("./probe.js");
+// 原来：require("../../assets/atlas/skeleton-atlas.json")。小程序 require 不解析 .json，
+// DevTools 报 "module 'assets/atlas/skeleton-atlas.json.js' is not defined"，页面加载即失败。
+// 现在：改 require 同内容的 .js 模块。
+const atlas = require("../../assets/atlas/skeleton-atlas.js");
 
 const ATLAS_SRC = "/assets/atlas/skeleton-atlas.png";
 const AUDIO_SRC = "/assets/audio/tap.wav";
+const PAGE_PATH = "/pages/game/index";
 
 function frameOf(name) {
   const item = atlas.frames[name];
@@ -41,11 +48,20 @@ function frameOf(name) {
 
 Page({
   data: {
-    canvasMissing: false,
-    canvasMissingText: "",
+    showCanvas: true,
+    canvasNodeMissing: false,
+    canvasNodeMissingText: "",
+    canvasContextMissing: false,
+    canvasContextMissingText: "",
   },
 
-  onLoad() {
+  // 原来：页面只有 P0.5 骨架，三种探针只在 Node 里算，页面从不绘制。
+  // 现在：onLoad 读 ?p06=title|grade|battle，命中才进入探针绘制；不带参数时行为完全不变。
+  // 为什么：字号、换行、热区必须在真实画布上验证，Node 只能证明数字自洽。
+  onLoad(options) {
+    this._probeFrame = isProbeFrame(options && options.p06) ? options.p06 : "";
+    this._devFail = "";
+    this.captureDevFail(options);
     this._alive = true;
     this._hidden = false;
     this._pointer = createPointerState();
@@ -134,8 +150,13 @@ Page({
     const query = typeof this.createSelectorQuery === "function"
       ? this.createSelectorQuery()
       : wx.createSelectorQuery();
+    // 原来：node 和 context 共用 canvasMissing，cover-view 盖在仍存在的原生画布上。
+    // 现在：p06fail=node 只在 envVersion 恰好为 develop 时查询一个不存在的 id，让选择器真正返回空。
+    //       p06fail=context 让 getContext 抛错。两条 setData 不共用。?p06= 探针参数不动。
+    // 为什么：验收里只 setData 时画面没有红字。空字符串和 trial 不当成 develop。cli preview 的 envVersion 本机未核实。
+    const selector = this._devFail === "node" ? "#p06-absent-canvas" : "#game-canvas";
     query
-      .select("#game-canvas")
+      .select(selector)
       .fields({ node: true, size: true, rect: true })
       .exec((res) => {
         if (!this._alive || gen !== this._queryGen) return;
@@ -144,8 +165,7 @@ Page({
           this._canvas = null;
           this._ctx = null;
           this._layout = null;
-          // 需要复核：这里不是往 canvas 上画字。没有 node，下面的 cover-view 只放一行原生文本。
-          this.showCanvasFallback(CANVAS_NODE_MISSING);
+          this.showNodeMissing();
           return;
         }
         let info = null;
@@ -178,7 +198,14 @@ Page({
           }
           this._ctx = null;
           try {
-            this._ctx = typeof canvas.getContext === "function" ? canvas.getContext("2d") : null;
+            if (this._devFail === "context") {
+              const throwingGetContext = function () {
+                throw new Error("p06fail=context");
+              };
+              this._ctx = throwingGetContext("2d");
+            } else {
+              this._ctx = typeof canvas.getContext === "function" ? canvas.getContext("2d") : null;
+            }
           } catch (err) {
             this._ctx = null;
           }
@@ -187,7 +214,7 @@ Page({
         this._canvasRect = rect;
         if (!this._ctx) {
           this._layout = null;
-          this.showCanvasFallback(CANVAS_CONTEXT_MISSING);
+          this.showContextMissing();
           return;
         }
         this.clearCanvasFallback();
@@ -213,15 +240,59 @@ Page({
       });
   },
 
-  showCanvasFallback(text) {
+  captureDevFail(query) {
+    const raw = query && query.p06fail;
+    if (raw !== "node" && raw !== "context") {
+      this._devFail = "";
+      return;
+    }
+    if (this.readEnvVersion() !== "develop") {
+      this._devFail = "";
+      return;
+    }
+    this._devFail = raw;
+  },
+
+  missingText(reason) {
+    return `${reason}: ${PAGE_PATH}`;
+  },
+
+  showNodeMissing() {
     if (!this._alive) return;
-    if (this.data.canvasMissing && this.data.canvasMissingText === text) return;
-    this.setData({ canvasMissing: true, canvasMissingText: text });
+    const text = this.missingText(CANVAS_NODE_MISSING);
+    if (this.data.canvasNodeMissing && this.data.canvasNodeMissingText === text && !this.data.showCanvas) return;
+    this.setData({
+      showCanvas: false,
+      canvasNodeMissing: true,
+      canvasNodeMissingText: text,
+      canvasContextMissing: false,
+      canvasContextMissingText: "",
+    });
+  },
+
+  showContextMissing() {
+    if (!this._alive) return;
+    const text = this.missingText(CANVAS_CONTEXT_MISSING);
+    if (this.data.canvasContextMissing && this.data.canvasContextMissingText === text && !this.data.showCanvas) return;
+    this.setData({
+      showCanvas: false,
+      canvasNodeMissing: false,
+      canvasNodeMissingText: "",
+      canvasContextMissing: true,
+      canvasContextMissingText: text,
+    });
   },
 
   clearCanvasFallback() {
-    if (!this._alive || !this.data.canvasMissing) return;
-    this.setData({ canvasMissing: false, canvasMissingText: "" });
+    if (!this._alive) return;
+    if (this.data.showCanvas && !this.data.canvasNodeMissing && !this.data.canvasContextMissing) return;
+    this.setData({
+      showCanvas: true,
+      canvasNodeMissing: false,
+      canvasNodeMissingText: "",
+      canvasContextMissing: false,
+      canvasContextMissingText: "",
+    });
   },
 
   loadAtlas(canvas) {
@@ -341,6 +412,8 @@ Page({
   //       缺失时保持 reducePointer 的旧结果，下一次 start 若带上明确的 liveTouches 再自愈。
   onPointer(type, event) {
     if (!this._alive) return;
+    // 探针模式只用于看字号和热区，按下不发声、不改骨架状态。
+    if (this._probeFrame) return;
     const before = this._pointer ? this._pointer.target : null;
     const result = reducePointer(this._pointer || createPointerState(), {
       type,
@@ -407,6 +480,20 @@ Page({
     ctx.clearRect(0, 0, this._viewW, this._viewH);
     ctx.fillStyle = "#143d2c";
     ctx.fillRect(0, 0, this._viewW, this._viewH);
+    if (this._probeFrame) {
+      const problems = drawProbe(ctx, this._probeFrame, this._viewW, this._viewH, this._safeUsed, dpr);
+      if (problems.length) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#ff5c5c";
+        ctx.font = "14px sans-serif";
+        const band = statusBoxes(this._safeUsed);
+        ctx.fillText("probe: " + problems.join("; "), band.origin.x, this._viewH - 24);
+      }
+      this.paintStatus(ctx, dpr);
+      return;
+    }
+    if (this._viewH > this._viewW) this.paintPortraitHint(ctx, dpr, layout);
     if (layout) {
       ctx.fillStyle = "#fff6e4";
       ctx.fillRect(layout.offsetX, layout.offsetY, DESIGN_W * layout.scale, DESIGN_H * layout.scale);
@@ -420,6 +507,21 @@ Page({
       this.paintHit(ctx, layout.hits.reset, names.reset, "#1f7a4d", this._pointer && this._pointer.target === "reset");
     }
     this.paintStatus(ctx, dpr);
+  },
+
+  // 原来：竖屏误入时只把 1280×800 缩成中间一条，没有任何提示（P0.6 要求有提示）。
+  // 现在：在上下留白里居中画一句 16px 提示，不改版面、不删内容。留白不足 40px 时退到顶部 24。
+  // 为什么：这台机器没有真机，横屏是否生效未验证；至少误入竖屏时不能只有一条细画面。
+  paintPortraitHint(ctx, dpr, layout) {
+    const band = layout ? layout.offsetY : this._viewH * 0.1;
+    const y = band > 40 ? band / 2 - 10 : 24;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.textBaseline = "top";
+    ctx.font = "16px sans-serif";
+    ctx.fillStyle = "#fff6e4";
+    const text = "请转到横屏。";
+    const width = ctx.measureText(text).width;
+    ctx.fillText(text, (this._viewW - width) / 2, y);
   },
 
   paintHit(ctx, rect, frameName, fallback, dim) {
@@ -440,24 +542,26 @@ Page({
   // 现在：图集和音频失败合成画布上的一行红字。调试行只在 envVersion 不是 release 时再画一行。
   //       读不到 envVersion 时不当成 release，调试行仍画。失败行用窗口逻辑像素，不乘设计 scale。
   // 为什么：真机白屏时控制台不一定看得到。正式版不把窗口尺寸和安全区画出来，但失败原因要留下。
-  //       canvas node 缺失不走这里，见 showCanvasFallback。那一类需要复核，它不是 canvas 绘制。
+  //       canvas node / context 缺失不走这里。需要复核，它不是 canvas 绘制。
+  //       失败行和调试行从 safe.left+12、safe.top+8 起画，骨架标题和探针标题都在这条带下面。
   paintStatus(ctx, dpr) {
     const failure = joinFailureLine(this._failures && this._failures.atlas, this._failures && this._failures.audio);
     const debug = showsDebugLine(this.readEnvVersion());
     if (!failure && !debug) return;
+    const safe = this._safeUsed || { left: 0, top: 0, right: 0, bottom: 0 };
+    const band = statusBoxes(safe);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.textBaseline = "top";
-    let y = 8;
+    let y = band.failure.y;
     if (failure) {
       ctx.fillStyle = "#ff5c5c";
-      ctx.font = "16px sans-serif";
-      ctx.fillText(failure, 16, y);
-      y += 22;
+      ctx.font = `${band.failure.font}px sans-serif`;
+      ctx.fillText(failure, band.failure.x, y);
+      y += band.failure.h;
     }
     if (!debug) return;
     const names = paintedFrameNames(this._pointer && this._pointer.target);
     const layout = this._layout;
-    const safe = this._safeUsed || { left: 0, top: 0, right: 0, bottom: 0 };
     const line = formatDebugLine({
       windowWidth: this._windowWidth,
       windowHeight: this._windowHeight,
@@ -478,7 +582,7 @@ Page({
       pointSource: this._pointSource,
     });
     ctx.fillStyle = "#d7ecff";
-    ctx.font = "14px sans-serif";
-    ctx.fillText(line, 16, y);
+    ctx.font = `${band.debug.font}px sans-serif`;
+    ctx.fillText(line, band.debug.x, y);
   },
 });

@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "commonjs",
+  "description": "Keeps wechat/*.js in CommonJS for the mini program and for Node checks. The repository root stays type module. This file adds no dependencies and no scripts."
+}

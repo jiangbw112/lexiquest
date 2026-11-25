@@ -4,9 +4,9 @@
   display: block;
 }
 
-/* 原来：没有这层文本，canvas 查询失败时页面是空的。
-   现在：cover-view 盖住原生画布，只显示 canvas node missing 这一类诊断句。
-   为什么：type="2d" 画布是原生组件，普通 view 会垫在它下面；这一类失败又不能画进缺失的 canvas。 */
+/* 原来：cover-view 想盖住原生画布，验收里没有露出红字。
+   现在：canvas 被 wx:if 摘掉之后，这块普通 view 自己占住页面。
+   为什么：原生组件还在树上时，普通 view 和 cover-view 都会被挡住。 */
 .fallback {
   position: absolute;
   left: 0;

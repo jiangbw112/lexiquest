@@ -1,4 +1,5 @@
 <canvas
+  wx:if="{{showCanvas}}"
   type="2d"
   id="game-canvas"
   class="stage"
@@ -9,9 +10,10 @@
   bindtouchcancel="onTouchCancel"
 ></canvas>
 <!--
-  原来：失败时脚本直接 return，页面上没有字。
-  现在：只有 canvas node / 2d context 缺失走 cover-view 原生文本。图集和音频失败仍画在 canvas 上。
-  为什么：没有 node 或 context 就不能 fillText。这行不是 canvas 绘制。
-  需要复核：规格要求失败都画在画布上，这一类做不到，只放一行诊断文本。
+  原来：node 缺失和 context 缺失共用 cover-view，盖在仍挂着的原生画布上。验收里两种写法都看不见字。
+  现在：两条路径各自一块普通 view。showCanvas 为 false 时 canvas 不在树上。
+  为什么：原生组件还在树上时，普通 view 和 cover-view 都会被挡住。?p06= 探针不走这里。
+  需要复核：没有新的模拟器截图，不能把红字写成已经看见。
 -->
-<cover-view wx:if="{{canvasMissing}}" class="fallback">{{canvasMissingText}}</cover-view>
+<view wx:if="{{canvasNodeMissing}}" class="fallback">{{canvasNodeMissingText}}</view>
+<view wx:if="{{canvasContextMissing}}" class="fallback">{{canvasContextMissingText}}</view>

@@ -7,8 +7,18 @@
   "libVersion": "3.5.5",
   "packOptions": {
     "ignore": [
-      { "type": "file", "value": "p05-check.cjs" },
-      { "type": "file", "value": "p06-render.cjs" }
+      {
+        "value": "p05-check.cjs",
+        "type": "file"
+      },
+      {
+        "value": "p06-render.cjs",
+        "type": "file"
+      },
+      {
+        "value": "tools",
+        "type": "folder"
+      }
     ],
     "include": []
   },
@@ -35,8 +45,18 @@
       "outputPath": ""
     },
     "useIsolateContext": true,
-    "userConfirmedUseIsolateContext": true
+    "userConfirmedUseIsolateContext": true,
+    "compileWorklet": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false
   },
   "condition": {},
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }

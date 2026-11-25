@@ -31,6 +31,12 @@ const UI_FONT_SCALE = {
   28: 24,
   32: 26,
 };
+const STATUS_PAD_X = 12;
+const STATUS_PAD_Y = 8;
+const STATUS_FAIL_FONT = 16;
+const STATUS_FAIL_LINE = 22;
+const STATUS_DEBUG_FONT = 14;
+const STATUS_DEBUG_LINE = 20;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -163,6 +169,55 @@ function uiFontPx(designPx) {
   return Math.max(UI_MIN_FONT, mapped);
 }
 
+/**
+ * 原来：失败行和调试行固定从窗口 (16, 8) 起画，会压住从安全区顶边开始的标题，x 也会落到刘海左边。
+ * 现在：起点是 safe.left+12、safe.top+8。safe 缺省或某边不是数时按 0。状态带固定占 8+22+20，标题和热区在带下面。
+ * 为什么：手机横屏的 800 设计高已经贴满窗口，不能再把整块棋盘下移，否则底部被裁。带高从棋盘内部让出来，worldScale 不变。
+ */
+function statusOrigin(safe) {
+  const left = safe && finiteNumber(safe.left) ? safe.left : 0;
+  const top = safe && finiteNumber(safe.top) ? safe.top : 0;
+  return { x: left + STATUS_PAD_X, y: top + STATUS_PAD_Y };
+}
+
+function statusReserveView() {
+  return STATUS_PAD_Y + STATUS_FAIL_LINE + STATUS_DEBUG_LINE;
+}
+
+function statusBoxes(safe) {
+  const origin = statusOrigin(safe);
+  return {
+    origin,
+    failure: { x: origin.x, y: origin.y, font: STATUS_FAIL_FONT, h: STATUS_FAIL_LINE },
+    debug: {
+      x: origin.x,
+      y: origin.y + STATUS_FAIL_LINE,
+      font: STATUS_DEBUG_FONT,
+      h: STATUS_DEBUG_LINE,
+    },
+    reserve: statusReserveView(),
+  };
+}
+
+function rangesOverlap(a0, a1, b0, b1) {
+  return a0 < b1 && b0 < a1;
+}
+
+function boxesOverlap(a, b) {
+  return rangesOverlap(a.x, a.x + a.w, b.x, b.x + b.w)
+    && rangesOverlap(a.y, a.y + a.h, b.y, b.y + b.h);
+}
+
+function skeletonTitleViewBox(layout) {
+  const font = layout.title.size * layout.scale;
+  return {
+    x: layout.offsetX + layout.title.x * layout.scale,
+    y: layout.offsetY + layout.title.y * layout.scale,
+    w: textWidth("词境练习家", font),
+    h: font,
+  };
+}
+
 function uiContentRect(viewW, viewH, safeArea) {
   const left = Math.max(0, safeArea.left) + UI_PAD_X;
   const right = Math.min(viewW, safeArea.right) - UI_PAD_X;
@@ -199,8 +254,10 @@ function layoutView(viewW, viewH, safe, dpr) {
   };
   const titleSize = Math.max(MIN_HIT_CSS, 32 / scale);
   const titleBlock = titleSize * 1.25;
+  const reserveDesign = statusReserveView() / scale;
+  const titleY = usable.y + reserveDesign;
   const x = usable.x + gap;
-  const y = usable.y + titleBlock + gap;
+  const y = titleY + titleBlock + gap;
   const play = { id: "play", x, y, w: hit, h: hit };
   let reset = { id: "reset", x: x + hit + gap, y, w: hit, h: hit };
   if (reset.x + reset.w > usable.right - gap) {
@@ -226,7 +283,7 @@ function layoutView(viewW, viewH, safe, dpr) {
     titleSize,
     usable,
     fits,
-    title: { x: usable.x + gap, y: usable.y, size: titleSize },
+    title: { x: usable.x + gap, y: titleY, size: titleSize },
     hits: { play, reset },
     viewport: { w: viewW, h: viewH, dpr: ratio, safeArea },
     world: {
@@ -650,7 +707,7 @@ function layoutProbe(frame, viewW, viewH, safe) {
   const texts = [];
   const hits = [];
   const shapes = [];
-  let y = content.y;
+  let y = content.y + statusReserveView();
   const maxText = Math.min(UI_MAX_TEXT, content.w);
   if (viewH > viewW) {
     y += pushText(texts, "portrait", PROBE_COPY.portrait, content.x, y, uiFontPx(16), maxText) + MIN_GAP_CSS;
@@ -763,4 +820,9 @@ module.exports = {
   shouldReleasePointer,
   PROBE_COPY,
   textWidth,
+  statusOrigin,
+  statusBoxes,
+  statusReserveView,
+  skeletonTitleViewBox,
+  boxesOverlap,
 };

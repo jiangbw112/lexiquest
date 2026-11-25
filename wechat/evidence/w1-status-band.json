@@ -1,0 +1,102 @@
+{
+  "source": "Chrome canvas measureText via Playwright. Not WeChat DevTools, not a simulator, not a phone.",
+  "chrome": "/usr/bin/google-chrome",
+  "rows": [
+    {
+      "viewport": "844x390",
+      "recordedSafeInput": false,
+      "scale": 0.4875,
+      "offsetX": 110,
+      "offsetY": 0,
+      "failure": {
+        "x": 12,
+        "y": 8,
+        "w": 343.3125,
+        "h": 16
+      },
+      "skeletonTitle": {
+        "x": 118,
+        "y": 50,
+        "w": 160,
+        "h": 32
+      }
+    },
+    {
+      "viewport": "667x375",
+      "recordedSafeInput": false,
+      "scale": 0.46875,
+      "offsetX": 33.5,
+      "offsetY": 0,
+      "failure": {
+        "x": 12,
+        "y": 8,
+        "w": 343.3125,
+        "h": 16
+      },
+      "skeletonTitle": {
+        "x": 41.5,
+        "y": 50,
+        "w": 160,
+        "h": 32
+      }
+    },
+    {
+      "viewport": "915x412",
+      "recordedSafeInput": false,
+      "scale": 0.515,
+      "offsetX": 127.89999999999998,
+      "offsetY": 0,
+      "failure": {
+        "x": 12,
+        "y": 8,
+        "w": 343.3125,
+        "h": 16
+      },
+      "skeletonTitle": {
+        "x": 135.89999999999998,
+        "y": 50,
+        "w": 160,
+        "h": 32
+      }
+    },
+    {
+      "viewport": "1024x768",
+      "recordedSafeInput": false,
+      "scale": 0.8,
+      "offsetX": 0,
+      "offsetY": 64,
+      "failure": {
+        "x": 12,
+        "y": 8,
+        "w": 343.3125,
+        "h": 16
+      },
+      "skeletonTitle": {
+        "x": 8,
+        "y": 114,
+        "w": 175.9375,
+        "h": 35.2
+      }
+    },
+    {
+      "viewport": "844x390-recorded-safe",
+      "recordedSafeInput": true,
+      "scale": 0.4875,
+      "offsetX": 110,
+      "offsetY": 0,
+      "failure": {
+        "x": 59,
+        "y": 8,
+        "w": 343.3125,
+        "h": 16
+      },
+      "skeletonTitle": {
+        "x": 118,
+        "y": 50,
+        "w": 160,
+        "h": 32
+      }
+    }
+  ],
+  "problems": []
+}

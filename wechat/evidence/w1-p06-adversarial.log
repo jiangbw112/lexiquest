@@ -1,0 +1,4 @@
+p06-adversarial: 32/32 passed
+notes (recorded behaviour, not failures):
+  - cancel with empty changedTouches clears even when liveTouches still lists the finger — {"id":null,"target":null,"cancelled":false}
+  - equal x/y and client on an offset canvas subtracts the rect — {"x":63,"y":39,"source":"client"}
