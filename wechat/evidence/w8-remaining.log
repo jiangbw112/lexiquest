@@ -1,0 +1,18 @@
+SOURCE: Node scene-smoke. Not WeChat.
+The keys other than title, grades, battle, and battle-results:
+boot nodes 0
+profiles nodes 16
+create nodes 0
+overworld nodes 0
+learn nodes 0
+stages nodes 0
+exam-battle nodes 0
+collection nodes 0
+review nodes 0
+skills nodes 0
+wardrobe nodes 0
+ending nodes 0
+duel nodes 0
+guide nodes 10
+A zero-node create() is not a migrated scene.
+Same run as evidence/w7-scene-smoke.log.
