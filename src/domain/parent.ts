@@ -542,7 +542,7 @@ export function openingReminder(save: SaveData, now: Date, timeZone = deviceTime
     return `单词卡都在，随时可以捡起来。今天待复习 ${due} 个。`;
   }
   if (due >= 1) return "有几个词在等你复习，做完今日目标就轻松啦。";
-  if (Object.keys(save.wordCards).length === 0) return "还没有学习记录。和孩子一起从森林冒险的第一关开始吧。";
+  if (Object.keys(save.wordCards).length === 0) return "还没有学习记录。和孩子一起从这一年级的第一章开始吧。";
   return "今天没有到期的词，学几个新词也很棒。";
 }
 
@@ -587,7 +587,7 @@ export function parentView(
   const struggle = allStruggle.slice(0, struggleLimit);
   let emptyLine: string | null = null;
   let todayLine: string | null = null;
-  if (cards.length === 0) emptyLine = "还没有学习记录。和孩子一起从森林冒险的第一关开始吧。";
+  if (cards.length === 0) emptyLine = "还没有学习记录。和孩子一起从这一年级的第一章开始吧。";
   else if (learnedToday === 0 && reviewedToday === 0) {
     todayLine = dueNow === 0 ? "今天没有到期的词，学几个新词也很棒。" : `今天还没开始。待复习有 ${dueNow} 个，有空打开复习就好。`;
   } else if (uniqueAcross(save, week, "learnedWordIds") === 0 && uniqueAcross(save, week, "reviewedDueWordIds") === 0) {

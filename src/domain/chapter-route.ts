@@ -304,21 +304,20 @@ export function chooseBattleSpot(input: SpotInput): BattleSpot | null {
 }
 
 function spotForGrade(save: SaveData, grade: GradeBand): BattleSpot | null {
-  const forest = forestPlayChapter();
-  const forestOpen = isChapterUnlocked(save, forest);
   return chooseBattleSpot({
     chapters: gradeChapters(grade),
     savedChapterId: save.battleChapterByGrade?.[grade],
     unlocked: (chapter) => isChapterUnlocked(save, chapter),
     cleared: (chapter) => isChapterCleared(save, chapter),
-    forest: forestOpen ? forest : null,
+    forest: null,
   });
 }
 
 /**
  * Re-enter the map on the last battle grade that the parent still allows.
  * An invalid grade asks for an allowed grade and does not pick one.
- * No battle grade yet stays on the forest instead of jumping to a newly checked grade.
+ * No battle grade yet asks when several grades are open, and otherwise opens that grade's first legal chapter.
+ * A stored forest chapter is not a destination.
  */
 export function battleReturn(save: SaveData): BattleReturn {
   const grades = learnGradeOptions(save);
@@ -326,9 +325,10 @@ export function battleReturn(save: SaveData): BattleReturn {
   const grade = save.battleGrade;
   if (grade && !grades.includes(grade)) return { kind: "pick-grade", grades };
   if (!grade) {
-    const forest = forestPlayChapter();
-    if (!isChapterUnlocked(save, forest)) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
-    return { kind: "ready", grade: null, spot: { chapter: forest, review: false, step: "forest" } };
+    if (grades.length !== 1) return { kind: "pick-grade", grades };
+    const only = spotForGrade(save, grades[0]!);
+    if (!only) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
+    return { kind: "ready", grade: grades[0], spot: only };
   }
   const spot = spotForGrade(save, grade);
   if (!spot) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
@@ -355,19 +355,18 @@ export function commitExamReturn(save: SaveData, grade: GradeBand, chapterId: st
 
 /** Explicit entry of a legal open chapter. Preview and paging must not call this. */
 export function commitBattleEntry(save: SaveData, chapter: PlayChapter): SaveData {
+  if (chapter.id === FOREST_CHAPTER.chapter_id || chapter.grade === "mixed") return save;
   if (!isChapterUnlocked(save, chapter)) return save;
-  const grade = chapter.grade === "mixed" ? null : chapter.grade;
+  const grade = chapter.grade;
   const sameChapter = save.currentChapterId === chapter.id;
-  const sameGrade = grade === null || save.battleGrade === grade;
-  const sameAnchor = grade === null || save.battleChapterByGrade?.[grade] === chapter.id;
+  const sameGrade = save.battleGrade === grade;
+  const sameAnchor = save.battleChapterByGrade?.[grade] === chapter.id;
   if (sameChapter && sameGrade && sameAnchor) return save;
   return {
     ...save,
     currentChapterId: chapter.id,
-    battleGrade: grade ?? save.battleGrade,
-    battleChapterByGrade: grade
-      ? { ...save.battleChapterByGrade, [grade]: chapter.id }
-      : save.battleChapterByGrade,
+    battleGrade: grade,
+    battleChapterByGrade: { ...save.battleChapterByGrade, [grade]: chapter.id },
   };
 }
 

@@ -602,7 +602,7 @@ describe("stage hint beside the chapter list", () => {
 
     const early = applyBattleOutcome(open, "win", NOW, stageEncounterId(1), 2, 1);
     expect(stageWordsStillToLearn(early, stage1)).toBeGreaterThan(0);
-    const kept = resultsStudyLines(early, 1, false).learnMoreLine;
+    const kept = resultsStudyLines(early, 1, false, forest.id).learnMoreLine;
     expect(kept).toContain("这一关还有");
     const plain = buildResultsView({
       before: open,

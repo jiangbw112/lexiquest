@@ -290,7 +290,7 @@ describe("forest chapter rewards", () => {
     const facing = parentView(save, START).masteredLine;
     expect(facing).toContain("已通关森林");
     expect(facing).toContain(`徽章亮起 0 / ${scopeWordIds(save).length}`);
-    expect(facing).toContain("已通关 1/");
+    expect(facing).toContain("已通关 0/31");
     expect(facing).not.toMatch(/最强|排行|稀有/);
   });
 

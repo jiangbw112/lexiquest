@@ -71,7 +71,9 @@ describe("village reward dialog", () => {
     const save = saveWith({ wordCards, rewardQueue: [] });
     expect(requiredWordIds(save)).toHaveLength(28);
     const lines = villageLines(save);
-    expect(lines).toContain("森林冒险：已学 28/28 个词");
+    expect(lines).toContain("朋友与家人：已学 0/28 个词");
+    expect(lines).not.toContain("森林冒险");
+    expect(Object.keys(save.wordCards)).toHaveLength(28);
     expect(rewardBatch(save.rewardQueue)).toBeNull();
     for (const id of ids) {
       const english = wordById(id)?.english;

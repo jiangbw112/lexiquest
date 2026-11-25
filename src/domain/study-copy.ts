@@ -1,5 +1,5 @@
 import { GRADE_BANDS, isChapterExtra, normalizeGrades, wordById } from "./catalog";
-import { activeChapter, forestPlayChapter, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
+import { activeChapter, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
 import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
@@ -72,9 +72,8 @@ function studyEncouragement(save: SaveData, chapter: PlayChapter, ids: readonly 
   return line;
 }
 
-/** Forest until that boss is beaten, then the chapter the save is standing in. */
+/** The grade chapter the save can stand in. The independent forest chapter is not a village destination. */
 export function villageStudyChapter(save: SaveData): PlayChapter {
-  if (!isChapterCleared(save, forestPlayChapter())) return forestPlayChapter();
   return activeChapter(save);
 }
 

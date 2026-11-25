@@ -3,7 +3,6 @@ import { activeChapter, gradeChapters, isChapterCleared, isChapterUnlocked, type
 import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./stages";
 import { gradeLabel, gradePracticeEntries, namedWords, otherGradeForestLine } from "./study-copy";
 import type { GradeBand, SaveData } from "./types";
-import { isCleared } from "./clearance";
 
 /**
  * Settlement copy stays inside the committed Noto subset.
@@ -92,14 +91,12 @@ export function chapterLearnScope(save: SaveData, chapter: PlayChapter = activeC
   return [...chapter.wordIds];
 }
 
-function blockingMapChapterId(save: SaveData, chapter: PlayChapter): string {
-  const forestId = FOREST_CHAPTER.chapter_id;
-  if (!isCleared(save, { kind: "chapter", chapterId: forestId })) return forestId;
-  if (chapter.grade === "mixed") return chapter.id;
+function blockingMapChapterId(_save: SaveData, chapter: PlayChapter): string {
+  if (chapter.grade === "mixed" || chapter.id === FOREST_CHAPTER.chapter_id) return "";
   const same = gradeChapters(chapter.grade);
   const at = same.findIndex((item) => item.id === chapter.id);
   if (at > 0) return same[at - 1]!.id;
-  return forestId;
+  return same[0]?.id ?? chapter.id;
 }
 
 /** Four mutually exclusive lines for a chapter whose own cards are finished. */
@@ -121,6 +118,20 @@ export function learnCardsDoneCopy(save: SaveData, chapter: PlayChapter): LearnS
         mapChapterId: forestId,
       };
     }
+    return {
+      message: LEARN_CARDS_DONE_CLEARED,
+      primaryLabel: LEARN_RETURN_CHAPTERS,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "chapters",
+    };
+  }
+  if (chapter.id === forestId) {
+    return {
+      message: LEARN_CARDS_DONE_CLEARED,
+      primaryLabel: LEARN_RETURN_CHAPTERS,
+      secondaryLabel: LEARN_BACK_VILLAGE,
+      primary: "chapters",
+    };
   }
   if (cleared) {
     return {
@@ -130,23 +141,19 @@ export function learnCardsDoneCopy(save: SaveData, chapter: PlayChapter): LearnS
       primary: "chapters",
     };
   }
-  const unlocked = chapter.id === forestId || isChapterUnlocked(save, chapter);
+  const unlocked = isChapterUnlocked(save, chapter);
   if (unlocked) {
-    const forest = chapter.id === forestId;
     return {
-      message: forest ? "本章词都学会了！去对战挑战林心守护者吧" : "本章词都学会了！去对战挑战 Boss 吧",
+      message: "本章词都学会了！去对战挑战 Boss 吧",
       primaryLabel: LEARN_FIGHT_BOSS,
       secondaryLabel: LEARN_BACK_VILLAGE,
       primary: "map",
-      mapChapterId: forest ? forestId : chapter.id,
+      mapChapterId: chapter.id,
       focusBoss: true,
     };
   }
-  const forestBeaten = isCleared(save, { kind: "chapter", chapterId: forestId });
   return {
-    message: forestBeaten
-      ? "本章词都学会了。对战里先打完上一章，这一章才能挑战。"
-      : "本章词都学会了。对战里先打完森林冒险，这一章才能挑战。",
+    message: "本章词都学会了。对战里先打完上一章，这一章才能挑战。",
     primaryLabel: LEARN_GO_BATTLE,
     secondaryLabel: LEARN_BACK_VILLAGE,
     primary: "map",

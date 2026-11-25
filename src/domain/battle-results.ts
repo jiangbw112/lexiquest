@@ -282,7 +282,7 @@ export function buildResultsView(input: {
     equippedOutfitId: input.after.equippedOutfitId,
     praise: stars ? praiseFor(stars) : "",
     ...stageHintBesideChapterList(
-      resultsStudyLines(input.after, input.stageId, input.boss),
+      resultsStudyLines(input.after, input.stageId, input.boss, input.chapterId),
       bossGateFields(input.after, input.stageId, won, input.chapterId, input.answers),
     ),
     bossGateLine: bossGateReminder(input.after, input.stageId, won, input.chapterId),
@@ -733,12 +733,12 @@ export function resultsBoxInsidePanel(box: ResultsBox, pad = 0): boolean {
 }
 
 /** The clear hint only. A small learned set no longer makes the fight repeat those words. */
-export function resultsStudyLines(save: SaveData, stageId: number, boss: boolean): {
+export function resultsStudyLines(save: SaveData, stageId: number, boss: boolean, chapterId?: string): {
   learnMoreLine: string | null;
   repeatLine: string | null;
 } {
   if (boss) return { learnMoreLine: null, repeatLine: null };
-  const chapter = findPlayChapter(save);
+  const chapter = findPlayChapter(save, chapterId);
   const stage = chapter.stages.find((item) => item.id === stageId);
   if (!stage || stage.type === "boss") return { learnMoreLine: null, repeatLine: null };
   return {

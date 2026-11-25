@@ -18,10 +18,9 @@ import {
 import type { ClassId, GradeBand, SaveData } from "./types";
 
 /**
- * Grade chapters come from chapters/chapters_v0.2.json. The file sits beside the
- * forest chapter because data/ is reserved for word lists. This module does not split the
- * word list. The forest stays the locked forest chapter. Stage words are
- * stages[].word_refs. Boss unlock uses that chapter's word_count.
+ * Grade chapters come from chapters/chapters_v0.2.json. The file still starts with the
+ * forest record so old ids keep resolving. That record is not a battle chapter.
+ * Stage words are stages[].word_refs. Boss unlock uses that chapter's word_count.
  * Beijing opera and Mount Taishan stay spellable even though the file lists them.
  */
 export const MIN_STAGE_WORDS = 3;
@@ -273,14 +272,18 @@ export function forestPlayChapter(): PlayChapter {
   };
 }
 
-/** Forest first, then selected grades from G3 to G6, each grade in file order. */
+/** Selected grades from G3 to G6, each grade in file order. The forest record is not listed. */
 export function visibleChapters(grades: readonly string[] | undefined): PlayChapter[] {
   const selected = new Set(grades ?? []);
-  const chapters = [forestPlayChapter()];
+  const chapters: PlayChapter[] = [];
   for (const grade of GRADE_ORDER) {
     if (selected.has(grade)) chapters.push(...gradeChapters(grade));
   }
   return chapters;
+}
+
+export function independentForestId(chapterId: string | undefined): boolean {
+  return chapterId === FOREST_CHAPTER_ID;
 }
 
 export function allGradeChapters(): PlayChapter[] {
@@ -298,15 +301,16 @@ export function isChapterCleared(save: SaveData, chapter: PlayChapter): boolean 
 }
 
 /**
- * The forest is always open. A cleared chapter stays open.
- * After the forest boss, every selected grade opens its first chapter.
+ * The independent forest chapter is not a battle destination.
+ * A cleared grade chapter stays open.
+ * The first chapter of each selected grade is open.
  * Inside one grade, the next chapter opens when the previous one is cleared.
  */
-export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list = visibleChapters(save.selectedGrades)): boolean {
+export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list: readonly PlayChapter[] = visibleChapters(save.selectedGrades)): boolean {
+  if (independentForestId(chapter.id) || chapter.grade === "mixed") return false;
   const index = list.findIndex((item) => item.id === chapter.id);
   if (index < 0) return false;
-  if (index === 0 || isChapterCleared(save, chapter)) return true;
-  if (!isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })) return false;
+  if (isChapterCleared(save, chapter)) return true;
   const sameGrade = list.filter((item) => item.grade === chapter.grade);
   const at = sameGrade.findIndex((item) => item.id === chapter.id);
   if (at <= 0) return true;
@@ -314,20 +318,38 @@ export function isChapterUnlocked(save: SaveData, chapter: PlayChapter, list = v
   return previous ? isChapterCleared(save, previous) : false;
 }
 
+function usableChapter(save: SaveData, chapter: PlayChapter | undefined, list: readonly PlayChapter[]): chapter is PlayChapter {
+  return Boolean(chapter && isChapterUnlocked(save, chapter, list));
+}
+
 export function activeChapter(save: SaveData): PlayChapter {
   const list = visibleChapters(save.selectedGrades);
   const current = list.find((chapter) => chapter.id === save.currentChapterId);
   if (current) return current;
-  if (isCleared(save, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })) {
-    const next = list.find((chapter, index) => index > 0 && isChapterUnlocked(save, chapter, list));
-    if (next) return next;
+  const grade = save.battleGrade;
+  if (grade && list.some((chapter) => chapter.grade === grade)) {
+    const inGrade = list.filter((chapter) => chapter.grade === grade);
+    const anchor = inGrade.find((chapter) => chapter.id === save.battleChapterByGrade?.[grade]);
+    if (usableChapter(save, anchor, list)) return anchor;
+    const open = inGrade.find((chapter) => usableChapter(save, chapter, list) && !isChapterCleared(save, chapter));
+    if (open) return open;
+    const cleared = inGrade.filter((chapter) => usableChapter(save, chapter, list) && isChapterCleared(save, chapter));
+    const last = cleared[cleared.length - 1];
+    if (last) return last;
   }
-  return list[0]!;
+  const open = list.find((chapter) => usableChapter(save, chapter, list) && !isChapterCleared(save, chapter));
+  if (open) return open;
+  const any = list.find((chapter) => usableChapter(save, chapter, list));
+  if (any) return any;
+  return list[0] ?? allGradeChapters()[0]!;
 }
 
 export function findPlayChapter(save: SaveData, chapterId?: string): PlayChapter {
+  // An explicit forest id still resolves for old settlement math. It is not a listed battle chapter.
+  if (independentForestId(chapterId)) return forestPlayChapter();
   if (chapterId) {
-    const found = visibleChapters(save.selectedGrades).find((chapter) => chapter.id === chapterId);
+    const found = visibleChapters(save.selectedGrades).find((chapter) => chapter.id === chapterId)
+      ?? allGradeChapters().find((chapter) => chapter.id === chapterId);
     if (found) return found;
   }
   return activeChapter(save);

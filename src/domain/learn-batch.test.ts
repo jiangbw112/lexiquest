@@ -5,6 +5,7 @@ import { sampleWords } from "./catalog";
 import {
   activeChapter,
   chapterBossReady,
+  forestPlayChapter,
   gradeChapters,
   isChapterCleared,
   isChapterUnlocked,
@@ -183,7 +184,9 @@ describe("academy batch settlement", () => {
 
   it("counts a narrowed forest chapter from the selected grades, not every forest word", () => {
     const save = fresh(["G3"]);
-    const forest = activeChapter(save);
+    const forest = forestPlayChapter();
+    expect(activeChapter(save).id).toBe(gradeChapters("G3")[0]!.id);
+    expect(activeChapter(save).id).not.toBe(forest.id);
     const scope = chapterLearnScope(save, forest);
     expect(forest.id).toBe("forest_adventure");
     expect(scope).toEqual(requiredWordIds(save));
@@ -338,7 +341,8 @@ describe("chapter finish returns to the academy picker", () => {
     expect(forestAfter.stageWins).toEqual(forestWins);
     expect(forestAfter.chapterCleared).toBe(false);
     expect(isChapterCleared(forestAfter, forest)).toBe(false);
-    expect(isChapterUnlocked(forestAfter, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(forestAfter, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(forestAfter, gradeChapters("G3")[1]!)).toBe(false);
     expect(learnWord(forestAfter, forestLast, START)).toBe(forestAfter);
     expect(learnChapterFinishRoute({
       saved: true,
@@ -358,7 +362,11 @@ describe("chapter finish returns to the academy picker", () => {
       remainingBefore: 0,
       remainingAfter: 0,
     })).toEqual({ kind: "stay" });
-    expect(learnCardsDoneCopy(forestAfter, forest).primaryLabel).toBe(LEARN_FIGHT_BOSS);
+    const forestDone = learnCardsDoneCopy(forestAfter, forest);
+    expect(forestDone.primaryLabel).toBe(LEARN_RETURN_CHAPTERS);
+    expect(forestDone.primary).toBe("chapters");
+    expect(forestDone.mapChapterId).toBeUndefined();
+    expect(forestDone.message).not.toContain("林心守护者");
     const forestCleared = learnCardsDoneCopy({ ...forestAfter, chapterCleared: true }, forest);
     expect(forestCleared).toMatchObject({
       message: LEARN_CARDS_DONE_CLEARED,
@@ -383,8 +391,10 @@ describe("chapter finish returns to the academy picker", () => {
     expect(isChapterCleared(gradeAfter, chapter)).toBe(false);
     expect(isChapterUnlocked(gradeAfter, next)).toBe(false);
     expect(learnWord(gradeAfter, gradeLast, START)).toBe(gradeAfter);
-    expect(learnCardsDoneCopy(gradeAfter, chapter).primaryLabel).toBe("去对战");
+    expect(learnCardsDoneCopy(gradeAfter, chapter).primaryLabel).toBe(LEARN_FIGHT_BOSS);
     expect(learnCardsDoneCopy(gradeAfter, chapter).primary).toBe("map");
+    expect(learnCardsDoneCopy(gradeAfter, chapter).mapChapterId).toBe(chapter.id);
+    expect(learnCardsDoneCopy(gradeAfter, chapter).focusBoss).toBe(true);
     const gradeCleared = learnCardsDoneCopy({
       ...gradeAfter,
       chapterProgress: { [chapter.id]: { cleared: true, stageWins: {} } },

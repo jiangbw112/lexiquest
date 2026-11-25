@@ -112,8 +112,14 @@ describe("near synonym distractors", () => {
     const blocked = pairsToBlock(report);
     expect(report.wordCount).toBe(871);
     expect(report.candidates.filter((pair) => pair.decision === "already-blocked")).toHaveLength(49);
-    expect(report.candidates.filter((pair) => pair.decision === "leave")).toHaveLength(78);
-    expect(blocked).toEqual(file.near_synonym.map((pair) => ({ a: pair.a, b: pair.b })));
+    expect(report.candidates.filter((pair) => pair.decision === "leave")).toHaveLength(79);
+    const filePairs = file.near_synonym.map((pair) => ({ a: pair.a, b: pair.b }));
+    // rain/rainy only shared a battle question inside the removed forest chapter. The gloss block stays.
+    expect(blocked).toEqual(filePairs.filter((pair) => pair.a !== "rain" || pair.b !== "rainy"));
+    expect(glossPairBlocked("rain", "rainy")).toBe(true);
+    const rain = report.candidates.find((pair) => pair.a === "rain" && pair.b === "rainy");
+    expect(rain?.decision).toBe("leave");
+    expect(rain?.togetherBefore).toBe(0);
     for (const pair of file.near_synonym) {
       expect(glossPairBlocked(pair.a, pair.b), pair.a).toBe(true);
       const answer = wordById(pair.a);
@@ -129,7 +135,8 @@ describe("near synonym distractors", () => {
       expect(pair?.togetherBefore, key).toBe(32);
     }
     for (const pair of report.candidates) {
-      if (pair.decision === "leave") expect(glossPairBlocked(pair.a, pair.b), `${pair.a}/${pair.b}`).toBe(false);
+      const keptForestBlock = pair.a === "rain" && pair.b === "rainy";
+      if (pair.decision === "leave" && !keptForestBlock) expect(glossPairBlocked(pair.a, pair.b), `${pair.a}/${pair.b}`).toBe(false);
       if (pair.decision === "block") expect(pair.doubleAnswerAfter).toBe(0);
     }
   }, 15000);
@@ -146,12 +153,12 @@ describe("near synonym distractors", () => {
     expect(report.minSelectedChoicesAfter.choices).toBeGreaterThanOrEqual(3);
     expect(report.minChoicesAfter).toEqual(report.minChoicesBefore);
     expect(report.minSelectedChoicesAfter).toEqual(report.minSelectedChoicesBefore);
-    // Grade 6 fully open is 4 of 344 meaning questions: camp and camping, both directions, about 1.2%.
-    expect(report.totalQuestions).toBe(14048);
-    expect(report.doubleAnswerBefore).toBe(240);
-    expect(report.g6OpenQuestions).toBe(344);
+    // Grade 6 fully open is 4 of 322 meaning questions: camp and camping, both directions.
+    expect(report.totalQuestions).toBe(13488);
+    expect(report.doubleAnswerBefore).toBe(208);
+    expect(report.g6OpenQuestions).toBe(322);
     expect(report.g6OpenDoubleBefore).toBe(4);
-    expect(report.frontierDoubleBefore).toBe(128);
+    expect(report.frontierDoubleBefore).toBe(112);
   }, 15000);
 
   it("keeps exam prompts and answers, and still draws two distractors", () => {

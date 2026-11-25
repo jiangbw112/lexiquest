@@ -117,11 +117,11 @@ describe("academy lesson L", () => {
     const listed = legalLearnChapters(early, "G3");
     expect(listed[0]).toMatchObject({ id: "forest_adventure", grade: "G3", name: "森林冒险" });
     expect(listed.slice(1).map((chapter) => chapter.id)).toEqual(gradeChapters("G3").map((chapter) => chapter.id));
-    expect(visibleChapters(early.selectedGrades).map((chapter) => chapter.id)).toEqual([
-      "forest_adventure",
-      ...gradeChapters("G3").map((chapter) => chapter.id),
-    ]);
-    expect(isChapterUnlocked(early, gradeChapters("G3")[0]!)).toBe(false);
+    expect(visibleChapters(early.selectedGrades).map((chapter) => chapter.id)).toEqual(
+      gradeChapters("G3").map((chapter) => chapter.id),
+    );
+    expect(visibleChapters(early.selectedGrades).some((chapter) => chapter.id === "forest_adventure")).toBe(false);
+    expect(isChapterUnlocked(early, gradeChapters("G3")[0]!)).toBe(true);
     expect(isChapterUnlocked(early, gradeChapters("G3")[1]!)).toBe(false);
     expect(initialLearnDraft(early)).toEqual({ grade: "G3", chapterId: null });
     const remembered = { ...early, learnSelection: { grade: "mixed" as const, chapterId: "forest_adventure" } };
@@ -332,7 +332,8 @@ describe("battle return P", () => {
     expect(entered.chapterProgress).toEqual(save.chapterProgress);
     expect(entered.battlesWon).toBe(save.battlesWon);
     const forest = commitBattleEntry(entered, forestPlayChapter());
-    expect(forest.currentChapterId).toBe("forest_adventure");
+    expect(forest).toBe(entered);
+    expect(forest.currentChapterId).toBe(g5[0]!.id);
     expect(forest.battleGrade).toBe("G5");
     expect(forest.battleChapterByGrade?.G5).toBe(g5[0]!.id);
     const moved = advanceBattleAnchor(save, g5[1]!.id);
@@ -462,9 +463,11 @@ describe("exam map return", () => {
     };
     expect(battleReturn(save)).toMatchObject({
       kind: "ready",
-      grade: null,
-      spot: { chapter: expect.objectContaining({ id: "forest_adventure" }), step: "forest" },
+      grade: "G5",
+      spot: { chapter: expect.objectContaining({ id: gradeChapters("G5")[0]!.id }), step: "open" },
     });
+    expect(save.chapterProgress?.[exam.after]?.cleared).toBe(true);
+    expect(save.currentChapterId).toBe("forest_adventure");
     const entered = commitExamReturn(save, exam.grade, exam.after);
     expect(entered).not.toBe(save);
     const returned = battleReturn(entered);
@@ -549,11 +552,12 @@ describe("academy forest lessons", () => {
     for (const selected of mixes) {
       let save = learnForestLessons(fresh(selected));
       for (const id of requiredWordIds(save)) expect(save.wordCards[id], `${selected.join("+")} ${id}`).toBeTruthy();
-      expect(isChapterUnlocked(save, gradeChapters(selected[0])[0]!)).toBe(false);
+      expect(isChapterUnlocked(save, gradeChapters(selected[0])[0]!)).toBe(true);
+      expect(isChapterUnlocked(save, gradeChapters(selected[0])[1]!)).toBe(false);
       save = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
       expect(bossReady(save), selected.join("+")).toBe(true);
       expect(stageStatuses(save)[4]).toBe("open");
-      expect(isChapterUnlocked(save, gradeChapters(selected[0])[0]!)).toBe(false);
+      expect(isChapterUnlocked(save, gradeChapters(selected[0])[1]!)).toBe(false);
     }
     const all = learnForestLessons(fresh(["G3", "G4", "G5", "G6"]));
     expect(chapterWordIds().every((id) => all.wordCards[id])).toBe(true);

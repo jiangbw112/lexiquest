@@ -11,6 +11,7 @@ import {
 import {
   chapterBossReady,
   forestPlayChapter,
+  activeChapter,
   gradeChapters,
   isChapterUnlocked,
   playStatuses,
@@ -100,7 +101,8 @@ describe("forest study list", () => {
     const cloud = wordById("cloud");
     const climb = wordById("climb");
     expect(cloud && climb).toBeTruthy();
-    const study = bossGateStudy(opened);
+    const study = bossGateStudy(opened, "forest_adventure");
+    expect(bossGateStudy(opened).entries[0]?.chapterId).not.toBe("forest_adventure");
     expect(study.words).toEqual([`cloud ${cloud!.chinese}`, `climb ${climb!.chinese}`]);
     expect(study.entries).toEqual([
       {
@@ -126,6 +128,7 @@ describe("forest study list", () => {
       stageId: 4,
       boss: false,
       now: START.getTime(),
+      chapterId: "forest_adventure",
     });
     expect(view.bossGateLine).toContain("还有 2 个没在学堂学过");
     expect(view.bossGateWords).toEqual(study.words);
@@ -197,17 +200,22 @@ describe("academy settlement", () => {
 
     const forest = learnIds(fresh(["G3"]), requiredWordIds(fresh(["G3"])));
     const ready = learnCardsDoneCopy(forest, forestPlayChapter());
-    expect(ready.message).toBe("本章词都学会了！去对战挑战林心守护者吧");
-    expect(ready.primaryLabel).toBe("去挑战 Boss");
-    expect(ready.focusBoss).toBe(true);
+    expect(ready.primary).toBe("chapters");
+    expect(ready.mapChapterId).toBeUndefined();
+    expect(ready.message).not.toContain("林心守护者");
 
     const first = gradeChapters("G3")[0]!;
-    const locked = learnIds(fresh(["G3"]), first.wordIds);
-    const waiting = learnCardsDoneCopy(locked, first);
-    expect(waiting.message).toBe("本章词都学会了。对战里先打完森林冒险，这一章才能挑战。");
-    expect(waiting.primaryLabel).toBe("去对战");
-    expect(waiting.mapChapterId).toBe("forest_adventure");
-    expect(waiting.focusBoss).toBe(false);
+    const learnedFirst = learnIds(fresh(["G3"]), first.wordIds);
+    const waiting = learnCardsDoneCopy(learnedFirst, first);
+    expect(waiting.message).toBe("本章词都学会了！去对战挑战 Boss 吧");
+    expect(waiting.primaryLabel).toBe("去挑战 Boss");
+    expect(waiting.mapChapterId).toBe(first.id);
+    expect(waiting.focusBoss).toBe(true);
+    const second = gradeChapters("G3")[1]!;
+    const blocked = learnCardsDoneCopy(learnIds(fresh(["G3"]), second.wordIds), second);
+    expect(blocked.message).toBe("本章词都学会了。对战里先打完上一章，这一章才能挑战。");
+    expect(blocked.mapChapterId).toBe(first.id);
+    expect(blocked.mapChapterId).not.toBe("forest_adventure");
 
     const cleared = learnCardsDoneCopy({ ...forest, chapterCleared: true }, forestPlayChapter());
     expect(cleared.message).toBe("本章词卡已学完。");
@@ -259,15 +267,20 @@ describe("one academy entry for every selected grade", () => {
       expect(panel.buttons.at(-1)?.id).toBe("fight");
       expect(panel.buttons.at(-1)?.enabled).toBe(false);
       const study = bossGateStudy(save);
+      const standing = activeChapter(save);
       expect(study.entries, grades.join("+")).toHaveLength(1);
-      expect(study.entries[0]?.wordIds).toEqual(learn[0]?.wordIds);
-      expect(study.entries[0]?.wordIds).not.toContain("cloud");
+      expect(study.entries[0]?.chapterId).toBe(standing.id);
+      expect(study.entries[0]?.chapterId).not.toBe("forest_adventure");
+      expect(study.entries[0]?.wordIds).toEqual(standing.wordIds);
+      expect(study.entries[0]?.label).toBe("去学堂学");
     }
     const four = fresh(["G3", "G4", "G5", "G6"]);
     const study = bossGateStudy(four);
+    const first = gradeChapters("G3")[0]!;
     expect(study.entries[0]?.grade).toBe("G3");
-    expect(study.entries[0]?.label).toBe("去三年级学");
-    expect(study.entries[0]?.wordIds).toContain("tree");
+    expect(study.entries[0]?.label).toBe("去学堂学");
+    expect(study.entries[0]?.wordIds).toEqual(first.wordIds);
+    expect(study.words.join("")).not.toContain("tree");
     const clipped = clipMissingWords([study.words.join("、")], 48);
     expect(clipped.length).toBeGreaterThan(0);
     expect(clipped.join("")).toContain("还有");

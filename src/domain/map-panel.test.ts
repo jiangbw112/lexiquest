@@ -185,6 +185,7 @@ describe("forest map panel", () => {
       stageId: stage.id,
       boss: false,
       now: START.getTime(),
+      chapterId: FOREST_CHAPTER.chapter_id,
     });
     expect(view.learnMoreLine).toBe(panel.note);
     expect(view.repeatLine).toBeNull();
@@ -216,6 +217,7 @@ describe("forest map panel", () => {
       stageId: stage.id,
       boss: false,
       now: at,
+      chapterId: FOREST_CHAPTER.chapter_id,
     });
     expect(finished.learnMoreLine).toBeNull();
     expect(finished.repeatLine).toBeNull();
