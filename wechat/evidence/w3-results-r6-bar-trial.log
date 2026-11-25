@@ -1,0 +1,15 @@
+frozen questions true correct true new words true
+trial cross-bar lets text cross the XP bar. The page does not pass this option.
+cross-bar
+844x390 off 0 overlap 5 bar 5 row 0 font 14 gap 8 overflow 0 sheet true
+  卡牌升级 on progress_frame | ★1 到 ★2 on progress_frame | 获得物品 on progress_frame | 新外观 · 林间斗篷 on progress_frame | 已经穿上啦，可以去衣柜看看 on progress_frame
+667x375 off 0 overlap 6 bar 6 row 0 font 14 gap 8 overflow 0 sheet true
+  卡牌升级 on progress_frame | 盾击 on progress_frame | ★1 到 ★2 on progress_frame | 获得物品 on progress_frame | 新外观 · 林间斗篷 on progress_frame | 已经穿上啦，可以去衣柜看看 on progress_frame
+915x412 off 0 overlap 3 bar 3 row 0 font 14 gap 8 overflow 0 sheet true
+  升级了！ on progress_frame | 已经穿上啦，可以去衣柜看看 on progress_frame | 新技能卡 on progress_frame
+1024x768 off 0 overlap 0 bar 0 row 0 font 14 gap 8 overflow 0 sheet false
+final
+844x390 off 0 overlap 0 bar 0 row 0 font 14 gap 8 overflow 0 sheet true
+667x375 off 0 overlap 0 bar 0 row 0 font 14 gap 8 overflow 0 sheet true
+915x412 off 0 overlap 0 bar 0 row 0 font 14 gap 8 overflow 0 sheet true
+1024x768 off 0 overlap 0 bar 0 row 0 font 14 gap 8 overflow 0 sheet false

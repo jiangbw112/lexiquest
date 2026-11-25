@@ -5,7 +5,7 @@
 - 结论：未通过。开发者工具、真机、主包体积、场景重排、词音频、字体加载和 `host-copy` 都没有完成。
 - 续修后的结论仍是未通过。页面链、词表、战斗到结算、逻辑像素和磁盘分包口径有新的实测，见文末「续修」。开发者工具和真机仍待授权验证。
 
-下面的旧节都是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。`上一轮（父提交 ec88639，head 0ea60bd）` 停在 `0ea60bd`。`上一轮（父提交 0ea60bd，head 068d837）` 停在 `068d837`。`上一轮（head cc0287e）` 停在 `cc0287e`。`上一轮（父提交 cc0287e，head 7a2456e）` 停在 `7a2456e`。当前只看文末「当前（父提交 7a2456e 之后）」。
+下面的旧节都是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。`上一轮（父提交 ec88639，head 0ea60bd）` 停在 `0ea60bd`。`上一轮（父提交 0ea60bd，head 068d837）` 停在 `068d837`。`上一轮（head cc0287e）` 停在 `cc0287e`。`上一轮（父提交 cc0287e，head 7a2456e）` 停在 `7a2456e`。`上一轮（父提交 7a2456e 之后）` 停在 `85414ea`。当前只看文末「当前（父提交 85414ea 之后）」。
 
 ## 逐项结果（历史，首轮）
 
@@ -228,7 +228,7 @@
 
 已修的编码：图集 JSON 读取、复习桌一次点击进入、纸心与木框分开计的重叠、纸外说明的底色、四句字形复用。仍缺的编码：结算纸外仍有说明，没有收成一张纸内的版面；W8 没有 web 像素差。外部素材：词 mp3 0/863。未授权：开发者工具、真机、上传体积。包体超限是硬阻塞，原画和 JSON 都还在包里。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
 
-## 当前（父提交 7a2456e 之后）
+## 上一轮（父提交 7a2456e 之后）
 
 门禁：未通过。这一轮把结算和 W8 的说明收进纸面，同一局「一共 7 题 / 答对 3 题」的前后图不再是两场战斗。全量包仍然超过 20MB 和 30MB。词 mp3 仍是 0。字体在没有 `wx` 时仍失败。没有现成网页构建，所以没有 web 像素差。没有开发者工具，没有真机。p05、桌面 vitest、web boot 这一轮没有重跑。JSON 读取仍是测试里的文件钩子，不是 `wx.readFileSync` 已通过。
 
@@ -250,4 +250,29 @@
 | 开发者工具和真机 | 未验证 | 无 | 待授权 |
 
 已修的编码：结算说明和 W8 场景的纸外奶油条改到纸内；同一结算帧的前后重放；字形复用和裁剪在新包上又跑过。仍缺的编码：没有 web 像素差。地图状态句放在另开的纸上，不是塞进那条 114 像素宽的侧栏。外部素材：词 mp3 0/863。未授权：开发者工具、真机、上传体积。包体超限是硬阻塞，原画和 JSON 都还在包里。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
+
+## 当前（父提交 85414ea 之后）
+
+门禁：未通过。这一轮把结算后两行从奖励卡和经验条上挪走，技能说明不再压列表行，对战说明不再被内层小纸盖住，考试左侧改成一列垫纸。全量包仍然超过 20MB 和 30MB。词 mp3 仍是 0。字体在没有 `wx` 时仍失败。仓库没有现成 `dist/`，没有 web 像素差。没有开发者工具，没有真机。p05、桌面 vitest、web boot 这一轮没有重跑。JSON 读取仍是测试里的文件钩子，不是 `wx.readFileSync` 已通过。
+
+| 项 | 当前 | 证据 | 来源 |
+|---|---|---|---|
+| 结算同一帧 | 通过这一项的避让。冻结的仍是同一份结算：一共 7 题，答对 3 题，还有 5 个新词。前图里「已经穿上啦…」「新技能卡 坚守 ★1 ★2」压在奖励卡上沿并贴着经验条。后图这些句子在左侧一张有内边距的 `#fff4dc` 垫纸上，羊皮纸里的奖励卡和经验条没有字压上去。文案没有删。844×390、667×375、915×412、1024×768 都是 `minFont` 14、热区 44、`minGap` 8、`overflow` 0、`overlap` 0、`off paper` 0 | `evidence/w3-results-r5-view.json`，`evidence/w3-results-r6-before.png`，`evidence/w3-results-r6-after.png`，`evidence/w7-user-chain-r6.log` | Chrome `measureText` 重放。不是开发者工具，不是两场战斗 |
+| 穿过经验条的试验 | 正式页面不穿过经验条。试验选项 `trial=cross-bar` 只挡住列表行、放行经验条，测得 overlap：844 是 5，667 是 6，915 是 3，1024 是 0。这几条都是 `on progress_frame`，`list_row` 是 0。正式排版四个视口 overlap 都是 0。本包日志里没有「915/1024 变成 9 和 6」 | `evidence/w3-results-r6-bar-trial.log` | Chrome。不是微信通过 |
+| 技能 | 技能名和描述在纸内按列排，不再压列表行边。`off paper` 0，`overlap` 0，`overflow` 0。最后一条「盾击 ★2」和它的说明、「战吼」因为这一行排得下而写在同一行，位置在垫纸底部，不在列表行上 | `evidence/w8-r6-skills.png`，`evidence/w7-user-chain-r6.log` | Chrome 重放 |
+| 对战 | 内层小纸是空的。规则和「请把电脑交给 小朋友甲 第 1/4 题」在它下面的外层纸里。`overlap` 0，`overflow` 0 | `evidence/w8-r6-duel.png` | Chrome 重放 |
+| 考试地图 | `start("exam-battle")` 没有考卷时进入关卡地图。左侧是一列有内边距的垫纸，不再是右列问号。未解锁词的「?」回到词卡上。`overlap` 0，`overflow` 0 | `evidence/w8-r6-exam-battle.png`，`evidence/w7-user-chain-r6.log` | Chrome 重放。不是一场真正开打的考试 |
+| 指南、结局、衣柜、标题 | 没有回退。指南的「给家长」和说明仍在羊皮纸里。结局和衣柜说明仍在纸里。标题页仍是 `#fff4dc` 垫纸。指南标题仍靠近纸的上沿，`overlap` 仍是 0，这一轮没有改它 | `evidence/w8-r6-guide.png`，`evidence/w8-r6-ending.png`，`evidence/w8-r6-wardrobe.png`，`evidence/w8-r6-title.png` | Chrome 重放 |
+| web 像素差 | 未完成。仓库里没有现成的 `dist/`。这一轮没有改 `src`、`desktop` 或根脚本，也没有新打网页包。上面的图是微信画布适配器的 Chrome 重放，不能代替网页像素差 | 无对照图 | 未做差 |
+| 图集 JSON | 衣柜启动 `failureCount` 0，`missingAssets` 为空。这是 Chrome 里的文件钩子，不是 `wx.readFileSync` 已通过 | `evidence/w3-clip-r7.log` | Chrome |
+| 复习桌第一次点击 | 仍是一次点击加 400ms 进入。再点一次仍进入。`reviewInstants` 从 1 到 2，到期 `2026-11-27T17:15:00.967Z` | `evidence/w7-user-chain-r6.log` | Node 点页面按钮 |
+| 字形 | 四句仍复用。第一遍主画布 `fillText` 0、`drawImage` 4、新建 4、复用 0。第二遍 `fillText` 0、`drawImage` 4、新建仍是 4、复用 4。日志是 `w3-glyph-r4.log`，没有覆盖 `w3-glyph-r3.log` | `evidence/w3-glyph-r4.log` | Chrome |
+| 裁剪 | 仍通过。窗口外像素 `[32,32,32]`，窗口内 `[206,215,192]`。窗口内点按把装备从 traveler 改成 forest-cape。日志是 `w3-clip-r7.log`，没有覆盖 `w3-clip-r6.log` | `evidence/w3-clip-r7.log` | Chrome |
+| 可导入包 | 失败，硬阻塞。主包 1,198,705。art-json 1,204,347。合计 34,924,723。超过 20,971,520，也超过 31,457,280。退出码 2。唯一的 FAIL 行是合计超限，单个分包没有另外的 FAIL。`game.cjs.js` 715,273 字节，SHA256 `c13eac1199d3a65c04786497d9f962400381cbc020877e778dd094125186b4e7`。没有删原画或 JSON，没有购买云存储，没有下载地址 | `evidence/w10-size-r7.log`，`evidence/w10-resource-r7.json` | 磁盘，按 packOptions.ignore。不是上传体积 |
+| 分界 | 累计到 art-extra-08 是 19,628,084，仍小于 20,971,520。art-extra-09 起超过 20MB。累计到 art-extra-14 是 31,295,877，仍小于 31,457,280。art-extra-15 起累计 33,279,405，超过 30MB | `evidence/w10-size-r7.log` | 同上 |
+| 词音 | 仍是外部素材。调用记下 `word audio missing: tree`。包内 mp3 0，public 词 mp3 0。没有生成或购买 | `evidence/w7-user-chain-r6.log`，`evidence/w10-size-r7.log` | Node |
+| 字体 | `libVersion` 仍是 3.7.9。12 次加载全部失败，原因仍是没有 `wx.loadFontFace`。没有写成加载成功 | `evidence/w7-user-chain-r6.log` | Node |
+| 开发者工具和真机 | 未验证 | 无 | 待授权 |
+
+已修的编码：结算奖励句避开奖励卡和经验条；技能说明避开列表行；对战说明避开内层小纸；考试左侧改成一列垫纸，问号回到词卡；同一结算帧的前后重放；穿过经验条的试验日志；字形复用和裁剪在新包上又跑过。仍缺的编码：没有 web 像素差，因为没有现成网页构建，这一轮也不能改 `src`。外部素材：词 mp3 0/863。未授权：开发者工具、真机、上传体积。包体超限是硬阻塞，原画和 JSON 都还在包里。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
 
