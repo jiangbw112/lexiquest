@@ -70,7 +70,7 @@ async function openChrome() {
 async function measuredPlan(scene, size, page) {
   const map = new Map();
   let plan = null;
-  for (let pass = 0; pass < 6; pass += 1) {
+  for (let pass = 0; pass < 20; pass += 1) {
     const missing = [];
     const seen = new Set();
     plan = game.layoutFrame(scene, size, (text, fontPx, weight, family) => {
@@ -199,12 +199,8 @@ async function shoot(page, plan, file) {
       ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
     }
     ctx.textBaseline = "top";
+    ctx.fillStyle = "#17352a";
     for (const item of texts) {
-      if (!item.onPaper && !item.nested) {
-        ctx.fillStyle = "#f3e2c2";
-        ctx.fillRect(item.x, item.y, item.w, item.h);
-      }
-      ctx.fillStyle = "#17352a";
       const rows = item.lines && item.lines.length ? item.lines : [item.text];
       ctx.font = `${item.fontPx}px sans-serif`;
       rows.forEach((row, index) => ctx.fillText(row, item.x, item.y + index * item.fontPx));
@@ -330,8 +326,10 @@ async function main() {
     log(`results won ${fought.battlesWon} lost ${fought.battlesLost} cards ${Object.keys(fought.wordCards).join(",")}`);
     port.step(400);
     const results = await geometry("results", port, page);
-    const shot = path.join(root, "evidence/w3-results-after.png");
-    const artifact = "/opt/cursor/artifacts/w3-results-after.png";
+    const liveOff = results.texts.filter((item) => !item.nested && !item.onPaper);
+    assert.strictEqual(liveOff.length, 0, `live results off paper ${liveOff.length}`);
+    const shot = path.join(root, "evidence/w3-results-r5-live.png");
+    const artifact = "/opt/cursor/artifacts/w3-results-r5-live.png";
     fs.mkdirSync(path.dirname(shot), { recursive: true });
     fs.mkdirSync("/opt/cursor/artifacts", { recursive: true });
     const sample = await shoot(page, results, shot);
@@ -414,7 +412,7 @@ async function main() {
         const row = { key, ok: true, texts: plan.texts.length, overlap: plan.overlap, overflow: plan.overflow };
         sceneReport.push(row);
         const painted = await measuredPlan(port.runtime.active(), view, page);
-        const sceneShot = path.join(root, `evidence/w8-r4-${key}.png`);
+        const sceneShot = path.join(root, `evidence/w8-r5-${key}.png`);
         await shoot(page, painted, sceneShot);
         row.shot = sceneShot;
         log(`scene ${key} texts ${row.texts} overlap ${row.overlap} overflow ${row.overflow} chrome ${sceneShot}`);
@@ -423,14 +421,41 @@ async function main() {
         log(`scene ${key} unfinished ${error && error.message ? error.message : error}`);
       }
     }
-    log("scene shots are Chrome replays of this adapter's layout. There is no web pixel diff. Not DevTools. Not a phone.");
+    log("scene shots are Chrome replays of this adapter's layout. Not a web pixel diff. Not DevTools. Not a phone.");
+    const frozenPath = path.join(root, "evidence/w3-results-r5-view.json");
+    const frozen = JSON.parse(fs.readFileSync(frozenPath, "utf8"));
+    port.runtime.start("battle-results", frozen);
+    port.step(800);
+    assert.strictEqual(port.runtime.active().key, "battle-results");
+    for (const size of views) {
+      const plan = await measuredPlan(port.runtime.active(), size, page);
+      const off = plan.texts.filter((item) => !item.nested && !item.onPaper);
+      assert.strictEqual(off.length, 0, `frozen ${size.w} off paper ${off.length}`);
+      assertGeometry("frozen", size, plan);
+    }
+    const frozenPlan = await measuredPlan(port.runtime.active(), view, page);
+    const frozenShot = path.join(root, "evidence/w3-results-r5-after.png");
+    await shoot(page, frozenPlan, frozenShot);
+    fs.copyFileSync(frozenShot, "/opt/cursor/artifacts/w3-results-r5-after.png");
+    const sameFrame = frozenPlan.texts.map((item) => item.text).join("\n");
+    assert.ok(sameFrame.includes("答对 3 题"), "same frame still says 3 correct");
+    assert.ok(sameFrame.includes("一共 7 题"), "same frame still says 7 questions");
+    log(`frozen results same frame 7 questions 3 correct off 0 shot ${frozenShot}`);
+    for (const key of ["skills", "wardrobe", "guide", "ending", "duel", "exam-battle", "title"]) {
+      const plan = await measuredPlan(port.runtime.active().key === key ? port.runtime.active() : (port.runtime.start(key), port.step(200), port.runtime.active()), view, page);
+      const off = plan.texts.filter((item) => !item.nested && !item.onPaper);
+      log(`paper ${key} active ${port.runtime.active().key} off ${off.length} overlap ${plan.overlap} overflow ${plan.overflow}`);
+      assert.strictEqual(off.length, 0, `${key} off paper`);
+      assert.strictEqual(plan.overlap, 0, `${key} overlap`);
+      assert.strictEqual(plan.overflow, 0, `${key} overflow`);
+    }
 
     const nodeGap = port.runtime.failures.find((item) => String(item).includes("createImage"));
     log(`node image gap ${nodeGap}`);
     assert.ok(nodeGap, "Node records that pixels were not decoded");
     log("check-user-chain: profiles, name, learn, battle, results, collection, review");
     log("clicks: Node page adapter. geometry: Chrome canvas measureText. pixels: Chrome canvas drawImage. Not WeChat DevTools. Not a phone.");
-    const out = path.join(root, "evidence/w7-user-chain-r4.json");
+    const out = path.join(root, "evidence/w7-user-chain-r5.json");
     fs.writeFileSync(out, JSON.stringify({
       source: "Node clicks through pages/game/port.js. Chrome canvas measureText and one drawImage replay. Not WeChat DevTools and not a phone.",
       name: port.save().player.name,
@@ -444,7 +469,7 @@ async function main() {
       sampleColors: sample.colors,
       scenes: sceneReport,
     }, null, 2));
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r4.log"), `${lines.join("\n")}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r5.log"), `${lines.join("\n")}\n`);
   } finally {
     await browser.close();
   }
@@ -454,7 +479,7 @@ main().then(() => process.exit(0)).catch((error) => {
   console.error(error && error.stack ? error.stack : error);
   try {
     fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r4.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r5.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
   } catch (writeError) {
     console.error(writeError);
   }

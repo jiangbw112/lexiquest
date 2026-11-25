@@ -97,7 +97,7 @@ async function main() {
     assert.strictEqual(result.second.stats.created, 4, "second paint created more textures");
     assert.strictEqual(result.second.stats.reused, 4, "second paint did not reuse each texture");
     assert.ok(result.ink > 0, "cached glyph left the canvas blank");
-    const out = path.join(root, "evidence/w3-glyph-r2.log");
+    const out = path.join(root, "evidence/w3-glyph-r3.log");
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, `${lines.join("\n")}\n`);
     fs.copyFileSync(out, "/opt/cursor/artifacts/w3-glyph-r2.log");

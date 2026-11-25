@@ -53,7 +53,7 @@ export interface FramePlan {
   texts: PaintBox[];
   hits: PaintBox[];
   images: DrawImageOp[];
-  fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode }>;
+  fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode; role?: "sheet" }>;
   minFont: number;
   minHit: number;
   minGap: number | null;
@@ -265,6 +265,23 @@ function paperInterior(box: WorldRect): WorldRect {
   return { x: box.x + inset, y: box.y + inset, w, h };
 }
 
+function clipInterior(box: WorldRect, view: ViewBox): WorldRect {
+  const x = Math.max(8, box.x);
+  const y = Math.max(52, box.y);
+  const right = Math.min(view.w - 4, box.x + box.w);
+  const bottom = Math.min(view.h - 4, box.y + box.h);
+  return { x, y, w: right - x, h: bottom - y };
+}
+
+function isPaperFrame(frame: string): boolean {
+  return frame === "panel_parchment" || frame === "panel_wood" || frame === "list_row" || frame.startsWith("word_chip");
+}
+
+interface Plate {
+  box: WorldRect;
+  kind: "room" | "paper" | "art";
+}
+
 function boxInside(inner: WorldRect, outer: WorldRect): boolean {
   return inner.x >= outer.x - 0.5 && inner.y >= outer.y - 0.5 && inner.x + inner.w <= outer.x + outer.w + 0.5 && inner.y + inner.h <= outer.y + outer.h + 0.5;
 }
@@ -310,12 +327,13 @@ function placeUnits(
   units: Unit[],
   view: ViewBox,
   scene: { children: { list: GameNode[] } } | null,
-  worldBoxes: WorldRect[],
+  plates: Plate[],
+  fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode; role?: "sheet" }>,
   measure: MeasureText | undefined,
 ): void {
-  // 原来：占视口 18% 的羊皮纸整张不算障碍，标题就排到纸面上，结算左侧还留着场景自己的字。
-  // 现在：整屏底图不占格。羊皮纸只留内边距给说明文字，木框、角色和图标占格。说明字放不进纸面就落到视口下沿，不再铺到左侧空白上。
-  // 为什么：把大图排除出 overlap，会把压在面板上的字算成 0。
+  // 原来：羊皮纸九宫格被拆开，中心块不够大时整段说明落到纸外，再铺一条和字一样大的奶油底。
+  // 现在：整张羊皮纸、木牌和列表行是一张纸。说明按行排进纸心，字号可以收到 14，不再铺纸外条。没有纸的画面另开一张有内边距的纸。
+  // 为什么：纸外条把字留在绿底上。结算和指南要能在纸里面读完，不删句子。
   const step = 4;
   const grid: Occupancy = {
     blocked: new Uint8Array(Math.ceil(view.w / step) * Math.ceil(view.h / step)),
@@ -327,17 +345,21 @@ function placeUnits(
   markBox(grid, { x: 0, y: view.h - 4, w: view.w, h: 4 });
   markBox(grid, { x: 0, y: 0, w: 8, h: view.h });
   markBox(grid, { x: view.w - 4, y: 0, w: 4, h: view.h });
-  const interiors: WorldRect[] = [];
-  for (const box of worldBoxes) {
-    if (box.w <= 0 || box.h <= 0 || plateKind(box, view) !== "paper") continue;
-    const interior = paperInterior(box);
-    interiors.push(interior);
-    markBox(grid, box);
-    markBox(grid, interior, 0);
+  const papers = plates
+    .filter((plate) => plate.kind === "paper" && plate.box.w > 0 && plate.box.h > 0)
+    .map((plate) => ({ outer: plate.box, inner: clipInterior(paperInterior(plate.box), view) }))
+    .filter((plate) => plate.inner.w >= 48 && plate.inner.h >= 28)
+    .sort((a, b) => b.inner.w * b.inner.h - a.inner.w * a.inner.h);
+  const packing = papers.length > 1
+    ? [papers[0], ...papers.slice(1).filter((plate) => !boxInside(plate.outer, papers[0].outer))]
+    : papers;
+  for (const plate of packing) {
+    markBox(grid, plate.outer);
+    markBox(grid, plate.inner, 0);
   }
-  for (const box of worldBoxes) {
-    if (box.w <= 0 || box.h <= 0 || plateKind(box, view) !== "art") continue;
-    markBox(grid, box);
+  for (const plate of plates) {
+    if (plate.kind !== "art" || plate.box.w <= 0 || plate.box.h <= 0) continue;
+    markBox(grid, plate.box);
   }
   if (scene) {
     const mask = firstMask(scene);
@@ -346,34 +368,145 @@ function placeUnits(
       if (band) markBox(grid, band);
     }
   }
-  const flow = interiors.map((region) => ({ region, x: region.x, y: region.y, rowH: 0 }));
-  const placeFlow = (unit: Unit): boolean => {
-    for (const row of flow) {
-      const width = Math.max(28, row.region.w);
-      fitText(unit, width, measure);
-      if (unit.h > row.region.h) continue;
-      const advance = () => {
-        row.x = row.region.x;
-        row.y += row.rowH + UI_GAP;
-        row.rowH = 0;
-      };
-      if (row.x > row.region.x && row.x + unit.w > row.region.x + row.region.w) advance();
-      if (row.y + unit.h > row.region.y + row.region.h) continue;
-      if (!cellFree(grid, row.x, row.y, unit.w, unit.h)) {
-        row.x += grid.step;
-        if (row.x + unit.w > row.region.x + row.region.w) advance();
-        if (row.y + unit.h > row.region.y + row.region.h || !cellFree(grid, row.x, row.y, unit.w, unit.h)) continue;
+  const copy = units.filter((unit) => !unit.interactive && unit.text.length > 0).sort((a, b) => a.design.y - b.design.y || a.design.x - b.design.x);
+  const separated = (rect: WorldRect, prev: WorldRect): boolean => {
+    const gapX = Math.max(rect.x - (prev.x + prev.w), prev.x - (rect.x + rect.w));
+    const gapY = Math.max(rect.y - (prev.y + prev.h), prev.y - (rect.y + rect.h));
+    if (gapX < 0 && gapY < 0) return false;
+    if (gapY < 0 && gapX < UI_GAP) return false;
+    if (gapX < 0 && gapY < UI_GAP) return false;
+    return true;
+  };
+  const maskBand = scene ? firstMask(scene) : null;
+  const maskHits = maskBand ? screenShapes(maskBand.shapes, view) : [];
+  const shelfInto = (region: WorldRect): boolean => {
+    const originals = copy.map((unit) => unit.fontPx);
+    const arts = plates.filter((plate) => plate.kind === "art" && intersectsBox(plate.box, region));
+    const blocked = (rect: WorldRect) => arts.some((plate) => intersectsBox(rect, plate.box)) || maskHits.some((shape) => boxHitsShape(rect, shape));
+    const maxFont = Math.max(14, ...originals, 14);
+    for (let cap = maxFont; cap >= 14; cap -= 1) {
+      const placed: WorldRect[] = [];
+      let x = region.x;
+      let y = region.y;
+      let rowH = 0;
+      let ok = true;
+      for (let index = 0; index < copy.length; index += 1) {
+        const unit = copy[index];
+        unit.fontPx = Math.max(14, Math.min(originals[index], cap));
+        fitText(unit, Math.max(28, region.w), measure);
+        const accept = (px: number, py: number) => {
+          const rect = { x: px, y: py, w: unit.w, h: unit.h };
+          if (py + rect.h > region.y + region.h + 0.1 || px + rect.w > region.x + region.w + 0.1) return false;
+          if (blocked(rect) || placed.some((prev) => !separated(rect, prev))) return false;
+          unit.x = px;
+          unit.y = py;
+          return true;
+        };
+        if (x > region.x && x + unit.w > region.x + region.w) {
+          x = region.x;
+          y += rowH + UI_GAP;
+          rowH = 0;
+        }
+        let parked = y + unit.h <= region.y + region.h + 0.1 && accept(x, y);
+        if (!parked) {
+          for (let yy = y; yy + unit.h <= region.y + region.h && !parked; yy += Math.max(14, unit.h)) {
+            for (let xx = region.x; xx + unit.w <= region.x + region.w && !parked; xx += 12) {
+              if (!accept(xx, yy)) continue;
+              x = xx;
+              y = yy;
+              rowH = 0;
+              parked = true;
+            }
+          }
+        }
+        if (!parked) {
+          ok = false;
+          break;
+        }
+        unit.onPaper = true;
+        placed.push({ x: unit.x, y: unit.y, w: unit.w, h: unit.h });
+        x = unit.x + unit.w + UI_GAP;
+        rowH = Math.max(rowH, unit.h);
       }
-      unit.x = row.x;
-      unit.y = row.y;
-      unit.onPaper = true;
-      markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
-      row.x += unit.w + UI_GAP;
-      row.rowH = Math.max(row.rowH, unit.h);
-      return true;
+      if (ok) {
+        for (const rect of placed) markBox(grid, { x: rect.x - UI_GAP, y: rect.y - UI_GAP, w: rect.w + UI_GAP * 2, h: rect.h + UI_GAP * 2 });
+        return true;
+      }
     }
+    copy.forEach((unit, index) => {
+      unit.fontPx = originals[index];
+      unit.onPaper = false;
+    });
     return false;
   };
+  const openSheet = (): boolean => {
+    if (copy.length === 0) return false;
+    const width = Math.min(480, view.w - 32);
+    const originals = copy.map((unit) => unit.fontPx);
+    for (let cap = Math.max(14, ...originals, 14); cap >= 14; cap -= 1) {
+      const innerW = width - 40;
+      let cursorX = 0;
+      let cursorY = 0;
+      let rowH = 0;
+      let tooTall = false;
+      for (let index = 0; index < copy.length; index += 1) {
+        const unit = copy[index];
+        unit.fontPx = Math.max(14, Math.min(originals[index], cap));
+        fitText(unit, Math.max(28, innerW), measure);
+        if (cursorX > 0 && cursorX + unit.w > innerW) {
+          cursorX = 0;
+          cursorY += rowH + UI_GAP;
+          rowH = 0;
+        }
+        if (cursorY + unit.h > view.h - 80) tooTall = true;
+        cursorX += unit.w + UI_GAP;
+        rowH = Math.max(rowH, unit.h);
+      }
+      if (tooTall) continue;
+      const outerH = Math.max(72, cursorY + rowH + 32);
+      const outerW = width;
+      for (let y = 52; y + outerH <= view.h - 4; y += step) {
+        for (let x = 8; x + outerW <= view.w - 4; x += step) {
+          if (!cellFree(grid, x, y, outerW, outerH)) continue;
+          const outer = { x, y, w: outerW, h: outerH };
+          const inner = { x: x + 20, y: y + 16, w: innerW, h: outerH - 32 };
+          fills.push({ ...outer, color: 0xfff4dc, role: "sheet" });
+          plates.push({ box: outer, kind: "paper" });
+          markBox(grid, outer);
+          let penX = inner.x;
+          let penY = inner.y;
+          let lineH = 0;
+          for (const unit of copy) {
+            if (penX > inner.x && penX + unit.w > inner.x + inner.w) {
+              penX = inner.x;
+              penY += lineH + UI_GAP;
+              lineH = 0;
+            }
+            unit.x = penX;
+            unit.y = penY;
+            unit.onPaper = true;
+            penX += unit.w + UI_GAP;
+            lineH = Math.max(lineH, unit.h);
+            markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+          }
+          return true;
+        }
+      }
+    }
+    copy.forEach((unit, index) => {
+      unit.fontPx = originals[index];
+      unit.onPaper = false;
+    });
+    return false;
+  };
+  let onPaper = false;
+  for (const plate of packing) {
+    if (shelfInto(plate.inner)) {
+      onPaper = true;
+      break;
+    }
+  }
+  if (!onPaper) onPaper = openSheet();
   const ordered = [...units].sort((a, b) => Number(b.interactive) - Number(a.interactive) || a.design.y - b.design.y || a.design.x - b.design.x);
   let overflowY = view.h;
   const spansAt = (y: number, h: number) => {
@@ -420,39 +553,15 @@ function placeUnits(
     return false;
   };
   for (const unit of ordered) {
+    if (!unit.interactive && unit.text.length > 0 && onPaper) continue;
     const natural = Math.max(16, unit.w);
-    const regions = unit.interactive || interiors.length === 0 ? null : interiors;
-    if (!unit.interactive && regions && placeFlow(unit)) continue;
-    if (tryPlace(unit, natural, regions)) continue;
-    if (!unit.interactive && unit.text.length > 1) {
-      const snapshot = grid.blocked.slice();
-      let split = false;
-      for (const width of [160, 112, 80, 56, 40, 28]) {
-        grid.blocked.set(snapshot);
-        const lines = wrapText(unit.text, unit.fontPx, width, measure, unit.weight, unit.family);
-        const pieces: Unit[] = [];
-        let all = true;
-        for (const line of lines) {
-          const piece: Unit = { ...unit, text: line, lines: [line], w: width, h: unit.fontPx };
-          if (!tryPlace(piece, width, regions)) {
-            all = false;
-            break;
-          }
-          pieces.push(piece);
-        }
-        if (all && pieces.length) {
-          const index = units.indexOf(unit);
-          if (index >= 0) units.splice(index, 1, ...pieces);
-          split = true;
-          break;
-        }
-      }
-      if (split) continue;
-      grid.blocked.set(snapshot);
+    if (tryPlace(unit, natural, null)) {
+      if (!unit.interactive) unit.onPaper = false;
+      continue;
     }
-    if (regions && tryPlace(unit, natural, null)) continue;
     unit.x = 8;
     unit.y = overflowY;
+    unit.onPaper = false;
     overflowY += Math.max(unit.h, unit.fontPx || UI_HIT) + UI_GAP;
   }
 }
@@ -815,10 +924,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   if (scene) flatten(scene.children.list, flat);
   const visible = flat.filter((node) => node.visible);
   const images: DrawImageOp[] = [];
-  const fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode }> = [];
+  const fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode; role?: "sheet" }> = [];
   const scale = worldScale(view);
   const units: Unit[] = [];
   const used = new Set<GameNode>();
+  const plates: Plate[] = [];
 
   for (const node of visible) {
     if (paintedByTree(node)) continue;
@@ -826,7 +936,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
-    emitArt(images, fills, node, { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) });
+    const dest = { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
+    const frame = node.type === "nineslice" ? String((node as GameNode & { frame?: string }).frame ?? "") : "";
+    const kind = isPaperFrame(frame) ? "paper" : plateKind(dest, view);
+    plates.push({ box: dest, kind });
+    emitArt(images, fills, node, dest);
   }
 
   for (const node of visible) {
@@ -867,11 +981,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       lines,
     });
   }
-  const worldBoxes: WorldRect[] = [
-    ...images.map((op) => ({ x: op.x, y: op.y, w: op.w, h: op.h })),
-    ...fills.map((op) => ({ x: op.x, y: op.y, w: op.w, h: op.h })),
-  ];
-  placeUnits(units, view, scene, worldBoxes, measure);
+  placeUnits(units, view, scene, plates, fills, measure);
 
   const items: PaintBox[] = [];
   for (const unit of units) {
@@ -984,18 +1094,24 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   for (const item of texts) {
     const before = overlapLabels.length;
     const box = { x: item.x, y: item.y, w: item.w, h: item.h };
-    for (const art of worldBoxes) {
-      if (art.w <= 0 || art.h <= 0 || !intersectsBox(box, art)) continue;
-      const kind = plateKind(art, view);
-      if (kind === "room") continue;
-      if (kind === "paper") {
-        const interior = paperInterior(art);
+    let insidePaper = false;
+    let onFrame = false;
+    let artHit = "";
+    for (const art of plates) {
+      if (art.box.w <= 0 || art.box.h <= 0 || !intersectsBox(box, art.box)) continue;
+      if (art.kind === "room") continue;
+      if (art.kind === "paper") {
+        const interior = paperInterior(art.box);
         const slack = { x: interior.x - 4, y: interior.y - 4, w: interior.w + 8, h: interior.h + 8 };
-        if (boxInside(box, slack)) continue;
+        if (boxInside(box, slack)) insidePaper = true;
+        else onFrame = true;
+        continue;
       }
-      overlapLabels.push(`${item.text.slice(0, 16)} on ${kind} ${Math.round(art.x)},${Math.round(art.y)} ${Math.round(art.w)}x${Math.round(art.h)}`);
+      artHit = `${item.text.slice(0, 16)} on art ${Math.round(art.box.x)},${Math.round(art.box.y)} ${Math.round(art.box.w)}x${Math.round(art.box.h)}`;
       break;
     }
+    if (artHit) overlapLabels.push(artHit);
+    else if (onFrame && !insidePaper && !item.nested) overlapLabels.push(`${item.text.slice(0, 16)} on frame`);
     if (overlapLabels.length === before && maskShapes.some((shape) => boxHitsShape(box, shape))) overlapLabels.push(`${item.text.slice(0, 16)} on mask`);
   }
   const overlap = overlapLabels.length;
@@ -1230,10 +1346,6 @@ function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintC
 function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.kind === "text" && item.text) {
-      if (!item.nested && !item.onPaper) {
-        ctx.fillStyle = "#f3e2c2";
-        ctx.fillRect(item.x, item.y, item.w, item.h);
-      }
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
       paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
       continue;
@@ -1257,17 +1369,22 @@ export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx
   if (!ctx) return plan;
   const maskAt = scene ? firstMaskIndex(scene) : Number.POSITIVE_INFINITY;
   const before = <T extends { node?: GameNode }>(op: T) => !scene || sceneIndex(scene, op.node) <= maskAt;
-  for (const fill of plan.fills.filter(before)) {
+  const sheet = (fill: { role?: "sheet" }) => fill.role === "sheet";
+  for (const fill of plan.fills.filter((fill) => before(fill) && !sheet(fill))) {
     ctx.fillStyle = hex(fill.color);
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
   }
   for (const op of plan.images.filter(before)) paintImage(ctx, op);
   if (scene) paintMaskedTrees(scene, ctx, view);
-  for (const fill of plan.fills.filter((op) => !before(op))) {
+  for (const fill of plan.fills.filter((op) => !before(op) && !sheet(op))) {
     ctx.fillStyle = hex(fill.color);
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
   }
   for (const op of plan.images.filter((op) => !before(op))) paintImage(ctx, op);
+  for (const fill of plan.fills.filter(sheet)) {
+    ctx.fillStyle = hex(fill.color);
+    ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
+  }
   paintItems(ctx, plan);
   return plan;
 }
