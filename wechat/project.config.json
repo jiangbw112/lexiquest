@@ -1,12 +1,15 @@
 {
   "miniprogramRoot": "./",
   "projectname": "lexiquest-wechat",
-  "description": "词境练习家 P0.5 skeleton. appid remains touristappid; a real AppID was not supplied.",
-  "appid": "touristappid",
+  "description": "词境练习家 P0.6 skeleton.",
+  "appid": "wx63db876009dfe905",
   "compileType": "miniprogram",
   "libVersion": "3.5.5",
   "packOptions": {
-    "ignore": [{ "type": "file", "value": "p05-check.cjs" }],
+    "ignore": [
+      { "type": "file", "value": "p05-check.cjs" },
+      { "type": "file", "value": "p06-render.cjs" }
+    ],
     "include": []
   },
   "setting": {

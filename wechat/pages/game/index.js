@@ -18,6 +18,7 @@ const {
   layoutView,
   createPointerState,
   reducePointer,
+  shouldReleasePointer,
   paintedFrameNames,
   atlasFailure,
   audioFailure,
@@ -48,6 +49,7 @@ Page({
     this._alive = true;
     this._hidden = false;
     this._pointer = createPointerState();
+    this._pointSource = "";
     this._failures = { atlas: "", audio: "" };
     this._canvasRect = { left: 0, top: 0, known: false };
     this._background = { hadAudio: false, playing: false, replay: false, pressTarget: null };
@@ -324,27 +326,44 @@ Page({
 
   onTouchEnd(event) {
     this.onPointer("end", event);
+    this.releaseIfScreenClear(event);
   },
 
   onTouchCancel(event) {
     this.onPointer("cancel", event);
+    this.releaseIfScreenClear(event);
   },
 
+  // 原来：end/cancel 只把 changedTouches 交给 reducePointer。touches 缺失和空数组没有区分。
+  // 现在：liveTouches 用 Array.isArray。空数组传 []，字段缺失传 null。
+  //       页面兜底只在 end/cancel 之后、且 touches 是长度为 0 的数组、指针仍按下时清空并重绘一次。
+  // 为什么：缺失不是“屏上没手指”。把它当成空数组会把还按着的另一指一起取消。
+  //       缺失时保持 reducePointer 的旧结果，下一次 start 若带上明确的 liveTouches 再自愈。
   onPointer(type, event) {
     if (!this._alive) return;
     const before = this._pointer ? this._pointer.target : null;
     const result = reducePointer(this._pointer || createPointerState(), {
       type,
       changedTouches: event && event.changedTouches ? event.changedTouches : [],
+      liveTouches: event && Array.isArray(event.touches) ? event.touches : null,
       rect: this._canvasRect,
       layout: this._layout,
     });
     this._pointer = result.state;
+    if (result.pointSource) this._pointSource = result.pointSource;
     if (result.action) {
       this.applyAction(result.action);
       return;
     }
     if (before !== result.state.target) this.draw();
+  },
+
+  releaseIfScreenClear(event) {
+    if (!this._alive) return;
+    const touches = event && Array.isArray(event.touches) ? event.touches : null;
+    if (!shouldReleasePointer(this._pointer, touches)) return;
+    this._pointer = createPointerState();
+    this.draw();
   },
 
   applyAction(action) {
@@ -432,7 +451,7 @@ Page({
     if (failure) {
       ctx.fillStyle = "#ff5c5c";
       ctx.font = "16px sans-serif";
-      ctx.fillText(failure, 8, y);
+      ctx.fillText(failure, 16, y);
       y += 22;
     }
     if (!debug) return;
@@ -456,9 +475,10 @@ Page({
       safeNote: safeAreaDebugNote(this._safeDecision),
       rectLeft: this._canvasRect && this._canvasRect.known ? this._canvasRect.left : NaN,
       rectTop: this._canvasRect && this._canvasRect.known ? this._canvasRect.top : NaN,
+      pointSource: this._pointSource,
     });
     ctx.fillStyle = "#d7ecff";
-    ctx.font = "12px sans-serif";
-    ctx.fillText(line, 8, y);
+    ctx.font = "14px sans-serif";
+    ctx.fillText(line, 16, y);
   },
 });

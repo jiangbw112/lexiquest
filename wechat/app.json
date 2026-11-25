@@ -1,5 +1,6 @@
 {
   "pages": ["pages/game/index"],
+  "resizable": true,
   "window": {
     "navigationBarTitleText": "词境练习家",
     "pageOrientation": "landscape",

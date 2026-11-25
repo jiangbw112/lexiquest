@@ -235,78 +235,92 @@ assert(local.x === 10 && local.y === 20, "divergent x/y stays canvas-local");
 const clientOnly = api.canvasPoint({ clientX: 15, clientY: 27 }, { left: 5, top: 7 });
 assert(clientOnly.x === 10 && clientOnly.y === 20, "client-only subtracts rect");
 const xyOnly = api.canvasPoint({ x: 15, y: 27 }, { left: 5, top: 7 });
-assert(xyOnly.x === 10 && xyOnly.y === 20, "x/y without client subtracts rect");
+assert(xyOnly.x === 15 && xyOnly.y === 27 && xyOnly.source === "local-assumed", "x/y without client stays canvas-local");
+assert(shifted.source === "client", "matching x/client source is client");
+assert(local.source === "local", "divergent x/y source is local");
+assert(clientOnly.source === "client", "client-only source is client");
 assert(api.outsideChebyshev(play, play.x + play.w + 8, pcy) === 8, "edge distance 8");
 assert(api.outsideChebyshev(play, play.x + play.w + 8, play.y + play.h + 8) === 8, "corner tolerance is chebyshev");
 
-function reduce(state, type, touches, layout, rect) {
+function reduce(state, type, touches, liveTouches, layout, rect) {
+  if (liveTouches === undefined) throw new Error("liveTouches is required");
   return api.reducePointer(state, {
     type,
     changedTouches: touches,
+    liveTouches,
     layout: layout === undefined ? landscape : layout,
     rect: rect || origin,
   });
 }
 
+function pointerJson(pointer) {
+  return JSON.stringify({
+    id: pointer.id,
+    target: pointer.target,
+    cancelled: pointer.cancelled,
+  });
+}
+
 let state = api.createPointerState();
-let step = reduce(state, "start", [finger(7, pcx, pcy)]);
+let step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
 assert(step.action === null && step.state.id === 7 && step.state.target === "play", "down highlights and does not activate");
-step = reduce(step.state, "end", [finger(7, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(7, pcx, pcy)], []);
 assert(step.action === "play" && step.state.id === null && step.state.target === null, "up-inside activates play");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(1, rcx, rcy)]);
-step = reduce(step.state, "end", [finger(1, rcx, rcy)]);
+step = reduce(state, "start", [finger(1, rcx, rcy)], [finger(1, rcx, rcy)]);
+step = reduce(step.state, "end", [finger(1, rcx, rcy)], []);
 assert(step.action === "reset", "up-inside reset");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(3, pcx, pcy)]);
-step = reduce(step.state, "move", [finger(3, play.x + play.w + 8, pcy)]);
+step = reduce(state, "start", [finger(3, pcx, pcy)], [finger(3, pcx, pcy)]);
+step = reduce(step.state, "move", [finger(3, play.x + play.w + 8, pcy)], [finger(3, play.x + play.w + 8, pcy)]);
 assert(step.action === null && step.state.target === "play" && step.state.cancelled === false, "8px outside does not cancel");
-step = reduce(step.state, "end", [finger(3, play.x + play.w + 8, pcy)]);
+step = reduce(step.state, "end", [finger(3, play.x + play.w + 8, pcy)], []);
 assert(step.action === null, "release outside the rect does not activate");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(4, pcx, pcy)]);
-step = reduce(step.state, "move", [finger(4, play.x + play.w + 8, play.y + play.h + 8)]);
+step = reduce(state, "start", [finger(4, pcx, pcy)], [finger(4, pcx, pcy)]);
+step = reduce(step.state, "move", [finger(4, play.x + play.w + 8, play.y + play.h + 8)], [finger(4, play.x + play.w + 8, play.y + play.h + 8)]);
 assert(step.state.cancelled === false && step.state.target === "play", "corner of the 8px box stays pressed");
-step = reduce(step.state, "move", [finger(4, play.x + play.w + 9, pcy)]);
+step = reduce(step.state, "move", [finger(4, play.x + play.w + 9, pcy)], [finger(4, play.x + play.w + 9, pcy)]);
 assert(step.action === null && step.state.target === null && step.state.cancelled === true, "more than 8px cancels");
-step = reduce(step.state, "move", [finger(4, pcx, pcy)]);
+step = reduce(step.state, "move", [finger(4, pcx, pcy)], [finger(4, pcx, pcy)]);
 assert(step.state.target === null && step.state.cancelled === true, "moving back does not rearm");
-step = reduce(step.state, "end", [finger(4, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(4, pcx, pcy)], []);
 assert(step.action === null, "cancelled gesture does not activate on up");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(0, pcx, pcy)]);
+step = reduce(state, "start", [finger(0, pcx, pcy)], [finger(0, pcx, pcy)]);
 assert(step.state.id === 0 && step.state.target === "play", "identifier 0 is a real pointer");
-const blocked = reduce(step.state, "start", [finger(9, rcx, rcy)]);
+const heldZero = finger(0, pcx, pcy);
+const blocked = reduce(step.state, "start", [finger(9, rcx, rcy)], [heldZero, finger(9, rcx, rcy)]);
 assert(blocked.state.id === 0 && blocked.state.target === "play" && blocked.action === null, "second finger does not take the pointer");
-const otherEnd = reduce(blocked.state, "end", [finger(9, rcx, rcy)]);
+const otherEnd = reduce(blocked.state, "end", [finger(9, rcx, rcy)], [heldZero]);
 assert(otherEnd.state.id === 0 && otherEnd.state.target === "play" && otherEnd.action === null, "other finger end is ignored");
-const otherMove = reduce(otherEnd.state, "move", [finger(9, 0, 0)]);
+const otherMove = reduce(otherEnd.state, "move", [finger(9, 0, 0)], [heldZero]);
 assert(otherMove.state.target === "play", "other finger move is ignored");
-step = reduce(otherMove.state, "end", [finger(0, pcx, pcy)]);
+step = reduce(otherMove.state, "end", [finger(0, pcx, pcy)], []);
 assert(step.action === "play", "tracked finger still activates");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(1, 0, 0), finger(2, pcx, pcy)]);
+step = reduce(state, "start", [finger(1, 0, 0), finger(2, pcx, pcy)], [finger(1, 0, 0), finger(2, pcx, pcy)]);
 assert(step.state.id === 1 && step.state.target === null, "only changedTouches[0] is tracked");
-step = reduce(step.state, "end", [finger(2, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(2, pcx, pcy)], [finger(1, 0, 0)]);
 assert(step.action === null && step.state.id === 1, "untracked finger cannot activate");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(5, pcx, pcy)]);
-step = reduce(step.state, "cancel", [finger(8, pcx, pcy)]);
+step = reduce(state, "start", [finger(5, pcx, pcy)], [finger(5, pcx, pcy)]);
+step = reduce(step.state, "cancel", [finger(8, pcx, pcy)], [finger(5, pcx, pcy)]);
 assert(step.state.target === "play" && step.action === null, "another finger cancel keeps the press");
-step = reduce(step.state, "cancel", [finger(5, pcx, pcy)]);
+step = reduce(step.state, "cancel", [finger(5, pcx, pcy)], []);
 assert(step.action === null && step.state.id === null && step.state.target === null, "tracked cancel clears without action");
 
 state = api.createPointerState();
-step = reduce(state, "start", [finger(6, pcx, pcy)]);
-step = reduce(step.state, "cancel", []);
+step = reduce(state, "start", [finger(6, pcx, pcy)], [finger(6, pcx, pcy)]);
+step = reduce(step.state, "cancel", [], []);
 assert(step.action === null && step.state.id === null, "cancel without a list clears the tracked pointer");
-step = reduce(step.state, "end", [finger(6, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(6, pcx, pcy)], []);
 assert(step.action === null, "end after cancel does not activate");
 
 const rect = { left: 30, top: 12 };
@@ -318,7 +332,7 @@ const viewport = {
   clientY: pcy + rect.top,
 };
 state = api.createPointerState();
-step = reduce(state, "start", [viewport], landscape, rect);
+step = reduce(state, "start", [viewport], [viewport], landscape, rect);
 assert(step.state.target === "play", "viewport point minus rect hits");
 const divergent = {
   identifier: 4,
@@ -328,8 +342,58 @@ const divergent = {
   clientY: pcy + 40,
 };
 state = api.createPointerState();
-step = reduce(state, "start", [divergent], landscape, rect);
+step = reduce(state, "start", [divergent], [divergent], landscape, rect);
 assert(step.state.target === "play", "canvas-local x/y is not subtracted twice");
+
+state = api.createPointerState();
+step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
+const deadlockStart = pointerJson(step.state);
+const deadlockStartAction = step.action;
+step = reduce(step.state, "end", [finger(9, rcx, rcy)], []);
+const deadlockForeignEnd = pointerJson(step.state);
+const deadlockForeignAction = step.action;
+assert(step.action === null && step.state.id === null && step.state.target === null, "end unrelated id + empty liveTouches clears");
+step = reduce(step.state, "start", [finger(8, pcx, pcy)], [finger(8, pcx, pcy)]);
+const deadlockNextStart = pointerJson(step.state);
+const deadlockNextStartAction = step.action;
+assert(step.state.id === 8 && step.state.target === "play" && step.state.cancelled === false, "next start after swallowed end enters press");
+step = reduce(step.state, "end", [finger(8, pcx, pcy)], []);
+const deadlockNextEnd = pointerJson(step.state);
+const deadlockNextEndAction = step.action;
+assert(step.action === "play" && step.state.id === null, "next end fires after the swallowed end");
+console.log("deadlock fixed sequence");
+console.log(`after start: ${deadlockStart} action ${deadlockStartAction}`);
+console.log(`end changedTouches id 9, liveTouches []: ${deadlockForeignEnd} action ${deadlockForeignAction}`);
+console.log(`next start: ${deadlockNextStart} action ${deadlockNextStartAction}`);
+console.log(`next end: ${deadlockNextEnd} action ${deadlockNextEndAction}`);
+
+state = api.createPointerState();
+step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(9, rcx, rcy)], [finger(7, pcx, pcy)]);
+assert(step.state.id === 7 && step.state.target === "play" && step.action === null, "end unrelated id + live finger keeps the press");
+
+state = api.createPointerState();
+step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
+step = reduce(step.state, "cancel", [finger(9, rcx, rcy)], []);
+assert(step.action === null && step.state.id === null && step.state.target === null, "cancel unrelated id + empty liveTouches clears");
+
+state = api.createPointerState();
+step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
+step = reduce(step.state, "start", [finger(3, rcx, rcy)], []);
+assert(step.state.id === 3 && step.state.target === "reset" && step.state.cancelled === false, "start self-heal installs the new target");
+
+state = api.createPointerState();
+step = reduce(state, "start", [finger(7, pcx, pcy)], [finger(7, pcx, pcy)]);
+step = reduce(step.state, "end", [finger(9, rcx, rcy)], null);
+assert(step.state.id === 7 && step.state.target === "play" && step.action === null, "null liveTouches keeps the old end behavior");
+step = reduce(step.state, "start", [finger(3, rcx, rcy)], []);
+assert(step.state.id === 3 && step.state.target === "reset", "missing end self-heals on the next explicit start");
+
+assert(api.shouldReleasePointer({ id: 7, target: "play", cancelled: false }, []) === true, "present-empty releases");
+assert(api.shouldReleasePointer({ id: 7, target: "play", cancelled: false }, null) === false, "missing touches does not page-release");
+assert(api.shouldReleasePointer({ id: 7, target: "play", cancelled: false }, undefined) === false, "absent touches field does not page-release");
+assert(api.shouldReleasePointer({ id: null, target: null, cancelled: false }, []) === false, "idle pointer is not released");
+assert(api.shouldReleasePointer({ id: 7, target: "play", cancelled: false }, [finger(7, pcx, pcy)]) === false, "a still-down finger is not page-released");
 
 assert(api.paintedFrameNames(null).play === "btn_up" && api.paintedFrameNames("play").play === "btn_down", "play frames");
 assert(api.paintedFrameNames("reset").reset === "mark" && api.paintedFrameNames("play").reset === "mark", "reset frame");
@@ -360,9 +424,11 @@ const debug = api.formatDebugLine({
   rectLeft: 0,
   rectTop: 0,
 });
-for (const token of ["win 844x390", "dpr 3", "backing 2532x1170", "scale 0.4875", "off 110,0", "safe 0,0,844,390", "frames play=btn_up reset=mark", "safeArea ok", "rect 0,0"]) {
+for (const token of ["win 844x390", "dpr 3", "backing 2532x1170", "scale 0.4875", "off 110,0", "safe 0,0,844,390", "frames play=btn_up reset=mark", "safeArea ok", "rect 0,0", "point none"]) {
   assert(debug.includes(token), `debug line missing ${token}: ${debug}`);
 }
+const sourced = api.formatDebugLine({ pointSource: "local-assumed" });
+assert(sourced.includes("point local-assumed"), "debug line prints the point source");
 assert(api.safeAreaDebugNote(classic) === "swapped side-uncertain", "swap debug note");
 assert(api.safeAreaDebugNote(bothOverflow) === "uncertain overflow-both-ways", "uncertain debug note");
 
@@ -385,6 +451,10 @@ assert(pageSource.includes("visibilitychange"), "lifecycle comment names the old
 assert(pageSource.includes("wx.onWindowResize") && pageSource.includes("wx.offWindowResize"), "resize subscribe and unsubscribe");
 assert(pageSource.includes("fields({ node: true, size: true, rect: true })"), "query asks for rect");
 assert(pageSource.includes("replay: false"), "background state refuses replay");
+assert(pageSource.includes("Array.isArray(event.touches)"), "page passes an array or null, not a missing field as empty");
+assert(pageSource.includes("shouldReleasePointer"), "page fallback uses the empty-array gate");
+assert(pageSource.includes("14px sans-serif"), "debug line is 14px");
+assert(!pageSource.includes("12px"), "page has no 12px readable text");
 
 const onShow = methodBody(pageSource, "onShow");
 const onHide = methodBody(pageSource, "onHide");
@@ -410,13 +480,50 @@ const projectJson = JSON.parse(read("project.config.json"));
 assert(appJson.window.pageOrientation === "landscape", "app orientation");
 assert(appJson.window.navigationBarTitleText === "词境练习家", "product name");
 assert(pageJson.pageOrientation === "landscape", "page orientation");
-assert(projectJson.appid === "touristappid", "tourist appid kept");
+assert(appJson.resizable === true, "resizable is true");
+assert(appJson.window.resizable === undefined, "resizable is not inside window");
+const appText = read("app.json");
+assert(appText.indexOf('"resizable"') >= 0 && appText.indexOf('"resizable"') < appText.indexOf('"window"'), "resizable is a top-level key before window");
+assert(!pageJson.resizable, "page json does not set resizable");
+assert(projectJson.appid === "wx63db876009dfe905", "supplied appid");
+assert(!read("project.config.json").includes("touristappid"), "tourist appid removed");
+assert(!read("project.config.json").includes("not supplied") && !read("project.config.json").includes("was not supplied"), "not-supplied sentence removed");
 assert(projectJson.compileType === "miniprogram", "ordinary mini program");
 assert(projectJson.projectname === "lexiquest-wechat", "repo english name");
 const ignored = (projectJson.packOptions.ignore || []).some((item) => item && item.value === "p05-check.cjs");
 assert(ignored, "node check is excluded from the mini program package");
+const renderIgnored = (projectJson.packOptions.ignore || []).some((item) => item && item.value === "p06-render.cjs");
+assert(renderIgnored, "probe renderer is excluded from the mini program package");
+assert(read(".gitignore").includes("project.private.config.json"), "private config stays gitignored");
 assert(!fs.existsSync(path.join(root, "project.private.config.json")), "private config is not in the tree");
 assert(!fs.existsSync(path.join(root, "engine")), "no engine directory");
+assert(landscape.hits && landscape.hits.play && landscape.hits.reset, "skeleton hits remain");
+assert(landscape.viewport && landscape.world && landscape.ui, "layout adds viewport world and ui");
+assert(landscape.ui.minFont === 14 && landscape.ui.paddingX === 16 && landscape.ui.maxTextWidth === 480, "ui rules");
+assert(landscape.world.scale === landscape.scale && landscape.world.coverScale >= landscape.scale, "letterbox stays min and cover is max");
+assert(api.uiFontPx(12) === 14 && api.uiFontPx(16) === 14 && api.uiFontPx(18) === 16, "font map floor");
+assert(api.uiFontPx(22) === 20 && api.uiFontPx(28) === 24 && api.uiFontPx(32) === 26, "font map titles");
+const probeViews = [[844, 390], [667, 375], [1180, 820], [390, 844]];
+for (const pair of probeViews) {
+  const viewW = pair[0];
+  const viewH = pair[1];
+  for (const frame of ["title", "grade", "battle"]) {
+    const probe = api.layoutProbe(frame, viewW, viewH, null);
+    const problems = api.auditProbe(probe);
+    assert(problems.length === 0, `${frame} ${viewW}x${viewH} ${problems.join("; ")}`);
+    assert(probe.texts.length > 0 && probe.hits.length > 0, `${frame} ${viewW}x${viewH} has text and hits`);
+    if (frame === "grade") assert(probe.hits.length === 6, "six grade buttons");
+    if (frame === "battle") assert(probe.hits.length === 4 && probe.shapes.length === 1, "four options and an hp bar");
+    if (viewH > viewW) assert(probe.texts.some((text) => text.id === "portrait"), "portrait hint");
+    probe.texts.forEach((text) => {
+      assert(text.fontPx >= 14, `${text.id} font ${text.fontPx}`);
+    });
+    probe.hits.forEach((hit) => {
+      assert(hit.w >= 44 && hit.h >= 44, `${hit.id} ${hit.w}x${hit.h}`);
+      assert(hit.fontPx >= 14, `${hit.id} label font`);
+    });
+  }
+}
 
 const codeExt = new Set([".js", ".json", ".wxml", ".wxss"]);
 function walk(dir, out, extensions) {
@@ -424,7 +531,7 @@ function walk(dir, out, extensions) {
     const full = path.join(dir, name);
     const stat = fs.statSync(full);
     if (stat.isDirectory()) walk(full, out, extensions);
-    else if (extensions.has(path.extname(name)) && name !== "p05-check.cjs") out.push(full);
+    else if (extensions.has(path.extname(name)) && name !== "p05-check.cjs" && name !== "p06-render.cjs") out.push(full);
   }
 }
 const codeFiles = [];
@@ -434,7 +541,8 @@ assert(!code.includes("<web-view"), "no web-view");
 assert(!code.includes("weapp-adapter"), "no weapp-adapter");
 assert(!/require\(\s*["']phaser["']\s*\)/.test(code), "no phaser require");
 assert(!/appsecret/i.test(code), "no AppSecret in code");
-assert(!/wx[0-9a-f]{16}/i.test(code), "no invented wx appid");
+const appIds = code.match(/wx[0-9a-f]{16}/gi) || [];
+assert(appIds.length >= 1 && appIds.every((id) => id.toLowerCase() === "wx63db876009dfe905"), `only the supplied appid, found ${appIds.join(",")}`);
 
 const png = fs.readFileSync(path.join(root, "assets/atlas/skeleton-atlas.png"));
 assert(png[0] === 0x89 && png[1] === 0x50 && png[2] === 0x4e && png[3] === 0x47, "atlas png still present");

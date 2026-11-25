@@ -12,7 +12,7 @@
   left: 0;
   top: 0;
   right: 0;
-  padding: 12px;
+  padding: 16px;
   color: #ff5c5c;
   font-size: 16px;
   font-weight: 700;
