@@ -1,0 +1,40 @@
+
+ RUN  v5.1.0 /agent/repos/lexiquest-full-port
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 132 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../tmp/lexi-prod-usPpXb/readable/index.html                                         5.96 kB │ gzip:     1.98 kB
+../../../tmp/lexi-prod-usPpXb/readable/assets/gloss_overlap_pairs_v0.2-AAQiAoE_.json     45.97 kB │ gzip:     5.90 kB
+../../../tmp/lexi-prod-usPpXb/readable/assets/chapters_v0.2-cP0Ak13i.json                75.14 kB │ gzip:    13.83 kB
+../../../tmp/lexi-prod-usPpXb/readable/assets/index-zSf2bazI.js                       7,850.94 kB │ gzip: 1,314.80 kB
+
+✓ built in 811ms
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 132 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../tmp/lexi-prod-usPpXb/shipped/index.html                                         4.77 kB │ gzip:   1.87 kB
+../../../tmp/lexi-prod-usPpXb/shipped/assets/gloss_overlap_pairs_v0.2-AAQiAoE_.json     45.97 kB │ gzip:   5.90 kB
+../../../tmp/lexi-prod-usPpXb/shipped/assets/chapters_v0.2-cP0Ak13i.json                75.14 kB │ gzip:  13.83 kB
+../../../tmp/lexi-prod-usPpXb/shipped/assets/index-DPx_UgPr.js                       1,747.19 kB │ gzip: 473.07 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 691ms
+
+ Test Files  87 passed (87)
+      Tests  637 passed | 1 skipped (638)
+   Start at  07:19:32
+   Duration  12.13s (tests 41%, import 26%, transform 23%, setup 9%, worker 1%)
+
+     Import  199 modules were evaluated 1629 times · 7.30s total, 26% of tracked time
+             ~1.92s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+
