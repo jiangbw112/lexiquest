@@ -4,7 +4,7 @@
   "description": "词境练习家 P0.6 skeleton.",
   "appid": "wx63db876009dfe905",
   "compileType": "miniprogram",
-  "libVersion": "3.5.5",
+  "libVersion": "3.7.9",
   "packOptions": {
     "ignore": [
       {

@@ -12,6 +12,7 @@ const path = require("path");
 const assert = require("assert");
 const { chromium } = require("playwright");
 const { attach } = require("../pages/game/port.js");
+const { joinFailureLine } = require("../pages/game/layout.js");
 const game = require("../lib/game.cjs.js");
 
 const root = path.join(__dirname, "..");
@@ -104,13 +105,32 @@ function assertGeometry(tag, size, plan) {
   assert.ok(plan.texts.length > 0, `${tag} ${size.w} texts`);
   assert.ok(plan.minFont >= 14, `${tag} ${size.w} font ${plan.minFont}`);
   assert.ok(plan.hits.length === 0 || plan.minHit >= 44, `${tag} ${size.w} hit ${plan.minHit}`);
+  if (plan.minGap !== null && plan.minGap < 8) {
+    const arts = [...plan.images, ...plan.fills].map((item) => ({ w: item.w, h: item.h, x: item.x, y: item.y, area: item.w * item.h })).sort((a, b) => b.area - a.area).slice(0, 8);
+    log(` art ${JSON.stringify(arts.map((item) => ({ x: Math.round(item.x), y: Math.round(item.y), w: Math.round(item.w), h: Math.round(item.h) })))}`);
+    const parked = plan.texts.filter((item) => item.y >= size.h - 1);
+    const left = [...plan.images, ...plan.fills].filter((item) => item.x < 220 && item.w * item.h < size.w * size.h * 0.62).slice(0, 12);
+    log(` parked ${parked.length} left ${JSON.stringify(left.map((item) => ({ x: Math.round(item.x), y: Math.round(item.y), w: Math.round(item.w), h: Math.round(item.h) })))}`);
+    const gapItems = [...plan.texts, ...plan.hits].filter((item) => !item.nested);
+    for (let left = 0; left < gapItems.length; left += 1) {
+      for (let right = left + 1; right < gapItems.length; right += 1) {
+        const a = gapItems[left];
+        const b = gapItems[right];
+        const gapX = Math.max(a.x - (b.x + b.w), b.x - (a.x + a.w));
+        const gapY = Math.max(a.y - (b.y + b.h), b.y - (a.y + a.h));
+        const gap = gapX < 0 && gapY < 0 ? Math.max(gapX, gapY) : null;
+        if (gap !== null && gap < 8) log(` gap-pair ${gap.toFixed(1)} ${JSON.stringify((a.text || a.kind || "").slice(0, 16))} ${a.x.toFixed(0)},${a.y.toFixed(0)} ${a.w.toFixed(0)}x${a.h.toFixed(0)} || ${JSON.stringify((b.text || b.kind || "").slice(0, 16))} ${b.x.toFixed(0)},${b.y.toFixed(0)} ${b.w.toFixed(0)}x${b.h.toFixed(0)}`);
+      }
+    }
+  }
   assert.ok(plan.minGap === null || plan.minGap >= 8, `${tag} ${size.w} gap ${plan.minGap} pairs ${plan.gapPairs}`);
   if (plan.overflow) {
     const bad = [...plan.texts, ...plan.hits].filter((item) => item.y < 50 || item.y + item.h > size.h - 4 || item.x < 8 || item.x + item.w > size.w - 4);
     for (const item of bad) log(` overflow ${tag} ${item.nested ? "nested" : "root"} ${JSON.stringify(item.text || "")} ${item.x.toFixed(0)},${item.y.toFixed(0)} ${item.w.toFixed(0)}x${item.h.toFixed(0)}`);
   }
   assert.strictEqual(plan.overflow, 0, `${tag} ${size.w} overflow ${plan.overflow}`);
-  log(`${tag} ${size.w}x${size.h} font ${plan.minFont} hit ${plan.minHit} gap ${plan.minGap} pairs ${plan.gapPairs} overflow ${plan.overflow} texts ${plan.texts.length} images ${plan.images.length} measured ${plan.measured}`);
+  assert.strictEqual(plan.overlap, 0, `${tag} ${size.w} overlap ${plan.overlap}`);
+  log(`${tag} ${size.w}x${size.h} font ${plan.minFont} hit ${plan.minHit} gap ${plan.minGap} pairs ${plan.gapPairs} overflow ${plan.overflow} overlap ${plan.overlap} texts ${plan.texts.length} images ${plan.images.length} measured ${plan.measured}`);
 }
 
 async function geometry(tag, port, page) {
@@ -183,10 +203,10 @@ async function shoot(page, plan, file) {
     for (let i = 0; i < data.length; i += 4) colors.add(`${data[i]},${data[i + 1]},${data[i + 2]}`);
     return { drawCalls, colors: colors.size, at: [px, py] };
   }, {
-    ops: plan.images,
+    ops: plan.images.map((op) => ({ url: op.url, packed: op.packed, sx: op.sx, sy: op.sy, sw: op.sw, sh: op.sh, x: op.x, y: op.y, w: op.w, h: op.h, rotation: op.rotation, flipX: op.flipX, tint: op.tint })),
     texts: plan.texts.map((item) => ({ text: item.text, lines: item.lines || [], x: item.x, y: item.y, fontPx: item.fontPx })),
     images,
-    fills: plan.fills,
+    fills: plan.fills.map((fill) => ({ x: fill.x, y: fill.y, w: fill.w, h: fill.h, color: fill.color })),
     w: view.w,
     h: view.h,
   });
@@ -243,6 +263,9 @@ async function main() {
     const speech = port.runtime.failures.filter((item) => String(item).includes("word audio"));
     log(`speech ${speech.join(" | ") || "none"}`);
     assert.ok(speech.length >= 1, "missing mp3 is recorded when speak is called");
+    const visibleGap = joinFailureLine("atlas load failed: packed", speech[0]);
+    log(`speech status ${visibleGap}`);
+    assert.ok(visibleGap.includes("word audio missing"), "the status line shows the missing mp3");
     const heard = port.paint(null, view).texts.map((item) => item.text);
     log(`listen ${heard.filter((item) => item.length < 24).join(" | ")}`);
     const meaning = heard.find((item) => item.includes("树")) || "n. 树";
@@ -299,7 +322,8 @@ async function main() {
     const cropped = crops.filter((op) => op.sx > 0 || op.sy > 0);
     log(`drawImage ops ${results.images.length} with source rect ${crops.length} origin-offset ${cropped.length} rotation ${results.images.filter((op) => op.rotation).length} flip ${results.images.filter((op) => op.flipX).length} tint ${results.images.filter((op) => op.tint !== 0xffffff).length}`);
     assert.ok(crops.length > 0, "atlas frames carry a source rect");
-    log(`sample crop ${JSON.stringify(cropped[0] || crops[0])}`);
+    const sampleCrop = cropped[0] || crops[0];
+    log(`sample crop ${JSON.stringify(sampleCrop ? { url: sampleCrop.url, sx: sampleCrop.sx, sy: sampleCrop.sy, sw: sampleCrop.sw, sh: sampleCrop.sh, x: sampleCrop.x, y: sampleCrop.y, w: sampleCrop.w, h: sampleCrop.h } : null)}`);
     log(`battle images ${battlePlan.images.length} study images ${study.images.length}`);
 
     assert.ok(press(port, "继续") || press(port, "看结局") || press(port, "回地图"), "离开结算");
@@ -322,18 +346,60 @@ async function main() {
     assert.ok(press(port, "复习桌"), "复习桌");
     port.step(500);
     assert.strictEqual(port.runtime.active().key, "review");
-    const reviewText = port.paint(null, view).texts.map((item) => item.text).join(" | ");
-    log(`review ${reviewText}`);
-    assert.ok(reviewText.includes("tree"), "复习桌看得到刚学的词");
-    assert.ok(reviewText.includes("现在没有到复习时间的词"), "同一天还没到复习时间");
+    const waiting = port.paint(null, view).texts.map((item) => item.text).join(" | ");
+    log(`review waiting ${waiting}`);
+    assert.ok(waiting.includes("tree"), "复习桌看得到刚学的词");
+    const instantsBefore = (port.save().memory.tree && port.save().memory.tree.reviewInstants || []).length;
+    globalThis.location.search = "?dev=1";
+    assert.ok(press(port, "返回"), "离开复习");
+    port.step(300);
+    log(`after review back ${port.runtime.active().key} ${port.paint(null, view).texts.map((item) => item.text).join(" | ")}`);
+    assert.ok(press(port, "复习桌"), "带沙漏再进复习桌");
+    port.step(300);
+    log(`reentered ${port.runtime.active().key}`);
+    if (port.runtime.active().key !== "review") {
+      assert.ok(press(port, "复习桌"), "再按一次复习桌");
+      port.step(300);
+      log(`reentered-2 ${port.runtime.active().key} ${port.paint(null, view).texts.map((item) => item.text).slice(0, 12).join(" | ")}`);
+    }
+    assert.strictEqual(port.runtime.active().key, "review");
+    assert.ok(press(port, "沙漏 +10 分钟"), "沙漏 +10 分钟");
+    port.step(200);
+    const dueText = port.paint(null, view).texts.map((item) => item.text).join(" | ");
+    log(`review due ${dueText}`);
+    assert.ok(dueText.includes("tree"), "到时间后词还在");
+    assert.ok(!dueText.includes("现在没有到复习时间的词"), "沙漏之后仍停在未到时间");
+    assert.ok(press(port, "翻看释义"), "翻看释义");
+    assert.ok(press(port, "记得"), "记得");
+    port.step(200);
+    const reviewed = port.save().memory.tree;
+    const instantsAfter = reviewed && reviewed.reviewInstants ? reviewed.reviewInstants.length : 0;
+    log(`review instants ${instantsBefore} -> ${instantsAfter} due ${reviewed && reviewed.fsrs ? reviewed.fsrs.due : ""}`);
+    assert.ok(instantsAfter > instantsBefore, "记得写入了一次复习");
     const cardsBefore = Object.keys(port.save().wordCards).length;
-    assert.ok(press(port, "盖住拼"), "盖住拼");
+    const afterRate = port.paint(null, view).texts.map((item) => item.text).join(" | ");
+    log(`review after ${afterRate}`);
+    if (afterRate.includes("盖住拼")) assert.ok(press(port, "盖住拼"), "盖住拼");
     assert.strictEqual(Object.keys(port.save().wordCards).length, cardsBefore, "复习不新发词卡");
     assert.ok(port.save().wordCards.tree, "tree 还在");
-    log("review clock buttons are drawn only when devModeEnabled(location.search) is on. This run did not set that flag.");
     await geometry("review", port, page);
     assert.strictEqual(port.save().battlesWon, 1);
     assert.strictEqual(port.save().player.name, "小林");
+    const sceneReport = [];
+    for (const key of ["skills", "wardrobe", "guide", "ending", "duel", "exam-battle", "title"]) {
+      try {
+        port.runtime.start(key);
+        port.step(200);
+        const plan = port.paint(null, view);
+        const row = { key, ok: true, texts: plan.texts.length, overlap: plan.overlap, overflow: plan.overflow };
+        sceneReport.push(row);
+        log(`scene ${key} texts ${row.texts} overlap ${row.overlap} overflow ${row.overflow}`);
+      } catch (error) {
+        sceneReport.push({ key, ok: false, error: String(error && error.message ? error.message : error) });
+        log(`scene ${key} unfinished ${error && error.message ? error.message : error}`);
+      }
+    }
+    log("scene sweep is Node construction on the save this click chain wrote. It is not a WeChat screenshot diff and not DevTools.");
 
     const nodeGap = port.runtime.failures.find((item) => String(item).includes("createImage"));
     log(`node image gap ${nodeGap}`);
@@ -352,6 +418,7 @@ async function main() {
       fontOk: fontRows.filter((row) => row.ok).length,
       drawCalls: sample.drawCalls,
       sampleColors: sample.colors,
+      scenes: sceneReport,
     }, null, 2));
     fs.writeFileSync(path.join(root, "evidence/w7-user-chain.log"), `${lines.join("\n")}\n`);
   } finally {
@@ -359,7 +426,7 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+main().then(() => process.exit(0)).catch((error) => {
   console.error(error && error.stack ? error.stack : error);
   try {
     fs.mkdirSync(path.join(root, "evidence"), { recursive: true });

@@ -542,7 +542,12 @@ Page({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this._port.paint(ctx, { w: this._viewW, h: this._viewH });
       const failures = this._port.runtime && this._port.runtime.failures;
-      if (failures && failures.length) this._failures.atlas = String(failures[0]);
+      if (failures && failures.length) {
+        const audio = failures.find((item) => String(item).includes("word audio"));
+        const other = failures.find((item) => !String(item).includes("word audio"));
+        if (audio) this._failures.audio = String(audio);
+        if (other) this._failures.atlas = String(other);
+      }
       this.paintStatus(ctx, dpr);
       return;
     }

@@ -1,7 +1,7 @@
 /**
  * 原来：任务文写 wx.loadFont，并且说 woff2 不能用。
- * 现在：官方文档的接口是 wx.loadFontFace。source 必须是 https 或 data URL。建议 TTF/WOFF，低版本 iOS 对 WOFF2 不兼容。
- * 为什么：仓库里是 woff2 子集，没有现成 ttf。本文件不转换字体，也不假装已经 loadFontFace 成功。
+ * 现在：官方接口是 wx.loadFontFace。12 个已打进 fonts 分包的 TTF 读成 Data URL。project.config.json 的 libVersion 写成 3.7.9，因为官方写明 Data URL 从基础库 3.7.9 起。
+ * 为什么：没有 wx 就不能假装加载成功，也不编造 https 地址。开发者工具里的 project.private.config.json 仍可能把基础库改回更低版本，那一档不在这次运行里。
  * 文档：https://developers.weixin.qq.com/miniprogram/dev/api/ui/font/wx.loadFontFace.html
  */
 
