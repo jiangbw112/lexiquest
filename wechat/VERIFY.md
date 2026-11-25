@@ -138,7 +138,7 @@
 | 词 mp3 | 0 | 包内和 public 都是 0 |
 | 字体文件 | 0 | 包内。public 仍是 12 个 woff2 |
 
-## 当前（父提交 ec88639 之后）
+## 上一轮（父提交 ec88639，head 0ea60bd）
 
 门禁：未通过。开发者工具、真机、`wx.loadFontFace` 成功回调、词 mp3、以及和原画面重合的重排都没有完成。下面这张表是当前唯一状态。
 
@@ -168,4 +168,24 @@
 | 裁剪之后仍未完成 | 全场景截图里货架文字仍叠在衣柜面板上。字形仍是 `fillText`。276 张图未入包，mp3 仍是 0，12 个字体在没有 `wx` 时仍失败，`libVersion` 仍是 3.5.5。班级和章节图集这次仍报缺资源 | `evidence/w3-wardrobe-full.png`，上一行的体积和字体 | 同上。开发者工具和真机仍未验证 |
 
 默认存档只有 traveler，列表不溢出。这次把目录里的 forest-cape、star-sash、forest_leaf_cape、acorn_pin、forest_wreath 写进衣柜已经在读的那个存档，用来让第 4 行落到窗口外。这不是新衣服。`board.add` 会把子节点从场景根上拿掉，所以 `check-page-chain` 的根节点数变少，文字数除衣柜外不变。旧的矩阵留在 `evidence/w8-chain-r2-before-clip.json`。衣柜文字从 12 变成 7，是因为行标签改在 mask 里画，不再进货架。p05 仍是 checks 452。`check-engine` 通过。用户链和桌面 vitest 这次没有重跑，`src` 没有改。
+
+## 当前（父提交 0ea60bd 之后）
+
+门禁：未通过。这一轮只收了裁剪和衣柜构图。开发者工具、真机、字形缓存、276 张未入包的图、词 mp3、`libVersion` 3.5.5 都还没做完。下面这张表只引用这一轮真的重跑过的日志。`w10-size-r2.log`、`w11-p05-clip.log`、`w3-engine-clip.log`、`w7-user-chain.log`、`w11-vitest-r2.log` 不是这一轮的结果。
+
+| 项 | 当前 | 证据 | 来源 |
+|---|---|---|---|
+| 单层矩形裁剪 | 仍通过。窗口外像素 `[32,32,32]`，窗口内 `[206,215,192]`。滚轮把 `board.y` 从 168 收到 -32。窗口内点击把装备从 traveler 改成 forest-cape。被裁掉的点和直接 emit 的窗口外指针都不改装备。`clearMask` 后溢出像素回到 `[245,230,205]`。paint 返回后的绿块是 `[0,204,68]` | `evidence/w3-clip.log`，`evidence/w3-wardrobe-before.png`，`evidence/w3-wardrobe-after.png`，`evidence/w3-wardrobe-scrolled.png` | Chrome 画布，`wechat/lib/game.cjs.js`。不是开发者工具，不是真机 |
+| 子图翻转和旋转 | 仍通过。`flipX` 后左蓝右红，旋转 90° 后上红下蓝。跨出 mask 的一半是 `[32,32,32]`，`clearMask` 后变回蓝。后面的绿矩形一直是 `[0,204,68]` | `evidence/w3-clip-transform.png`，`evidence/w3-clip.log` | Chrome。这是子 Image，不是容器 |
+| 嵌套 mask | 通过。外层两个 `fillRect` 中间有缝，内层是圆。交点 `[255,204,0]`。圆的外接正方形角、两矩形之间的缝、只在外层第二块里的点都是 `[32,32,32]`。只有交点命中 `nested-blob`。paint 返回后的绿块仍是 `[0,204,68]` | `evidence/w3-clip-nested.png`，`evidence/w3-clip.log` | Chrome。不是开发者工具，不是真机 |
+| 容器自身旋转和翻转 | 通过。容器 `flipX` 后子矩形出现在翻转后的位置，颜色 `[255,0,0]`，原来的位置是 `[32,32,32]`，只有翻转后的点命中 `flipped-board`。容器旋转 90° 后子矩形在下方，颜色 `[0,0,255]`，未旋转的位置和转出 mask 的那一截都是 `[32,32,32]`，只有 mask 内的点命中 `turned-board` | `evidence/w3-clip-container.png`，`evidence/w3-clip.log` | Chrome。不是开发者工具，不是真机 |
+| 衣柜构图 | 通过这一项，不代表别的场景。标题、说明、已有装备在列表窗口上方，称号和滚动说明在窗口下方，返回在右下角按钮上。这些字盒和按钮盒都不和列表 mask 相交。列表窗口屏幕盒是 x 178.3、y 81.9、w 331.5、h 140.4。第一行槽中心像素仍是 `[206,215,192]` | `evidence/w3-wardrobe-overlap-before.png`，`evidence/w3-wardrobe-overlap-after.png`，`evidence/w3-wardrobe-full.png`，`evidence/w3-clip.log` | Chrome 844×390。修前图是 head 0ea60bd 的完整衣柜。不是开发者工具，不是真机 |
+| 其它场景的货架重排 | 未完成。这一轮没有重跑用户链，也没有改非衣柜场景的排布 | 上一节的 `evidence/w3-browser-canvas.png` | 不是这一轮的新跑 |
+| 字形缓存 | 未完成。文字仍是 `fillText` | `wechat/engine/paint.ts` | 源码 |
+| 可导入包 | 主包 1111008。`packages/art-ui` 1986863。`packages/art-world` 384080。`packages/fonts` 999279。合计 4481230。`game.cjs.js` 是 702589 字节。都在 2MB 以内，合计在 20MB 以内 | `evidence/w10-size-r3.log`，`evidence/w10-resource-r3.json` | 磁盘。不是开发者工具上传体积 |
+| 未入包的图和词音 | 276 张、29145129 字节仍未入包。包内 mp3 是 0。public 词 mp3 是 0。这一轮没有重跑「听一听」 | `evidence/w10-size-r3.log` | 文件系统 |
+| 字体和基础库 | `project.config.json` 的 `libVersion` 仍是 3.5.5。这一轮没有重跑 `loadPackedFonts`。上一轮的 12 次失败不能当成这一轮的新结果 | `wechat/project.config.json` | 读文件。IDE 未验证 |
+| 开发者工具和真机 | 未验证。没有打开微信开发者工具，没有真机，没有测 `wx` canvas 的 clip | 无 | 待授权 |
+
+844×390 上 scale 是 0.4875，列表 mask 是世界坐标 `fillRect(140, 168, 680, 288)`。衣柜字按设计行放在这个窗口外面，字号收到下一行之前，最小 14。返回的字在按钮盒内：按钮 x 573.1、y 342.2、w 87.8、h 27.3，文字 x 581、y 347.4、w 72.1、h 17。`src` 没有改。p05、engine、用户链、vitest、page-chain 这一轮都没有重跑。
 

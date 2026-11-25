@@ -1,0 +1,18 @@
+main bytes 1111008 files 23
+packages/art-ui bytes 1986863 files 16
+packages/art-world bytes 384080 files 13
+packages/fonts bytes 999279 files 16
+importable bytes 4481230 files 68
+packed images 22 bytes 2370536
+packed fonts 12 bytes 998884
+packed mp3 0
+public bytes 33613886 excluded from the mini program
+public images 297 bytes 31515282
+warm images copied into subpackages 21
+required-but-not-packed images 276 bytes 29145129
+public word mp3 0
+source: filesystem after project.config.json packOptions.ignore, split by app.json subpackage roots.
+https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages
+limits used here: each package 2MB, all packages 20MB for 服务商代开发. The ordinary all-package limit is 30MB.
+IDE upload size is 未验证. A git archive is not this package.
+main and each subpackage are within 2MB, and the importable total is within 20MB. IDE package size is 未验证.

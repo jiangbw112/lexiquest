@@ -1,12 +1,16 @@
-import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldScale, worldToScreen, type ViewBox } from "./coords";
+import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
 import { displayBox, type GameNode } from "./node";
 import { frameRectOf, type FrameRect } from "./scene";
 
 /**
- * 原来：文字和按钮都乘 worldScale，paint 只 fillText / fillRect。minGap 从 8 起算，所以自报 >= 8 不能说明真的量过。
- * 现在：世界层图片按图集 frame 出 drawImage。带 geometry mask 的容器用 ctx.clip，子节点在 clip 里面 save/restore 自己的平移、旋转和翻转。命中盒与 clip 求交。
- * 为什么：衣柜列表滚出 288 高的窗口后不能再画，也不能点到被裁掉的那一截。没有 clip 的上下文不假装裁过。
+ * 原来：外层 ctx.clip 之后子树改走 paintRelative，内层 mask 不再裁，命中也不和内层求交。mask 只认 fillRect，多个矩形收成一个外包盒。容器自身的旋转和翻转不进命中。衣柜标题和返回被货架从左上重排，画在列表和面板上。
+ * 现在：每一层 mask 都按图形命令的真实轮廓 clip，子层在父层 clip 里面再 clip。命中要同时落在变换后的多边形和全部祖先轮廓里。衣柜文字按设计位置放进列表窗口之外。
+ * 为什么：两个分开的矩形不能用它们的外包盒代替，圆也不能用外接正方形。容器转过之后，点原来的位置不该命中。没有 clip 的上下文不假装裁过。
  */
+
+type MaskShape =
+  | { kind: "poly"; points: Array<{ x: number; y: number }> }
+  | { kind: "circle"; x: number; y: number; r: number };
 
 export interface PaintBox {
   kind: string;
@@ -20,6 +24,8 @@ export interface PaintBox {
   nested: boolean;
   node: GameNode;
   lines?: string[];
+  polygon?: Array<{ x: number; y: number }>;
+  masks?: MaskShape[][];
 }
 
 export interface DrawImageOp {
@@ -75,6 +81,10 @@ interface PaintContext {
   beginPath?: () => void;
   rect?: (x: number, y: number, w: number, h: number) => void;
   clip?: () => void;
+  moveTo?: (x: number, y: number) => void;
+  lineTo?: (x: number, y: number) => void;
+  closePath?: () => void;
+  setTransform?: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   arc?: (x: number, y: number, r: number, start: number, end: number) => void;
   stroke?: () => void;
   fill?: () => void;
@@ -177,7 +187,147 @@ interface Unit {
   lines: string[];
 }
 
-function placeUnits(units: Unit[], view: ViewBox): void {
+function shapeBounds(shapes: MaskShape[]): WorldRect | null {
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  const take = (x: number, y: number) => {
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  };
+  for (const shape of shapes) {
+    if (shape.kind === "circle") {
+      take(shape.x - shape.r, shape.y - shape.r);
+      take(shape.x + shape.r, shape.y + shape.r);
+      continue;
+    }
+    for (const point of shape.points) take(point.x, point.y);
+  }
+  if (!Number.isFinite(minX) || maxX <= minX || maxY <= minY) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+function firstMask(scene: { children: { list: GameNode[] } }): { bounds: WorldRect; shapes: MaskShape[] } | null {
+  let shapes: MaskShape[] | null = null;
+  const visit = (node: GameNode) => {
+    if (shapes) return;
+    const found = maskShapesWorld(node);
+    if (found) {
+      shapes = found;
+      return;
+    }
+    const list = childList(node);
+    if (list) for (const child of list) visit(child);
+  };
+  for (const node of scene.children.list) visit(node);
+  if (!shapes) return null;
+  const bounds = shapeBounds(shapes);
+  return bounds ? { bounds, shapes } : null;
+}
+
+function separateDown(units: Unit[], gap: number): void {
+  const ordered = [...units].sort((a, b) => a.y - b.y || a.x - b.x);
+  for (let index = 1; index < ordered.length; index += 1) {
+    const previous = ordered[index - 1];
+    const unit = ordered[index];
+    const overlapsX = unit.x < previous.x + previous.w && previous.x < unit.x + unit.w;
+    if (overlapsX && unit.y < previous.y + previous.h + gap) unit.y = previous.y + previous.h + gap;
+  }
+}
+
+function placeWardrobeUnits(units: Unit[], view: ViewBox, scene: { children: { list: GameNode[] } }): void {
+  // 原来：placeUnits 从 (12, 58) 把标题、说明和「返回」排成一条，盖住羊皮纸和第一行。
+  // 现在：按钮留在设计坐标。列表上方的字排进窗口上沿，下方的字留在窗口下沿，再按每个 mask 轮廓而不是外包盒挪开。
+  // 为什么：逻辑字号比缩放后的设计字宽，直接套设计 x 会互相压住；窗口本身仍是那一个 fillRect。
+  const mask = firstMask(scene);
+  const scale = worldScale(view);
+  const controls = units.filter((unit) => unit.interactive);
+  const texts = units.filter((unit) => !unit.interactive);
+  for (const unit of controls) {
+    const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
+    unit.x = screen.x;
+    unit.y = screen.y;
+    unit.w = Math.max(1, unit.design.w * scale);
+    unit.h = Math.max(1, unit.design.h * scale);
+  }
+  if (!mask) {
+    for (const unit of texts) {
+      const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
+      unit.x = screen.x;
+      unit.y = screen.y;
+    }
+    return;
+  }
+  const screenMask = screenShapes(mask.shapes, view);
+  const band = shapeBounds(screenMask);
+  if (!band) return;
+  const footer = texts.filter((unit) => unit.design.y >= mask.bounds.y + mask.bounds.h);
+  const header = texts.filter((unit) => !footer.includes(unit));
+  const rows = new Map<number, Unit[]>();
+  for (const unit of header) {
+    const key = Math.round(unit.design.y / 12) * 12;
+    const list = rows.get(key) ?? [];
+    list.push(unit);
+    rows.set(key, list);
+  }
+  const grouped = [...rows.entries()].sort((a, b) => a[0] - b[0]).map(([, list]) => list.sort((a, b) => a.design.x - b.design.x));
+  const gap = 6;
+  let previousBottom = 8;
+  for (let index = 0; index < grouped.length; index += 1) {
+    const row = grouped[index];
+    const anchor = worldToScreen({ x: 0, y: row[0].design.y }, view).y;
+    const nextY = index + 1 < grouped.length
+      ? worldToScreen({ x: 0, y: grouped[index + 1][0].design.y }, view).y
+      : band.y - 2;
+    let y = Math.max(anchor, previousBottom + 2);
+    const room = Math.max(14, nextY - y - 2);
+    for (const unit of row) {
+      if (unit.h <= room) continue;
+      const next = Math.max(14, Math.min(unit.fontPx, room));
+      const ratio = next / unit.fontPx;
+      unit.w = Math.max(1, unit.w * ratio);
+      unit.h = next * Math.max(1, unit.lines.length);
+      unit.fontPx = next;
+    }
+    const rowH = Math.max(...row.map((unit) => unit.h));
+    if (y + rowH > nextY - 1) y = Math.max(previousBottom + 2, nextY - rowH - 1);
+    let x = band.x;
+    let lineH = 0;
+    let rowTop = y;
+    for (const unit of row) {
+      if (x > band.x && x + unit.w > band.x + band.w) {
+        rowTop += lineH + 2;
+        x = band.x;
+        lineH = 0;
+      }
+      unit.x = x;
+      unit.y = rowTop;
+      x += unit.w + gap;
+      lineH = Math.max(lineH, unit.h);
+    }
+    previousBottom = rowTop + lineH;
+  }
+  for (const unit of footer) {
+    const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
+    unit.x = screen.x;
+    unit.y = Math.max(screen.y, band.y + band.h + 4);
+  }
+  separateDown(footer, 4);
+  for (const unit of [...header, ...footer, ...controls]) {
+    if (!screenMask.some((shape) => boxHitsShape(unit, shape))) continue;
+    const below = footer.includes(unit) || unit.y >= band.y + band.h / 2;
+    unit.y = below ? band.y + band.h + 4 : band.y - unit.h - 3;
+  }
+}
+
+function placeUnits(units: Unit[], view: ViewBox, scene: { children: { list: GameNode[] }; key?: string } | null): void {
+  if (scene?.key === "wardrobe") {
+    placeWardrobeUnits(units, view, scene);
+    return;
+  }
   const left = 12;
   const top = 58;
   const right = Math.max(left + UI_HIT, view.w - 12);
@@ -311,100 +461,248 @@ function childList(node: GameNode): GameNode[] | null {
   return node.type === "container" && list ? list : null;
 }
 
-function maskWorldRect(node: GameNode): WorldRect | null {
-  if (node.type !== "container") return null;
-  const mask = node.data.get("mask") as { graphics?: GameNode & { commands?: Array<{ op: string; x: number; y: number; w: number; h: number }> } } | undefined;
-  const graphics = mask?.graphics;
-  if (!graphics || graphics.visible === false) return null;
-  const at = worldOf(graphics);
-  let rect: WorldRect | null = null;
-  for (const command of graphics.commands ?? []) {
-    if (command.op !== "fillRect") continue;
-    const scaleX = graphics.scaleX || 1;
-    const scaleY = graphics.scaleY || 1;
-    const next = {
-      x: at.x + command.x * scaleX,
-      y: at.y + command.y * scaleY,
-      w: command.w * scaleX,
-      h: command.h * scaleY,
-    };
-    if (!rect) {
-      rect = next;
-      continue;
-    }
-    const x = Math.min(rect.x, next.x);
-    const y = Math.min(rect.y, next.y);
-    rect = {
-      x,
-      y,
-      w: Math.max(rect.x + rect.w, next.x + next.w) - x,
-      h: Math.max(rect.y + rect.h, next.y + next.h) - y,
-    };
-  }
-  return rect && rect.w > 0 && rect.h > 0 ? rect : null;
+interface Mat {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
 }
 
-function underMask(node: GameNode): boolean {
+const IDENTITY: Mat = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+
+function mul(m: Mat, n: Mat): Mat {
+  return {
+    a: m.a * n.a + m.c * n.b,
+    b: m.b * n.a + m.d * n.b,
+    c: m.a * n.c + m.c * n.d,
+    d: m.b * n.c + m.d * n.d,
+    e: m.a * n.e + m.c * n.f + m.e,
+    f: m.b * n.e + m.d * n.f + m.f,
+  };
+}
+
+function applyMat(m: Mat, x: number, y: number): { x: number; y: number } {
+  return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f };
+}
+
+function localMat(node: GameNode): Mat {
+  const sx = (node.flipX ? -1 : 1) * (node.scaleX || 1);
+  const sy = node.scaleY || 1;
+  const cos = Math.cos(node.rotation || 0);
+  const sin = Math.sin(node.rotation || 0);
+  return { a: cos * sx, b: sin * sx, c: -sin * sy, d: cos * sy, e: node.x, f: node.y };
+}
+
+function worldMat(node: GameNode): Mat {
+  const chain: GameNode[] = [];
   let current: GameNode | null = node;
   while (current) {
-    if (maskWorldRect(current)) return true;
+    chain.push(current);
+    current = current.parent;
+  }
+  let mat = IDENTITY;
+  for (let index = chain.length - 1; index >= 0; index -= 1) mat = mul(mat, localMat(chain[index]));
+  return mat;
+}
+
+function rectPoints(mat: Mat, x: number, y: number, w: number, h: number): Array<{ x: number; y: number }> {
+  return [applyMat(mat, x, y), applyMat(mat, x + w, y), applyMat(mat, x + w, y + h), applyMat(mat, x, y + h)];
+}
+
+function circleShape(mat: Mat, x: number, y: number, r: number): MaskShape | null {
+  if (!(r > 0)) return null;
+  const sx = Math.hypot(mat.a, mat.b);
+  const sy = Math.hypot(mat.c, mat.d);
+  if (sx < 1e-6 || sy < 1e-6) return null;
+  if (Math.abs(sx - sy) <= 1e-3 * Math.max(sx, sy)) {
+    const center = applyMat(mat, x, y);
+    return { kind: "circle", x: center.x, y: center.y, r: r * sx };
+  }
+  const points = [];
+  for (let step = 0; step < 32; step += 1) {
+    const angle = (step / 32) * Math.PI * 2;
+    points.push(applyMat(mat, x + Math.cos(angle) * r, y + Math.sin(angle) * r));
+  }
+  return { kind: "poly", points };
+}
+
+function roundedPoints(mat: Mat, x: number, y: number, w: number, h: number, radius: number): Array<{ x: number; y: number }> {
+  const limit = Math.min(Math.abs(w) / 2, Math.abs(h) / 2);
+  const r = Math.max(0, Math.min(radius || 0, limit));
+  if (r <= 0) return rectPoints(mat, x, y, w, h);
+  const corners = [
+    { cx: x + r, cy: y + r, a0: Math.PI, a1: Math.PI * 1.5 },
+    { cx: x + w - r, cy: y + r, a0: Math.PI * 1.5, a1: Math.PI * 2 },
+    { cx: x + w - r, cy: y + h - r, a0: 0, a1: Math.PI * 0.5 },
+    { cx: x + r, cy: y + h - r, a0: Math.PI * 0.5, a1: Math.PI },
+  ];
+  const points = [];
+  for (const corner of corners) {
+    for (let step = 0; step < 4; step += 1) {
+      const angle = corner.a0 + ((corner.a1 - corner.a0) * step) / 4;
+      points.push(applyMat(mat, corner.cx + Math.cos(angle) * r, corner.cy + Math.sin(angle) * r));
+    }
+  }
+  return points;
+}
+
+function maskShapesWorld(node: GameNode): MaskShape[] | null {
+  if (node.type !== "container") return null;
+  const mask = node.data.get("mask") as { graphics?: GameNode & { commands?: Array<Record<string, number> & { op: string }> } } | undefined;
+  const graphics = mask?.graphics;
+  if (!graphics || graphics.visible === false) return null;
+  const mat = worldMat(graphics);
+  const shapes: MaskShape[] = [];
+  for (const command of graphics.commands ?? []) {
+    if (command.op === "fillRect") shapes.push({ kind: "poly", points: rectPoints(mat, command.x, command.y, command.w, command.h) });
+    else if (command.op === "fillRounded") shapes.push({ kind: "poly", points: roundedPoints(mat, command.x, command.y, command.w, command.h, command.r) });
+    else if (command.op === "fillCircle") {
+      const circle = circleShape(mat, command.x, command.y, command.r);
+      if (circle) shapes.push(circle);
+    }
+  }
+  return shapes.length ? shapes : null;
+}
+
+function paintedByTree(node: GameNode): boolean {
+  let current: GameNode | null = node;
+  while (current) {
+    if (maskShapesWorld(current) || current.rotation || current.flipX) return true;
     current = current.parent;
   }
   return false;
 }
 
-function screenBox(rect: WorldRect, view: ViewBox): WorldRect {
-  const origin = worldToScreen({ x: rect.x, y: rect.y }, view);
-  const scale = worldScale(view);
-  return { x: origin.x, y: origin.y, w: rect.w * scale, h: rect.h * scale };
+function pointInPoly(x: number, y: number, points: Array<{ x: number; y: number }>): boolean {
+  let inside = false;
+  for (let index = 0, previous = points.length - 1; index < points.length; previous = index, index += 1) {
+    const a = points[index];
+    const b = points[previous];
+    const crosses = (a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / ((b.y - a.y) || 1e-12) + a.x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
 }
 
-function intersectBox(a: WorldRect, b: WorldRect): WorldRect | null {
-  const x = Math.max(a.x, b.x);
-  const y = Math.max(a.y, b.y);
-  const right = Math.min(a.x + a.w, b.x + b.w);
-  const bottom = Math.min(a.y + a.h, b.y + b.h);
-  if (right - x <= 0 || bottom - y <= 0) return null;
-  return { x, y, w: right - x, h: bottom - y };
+function pointInShape(x: number, y: number, shape: MaskShape): boolean {
+  if (shape.kind === "circle") {
+    const dx = x - shape.x;
+    const dy = y - shape.y;
+    return dx * dx + dy * dy <= shape.r * shape.r + 1e-6;
+  }
+  return pointInPoly(x, y, shape.points);
 }
 
-function collectMaskedHits(scene: { children: { list: GameNode[] } }, view: ViewBox): PaintBox[] {
-  const hits: PaintBox[] = [];
-  const walk = (child: GameNode, clip: WorldRect) => {
-    if (!child.visible) return;
-    if (child.inputEnabled) {
-      const visible = intersectBox(screenBox(designBox(child), view), clip);
-      if (visible) {
-        hits.push({
-          kind: child.type,
-          text: "",
-          fontPx: 0,
-          x: visible.x,
-          y: visible.y,
-          w: visible.w,
-          h: visible.h,
-          interactive: true,
-          nested: true,
-          node: child,
-        });
-      }
+function segmentsCross(a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }, d: { x: number; y: number }): boolean {
+  const abx = b.x - a.x;
+  const aby = b.y - a.y;
+  const acx = c.x - a.x;
+  const acy = c.y - a.y;
+  const adx = d.x - a.x;
+  const ady = d.y - a.y;
+  const cdx = d.x - c.x;
+  const cdy = d.y - c.y;
+  const cax = a.x - c.x;
+  const cay = a.y - c.y;
+  const cbx = b.x - c.x;
+  const cby = b.y - c.y;
+  const ab = abx * acy - aby * acx;
+  const ab2 = abx * ady - aby * adx;
+  const cd = cdx * cay - cdy * cax;
+  const cd2 = cdx * cby - cdy * cbx;
+  return ab * ab2 < 0 && cd * cd2 < 0;
+}
+
+function boxHitsShape(box: WorldRect, shape: MaskShape): boolean {
+  if (shape.kind === "circle") {
+    const cx = Math.max(box.x, Math.min(shape.x, box.x + box.w));
+    const cy = Math.max(box.y, Math.min(shape.y, box.y + box.h));
+    const dx = cx - shape.x;
+    const dy = cy - shape.y;
+    return dx * dx + dy * dy <= shape.r * shape.r;
+  }
+  const corners = [
+    { x: box.x, y: box.y },
+    { x: box.x + box.w, y: box.y },
+    { x: box.x + box.w, y: box.y + box.h },
+    { x: box.x, y: box.y + box.h },
+  ];
+  if (corners.some((point) => pointInPoly(point.x, point.y, shape.points))) return true;
+  if (shape.points.some((point) => point.x >= box.x && point.x <= box.x + box.w && point.y >= box.y && point.y <= box.y + box.h)) return true;
+  for (let index = 0; index < shape.points.length; index += 1) {
+    const a = shape.points[index];
+    const b = shape.points[(index + 1) % shape.points.length];
+    for (let edge = 0; edge < corners.length; edge += 1) {
+      if (segmentsCross(a, b, corners[edge], corners[(edge + 1) % corners.length])) return true;
     }
-    const list = childList(child);
-    if (list) for (const next of list) walk(next, clip);
-  };
-  const visit = (node: GameNode) => {
+  }
+  return false;
+}
+
+function screenShapes(shapes: MaskShape[], view: ViewBox): MaskShape[] {
+  const scale = worldScale(view);
+  return shapes.map((shape) => {
+    if (shape.kind === "circle") {
+      const center = worldToScreen(shape, view);
+      return { kind: "circle" as const, x: center.x, y: center.y, r: shape.r * scale };
+    }
+    return { kind: "poly" as const, points: shape.points.map((point) => worldToScreen(point, view)) };
+  });
+}
+
+function transformed(mat: Mat): boolean {
+  return Math.abs(mat.b) > 1e-6 || Math.abs(mat.c) > 1e-6 || mat.a < 0 || mat.d < 0;
+}
+
+function hitCorners(node: GameNode, mat: Mat): Array<{ x: number; y: number }> | null {
+  if (!node.inputEnabled) return null;
+  const rect = node.hitRect ?? { x: 0, y: 0, width: node.width, height: node.height };
+  if (!(rect.width > 0) || !(rect.height > 0)) return null;
+  const left = -node.originX * node.width + rect.x;
+  const top = -node.originY * node.height + rect.y;
+  return [
+    applyMat(mat, left, top),
+    applyMat(mat, left + rect.width, top),
+    applyMat(mat, left + rect.width, top + rect.height),
+    applyMat(mat, left, top + rect.height),
+  ];
+}
+
+function collectTreeHits(scene: { children: { list: GameNode[] } }, view: ViewBox): PaintBox[] {
+  const hits: PaintBox[] = [];
+  const visit = (node: GameNode, parent: Mat, masks: MaskShape[][]) => {
     if (!node.visible) return;
-    const mask = maskWorldRect(node);
-    if (mask) {
-      const list = childList(node);
-      const clip = screenBox(mask, view);
-      if (list) for (const child of list) walk(child, clip);
-      return;
+    const mat = mul(parent, localMat(node));
+    const own = maskShapesWorld(node);
+    const next = own ? masks.concat([own]) : masks;
+    const corners = hitCorners(node, mat);
+    if (corners && (next.length > 0 || transformed(mat))) {
+      const screen = corners.map((point) => worldToScreen(point, view));
+      const xs = screen.map((point) => point.x);
+      const ys = screen.map((point) => point.y);
+      const x = Math.min(...xs);
+      const y = Math.min(...ys);
+      hits.push({
+        kind: node.type,
+        text: "",
+        fontPx: 0,
+        x,
+        y,
+        w: Math.max(...xs) - x,
+        h: Math.max(...ys) - y,
+        interactive: true,
+        nested: true,
+        node,
+        polygon: screen,
+        masks: next.map((group) => screenShapes(group, view)),
+      });
     }
     const list = childList(node);
-    if (list) for (const child of list) visit(child);
+    if (list) for (const child of list) visit(child, mat, next);
   };
-  for (const node of scene.children.list) visit(node);
+  for (const node of scene.children.list) visit(node, IDENTITY, []);
   return hits;
 }
 
@@ -419,7 +717,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   const used = new Set<GameNode>();
 
   for (const node of visible) {
-    if (underMask(node)) continue;
+    if (paintedByTree(node)) continue;
     if (outermostHit(node)) continue;
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
@@ -428,7 +726,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   }
 
   for (const node of visible) {
-    if (underMask(node)) continue;
+    if (paintedByTree(node)) continue;
     const root = outermostHit(node);
     const owner = root ?? (node.type === "text" ? node : null);
     if (!owner || used.has(owner)) continue;
@@ -461,7 +759,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       lines,
     });
   }
-  placeUnits(units, view);
+  placeUnits(units, view, scene);
 
   const items: PaintBox[] = [];
   for (const unit of units) {
@@ -494,15 +792,30 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         h: Math.max(1, rh * unit.h),
       };
       if (child.type === "text") {
-        const fontPx = screenFontPx(authoredFont(child));
-        const textX = Math.min(unit.x + unit.w - 8, Math.max(unit.x + 4, dest.x));
+        const style = styleOf(child);
+        const text = String((child as GameNode & { text?: string }).text ?? "");
+        const weight = style.fontStyle ?? "";
+        const family = style.fontFamily ?? "sans-serif";
+        let fontPx = screenFontPx(authoredFont(child));
+        const wardrobe = (scene as { key?: string } | null)?.key === "wardrobe";
+        let width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
+        if (wardrobe) {
+          const limit = Math.max(12, unit.w - 12);
+          while (fontPx > 14 && width > limit) {
+            fontPx -= 1;
+            width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
+          }
+        }
+        const textX = wardrobe
+          ? Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2)
+          : Math.min(unit.x + unit.w - 8, Math.max(unit.x + 4, dest.x));
         items.push({
           kind: "text",
-          text: String((child as GameNode & { text?: string }).text ?? ""),
+          text,
           fontPx,
           x: textX,
           y: unit.y + Math.max(0, (unit.h - fontPx) / 2),
-          w: Math.max(1, unit.x + unit.w - 4 - textX),
+          w: wardrobe ? Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)) : Math.max(1, unit.x + unit.w - 4 - textX),
           h: fontPx,
           interactive: false,
           nested: true,
@@ -545,7 +858,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   const texts = items.filter((item) => item.kind === "text" && item.text.length > 0);
   const shelfHits = items.filter((item) => item.interactive);
   // 裁剪后的热区可能只剩一条。44 像素是货架按钮的规则，不拿裁剪余量去改它。
-  const hits = shelfHits.concat(scene ? collectMaskedHits(scene, view) : []);
+  const hits = shelfHits.concat(scene ? collectTreeHits(scene, view) : []);
   const fonts = texts.map((item) => item.fontPx);
   const hitSides = shelfHits.flatMap((item) => [item.w, item.h]);
   const gaps: number[] = [];
@@ -606,7 +919,7 @@ function paintImage(ctx: PaintContext, op: DrawImageOp): void {
 }
 
 function canClip(ctx: PaintContext): boolean {
-  return Boolean(ctx.save && ctx.restore && ctx.beginPath && ctx.rect && ctx.clip);
+  return Boolean(ctx.save && ctx.restore && ctx.beginPath && ctx.clip && ctx.moveTo && ctx.lineTo && ctx.closePath && ctx.arc && ctx.setTransform);
 }
 
 function sceneIndex(scene: { children: { list: GameNode[] } }, node: GameNode | undefined): number {
@@ -617,7 +930,7 @@ function sceneIndex(scene: { children: { list: GameNode[] } }, node: GameNode | 
 function firstMaskIndex(scene: { children: { list: GameNode[] } }): number {
   let index = Number.POSITIVE_INFINITY;
   scene.children.list.forEach((node, at) => {
-    if (maskWorldRect(node) && at < index) index = at;
+    if (maskShapesWorld(node) && at < index) index = at;
   });
   return index;
 }
@@ -693,50 +1006,63 @@ function drawLocal(ctx: PaintContext, node: GameNode): void {
   }
 }
 
-function paintRelative(ctx: PaintContext, node: GameNode): void {
-  if (!node.visible || !ctx.save || !ctx.restore || !ctx.translate) return;
-  ctx.save();
-  ctx.translate(node.x, node.y);
-  if (node.rotation && ctx.rotate) ctx.rotate(node.rotation);
-  const sx = (node.flipX ? -1 : 1) * (node.scaleX || 1);
-  const sy = node.scaleY || 1;
-  if ((sx !== 1 || sy !== 1) && ctx.scale) ctx.scale(sx, sy);
-  if (typeof ctx.globalAlpha === "number" || "globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
-  drawLocal(ctx, node);
-  const list = childList(node);
-  if (list) for (const child of list) paintRelative(ctx, child);
-  ctx.restore();
+function traceClip(ctx: PaintContext, shapes: MaskShape[], view: ViewBox): void {
+  ctx.beginPath?.();
+  for (const shape of screenShapes(shapes, view)) {
+    if (shape.kind === "circle") {
+      ctx.moveTo?.(shape.x + shape.r, shape.y);
+      ctx.arc?.(shape.x, shape.y, shape.r, 0, Math.PI * 2);
+      continue;
+    }
+    const [first, ...rest] = shape.points;
+    if (!first) continue;
+    ctx.moveTo?.(first.x, first.y);
+    for (const point of rest) ctx.lineTo?.(point.x, point.y);
+    ctx.closePath?.();
+  }
+  ctx.clip?.();
+}
+
+function applyScreen(ctx: PaintContext, mat: Mat, view: ViewBox): void {
+  const scale = worldScale(view);
+  const offset = worldOffset(view);
+  ctx.setTransform?.(scale * mat.a, scale * mat.b, scale * mat.c, scale * mat.d, offset.x + scale * mat.e, offset.y + scale * mat.f);
+}
+
+function paintTree(ctx: PaintContext, node: GameNode, parent: Mat, view: ViewBox, inherited: boolean): void {
+  if (!node.visible) return;
+  const mat = mul(parent, localMat(node));
+  const shapes = maskShapesWorld(node);
+  const draw = inherited || Boolean(node.rotation) || node.flipX || Boolean(shapes);
+  const body = () => {
+    if (draw && node.type !== "container") {
+      ctx.save?.();
+      applyScreen(ctx, mat, view);
+      if ("globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
+      drawLocal(ctx, node);
+      ctx.restore?.();
+    }
+    const list = childList(node);
+    if (list) for (const child of list) paintTree(ctx, child, mat, view, draw);
+  };
+  if (shapes) {
+    if (!canClip(ctx)) return;
+    ctx.save?.();
+    traceClip(ctx, shapes, view);
+    body();
+    ctx.restore?.();
+    return;
+  }
+  if (draw) body();
+  else {
+    const list = childList(node);
+    if (list) for (const child of list) paintTree(ctx, child, mat, view, false);
+  }
 }
 
 function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
-  if (!canClip(ctx) || !ctx.save || !ctx.restore || !ctx.translate || !ctx.scale) return;
-  const visit = (node: GameNode) => {
-    if (!node.visible) return;
-    const mask = maskWorldRect(node);
-    if (!mask) {
-      const list = childList(node);
-      if (list) for (const child of list) visit(child);
-      return;
-    }
-    const clip = screenBox(mask, view);
-    ctx.save!();
-    ctx.beginPath!();
-    ctx.rect!(clip.x, clip.y, clip.w, clip.h);
-    ctx.clip!();
-    const origin = worldToScreen(worldOf(node), view);
-    ctx.save!();
-    ctx.translate!(origin.x, origin.y);
-    ctx.scale!(worldScale(view), worldScale(view));
-    if (node.rotation && ctx.rotate) ctx.rotate(node.rotation);
-    const sx = (node.flipX ? -1 : 1) * (node.scaleX || 1);
-    const sy = node.scaleY || 1;
-    if (sx !== 1 || sy !== 1) ctx.scale!(sx, sy);
-    const list = childList(node);
-    if (list) for (const child of list) paintRelative(ctx, child);
-    ctx.restore!();
-    ctx.restore!();
-  };
-  for (const node of scene.children.list) visit(node);
+  if (!canClip(ctx)) return;
+  for (const node of scene.children.list) paintTree(ctx, node, IDENTITY, view, false);
 }
 
 function paintItems(ctx: PaintContext, plan: FramePlan): void {
@@ -786,12 +1112,24 @@ export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx
   return plan;
 }
 
+function containsHit(item: PaintBox, x: number, y: number): boolean {
+  if (item.polygon && item.polygon.length >= 3) {
+    if (!pointInPoly(x, y, item.polygon)) return false;
+  } else if (x < item.x || y < item.y || x >= item.x + item.w || y >= item.y + item.h) return false;
+  if (item.masks) {
+    for (const group of item.masks) {
+      if (!group.some((shape) => pointInShape(x, y, shape))) return false;
+    }
+  }
+  return true;
+}
+
 export function pressFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
   const plan = layoutFrame(scene, view, measure);
   const world = screenToWorld({ x, y }, view);
   const input = (scene as { input?: { activePointer?: { x: number; y: number } } } | null)?.input;
   if (input) input.activePointer = { x: world.x, y: world.y };
-  const hits = plan.hits.filter((item) => x >= item.x && x < item.x + item.w && y >= item.y && y < item.y + item.h);
+  const hits = plan.hits.filter((item) => containsHit(item, x, y));
   const hit = hits[hits.length - 1] ?? null;
   if (!hit) return null;
   const box = designBox(hit.node);

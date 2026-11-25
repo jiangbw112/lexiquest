@@ -142,7 +142,67 @@ async function main() {
     });
     log(`full scene ${JSON.stringify(full)}`);
     await shot("w3-wardrobe-full.png");
+    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full.png"), path.join(evidence, "w3-wardrobe-overlap-after.png"));
+    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full.png"), path.join(shots, "w3-wardrobe-overlap-after.png"));
     assert.ok(full.hits.some((name) => name.startsWith("wardrobe:")), "wardrobe hits missing");
+
+    const composition = await page.evaluate(() => {
+      const { game, scene, view, canvas, ctx } = window.__clip;
+      const plan = game.layoutFrame(scene, view);
+      const board = scene.children.list.find((node) => node.type === "container" && node.data.get("mask"));
+      const fill = (board.data.get("mask").graphics.commands || []).find((command) => command.op === "fillRect");
+      const origin = game.worldToScreen({ x: fill.x, y: fill.y }, view);
+      const scale = game.worldScale(view);
+      const mask = { x: origin.x, y: origin.y, w: fill.w * scale, h: fill.h * scale };
+      function hitsMask(box) {
+        return box.x < mask.x + mask.w && mask.x < box.x + box.w && box.y < mask.y + mask.h && mask.y < box.y + box.h;
+      }
+      const texts = plan.texts.map((item) => ({
+        text: item.text,
+        x: Math.round(item.x * 10) / 10,
+        y: Math.round(item.y * 10) / 10,
+        w: Math.round(item.w * 10) / 10,
+        h: Math.round(item.h * 10) / 10,
+        hitsMask: hitsMask(item),
+      }));
+      const buttons = plan.hits
+        .filter((item) => !(item.node && item.node.name && item.node.name.startsWith("wardrobe:")))
+        .map((item) => ({
+          name: item.node && item.node.name,
+          text: item.text,
+          x: Math.round(item.x * 10) / 10,
+          y: Math.round(item.y * 10) / 10,
+          w: Math.round(item.w * 10) / 10,
+          h: Math.round(item.h * 10) / 10,
+          hitsMask: hitsMask(item),
+        }));
+      const back = texts.find((item) => item.text.includes("返回"));
+      const title = texts.find((item) => item.text === "衣柜");
+      const owned = texts.find((item) => item.text === "已有装备");
+      function pixel(x, y) {
+        const data = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+        return [data[0], data[1], data[2], data[3]];
+      }
+      const slot = game.worldToScreen({ x: 480, y: 216 }, view);
+      return {
+        mask: { x: Math.round(mask.x * 10) / 10, y: Math.round(mask.y * 10) / 10, w: Math.round(mask.w * 10) / 10, h: Math.round(mask.h * 10) / 10 },
+        texts,
+        buttons,
+        back,
+        title,
+        owned,
+        slotPixel: pixel(slot.x, slot.y),
+        backPixel: back ? pixel(back.x + Math.min(8, back.w / 2), back.y + back.h / 2) : null,
+        canvas: `${canvas.width}x${canvas.height}`,
+      };
+    });
+    log(`composition ${JSON.stringify(composition)}`);
+    assert.ok(composition.texts.every((item) => item.hitsMask === false), "shelf text still intersects the list mask");
+    assert.ok(composition.buttons.every((item) => item.hitsMask === false), "a control still intersects the list mask");
+    assert.ok(composition.title && composition.title.y + composition.title.h <= composition.mask.y + 1, "title is not above the list");
+    assert.ok(composition.owned && composition.owned.y + composition.owned.h <= composition.mask.y + 1, "已有装备 still covers the list");
+    assert.ok(composition.back && composition.back.y >= composition.mask.y + composition.mask.h - 1, "返回 is not below the list");
+    assert.ok(composition.slotPixel[0] > 140 && composition.slotPixel[1] > 140, "first row pixel is not the slot");
 
     const pixels = await page.evaluate(() => {
       const { game, ctx, scene, view, canvas } = window.__clip;
@@ -456,6 +516,132 @@ async function main() {
     assert.ok(close(probe.clipped.later, [0, 204, 68]), "the rectangle after the mask was clipped");
     assert.ok(close(probe.opened.crossOut, probe.sourceRight), "clearMask still clips the crossing image");
     assert.ok(close(probe.opened.later, [0, 204, 68]), "clearMask changed the following rectangle");
+
+    const nested = await page.evaluate(() => {
+      const { game, ctx, view, canvas } = window.__clip;
+      const sceneNow = window.__clip.runtime.active();
+      sceneNow.children.removeAll(true);
+      const outerGraphics = sceneNow.make.graphics({ x: 0, y: 0 });
+      outerGraphics.fillStyle(0xffffff);
+      outerGraphics.fillRect(100, 100, 70, 70);
+      outerGraphics.fillRect(210, 100, 70, 70);
+      const outer = sceneNow.add.container(0, 0);
+      outer.setMask(outerGraphics.createGeometryMask());
+      const innerGraphics = sceneNow.make.graphics({ x: 0, y: 0 });
+      innerGraphics.fillStyle(0xffffff);
+      innerGraphics.fillCircle(135, 135, 24);
+      const inner = sceneNow.add.container(0, 0);
+      inner.setMask(innerGraphics.createGeometryMask());
+      const blob = sceneNow.add.rectangle(170, 135, 220, 80, 0xffcc00).setName("nested-blob");
+      blob.setInteractive();
+      inner.add(blob);
+      outer.add(inner);
+      canvas.width = canvas.width;
+      ctx.fillStyle = "#202020";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      game.paintFrame(sceneNow, ctx, view);
+      function at(worldX, worldY) {
+        const point = game.worldToScreen({ x: worldX, y: worldY }, view);
+        const data = ctx.getImageData(Math.round(point.x), Math.round(point.y), 1, 1).data;
+        return { rgba: [data[0], data[1], data[2], data[3]], screen: point };
+      }
+      const samples = {
+        center: at(135, 135),
+        circleCorner: at(111, 111),
+        gap: at(190, 135),
+        secondRect: at(245, 135),
+      };
+      function press(worldX, worldY) {
+        const point = game.worldToScreen({ x: worldX, y: worldY }, view);
+        const hit = game.pressFrame(sceneNow, view, point.x, point.y);
+        return hit && hit.node ? hit.node.name : null;
+      }
+      const hits = {
+        center: press(135, 135),
+        circleCorner: press(111, 111),
+        gap: press(190, 135),
+        secondRect: press(245, 135),
+      };
+      ctx.fillStyle = "#00cc44";
+      ctx.fillRect(8, 8, 18, 18);
+      const sentinel = ctx.getImageData(12, 12, 1, 1).data;
+      return { samples, hits, sentinel: [sentinel[0], sentinel[1], sentinel[2], sentinel[3]] };
+    });
+    log(`nested ${JSON.stringify(nested)}`);
+    const nestedPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
+    fs.writeFileSync(path.join(evidence, "w3-clip-nested.png"), Buffer.from(nestedPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-clip-nested.png"), path.join(shots, "w3-clip-nested.png"));
+    assert.ok(close(nested.samples.center.rgba, [255, 204, 0]), "nested intersection did not draw");
+    assert.ok(close(nested.samples.circleCorner.rgba, [32, 32, 32]), "circle mask used its bounding square");
+    assert.ok(close(nested.samples.gap.rgba, [32, 32, 32]), "two fillRects were replaced by their union box");
+    assert.ok(close(nested.samples.secondRect.rgba, [32, 32, 32]), "inner mask was ignored after the outer clip");
+    assert.strictEqual(nested.hits.center, "nested-blob");
+    assert.strictEqual(nested.hits.circleCorner, null);
+    assert.strictEqual(nested.hits.gap, null);
+    assert.strictEqual(nested.hits.secondRect, null);
+    assert.ok(close(nested.sentinel, [0, 204, 68]), "nested clip leaked after paintFrame");
+
+    const transformed = await page.evaluate(() => {
+      const { game, ctx, view, canvas } = window.__clip;
+      const sceneNow = window.__clip.runtime.active();
+      sceneNow.children.removeAll(true);
+      function rig(name, x, y, rotation, flipX, mask) {
+        const graphics = sceneNow.make.graphics({ x: 0, y: 0 });
+        graphics.fillStyle(0xffffff);
+        graphics.fillRect(mask.x, mask.y, mask.w, mask.h);
+        const board = sceneNow.add.container(x, y).setName(name);
+        board.setOrigin(0, 0);
+        board.setRotation(rotation);
+        board.setFlipX(flipX);
+        board.setMask(graphics.createGeometryMask());
+        const child = sceneNow.add.rectangle(80, 0, 72, 16, name === "flipped-board" ? 0xff0000 : 0x0000ff);
+        board.add(child);
+        board.setInteractive({ x: 44, y: -8, width: 72, height: 16 });
+        return board;
+      }
+      rig("flipped-board", 240, 200, 0, true, { x: 120, y: 160, w: 80, h: 80 });
+      rig("turned-board", 640, 220, Math.PI / 2, false, { x: 600, y: 284, w: 80, h: 32 });
+      canvas.width = canvas.width;
+      ctx.fillStyle = "#202020";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      game.paintFrame(sceneNow, ctx, view);
+      function at(worldX, worldY) {
+        const point = game.worldToScreen({ x: worldX, y: worldY }, view);
+        const data = ctx.getImageData(Math.round(point.x), Math.round(point.y), 1, 1).data;
+        return [data[0], data[1], data[2], data[3]];
+      }
+      function press(worldX, worldY) {
+        const point = game.worldToScreen({ x: worldX, y: worldY }, view);
+        const hit = game.pressFrame(sceneNow, view, point.x, point.y);
+        return hit && hit.node ? hit.node.name : null;
+      }
+      return {
+        flipAt: at(160, 200),
+        flipAway: at(320, 200),
+        turnAt: at(640, 300),
+        turnAway: at(720, 220),
+        turnOutside: at(640, 330),
+        hitFlip: press(160, 200),
+        hitFlipAway: press(320, 200),
+        hitTurn: press(640, 300),
+        hitTurnAway: press(720, 220),
+        hitTurnOutside: press(640, 330),
+      };
+    });
+    log(`container-transform ${JSON.stringify(transformed)}`);
+    const turnedPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
+    fs.writeFileSync(path.join(evidence, "w3-clip-container.png"), Buffer.from(turnedPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-clip-container.png"), path.join(shots, "w3-clip-container.png"));
+    assert.ok(close(transformed.flipAt, [255, 0, 0]), "container flipX did not move the child");
+    assert.ok(close(transformed.flipAway, [32, 32, 32]), "container flipX left the child in place");
+    assert.ok(close(transformed.turnAt, [0, 0, 255]), "container rotation did not move the child");
+    assert.ok(close(transformed.turnAway, [32, 32, 32]), "container rotation left the child in place");
+    assert.ok(close(transformed.turnOutside, [32, 32, 32]), "rotated child drew outside its mask");
+    assert.strictEqual(transformed.hitFlip, "flipped-board");
+    assert.strictEqual(transformed.hitFlipAway, null);
+    assert.strictEqual(transformed.hitTurn, "turned-board");
+    assert.strictEqual(transformed.hitTurnAway, null);
+    assert.strictEqual(transformed.hitTurnOutside, null);
     log("clip checks passed on a Chrome canvas");
   } finally {
     await browser.close();
