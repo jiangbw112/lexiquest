@@ -328,8 +328,8 @@ async function main() {
     const results = await geometry("results", port, page);
     const liveOff = results.texts.filter((item) => !item.nested && !item.onPaper);
     assert.strictEqual(liveOff.length, 0, `live results off paper ${liveOff.length}`);
-    const shot = path.join(root, "evidence/w3-results-r6-live.png");
-    const artifact = "/opt/cursor/artifacts/w3-results-r6-live.png";
+    const shot = path.join(root, "evidence/w3-results-r7-live.png");
+    const artifact = "/opt/cursor/artifacts/w3-results-r7-live.png";
     fs.mkdirSync(path.dirname(shot), { recursive: true });
     fs.mkdirSync("/opt/cursor/artifacts", { recursive: true });
     const sample = await shoot(page, results, shot);
@@ -412,7 +412,7 @@ async function main() {
         const row = { key, ok: true, texts: plan.texts.length, overlap: plan.overlap, overflow: plan.overflow };
         sceneReport.push(row);
         const painted = await measuredPlan(port.runtime.active(), view, page);
-        const sceneShot = path.join(root, `evidence/w8-r6-${key}.png`);
+        const sceneShot = path.join(root, `evidence/w8-r7-${key}.png`);
         await shoot(page, painted, sceneShot);
         row.shot = sceneShot;
         log(`scene ${key} texts ${row.texts} overlap ${row.overlap} overflow ${row.overflow} chrome ${sceneShot}`);
@@ -434,9 +434,9 @@ async function main() {
       assertGeometry("frozen", size, plan);
     }
     const frozenPlan = await measuredPlan(port.runtime.active(), view, page);
-    const frozenShot = path.join(root, "evidence/w3-results-r6-after.png");
+    const frozenShot = path.join(root, "evidence/w3-results-r7-after.png");
     await shoot(page, frozenPlan, frozenShot);
-    fs.copyFileSync(frozenShot, "/opt/cursor/artifacts/w3-results-r6-after.png");
+    fs.copyFileSync(frozenShot, "/opt/cursor/artifacts/w3-results-r7-after.png");
     const sameFrame = frozenPlan.texts.map((item) => item.text).join("\n");
     assert.ok(sameFrame.includes("答对 3 题"), "same frame still says 3 correct");
     assert.ok(sameFrame.includes("一共 7 题"), "same frame still says 7 questions");
@@ -463,7 +463,7 @@ async function main() {
     assert.ok(nodeGap, "Node records that pixels were not decoded");
     log("check-user-chain: profiles, name, learn, battle, results, collection, review");
     log("clicks: Node page adapter. geometry: Chrome canvas measureText. pixels: Chrome canvas drawImage. Not WeChat DevTools. Not a phone.");
-    const out = path.join(root, "evidence/w7-user-chain-r6.json");
+    const out = path.join(root, "evidence/w7-user-chain-r7.json");
     fs.writeFileSync(out, JSON.stringify({
       source: "Node clicks through pages/game/port.js. Chrome canvas measureText and one drawImage replay. Not WeChat DevTools and not a phone.",
       name: port.save().player.name,
@@ -477,7 +477,7 @@ async function main() {
       sampleColors: sample.colors,
       scenes: sceneReport,
     }, null, 2));
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r6.log"), `${lines.join("\n")}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r7.log"), `${lines.join("\n")}\n`);
   } finally {
     await browser.close();
   }
@@ -487,7 +487,7 @@ main().then(() => process.exit(0)).catch((error) => {
   console.error(error && error.stack ? error.stack : error);
   try {
     fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
-    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r6.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
+    fs.writeFileSync(path.join(root, "evidence/w7-user-chain-r7.log"), `${lines.join("\n")}\n${error && error.stack ? error.stack : error}\n`);
   } catch (writeError) {
     console.error(writeError);
   }

@@ -746,13 +746,187 @@ function placeUnits(
       unit.onPaper = true;
     });
   };
+  const authoredPx = copy.map((unit) => unit.fontPx);
+  const restoreAuthored = (): void => {
+    copy.forEach((unit, index) => {
+      unit.fontPx = authoredPx[index] ?? unit.fontPx;
+    });
+  };
+  const skillName = (unit: Unit): boolean => unit.weight.includes("700") && unit.text.trim().length > 0 && unit.text.trim().length <= 6 && !unit.text.includes("。");
+  const skillStar = (unit: Unit): boolean => unit.text.trim().startsWith("★");
+  const skillBlocks = (): Array<{ units: Unit[]; skill: boolean }> => {
+    const blocks: Array<{ units: Unit[]; skill: boolean }> = [];
+    let index = 0;
+    while (index < copy.length) {
+      const unit = copy[index];
+      if (!unit || !skillName(unit)) {
+        if (unit) blocks.push({ units: [unit], skill: false });
+        index += 1;
+        continue;
+      }
+      const group = [unit];
+      const originY = unit.design.y;
+      index += 1;
+      if (index < copy.length && copy[index] && skillStar(copy[index]) && copy[index].design.y - originY < 48) {
+        group.push(copy[index]);
+        index += 1;
+      }
+      if (index < copy.length && copy[index] && !skillName(copy[index]) && !skillStar(copy[index]) && copy[index].design.y - originY < 100) {
+        group.push(copy[index]);
+        index += 1;
+      }
+      blocks.push({ units: group, skill: true });
+    }
+    return blocks;
+  };
+  const cornerOf = (box: WorldRect): number => Math.min(40, box.w / 2, box.h / 2);
+  const roomIn = (box: WorldRect, left: number, top: number, right: number, bottom: number): WorldRect => {
+    const x = box.x + left;
+    const y = Math.max(52, box.y + top);
+    const rightEdge = Math.min(view.w - 4, box.x + box.w - right);
+    const bottomEdge = Math.min(view.h - 4, box.y + box.h - bottom);
+    return { x, y, w: rightEdge - x, h: bottomEdge - y };
+  };
+  const layoutBlocks = (blocks: Array<{ units: Unit[]; skill: boolean }>, region: WorldRect, cap: number): { height: number; spots: Array<{ unit: Unit; x: number; y: number }> } | null => {
+    restoreAuthored();
+    const spots: Array<{ unit: Unit; x: number; y: number }> = [];
+    let y = 0;
+    const capOf = (unit: Unit) => Math.max(14, Math.min(authoredPx[copy.indexOf(unit)] ?? unit.fontPx, cap));
+    for (const block of blocks) {
+      if (y > 0) y += UI_GAP;
+      if (!block.skill) {
+        const unit = block.units[0];
+        if (!unit) continue;
+        unit.fontPx = capOf(unit);
+        fitText(unit, Math.max(28, region.w), measure);
+        if (y + unit.h > region.h + 0.1) return null;
+        spots.push({ unit, x: 0, y });
+        y += unit.h;
+        continue;
+      }
+      const name = block.units[0];
+      const star = block.units.find((unit) => skillStar(unit));
+      const desc = block.units.find((unit) => unit !== name && unit !== star);
+      if (!name) continue;
+      name.fontPx = capOf(name);
+      fitText(name, Math.max(28, region.w), measure);
+      let rowH = name.h;
+      if (star) {
+        star.fontPx = capOf(star);
+        fitText(star, Math.max(28, region.w), measure);
+        if (name.w + UI_GAP + star.w <= region.w) {
+          if (y + Math.max(name.h, star.h) > region.h + 0.1) return null;
+          spots.push({ unit: name, x: 0, y });
+          spots.push({ unit: star, x: name.w + UI_GAP, y: y + Math.max(0, (name.h - star.h) / 2) });
+          rowH = Math.max(name.h, star.h);
+        } else {
+          if (y + name.h > region.h + 0.1) return null;
+          spots.push({ unit: name, x: 0, y });
+          y += name.h + UI_GAP;
+          if (y + star.h > region.h + 0.1) return null;
+          spots.push({ unit: star, x: 0, y });
+          rowH = star.h;
+        }
+      } else if (y + name.h > region.h + 0.1) return null;
+      else spots.push({ unit: name, x: 0, y });
+      y += rowH;
+      if (!desc) continue;
+      y += UI_GAP;
+      desc.fontPx = capOf(desc);
+      fitText(desc, Math.max(28, region.w), measure);
+      if (y + desc.h > region.h + 0.1) return null;
+      spots.push({ unit: desc, x: 0, y });
+      y += desc.h;
+    }
+    return { height: y, spots };
+  };
+  const commitStack = (region: WorldRect, placed: { height: number; spots: Array<{ unit: Unit; x: number; y: number }> }, sheet: boolean, coverRows: boolean): void => {
+    for (const spot of placed.spots) {
+      spot.unit.x = region.x + spot.x;
+      spot.unit.y = region.y + spot.y;
+      spot.unit.onPaper = true;
+      markBox(grid, { x: spot.unit.x - UI_GAP, y: spot.unit.y - UI_GAP, w: spot.unit.w + UI_GAP * 2, h: spot.unit.h + UI_GAP * 2 });
+    }
+    if (!sheet || placed.spots.length === 0) return;
+    const pad = 12;
+    const panel = plates.find((plate) => plate.frame === "panel_parchment");
+    let left = region.x - pad;
+    let right = region.x + region.w + pad;
+    if (coverRows) {
+      const top = region.y;
+      const bottom = region.y + placed.height;
+      for (const row of plates) {
+        if (row.frame !== "list_row") continue;
+        if (row.box.y + row.box.h < top - pad || row.box.y > bottom + pad) continue;
+        left = Math.min(left, row.box.x);
+        right = Math.max(right, row.box.x + row.box.w);
+      }
+    }
+    if (panel) {
+      left = Math.max(left, panel.box.x + UI_GAP);
+      right = Math.min(right, panel.box.x + panel.box.w - UI_GAP);
+    }
+    const outer = {
+      x: left,
+      y: region.y - pad,
+      w: Math.max(1, right - left),
+      h: placed.height + pad * 2,
+    };
+    fills.push({ ...outer, color: 0xfff4dc, role: "sheet" });
+    plates.push({ box: outer, kind: "paper", frame: "sheet" });
+    markBox(grid, outer);
+  };
+  // 原来：技能末行把「盾击」、说明和下一张卡的名字排在同一行。指南标题落在羊皮纸左上角的叶子上。
+  // 现在：每张技能卡先写名字和星，下一行只写它自己的说明。指南标题从叶子和上沿下面起排。
+  // 为什么：名字和说明要成对，标题要离开叶子。垫纸仍然盖住列表行，说明不回到行框上。
+  const stackSkills = (): boolean => {
+    const panel = plates.find((plate) => plate.frame === "panel_parchment");
+    if (!panel || copy.length === 0) return false;
+    const blocks = skillBlocks();
+    const corner = cornerOf(panel.box);
+    const rooms = [
+      roomIn(panel.box, corner + 20, corner + 20, corner + UI_GAP, corner + UI_GAP),
+      roomIn(panel.box, corner + 20, corner + 20, corner + UI_GAP, 12),
+    ];
+    for (const region of rooms) {
+      if (region.w < 80 || region.h < 40) continue;
+      for (let cap = Math.max(14, ...authoredPx, 14); cap >= 14; cap -= 1) {
+        const placed = layoutBlocks(blocks, region, cap);
+        if (!placed) continue;
+        commitStack(region, placed, true, true);
+        return true;
+      }
+    }
+    restoreAuthored();
+    return false;
+  };
+  const stackGuide = (): boolean => {
+    const panel = plates.find((plate) => plate.frame === "panel_parchment");
+    if (!panel || copy.length === 0) return false;
+    const corner = cornerOf(panel.box);
+    const region = roomIn(panel.box, corner + UI_GAP, corner + UI_GAP, 12, 12);
+    if (region.w < 80 || region.h < 28) return false;
+    const blocks = copy.map((unit) => ({ units: [unit], skill: false }));
+    for (let cap = Math.max(14, ...authoredPx, 14); cap >= 14; cap -= 1) {
+      const placed = layoutBlocks(blocks, region, cap);
+      if (!placed) continue;
+      commitStack(region, placed, false, false);
+      return true;
+    }
+    restoreAuthored();
+    return false;
+  };
   const strictRows = sceneKey === "battle-results" || sceneKey === "skills";
   const strictBar = sceneKey === "battle-results" && options?.trial !== "cross-bar";
   const strictNest = sceneKey === "duel";
   const nests = strictNest ? nestedPanels(plates) : [];
   const bars = plates.filter((plate) => (strictRows && plate.frame === "list_row") || (strictBar && plate.frame === "progress_frame"));
   let onPaper = false;
-  if (!strictRows && !strictNest) {
+  if (sceneKey === "guide" && stackGuide()) {
+    onPaper = true;
+  } else if (sceneKey === "skills" && stackSkills()) {
+    onPaper = true;
+  } else if (!strictRows && !strictNest) {
     for (const plate of packing) {
       if (shelfInto(plate.inner)) {
         onPaper = true;
@@ -787,13 +961,6 @@ function placeUnits(
       for (const plate of plates) if (plate.kind === "art") markBox(grid, plate.box);
       for (const plate of bars) if (plate.frame !== "list_row") markBox(grid, inflate(plate.box));
       for (const plate of nests) markBox(grid, inflate(plate.box));
-    }
-    if (sceneKey === "skills") {
-      for (const plate of bars) markBox(grid, inflate(plate.box), 0);
-      for (const unit of copy) {
-        if (!unit.onPaper) continue;
-        markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
-      }
     }
     onPaper = openSheet(missed);
   }
