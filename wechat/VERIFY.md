@@ -5,7 +5,7 @@
 - 结论：未通过。开发者工具、真机、主包体积、场景重排、词音频、字体加载和 `host-copy` 都没有完成。
 - 续修后的结论仍是未通过。页面链、词表、战斗到结算、逻辑像素和磁盘分包口径有新的实测，见文末「续修」。开发者工具和真机仍待授权验证。
 
-下面的旧节都是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。`上一轮（父提交 ec88639，head 0ea60bd）` 停在 `0ea60bd`。`上一轮（父提交 0ea60bd，head 068d837）` 停在 `068d837`。`上一轮（head cc0287e）` 是上一轮。当前只看文末「当前（父提交 cc0287e 之后）」。
+下面的旧节都是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。`上一轮（父提交 ec88639，head 0ea60bd）` 停在 `0ea60bd`。`上一轮（父提交 0ea60bd，head 068d837）` 停在 `068d837`。`上一轮（head cc0287e）` 停在 `cc0287e`。`上一轮（父提交 cc0287e，head 7a2456e）` 停在 `7a2456e`。当前只看文末「当前（父提交 7a2456e 之后）」。
 
 ## 逐项结果（历史，首轮）
 
@@ -208,7 +208,7 @@
 
 已修的编码：嵌套 mask 与容器变换、字形纹理、四个视口上文字不压插图和列表、点击链写到词卡和一次到期复习、276 张图按分包进包、状态带能看见缺词音、基础库配置改到官方 Data URL 的 3.7.9。仍缺的编码：图集 JSON 没有接进资源读取，所以上一节的缺资源启动错误还在；W8 没有截图差。外部素材：词 mp3 0/863，图集 JSON 158 个还在 public。未授权：微信开发者工具、真机、上传体积。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
 
-## 当前（父提交 cc0287e 之后）
+## 上一轮（父提交 cc0287e，head 7a2456e）
 
 门禁：未通过。这一轮把班级和章节 JSON 接进了读取，复习桌一次点击能进入，结算文字不再靠整张羊皮纸豁免来算 overlap 0。全量包仍然超过 20MB 和 30MB。词 mp3 仍是 0。字体在没有 `wx` 时仍失败。没有 web 像素差，没有开发者工具，没有真机。p05、桌面 vitest、web boot 这一轮没有重跑。
 
@@ -227,4 +227,27 @@
 | 开发者工具和真机 | 未验证 | 无 | 待授权 |
 
 已修的编码：图集 JSON 读取、复习桌一次点击进入、纸心与木框分开计的重叠、纸外说明的底色、四句字形复用。仍缺的编码：结算纸外仍有说明，没有收成一张纸内的版面；W8 没有 web 像素差。外部素材：词 mp3 0/863。未授权：开发者工具、真机、上传体积。包体超限是硬阻塞，原画和 JSON 都还在包里。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
+
+## 当前（父提交 7a2456e 之后）
+
+门禁：未通过。这一轮把结算和 W8 的说明收进纸面，同一局「一共 7 题 / 答对 3 题」的前后图不再是两场战斗。全量包仍然超过 20MB 和 30MB。词 mp3 仍是 0。字体在没有 `wx` 时仍失败。没有现成网页构建，所以没有 web 像素差。没有开发者工具，没有真机。p05、桌面 vitest、web boot 这一轮没有重跑。JSON 读取仍是测试里的文件钩子，不是 `wx.readFileSync` 已通过。
+
+| 项 | 当前 | 证据 | 来源 |
+|---|---|---|---|
+| 结算同一帧 | 通过这一项的纸内排版。冻结的是同一份结算：一共 7 题，答对 3 题，还有 5 个新词。前图把说明铺在纸外的奶油条上。后图这些句子都在羊皮纸里，非嵌套文字 `onPaper` 为 0 条在外。844×390、667×375、915×412、1024×768 都是 `minFont` 14、热区 44、`minGap` 8、`overflow` 0、`overlap` 0。文案没有删。纸面下半和奖励卡共用这一张羊皮纸，有的句子落在奖励卡上沿 | `evidence/w3-results-r5-view.json`，`evidence/w3-results-r5-before.png`，`evidence/w3-results-r5-after.png`，`evidence/w7-user-chain-r5.log` | Chrome `measureText` 重放。不是开发者工具，不是两场战斗的像素差 |
+| 指南和标题 | 指南的「给家长」和整段说明在羊皮纸里，返回仍是按钮。标题页没有原装羊皮纸，句子放在一张有内边距的 `#fff4dc` 纸上，不再是贴着字形的奶油条 | `evidence/w8-r5-guide.png`，`evidence/w8-r5-title.png` | Chrome 重放 |
+| 技能、结局、衣柜、对战 | 说明在各自的羊皮纸里。`off paper` 0，`overlap` 0，`overflow` 0。衣柜标题和「已有装备」不压列表 mask | `evidence/w8-r5-skills.png`，`evidence/w8-r5-ending.png`，`evidence/w8-r5-wardrobe.png`，`evidence/w8-r5-duel.png`，`evidence/w3-clip-r6.log` | Chrome |
+| 考试战斗 | `start("exam-battle")` 没有考卷时进入的是关卡地图。侧栏纸心只有约 114 像素宽，装不下状态句，所以这些句子改放到左侧一张有内边距的纸上，不再是绿底奶油条。`overlap` 0，`overflow` 0 | `evidence/w8-r5-exam-battle.png`，`evidence/w7-user-chain-r5.log` | Chrome 重放。不是一场真正开打的考试 |
+| web 像素差 | 未完成。仓库里没有现成的 `dist/` 网页构建。这一轮没有改 `src`、`desktop` 或根脚本，也没有新打网页包。上面的图是微信画布适配器的 Chrome 重放，不是网页对照，也不是开发者工具截图 | 无对照图 | 未做差 |
+| 图集 JSON | 仍能读到。衣柜启动 `failureCount` 0，`missingAssets` 为空。这是 Chrome 里的文件钩子，不是微信文件 API | `evidence/w3-clip-r6.log` | Chrome |
+| 复习桌第一次点击 | 仍是一次点击加 400ms 进入。离开词卡册后第一次进入 review，画面有 tree 和「大约 10 分钟后」。返回后再点一次仍进入。`?dev=1` 只用于随后的沙漏。`reviewInstants` 从 1 到 2，到期 `2026-11-27T16:40:03.434Z` | `evidence/w7-user-chain-r5.log` | Node 点页面按钮 |
+| 字形 | 四句仍复用。第一遍主画布 `fillText` 0、`drawImage` 4、新建 4、复用 0。第二遍 `fillText` 0、`drawImage` 4、新建仍是 4、复用 4 | `evidence/w3-glyph-r3.log` | Chrome |
+| 裁剪 | 仍通过。窗口外像素 `[32,32,32]`，窗口内 `[206,215,192]`。窗口内点按把装备从 traveler 改成 forest-cape。嵌套和容器变换的像素断言仍在。日志是这一轮新写的 `w3-clip-r6.log`，没有覆盖 `w3-clip-r3.log` | `evidence/w3-clip-r6.log` | Chrome |
+| 可导入包 | 失败，硬阻塞。主包 1,192,539。art-json 1,204,347。合计 34,918,557。超过 20,971,520，也超过 31,457,280。退出码 2。`game.cjs.js` 709,107 字节，SHA256 `e10e890e8bd830e1132c7033a9a11dd9c7745c4b7ca851b3ce7c3d378eb999dd`。没有删原画或 JSON | `evidence/w10-size-r6.log`，`evidence/w10-resource-r6.json` | 磁盘，按 packOptions.ignore。不是上传体积 |
+| 分界 | 累计到 art-extra-08 是 19,621,918，仍小于 20,971,520。art-extra-09 起超过 20MB。累计到 art-extra-14 是 31,289,711，仍小于 31,457,280。art-extra-15 起超过 30MB | `evidence/w10-size-r6.log` | 同上 |
+| 词音 | 仍是外部素材。调用记下 `word audio missing: tree`。状态行同时有图集失败和这句缺音频。包内 mp3 0，public 词 mp3 0。没有生成或购买 | `evidence/w7-user-chain-r5.log`，`evidence/w10-size-r6.log` | Node |
+| 字体 | `libVersion` 仍是 3.7.9。12 次加载全部失败，原因仍是没有 `wx.loadFontFace`。没有写成加载成功 | `evidence/w7-user-chain-r5.log` | Node |
+| 开发者工具和真机 | 未验证 | 无 | 待授权 |
+
+已修的编码：结算说明和 W8 场景的纸外奶油条改到纸内；同一结算帧的前后重放；字形复用和裁剪在新包上又跑过。仍缺的编码：没有 web 像素差。地图状态句放在另开的纸上，不是塞进那条 114 像素宽的侧栏。外部素材：词 mp3 0/863。未授权：开发者工具、真机、上传体积。包体超限是硬阻塞，原画和 JSON 都还在包里。`src`、`desktop`、根 `package.json` 没有改。`?p06` 和 P0.6.1 工装没有改字节。
 
