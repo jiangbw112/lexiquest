@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "phaser": ["wechat/engine/phaser-shim.ts"]
+    },
+    "types": []
+  },
+  "include": ["engine", "platform", "src"]
+}
