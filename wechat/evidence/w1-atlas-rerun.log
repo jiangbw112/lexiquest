@@ -1,0 +1,2 @@
+check-atlas-match: js fields equal json fields
+source: Node

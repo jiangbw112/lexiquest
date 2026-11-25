@@ -1,0 +1,7 @@
+"develop" -> true expected true ok
+"trial" -> true expected true ok
+"release" -> false expected false ok
+undefined -> true expected true ok
+"" -> true expected true ok
+source: Node pure function. A release package was not built.
+check-debug-line: 5 inputs, 0 failed
