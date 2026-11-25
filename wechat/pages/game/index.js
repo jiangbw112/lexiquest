@@ -128,6 +128,10 @@ Page({
 
   onUnload() {
     this._alive = false;
+    if (this._portLoop) clearTimeout(this._portLoop);
+    this._portLoop = null;
+    if (this._port) this._port.stop();
+    this._port = null;
     if (this._onWindowResize && typeof wx.offWindowResize === "function") {
       wx.offWindowResize(this._onWindowResize);
     }
@@ -237,6 +241,10 @@ Page({
         this._safeUsed = safe;
         this._layout = layoutView(viewW, viewH, safe);
         if (!this._image && !this._atlasLoading) this.loadAtlas(canvas);
+        // 原来：量完窗口只画骨架。
+        // 现在：没有 ?p06= 和 p06fail 时，用 port.js 加载 domain 与 game，并画当前场景。
+        // 为什么：探针路径要保持原样。移植入口和检查脚本走同一个 port.js。
+        this.ensurePort(canvas);
         this.draw();
       });
   },
@@ -415,6 +423,20 @@ Page({
     if (!this._alive) return;
     // 探针模式只用于看字号和热区，按下不发声、不改骨架状态。
     if (this._probeFrame) return;
+    if (this._port) {
+      if (type === "end") {
+        const touch = event && event.changedTouches && event.changedTouches[0];
+        if (touch) {
+          const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
+          const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
+          const x = typeof touch.x === "number" ? touch.x : touch.clientX - left;
+          const y = typeof touch.y === "number" ? touch.y : touch.clientY - top;
+          this._port.press(x, y, { w: this._viewW, h: this._viewH });
+        }
+      }
+      this.draw();
+      return;
+    }
     const before = this._pointer ? this._pointer.target : null;
     const result = reducePointer(this._pointer || createPointerState(), {
       type,
@@ -462,6 +484,32 @@ Page({
     }
   },
 
+  // 原来：页面不 require lib，骨架就是全部画面。
+  // 现在：ensurePort 在画布就绪后加载 ./port.js。失败时把原因放进状态带，并继续画骨架。
+  // 为什么：port.js 同时被页面和 node wechat/tools/check-page-chain.cjs 使用。
+  ensurePort(canvas) {
+    if (this._probeFrame || this._devFail || this._port || this._portError) return;
+    try {
+      const port = require("./port.js");
+      this._port = port.attach(canvas, { w: this._viewW, h: this._viewH, route: "boot" });
+      this.armPortLoop();
+    } catch (err) {
+      this._portError = String(err && err.message ? err.message : err);
+      this._failures.atlas = this._portError;
+    }
+  },
+
+  armPortLoop() {
+    if (this._portLoop) return;
+    const tick = () => {
+      if (!this._alive || !this._port) return;
+      this._port.step(16);
+      this.draw();
+      this._portLoop = setTimeout(tick, 16);
+    };
+    this._portLoop = setTimeout(tick, 16);
+  },
+
   readEnvVersion() {
     try {
       const account = wx.getAccountInfoSync();
@@ -481,6 +529,14 @@ Page({
     ctx.clearRect(0, 0, this._viewW, this._viewH);
     ctx.fillStyle = "#143d2c";
     ctx.fillRect(0, 0, this._viewW, this._viewH);
+    if (!this._probeFrame && this._port) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this._port.paint(ctx, { w: this._viewW, h: this._viewH });
+      const failures = this._port.runtime && this._port.runtime.failures;
+      if (failures && failures.length) this._failures.atlas = String(failures[0]);
+      this.paintStatus(ctx, dpr);
+      return;
+    }
     if (this._probeFrame) {
       const problems = drawProbe(ctx, this._probeFrame, this._viewW, this._viewH, this._safeUsed, dpr);
       if (problems.length) {

@@ -19,7 +19,10 @@ for (const view of views) {
   assert.ok(shrunk < 14 || view.h > 700);
 }
 const phone = logicalBodySize(18, { w: 844, h: 390 });
-assert.ok(phone < 14, "design 18px is below 14 logical px on 844x390; scene reflow is not claimed");
-console.log("check-layout: shell metrics pass. Scene design text is not reflowed.");
-console.log("source: Node. Not WeChat getWindowInfo.");
+const { screenFontPx } = require("../lib/game.cjs.js");
+assert.strictEqual(screenFontPx(18), 16);
+assert.ok(screenFontPx(13) >= 14);
+console.log(`world layer design 18 scales to ${phone.toFixed(2)}; UI map is ${screenFontPx(18)}`);
+console.log("check-layout: world scale stays fit. UI text uses the logical map, not that scale.");
+console.log("source: Node. Painted scenes are check-page-chain.cjs. Not WeChat getWindowInfo.");
 process.exit(0);

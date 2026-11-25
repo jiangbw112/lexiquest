@@ -1,0 +1,7 @@
+844x390 scale 0.4875 design18 logical 8.78 uiBody 16
+667x375 scale 0.46875 design18 logical 8.44 uiBody 16
+915x412 scale 0.515 design18 logical 9.27 uiBody 16
+1024x768 scale 0.8 design18 logical 14.40 uiBody 16
+world layer design 18 scales to 8.78; UI map is 16
+check-layout: world scale stays fit. UI text uses the logical map, not that scale.
+source: Node. Painted scenes are check-page-chain.cjs. Not WeChat getWindowInfo.

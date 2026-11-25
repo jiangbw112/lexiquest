@@ -25,7 +25,14 @@ import { TEXT_CACHE_FIELDS, easeValue, hitContains, liveTimerCount, nineSlicePar
 import { pbkdf2Hex } from "../platform/pbkdf2";
 import { StorageLimitError, createMemoryArea, utf8Size, writeLimited } from "../platform/storage";
 import { randomUuid, uuidV4FromBytes, weakRandomUuid } from "../platform/random";
-import { UI_BODY_PX, UI_GAP, UI_HIT, logicalBodySize, screenToWorld, uiRect, worldScale, worldToScreen } from "../engine/coords";
+import { UI_BODY_PX, UI_GAP, UI_HIT, logicalBodySize, screenFontPx, screenToWorld, uiRect, worldScale, worldToScreen } from "../engine/coords";
+import { layoutFrame, paintFrame, pressFrame } from "../engine/paint";
+import { createSave } from "../../src/domain/progress";
+import { findPlayChapter } from "../../src/domain/chapter-plan";
+import { initialMapStageId, stageStatuses } from "../../src/domain/stages";
+import { bootSave, createProfile, getSave } from "../../src/game/session";
+import { shellCopy } from "../platform/host-copy";
+import { missingSpeech } from "../platform/speech";
 
 /**
  * 原来：src/main.ts 用 Phaser.WEBGL 把 18 个场景挂到 #game。
@@ -71,6 +78,34 @@ export function createGame(canvas?: { width: number; height: number; getBounding
   });
 }
 
+const PRACTICE_LOOK = {
+  skinId: "peach",
+  hairStyle: "bob" as const,
+  hairColorId: "brown",
+  eyeStyle: "bright" as const,
+  clothColorId: "fern",
+  glasses: false,
+  freckles: false,
+};
+
+/** Builds one graded profile and selects it. BootScene's bootSave() clears the session, so call this after boot. */
+export function openPractice(now = Date.parse("2026-03-01T00:00:00Z")) {
+  bootSave();
+  const save = createSave({
+    name: "学习者",
+    classId: "warrior",
+    appearance: PRACTICE_LOOK,
+    now,
+    grades: ["G3"],
+  });
+  const added = createProfile(save);
+  if (!added.ok) throw new Error(added.reason);
+  const live = getSave();
+  if (!live) throw new Error("profile was not selected");
+  const chapter = findPlayChapter(live);
+  return { save: live, chapterId: chapter.id, stageId: initialMapStageId(stageStatuses(live)) };
+}
+
 export {
   Phaser,
   TEXT_CACHE_FIELDS,
@@ -95,4 +130,17 @@ export {
   UI_BODY_PX,
   UI_HIT,
   UI_GAP,
+  screenFontPx,
+  layoutFrame,
+  paintFrame,
+  pressFrame,
+  createSave,
+  createProfile,
+  getSave,
+  bootSave,
+  findPlayChapter,
+  initialMapStageId,
+  stageStatuses,
+  shellCopy,
+  missingSpeech,
 };

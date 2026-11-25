@@ -56,3 +56,22 @@ export function logicalBodySize(designPx: number, view: ViewBox): number {
 export const UI_BODY_PX = 16;
 export const UI_HIT = 44;
 export const UI_GAP = 8;
+
+/**
+ * 原来：设计字号乘 worldScale。844×390 上 18 变成约 8.78。
+ * 现在：与 pages/game/layout.js 的 uiFontPx 同一张表，正文落在 14 以上，不再乘 worldScale。
+ * 为什么：世界层继续等比缩放，文字按逻辑像素排。18 对应 16，不是 8.78。
+ */
+const SCREEN_FONT: Record<number, number> = { 12: 14, 14: 14, 16: 14, 18: 16, 20: 18, 22: 20, 28: 24, 32: 26 };
+
+export function screenFontPx(designPx: number): number {
+  const px = Number(designPx);
+  let mapped = SCREEN_FONT[32];
+  if (!(px > 0) || px <= 14) mapped = SCREEN_FONT[12];
+  else if (px <= 16) mapped = SCREEN_FONT[16];
+  else if (px <= 18) mapped = SCREEN_FONT[18];
+  else if (px <= 20) mapped = SCREEN_FONT[20];
+  else if (px <= 22) mapped = SCREEN_FONT[22];
+  else if (px <= 28) mapped = SCREEN_FONT[28];
+  return Math.max(14, mapped);
+}
