@@ -97,11 +97,11 @@ export class SpritePlayback {
       }
       const frame = this.def.frames[this.frameIndex];
       if (frame) this.apply(frame);
-      this.emit("animationupdate");
+      this.emit("animationupdate", null, { textureFrame: frame?.frame ?? "" });
     }
   }
 
-  private emit(event: string): void {
-    for (const fn of this.listeners.get(event) ?? []) fn();
+  private emit(event: string, ...args: unknown[]): void {
+    for (const fn of this.listeners.get(event) ?? []) fn(...args);
   }
 }

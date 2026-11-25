@@ -47,6 +47,14 @@ export class Tween {
     for (const key of this.keys) this.from.set(key, target[key]);
   }
 
+  isPlaying(): boolean {
+    return !this.dead;
+  }
+
+  stop(): void {
+    this.dead = true;
+  }
+
   step(delta: number): void {
     if (this.dead) return;
     this.elapsed += delta;

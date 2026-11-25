@@ -182,6 +182,11 @@ export class GameNode {
   destroy(): void {
     this.visible = false;
   }
+
+  getBounds(): { x: number; y: number; width: number; height: number } {
+    const box = displayBox(this);
+    return { x: box.x, y: box.y, width: box.w, height: box.h };
+  }
 }
 
 export function displayBox(node: GameNode): { x: number; y: number; w: number; h: number } {

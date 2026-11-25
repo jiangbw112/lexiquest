@@ -7,31 +7,44 @@ import { GameText, type TextStyle } from "./text";
 import { TweenManager } from "./tween";
 
 type Listener = (...args: unknown[]) => void;
+type BoundListener = { fn: Listener; context: unknown; once: boolean };
 
 class Emitter {
-  private readonly map = new Map<string, Set<Listener>>();
-  on(event: string, fn: Listener): this {
-    const set = this.map.get(event) ?? new Set();
-    set.add(fn);
-    this.map.set(event, set);
+  private readonly map = new Map<string, BoundListener[]>();
+  on(event: string, fn: Listener, context?: unknown): this {
+    const list = this.map.get(event) ?? [];
+    list.push({ fn, context, once: false });
+    this.map.set(event, list);
     return this;
   }
-  once(event: string, fn: Listener): this {
-    const wrapped: Listener = (...args) => {
-      this.off(event, wrapped);
-      fn(...args);
-    };
-    return this.on(event, wrapped);
+  once(event: string, fn: Listener, context?: unknown): this {
+    const list = this.map.get(event) ?? [];
+    list.push({ fn, context, once: true });
+    this.map.set(event, list);
+    return this;
   }
-  off(event: string, fn?: Listener): this {
-    const set = this.map.get(event);
-    if (!set) return this;
-    if (!fn) set.clear();
-    else set.delete(fn);
+  off(event: string, fn?: Listener, context?: unknown): this {
+    const list = this.map.get(event);
+    if (!list) return this;
+    if (!fn) {
+      list.length = 0;
+      return this;
+    }
+    this.map.set(
+      event,
+      list.filter((entry) => entry.fn !== fn || (context !== undefined && entry.context !== context)),
+    );
     return this;
   }
   emit(event: string, ...args: unknown[]): void {
-    for (const fn of [...(this.map.get(event) ?? [])]) fn(...args);
+    const list = this.map.get(event);
+    if (!list) return;
+    const pending = [...list];
+    this.map.set(
+      event,
+      list.filter((entry) => !entry.once),
+    );
+    for (const entry of pending) entry.fn.call(entry.context, ...args);
   }
 }
 
@@ -95,6 +108,7 @@ interface QueuedFile {
 
 class Loader extends Emitter {
   readonly queue: QueuedFile[] = [];
+  readonly attempted = new Set<string>();
   isLoadingFlag = false;
   get totalToLoad(): number {
     return this.queue.length;
@@ -103,6 +117,11 @@ class Loader extends Emitter {
     return this.isLoadingFlag;
   }
   atlas(key: string, image: string, data: string): this {
+    // 原来：Phaser 的 load.start 是异步的，complete 之后才会再画。
+    // 现在：同一个 key 只排一次。缺文本也记过，避免 complete 里同步 draw 再把同一图集排进来。
+    // 为什么：同步 emit("complete") 会让关卡地图在图集没就绪时把调用栈撑满。
+    if (this.attempted.has(key) || this.scene.textures.exists(key)) return this;
+    this.attempted.add(key);
     this.queue.push({ kind: "atlas", key, urls: [image, data] });
     return this;
   }
@@ -158,6 +177,7 @@ class TextureStore {
       image: item?.image ?? "",
       missing: !item,
       getFrameNames: () => frames,
+      has: (frame: string) => frames.includes(frame),
     };
   }
   add(key: string, data: unknown, image: string): void {
@@ -268,6 +288,16 @@ class ContainerNode extends GameNode {
     return this;
   }
 
+  getByName(name: string): GameNode | null {
+    return this.list.find((child) => child.name === name) ?? null;
+  }
+
+  removeAll(destroy = false): this {
+    if (destroy) for (const child of this.list) child.destroy();
+    this.list = [];
+    return this;
+  }
+
   sort(key: string): this {
     this.list.sort((a, b) => {
       const left = (a as unknown as Record<string, number>)[key] ?? 0;
@@ -288,6 +318,12 @@ class RectangleNode extends GameNode {
   }
   setFillStyle(color: number): this {
     this.fillColor = color;
+    return this;
+  }
+
+  setStrokeStyle(width: number, color = 0x000000): this {
+    this.data.set("strokeWidth", width);
+    this.data.set("strokeColor", color);
     return this;
   }
 }
@@ -323,7 +359,15 @@ export class RuntimeScene {
   textures: TextureStore;
   readonly children = new DisplayList();
   readonly load: Loader;
-  readonly input: { keyboard: Keyboard; cursor: null; on: Keyboard["on"]; off: Keyboard["off"]; once: Keyboard["once"]; activePointer: { x: number; y: number } };
+  readonly input: {
+    keyboard: Keyboard;
+    cursor: string | null;
+    setDefaultCursor: (cursor: string) => void;
+    on: Keyboard["on"];
+    off: Keyboard["off"];
+    once: Keyboard["once"];
+    activePointer: { x: number; y: number };
+  };
   readonly scale: { displaySize: { width: number; height: number }; on: Emitter["on"]; off: Emitter["off"] };
   readonly cameras = { main: { setBackgroundColor: (_color: string) => undefined, scrollX: 0, scrollY: 0 } };
   readonly sound = { play: () => undefined };
@@ -376,7 +420,10 @@ export class RuntimeScene {
     const keyboard = new Keyboard();
     this.input = {
       keyboard,
-      cursor: null,
+      cursor: null as string | null,
+      setDefaultCursor(cursor: string) {
+        this.cursor = cursor;
+      },
       on: keyboard.on.bind(keyboard),
       off: keyboard.off.bind(keyboard),
       once: keyboard.once.bind(keyboard),
@@ -408,10 +455,22 @@ export class RuntimeScene {
     this.make = {
       graphics: (config) => new GameGraphics(this, config?.x ?? 0, config?.y ?? 0),
     };
+    const pointer = new Emitter();
     this.scene = {
       start: (key: string, data?: unknown) => this.game.start(key, data),
+      // 原来：Phaser 的 launch 把结算叠在战斗上面。
+      // 现在：只有一个活动场景，launch 带着战斗算出的 view 切到结算。
+      // 为什么：结算的 init 要这份 view。不传就会在读 won 时抛错。
+      launch: (key: string, data?: unknown) => this.game.start(key, data),
+      pause: () => undefined,
       stop: () => this.shutdown(),
+      isActive: () => this.game.active() === this,
     };
+    this.input.once = (event: string, fn: (...args: unknown[]) => void) => {
+      if (event.startsWith("keydown")) return keyboard.once(event, fn);
+      return pointer.once(event, fn);
+    };
+    this.input.emit = pointer.emit.bind(pointer);
   }
 
   update(_time: number, delta: number): void {

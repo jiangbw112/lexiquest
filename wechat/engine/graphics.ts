@@ -19,7 +19,9 @@ type Command =
   | { op: "fillRect"; x: number; y: number; w: number; h: number }
   | { op: "fillRounded"; x: number; y: number; w: number; h: number; r: number }
   | { op: "strokeRounded"; x: number; y: number; w: number; h: number; r: number }
-  | { op: "fillCircle"; x: number; y: number; r: number };
+  | { op: "fillCircle"; x: number; y: number; r: number }
+  | { op: "strokePath"; points: { x: number; y: number }[] }
+  | { op: "strokeCircle"; x: number; y: number; r: number };
 
 export class GameGraphics extends GameNode {
   commands: Command[] = [];
@@ -28,6 +30,7 @@ export class GameGraphics extends GameNode {
   lineWidth = 1;
   lineColor = 0x000000;
   lineAlpha = 1;
+  private path: { x: number; y: number }[] = [];
 
   constructor(scene: unknown, x = 0, y = 0) {
     super("graphics", scene, x, y);
@@ -65,6 +68,35 @@ export class GameGraphics extends GameNode {
 
   fillCircle(x: number, y: number, r: number): this {
     this.commands.push({ op: "fillCircle", x, y, r });
+    return this;
+  }
+
+  beginPath(): this {
+    this.path = [];
+    return this;
+  }
+
+  moveTo(x: number, y: number): this {
+    this.path = [{ x, y }];
+    return this;
+  }
+
+  lineTo(x: number, y: number): this {
+    this.path.push({ x, y });
+    return this;
+  }
+
+  closePath(): this {
+    return this;
+  }
+
+  strokeCircle(x: number, y: number, r: number): this {
+    this.commands.push({ op: "strokeCircle", x, y, r });
+    return this;
+  }
+
+  strokePath(): this {
+    this.commands.push({ op: "strokePath", points: this.path.slice() });
     return this;
   }
 
