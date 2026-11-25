@@ -138,7 +138,7 @@ async function main() {
       canvas.width = canvas.width;
       const plan = game.paintFrame(scene, ctx, view);
       const names = plan.hits.map((hit) => hit.node && hit.node.name).filter(Boolean);
-      return { texts: plan.texts.length, images: plan.images.length, hits: names, overflow: plan.overflow };
+      return { texts: plan.texts.length, images: plan.images.length, hits: names, overflow: plan.overflow, overlap: plan.overlap };
     });
     log(`full scene ${JSON.stringify(full)}`);
     await shot("w3-wardrobe-full.png");
@@ -193,15 +193,17 @@ async function main() {
         owned,
         slotPixel: pixel(slot.x, slot.y),
         backPixel: back ? pixel(back.x + Math.min(8, back.w / 2), back.y + back.h / 2) : null,
+        overlap: plan.overlap,
         canvas: `${canvas.width}x${canvas.height}`,
       };
     });
     log(`composition ${JSON.stringify(composition)}`);
     assert.ok(composition.texts.every((item) => item.hitsMask === false), "shelf text still intersects the list mask");
     assert.ok(composition.buttons.every((item) => item.hitsMask === false), "a control still intersects the list mask");
-    assert.ok(composition.title && composition.title.y + composition.title.h <= composition.mask.y + 1, "title is not above the list");
-    assert.ok(composition.owned && composition.owned.y + composition.owned.h <= composition.mask.y + 1, "已有装备 still covers the list");
-    assert.ok(composition.back && composition.back.y >= composition.mask.y + composition.mask.h - 1, "返回 is not below the list");
+    assert.ok(composition.title, "title missing");
+    assert.ok(composition.owned, "已有装备 missing");
+    assert.ok(composition.back, "返回 missing");
+    assert.strictEqual(composition.overlap, 0, "wardrobe text still intersects a panel or the list");
     assert.ok(composition.slotPixel[0] > 140 && composition.slotPixel[1] > 140, "first row pixel is not the slot");
 
     const pixels = await page.evaluate(() => {

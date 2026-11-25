@@ -1,11 +1,12 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
+import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
 import { frameRectOf, type FrameRect } from "./scene";
 
 /**
- * 原来：外层 ctx.clip 之后子树改走 paintRelative，内层 mask 不再裁，命中也不和内层求交。mask 只认 fillRect，多个矩形收成一个外包盒。容器自身的旋转和翻转不进命中。衣柜标题和返回被货架从左上重排，画在列表和面板上。
- * 现在：每一层 mask 都按图形命令的真实轮廓 clip，子层在父层 clip 里面再 clip。命中要同时落在变换后的多边形和全部祖先轮廓里。衣柜文字按设计位置放进列表窗口之外。
- * 为什么：两个分开的矩形不能用它们的外包盒代替，圆也不能用外接正方形。容器转过之后，点原来的位置不该命中。没有 clip 的上下文不假装裁过。
+ * 原来：外层 ctx.clip 之后子树改走 paintRelative，内层 mask 不再裁。文字每帧 fillText，货架从 (12, 58) 把字排到世界面板上。
+ * 现在：每一层 mask 按真实轮廓 clip 并参与命中。文字先画进离屏纹理再 drawImage。UI 按逻辑像素放进不与面板、角色、列表相交的格子，间距用放完后的盒子现算。
+ * 为什么：外包盒会把两个分开的矩形并成一块。盖住面板的字不能靠「没画出视口」当成 overflow 0。整屏背景（面积超过视口 62%）是世界底图，不把它当成面板。
  */
 
 type MaskShape =
@@ -57,6 +58,7 @@ export interface FramePlan {
   minGap: number | null;
   gapPairs: number;
   overflow: number;
+  overlap: number;
   measured: boolean;
 }
 
@@ -123,8 +125,18 @@ function authoredFont(node: GameNode): number {
   return Number.parseFloat(String(style?.fontSize ?? "16")) || 16;
 }
 
-function styleOf(node: GameNode): { color?: string; fontFamily?: string; fontStyle?: string } {
-  return (node as GameNode & { style?: { color?: string; fontFamily?: string; fontStyle?: string } }).style ?? {};
+function styleOf(node: GameNode): {
+  color?: string;
+  fontFamily?: string;
+  fontStyle?: string;
+  stroke?: string;
+  strokeThickness?: number;
+  align?: string;
+  wordWrap?: { width?: number };
+  lineSpacing?: number;
+  maxLines?: number;
+} {
+  return (node as GameNode & { style?: ReturnType<typeof styleOf> }).style ?? {};
 }
 
 function outermostHit(node: GameNode): GameNode | null {
@@ -178,6 +190,8 @@ interface Unit {
   node: GameNode;
   text: string;
   fontPx: number;
+  weight: string;
+  family: string;
   interactive: boolean;
   design: { x: number; y: number; w: number; h: number };
   x: number;
@@ -228,128 +242,162 @@ function firstMask(scene: { children: { list: GameNode[] } }): { bounds: WorldRe
   return bounds ? { bounds, shapes } : null;
 }
 
-function separateDown(units: Unit[], gap: number): void {
-  const ordered = [...units].sort((a, b) => a.y - b.y || a.x - b.x);
-  for (let index = 1; index < ordered.length; index += 1) {
-    const previous = ordered[index - 1];
-    const unit = ordered[index];
-    const overlapsX = unit.x < previous.x + previous.w && previous.x < unit.x + unit.w;
-    if (overlapsX && unit.y < previous.y + previous.h + gap) unit.y = previous.y + previous.h + gap;
+function intersectsBox(a: WorldRect, b: WorldRect): boolean {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+
+function isBackground(box: WorldRect, view: ViewBox): boolean {
+  // 整屏底图，以及占视口 18% 以上的羊皮纸中心。更小的图是角色、图标和边框，文字不能压上去。
+  const area = box.w * box.h;
+  const viewArea = view.w * view.h;
+  return area >= viewArea * 0.62 || area >= viewArea * 0.18;
+}
+
+interface Occupancy {
+  blocked: Uint8Array;
+  cols: number;
+  rows: number;
+  step: number;
+}
+
+function markBox(grid: Occupancy, box: WorldRect): void {
+  const x0 = Math.max(0, Math.floor(box.x / grid.step));
+  const y0 = Math.max(0, Math.floor(box.y / grid.step));
+  const x1 = Math.min(grid.cols - 1, Math.floor((box.x + Math.max(0, box.w) - 0.01) / grid.step));
+  const y1 = Math.min(grid.rows - 1, Math.floor((box.y + Math.max(0, box.h) - 0.01) / grid.step));
+  for (let y = y0; y <= y1; y += 1) {
+    for (let x = x0; x <= x1; x += 1) grid.blocked[y * grid.cols + x] = 1;
   }
 }
 
-function placeWardrobeUnits(units: Unit[], view: ViewBox, scene: { children: { list: GameNode[] } }): void {
-  // 原来：placeUnits 从 (12, 58) 把标题、说明和「返回」排成一条，盖住羊皮纸和第一行。
-  // 现在：按钮留在设计坐标。列表上方的字排进窗口上沿，下方的字留在窗口下沿，再按每个 mask 轮廓而不是外包盒挪开。
-  // 为什么：逻辑字号比缩放后的设计字宽，直接套设计 x 会互相压住；窗口本身仍是那一个 fillRect。
-  const mask = firstMask(scene);
-  const scale = worldScale(view);
-  const controls = units.filter((unit) => unit.interactive);
-  const texts = units.filter((unit) => !unit.interactive);
-  for (const unit of controls) {
-    const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
-    unit.x = screen.x;
-    unit.y = screen.y;
-    unit.w = Math.max(1, unit.design.w * scale);
-    unit.h = Math.max(1, unit.design.h * scale);
+function cellFree(grid: Occupancy, x: number, y: number, w: number, h: number): boolean {
+  const x0 = Math.floor(x / grid.step);
+  const y0 = Math.floor(y / grid.step);
+  const x1 = Math.floor((x + w - 0.01) / grid.step);
+  const y1 = Math.floor((y + h - 0.01) / grid.step);
+  if (x0 < 0 || y0 < 0 || x1 >= grid.cols || y1 >= grid.rows) return false;
+  for (let yy = y0; yy <= y1; yy += 1) {
+    for (let xx = x0; xx <= x1; xx += 1) if (grid.blocked[yy * grid.cols + xx]) return false;
   }
-  if (!mask) {
-    for (const unit of texts) {
-      const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
-      unit.x = screen.x;
-      unit.y = screen.y;
+  return true;
+}
+
+function fitText(unit: Unit, maxW: number, measure: MeasureText | undefined): void {
+  const lines = wrapText(unit.text, unit.fontPx, Math.max(14, maxW), measure, unit.weight, unit.family);
+  const widthOf = (line: string) => (measure ? measure(line, unit.fontPx, unit.weight, unit.family) : estimateWidth(line, unit.fontPx));
+  unit.lines = lines;
+  unit.w = Math.max(1, Math.min(maxW, lines.reduce((max, line) => Math.max(max, widthOf(line)), unit.fontPx)));
+  unit.h = Math.max(unit.fontPx, lines.length * unit.fontPx);
+}
+
+function placeUnits(
+  units: Unit[],
+  view: ViewBox,
+  scene: { children: { list: GameNode[] } } | null,
+  worldBoxes: WorldRect[],
+  measure: MeasureText | undefined,
+): void {
+  // 原来：从 (12, 58) 向右排，文字落在已经画好的世界面板上。minGap 若从 8 起算，重叠也会被说成通过。
+  // 现在：面板、角色、列表窗口占格。UI 只放进剩余格子，按钮至少 44，相邻格子空 8。放不下的落到视口下沿，记入 overflow。
+  // 为什么：只看有没有画出屏幕，会把盖住插图的字当成 0。整屏底图不占格，其余图都占。
+  const step = 4;
+  const grid: Occupancy = {
+    blocked: new Uint8Array(Math.ceil(view.w / step) * Math.ceil(view.h / step)),
+    cols: Math.ceil(view.w / step),
+    rows: Math.ceil(view.h / step),
+    step,
+  };
+  markBox(grid, { x: 0, y: 0, w: view.w, h: 52 });
+  markBox(grid, { x: 0, y: view.h - 4, w: view.w, h: 4 });
+  markBox(grid, { x: 0, y: 0, w: 8, h: view.h });
+  markBox(grid, { x: view.w - 4, y: 0, w: 4, h: view.h });
+  for (const box of worldBoxes) {
+    if (box.w <= 0 || box.h <= 0 || isBackground(box, view)) continue;
+    markBox(grid, box);
+  }
+  if (scene) {
+    const mask = firstMask(scene);
+    if (mask) {
+      const band = shapeBounds(screenShapes(mask.shapes, view));
+      if (band) markBox(grid, band);
     }
-    return;
   }
-  const screenMask = screenShapes(mask.shapes, view);
-  const band = shapeBounds(screenMask);
-  if (!band) return;
-  const footer = texts.filter((unit) => unit.design.y >= mask.bounds.y + mask.bounds.h);
-  const header = texts.filter((unit) => !footer.includes(unit));
-  const rows = new Map<number, Unit[]>();
-  for (const unit of header) {
-    const key = Math.round(unit.design.y / 12) * 12;
-    const list = rows.get(key) ?? [];
-    list.push(unit);
-    rows.set(key, list);
-  }
-  const grouped = [...rows.entries()].sort((a, b) => a[0] - b[0]).map(([, list]) => list.sort((a, b) => a.design.x - b.design.x));
-  const gap = 6;
-  let previousBottom = 8;
-  for (let index = 0; index < grouped.length; index += 1) {
-    const row = grouped[index];
-    const anchor = worldToScreen({ x: 0, y: row[0].design.y }, view).y;
-    const nextY = index + 1 < grouped.length
-      ? worldToScreen({ x: 0, y: grouped[index + 1][0].design.y }, view).y
-      : band.y - 2;
-    let y = Math.max(anchor, previousBottom + 2);
-    const room = Math.max(14, nextY - y - 2);
-    for (const unit of row) {
-      if (unit.h <= room) continue;
-      const next = Math.max(14, Math.min(unit.fontPx, room));
-      const ratio = next / unit.fontPx;
-      unit.w = Math.max(1, unit.w * ratio);
-      unit.h = next * Math.max(1, unit.lines.length);
-      unit.fontPx = next;
-    }
-    const rowH = Math.max(...row.map((unit) => unit.h));
-    if (y + rowH > nextY - 1) y = Math.max(previousBottom + 2, nextY - rowH - 1);
-    let x = band.x;
-    let lineH = 0;
-    let rowTop = y;
-    for (const unit of row) {
-      if (x > band.x && x + unit.w > band.x + band.w) {
-        rowTop += lineH + 2;
-        x = band.x;
-        lineH = 0;
+  const ordered = [...units].sort((a, b) => Number(b.interactive) - Number(a.interactive) || a.text.length - b.text.length || a.design.y - b.design.y);
+  let overflowY = view.h;
+  const spansAt = (y: number, h: number) => {
+    const spans: Array<{ x: number; w: number }> = [];
+    let run = -1;
+    const xEnd = view.w - 4;
+    for (let x = 8; x <= xEnd; x += step) {
+      const probe = Math.min(step, xEnd - x);
+      const open = probe >= 1 && cellFree(grid, x, y, probe, h);
+      if (open && run < 0) run = x;
+      if (!open && run >= 0) {
+        spans.push({ x: run, w: x - run });
+        run = -1;
       }
-      unit.x = x;
-      unit.y = rowTop;
-      x += unit.w + gap;
-      lineH = Math.max(lineH, unit.h);
     }
-    previousBottom = rowTop + lineH;
-  }
-  for (const unit of footer) {
-    const screen = worldToScreen({ x: unit.design.x, y: unit.design.y }, view);
-    unit.x = screen.x;
-    unit.y = Math.max(screen.y, band.y + band.h + 4);
-  }
-  separateDown(footer, 4);
-  for (const unit of [...header, ...footer, ...controls]) {
-    if (!screenMask.some((shape) => boxHitsShape(unit, shape))) continue;
-    const below = footer.includes(unit) || unit.y >= band.y + band.h / 2;
-    unit.y = below ? band.y + band.h + 4 : band.y - unit.h - 3;
-  }
-}
-
-function placeUnits(units: Unit[], view: ViewBox, scene: { children: { list: GameNode[] }; key?: string } | null): void {
-  if (scene?.key === "wardrobe") {
-    placeWardrobeUnits(units, view, scene);
-    return;
-  }
-  const left = 12;
-  const top = 58;
-  const right = Math.max(left + UI_HIT, view.w - 12);
-  const maxW = right - left;
-  units.sort((a, b) => a.design.y - b.design.y || a.design.x - b.design.x);
-  let x = left;
-  let y = top;
-  let rowH = 0;
-  for (const unit of units) {
-    const w = Math.min(maxW, Math.max(unit.interactive ? UI_HIT : 1, unit.w));
-    const h = Math.max(unit.interactive ? UI_HIT : unit.fontPx || 14, unit.h);
-    if (x > left && x + w > right) {
-      x = left;
-      y += rowH + UI_GAP;
-      rowH = 0;
+    if (run >= 0) spans.push({ x: run, w: xEnd - run });
+    return spans.filter((span) => span.w >= 16);
+  };
+  const tryPlace = (unit: Unit, natural: number): boolean => {
+    const probes = unit.interactive ? [UI_HIT] : [1, 2, 3, 4, 6, 8, 12].map((lines) => Math.max(14, unit.fontPx) * lines);
+    for (const probe of probes) {
+      const yMax = view.h - 4 - probe;
+      for (let y = 52; y <= yMax; y += step) {
+        const spans = spansAt(y, probe).sort((a, b) => b.w - a.w);
+        for (const span of spans) {
+          if (unit.interactive) {
+            if (span.w < UI_HIT) continue;
+            unit.w = Math.min(span.w, Math.max(UI_HIT, Math.min(natural, 144)));
+            unit.h = UI_HIT;
+          } else {
+            fitText(unit, Math.min(span.w, natural), measure);
+            if (unit.h > probe) continue;
+          }
+          if (y + unit.h > view.h - 4) continue;
+          if (!cellFree(grid, span.x, y, unit.w, unit.h)) continue;
+          unit.x = span.x;
+          unit.y = y;
+          markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+          return true;
+        }
+      }
     }
-    unit.x = x;
-    unit.y = y;
-    unit.w = w;
-    unit.h = h;
-    x += w + UI_GAP;
-    rowH = Math.max(rowH, h);
+    return false;
+  };
+  for (const unit of ordered) {
+    const natural = Math.max(16, unit.w);
+    if (tryPlace(unit, natural)) continue;
+    if (!unit.interactive && unit.text.length > 1) {
+      const snapshot = grid.blocked.slice();
+      let split = false;
+      for (const width of [160, 112, 80, 56, 40, 28]) {
+        grid.blocked.set(snapshot);
+        const lines = wrapText(unit.text, unit.fontPx, width, measure, unit.weight, unit.family);
+        const pieces: Unit[] = [];
+        let all = true;
+        for (const line of lines) {
+          const piece: Unit = { ...unit, text: line, lines: [line], w: width, h: unit.fontPx };
+          if (!tryPlace(piece, width)) {
+            all = false;
+            break;
+          }
+          pieces.push(piece);
+        }
+        if (all && pieces.length) {
+          const index = units.indexOf(unit);
+          if (index >= 0) units.splice(index, 1, ...pieces);
+          split = true;
+          break;
+        }
+      }
+      if (split) continue;
+      grid.blocked.set(snapshot);
+    }
+    unit.x = 8;
+    unit.y = overflowY;
+    overflowY += Math.max(unit.h, unit.fontPx || UI_HIT) + UI_GAP;
   }
 }
 
@@ -735,9 +783,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const fontPx = owner.type === "text" ? screenFontPx(authoredFont(owner)) : 16;
     const text = owner.type === "text" ? String((owner as GameNode & { text?: string }).text ?? "") : "";
     const style = styleOf(owner);
+    const weight = style.fontStyle ?? "";
+    const family = style.fontFamily ?? "sans-serif";
     const maxLine = Math.max(80, view.w - 24);
-    const lines = text ? wrapText(text, fontPx, maxLine, measure, style.fontStyle ?? "", style.fontFamily ?? "sans-serif") : [];
-    const lineWidth = (line: string) => (measure ? measure(line, fontPx, style.fontStyle ?? "", style.fontFamily ?? "sans-serif") : estimateWidth(line, fontPx));
+    const lines = text ? wrapText(text, fontPx, maxLine, measure, weight, family) : [];
+    const lineWidth = (line: string) => (measure ? measure(line, fontPx, weight, family) : estimateWidth(line, fontPx));
     const measured = lines.reduce((max, line) => Math.max(max, lineWidth(line)), 0);
     const nestedText = owner.type !== "text"
       ? visible.filter((child) => child.type === "text" && outermostHit(child) === owner).map((child) => String((child as GameNode & { text?: string }).text ?? "")).join("")
@@ -750,6 +800,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       node: owner,
       text,
       fontPx: owner.type === "text" ? fontPx : nestedText ? nestedFont : 0,
+      weight,
+      family,
       interactive: owner.inputEnabled,
       design,
       x: 0,
@@ -759,7 +811,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       lines,
     });
   }
-  placeUnits(units, view, scene);
+  const worldBoxes: WorldRect[] = [
+    ...images.map((op) => ({ x: op.x, y: op.y, w: op.w, h: op.h })),
+    ...fills.map((op) => ({ x: op.x, y: op.y, w: op.w, h: op.h })),
+  ];
+  placeUnits(units, view, scene, worldBoxes, measure);
 
   const items: PaintBox[] = [];
   for (const unit of units) {
@@ -797,25 +853,20 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         const weight = style.fontStyle ?? "";
         const family = style.fontFamily ?? "sans-serif";
         let fontPx = screenFontPx(authoredFont(child));
-        const wardrobe = (scene as { key?: string } | null)?.key === "wardrobe";
         let width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
-        if (wardrobe) {
-          const limit = Math.max(12, unit.w - 12);
-          while (fontPx > 14 && width > limit) {
-            fontPx -= 1;
-            width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
-          }
+        const limit = Math.max(12, unit.w - 12);
+        while (fontPx > 14 && width > limit) {
+          fontPx -= 1;
+          width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
         }
-        const textX = wardrobe
-          ? Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2)
-          : Math.min(unit.x + unit.w - 8, Math.max(unit.x + 4, dest.x));
+        const textX = Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2);
         items.push({
           kind: "text",
           text,
           fontPx,
           x: textX,
           y: unit.y + Math.max(0, (unit.h - fontPx) / 2),
-          w: wardrobe ? Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)) : Math.max(1, unit.x + unit.w - 4 - textX),
+          w: Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)),
           h: fontPx,
           interactive: false,
           nested: true,
@@ -870,6 +921,13 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     }
   }
   const overflow = items.filter((item) => item.y < 50 || item.y + item.h > view.h - 4 || item.x < 8 || item.x + item.w > view.w - 4).length;
+  const mask = scene ? firstMask(scene) : null;
+  const maskShapes = mask ? screenShapes(mask.shapes, view) : [];
+  const overlap = texts.filter((item) => {
+    const box = { x: item.x, y: item.y, w: item.w, h: item.h };
+    if (worldBoxes.some((art) => art.w > 0 && art.h > 0 && !isBackground(art, view) && intersectsBox(box, art))) return true;
+    return maskShapes.some((shape) => boxHitsShape(box, shape));
+  }).length;
   return {
     items,
     texts,
@@ -881,6 +939,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     minGap: gaps.length ? Math.min(...gaps) : null,
     gapPairs: gaps.length,
     overflow,
+    overlap,
     measured: Boolean(measure),
   };
 }
@@ -935,6 +994,41 @@ function firstMaskIndex(scene: { children: { list: GameNode[] } }): number {
   return index;
 }
 
+function glyphSpec(node: GameNode, lines: string[], fontPx: number): GlyphSpec {
+  const style = styleOf(node);
+  return {
+    text: lines.join("\n"),
+    fontFamily: style.fontFamily || "sans-serif",
+    fontSize: fontPx,
+    fontStyle: style.fontStyle || "",
+    color: style.color || "#17352a",
+    stroke: style.stroke || "",
+    strokeThickness: style.strokeThickness || 0,
+    align: style.align || "left",
+    wrapWidth: style.wordWrap?.width || 0,
+    lineSpacing: style.lineSpacing || 0,
+    maxLines: style.maxLines || 0,
+    origin: `${node.originX},${node.originY}`,
+    lines,
+  };
+}
+
+function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number): void {
+  const texture = glyphTexture(glyphSpec(node, lines, fontPx));
+  if (texture && ctx.drawImage) {
+    if (texture.w <= boxW + 0.5 && texture.h <= boxH + 0.5) ctx.drawImage(texture.canvas, x, y);
+    else ctx.drawImage(texture.canvas, x, y, boxW, boxH);
+    return;
+  }
+  noteGlyphFallback();
+  const style = styleOf(node);
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  ctx.fillStyle = style.color || "#17352a";
+  ctx.font = `${style.fontStyle ? `${style.fontStyle} ` : ""}${fontPx}px ${style.fontFamily || "sans-serif"}`;
+  lines.forEach((line, index) => ctx.fillText(line, x, y + index * fontPx));
+}
+
 function drawLocal(ctx: PaintContext, node: GameNode): void {
   if (node.type === "image" || node.type === "sprite") {
     const texture = textureOf(node);
@@ -969,13 +1063,9 @@ function drawLocal(ctx: PaintContext, node: GameNode): void {
   if (node.type === "text") {
     const text = String((node as GameNode & { text?: string }).text ?? "");
     if (!text) return;
-    const style = styleOf(node);
     const fontPx = authoredFont(node);
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    ctx.fillStyle = style.color || "#17352a";
-    ctx.font = `${style.fontStyle ? `${style.fontStyle} ` : ""}${fontPx}px ${style.fontFamily || "sans-serif"}`;
-    ctx.fillText(text, -node.originX * node.width, -node.originY * node.height);
+    const lines = text.split("\n");
+    paintGlyph(ctx, node, lines, fontPx, -node.originX * node.width, -node.originY * node.height, node.width || fontPx, node.height || fontPx * lines.length);
     return;
   }
   if (node.type !== "graphics") return;
@@ -1068,14 +1158,8 @@ function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintC
 function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.kind === "text" && item.text) {
-      const style = styleOf(item.node);
-      ctx.textBaseline = "top";
-      ctx.textAlign = "left";
-      ctx.fillStyle = style.color || "#17352a";
-      const weight = style.fontStyle ? `${style.fontStyle} ` : "";
-      ctx.font = `${weight}${item.fontPx}px ${style.fontFamily || "sans-serif"}`;
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      lines.forEach((line, index) => ctx.fillText(line, item.x, item.y + index * item.fontPx));
+      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
       continue;
     }
     if (item.kind === "rectangle" || (item.interactive && !plan.images.some((op) => op.x >= item.x && op.x < item.x + item.w && op.y >= item.y && op.y < item.y + item.h))) {

@@ -1,0 +1,4 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone
+first {"fill":0,"draw":1,"stats":{"created":1,"reused":0,"fallback":0,"scaled":0,"size":1}}
+second {"fill":0,"draw":1,"stats":{"created":1,"reused":1,"fallback":0,"scaled":0,"size":1}}
+ink samples 180

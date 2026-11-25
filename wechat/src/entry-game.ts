@@ -26,6 +26,7 @@ import { pbkdf2Hex } from "../platform/pbkdf2";
 import { StorageLimitError, createMemoryArea, utf8Size, writeLimited } from "../platform/storage";
 import { randomUuid, uuidV4FromBytes, weakRandomUuid } from "../platform/random";
 import { UI_BODY_PX, UI_GAP, UI_HIT, logicalBodySize, screenFontPx, screenToWorld, uiRect, worldScale, worldToScreen } from "../engine/coords";
+import { glyphStats, resetGlyphCache } from "../engine/glyph";
 import { layoutFrame, paintFrame, pressFrame } from "../engine/paint";
 import { createSave } from "../../src/domain/progress";
 import { findPlayChapter } from "../../src/domain/chapter-plan";
@@ -142,6 +143,8 @@ export {
   layoutFrame,
   paintFrame,
   pressFrame,
+  glyphStats,
+  resetGlyphCache,
   createSave,
   createProfile,
   getSave,
