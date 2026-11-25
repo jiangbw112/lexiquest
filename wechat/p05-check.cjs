@@ -498,7 +498,8 @@ const renderIgnored = (projectJson.packOptions.ignore || []).some((item) => item
 assert(renderIgnored, "probe renderer is excluded from the mini program package");
 assert(read(".gitignore").includes("project.private.config.json"), "private config stays gitignored");
 assert(!fs.existsSync(path.join(root, "project.private.config.json")), "private config is not in the tree");
-assert(!fs.existsSync(path.join(root, "engine")), "no engine directory");
+// P0.5 禁止 engine。W3 起 wechat/engine 是移植用的小引擎，这一条改成目录必须在。
+assert(fs.existsSync(path.join(root, "engine")), "engine directory is present");
 assert(landscape.hits && landscape.hits.play && landscape.hits.reset, "skeleton hits remain");
 assert(landscape.viewport && landscape.world && landscape.ui, "layout adds viewport world and ui");
 assert(landscape.ui.minFont === 14 && landscape.ui.paddingX === 16 && landscape.ui.maxTextWidth === 480, "ui rules");
