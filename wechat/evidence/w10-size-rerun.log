@@ -1,0 +1,12 @@
+packed bytes 1084640
+lib bytes 932706
+251052	lib/domain.cjs.js
+681654	lib/game.cjs.js
+packed mp3 0
+packed font files 0
+public bytes 33613886 excluded from the mini program
+public word mp3 0
+no subpackage was added. The packed tree is one main package on disk.
+source: filesystem, after project.config.json packOptions.ignore. Not a DevTools upload size.
+https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages
+packed disk bytes are within 2MB. IDE package size is 未验证.

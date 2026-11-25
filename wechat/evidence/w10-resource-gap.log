@@ -1,0 +1,20 @@
+catalog 863
+word mp3 present 0
+packed mp3 0
+public images 297
+packed images 1 assets/atlas/skeleton-atlas.png
+public fonts 12
+fonts/NotoSansSC-Bold-core.woff2
+fonts/NotoSansSC-Bold-g3.woff2
+fonts/NotoSansSC-Bold-g4.woff2
+fonts/NotoSansSC-Bold-g5.woff2
+fonts/NotoSansSC-Bold-g6.woff2
+fonts/NotoSansSC-Regular-core.woff2
+fonts/NotoSansSC-Regular-g3.woff2
+fonts/NotoSansSC-Regular-g4.woff2
+fonts/NotoSansSC-Regular-g5.woff2
+fonts/NotoSansSC-Regular-g6.woff2
+fonts/Nunito-latin.woff2
+fonts/ZCOOLKuaiLe-ui.woff2
+font load: not called. wx.loadFontFace needs https or data, TTF/WOFF preferred.
+source: Node. Not WeChat.

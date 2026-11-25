@@ -18,6 +18,34 @@
       {
         "value": "tools",
         "type": "folder"
+      },
+      {
+        "value": "evidence",
+        "type": "folder"
+      },
+      {
+        "value": "engine",
+        "type": "folder"
+      },
+      {
+        "value": "platform",
+        "type": "folder"
+      },
+      {
+        "value": "src",
+        "type": "folder"
+      },
+      {
+        "value": ".md",
+        "type": "suffix"
+      },
+      {
+        "value": ".ts",
+        "type": "suffix"
+      },
+      {
+        "value": ".mjs",
+        "type": "suffix"
       }
     ],
     "include": []

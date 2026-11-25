@@ -1,0 +1,5212 @@
+{
+  "source": "Node filesystem plus domain CATALOG_WORDS. Not a WeChat package upload.",
+  "catalog": 863,
+  "wordAudioPresent": 0,
+  "packedMp3": 0,
+  "pathTemplate": "assets/audio/words/<id>.mp3",
+  "speech": "wechat/platform/speech.ts records a missing-audio line. No mp3 bytes are generated.",
+  "fontsInPublic": [
+    "fonts/NotoSansSC-Bold-core.woff2",
+    "fonts/NotoSansSC-Bold-g3.woff2",
+    "fonts/NotoSansSC-Bold-g4.woff2",
+    "fonts/NotoSansSC-Bold-g5.woff2",
+    "fonts/NotoSansSC-Bold-g6.woff2",
+    "fonts/NotoSansSC-Regular-core.woff2",
+    "fonts/NotoSansSC-Regular-g3.woff2",
+    "fonts/NotoSansSC-Regular-g4.woff2",
+    "fonts/NotoSansSC-Regular-g5.woff2",
+    "fonts/NotoSansSC-Regular-g6.woff2",
+    "fonts/Nunito-latin.woff2",
+    "fonts/ZCOOLKuaiLe-ui.woff2"
+  ],
+  "fontsPacked": 0,
+  "fontApi": "wx.loadFontFace",
+  "fontDoc": "https://developers.weixin.qq.com/miniprogram/dev/api/ui/font/wx.loadFontFace.html",
+  "fontGap": "Public fonts are woff2 only. No TTF/WOFF was converted or packed. loadFontFace is not called.",
+  "publicImages": 297,
+  "packedImages": 1,
+  "packedImageFiles": [
+    "assets/atlas/skeleton-atlas.png"
+  ],
+  "imageGap": "The only packed image is the P0.6 skeleton sheet. Warm atlas PNG and webp pixels stay in public/.",
+  "words": [
+    {
+      "id": "about",
+      "english": "about",
+      "path": "assets/audio/words/about.mp3",
+      "present": false
+    },
+    {
+      "id": "after",
+      "english": "after",
+      "path": "assets/audio/words/after.mp3",
+      "present": false
+    },
+    {
+      "id": "air",
+      "english": "air",
+      "path": "assets/audio/words/air.mp3",
+      "present": false
+    },
+    {
+      "id": "all",
+      "english": "all",
+      "path": "assets/audio/words/all.mp3",
+      "present": false
+    },
+    {
+      "id": "also",
+      "english": "also",
+      "path": "assets/audio/words/also.mp3",
+      "present": false
+    },
+    {
+      "id": "animal",
+      "english": "animal",
+      "path": "assets/audio/words/animal.mp3",
+      "present": false
+    },
+    {
+      "id": "apple",
+      "english": "apple",
+      "path": "assets/audio/words/apple.mp3",
+      "present": false
+    },
+    {
+      "id": "arm",
+      "english": "arm",
+      "path": "assets/audio/words/arm.mp3",
+      "present": false
+    },
+    {
+      "id": "at",
+      "english": "at",
+      "path": "assets/audio/words/at.mp3",
+      "present": false
+    },
+    {
+      "id": "aunt",
+      "english": "aunt",
+      "path": "assets/audio/words/aunt.mp3",
+      "present": false
+    },
+    {
+      "id": "baby",
+      "english": "baby",
+      "path": "assets/audio/words/baby.mp3",
+      "present": false
+    },
+    {
+      "id": "back",
+      "english": "back",
+      "path": "assets/audio/words/back.mp3",
+      "present": false
+    },
+    {
+      "id": "bag",
+      "english": "bag",
+      "path": "assets/audio/words/bag.mp3",
+      "present": false
+    },
+    {
+      "id": "ball",
+      "english": "ball",
+      "path": "assets/audio/words/ball.mp3",
+      "present": false
+    },
+    {
+      "id": "banana",
+      "english": "banana",
+      "path": "assets/audio/words/banana.mp3",
+      "present": false
+    },
+    {
+      "id": "bear",
+      "english": "bear",
+      "path": "assets/audio/words/bear.mp3",
+      "present": false
+    },
+    {
+      "id": "big",
+      "english": "big",
+      "path": "assets/audio/words/big.mp3",
+      "present": false
+    },
+    {
+      "id": "bird",
+      "english": "bird",
+      "path": "assets/audio/words/bird.mp3",
+      "present": false
+    },
+    {
+      "id": "black",
+      "english": "black",
+      "path": "assets/audio/words/black.mp3",
+      "present": false
+    },
+    {
+      "id": "blue",
+      "english": "blue",
+      "path": "assets/audio/words/blue.mp3",
+      "present": false
+    },
+    {
+      "id": "boat",
+      "english": "boat",
+      "path": "assets/audio/words/boat.mp3",
+      "present": false
+    },
+    {
+      "id": "body",
+      "english": "body",
+      "path": "assets/audio/words/body.mp3",
+      "present": false
+    },
+    {
+      "id": "book",
+      "english": "book",
+      "path": "assets/audio/words/book.mp3",
+      "present": false
+    },
+    {
+      "id": "box",
+      "english": "box",
+      "path": "assets/audio/words/box.mp3",
+      "present": false
+    },
+    {
+      "id": "boy",
+      "english": "boy",
+      "path": "assets/audio/words/boy.mp3",
+      "present": false
+    },
+    {
+      "id": "bread",
+      "english": "bread",
+      "path": "assets/audio/words/bread.mp3",
+      "present": false
+    },
+    {
+      "id": "breakfast",
+      "english": "breakfast",
+      "path": "assets/audio/words/breakfast.mp3",
+      "present": false
+    },
+    {
+      "id": "brother",
+      "english": "brother",
+      "path": "assets/audio/words/brother.mp3",
+      "present": false
+    },
+    {
+      "id": "brown",
+      "english": "brown",
+      "path": "assets/audio/words/brown.mp3",
+      "present": false
+    },
+    {
+      "id": "cake",
+      "english": "cake",
+      "path": "assets/audio/words/cake.mp3",
+      "present": false
+    },
+    {
+      "id": "can",
+      "english": "can",
+      "path": "assets/audio/words/can.mp3",
+      "present": false
+    },
+    {
+      "id": "canada",
+      "english": "Canada",
+      "path": "assets/audio/words/canada.mp3",
+      "present": false
+    },
+    {
+      "id": "candy",
+      "english": "candy",
+      "path": "assets/audio/words/candy.mp3",
+      "present": false
+    },
+    {
+      "id": "cap",
+      "english": "cap",
+      "path": "assets/audio/words/cap.mp3",
+      "present": false
+    },
+    {
+      "id": "car",
+      "english": "car",
+      "path": "assets/audio/words/car.mp3",
+      "present": false
+    },
+    {
+      "id": "card",
+      "english": "card",
+      "path": "assets/audio/words/card.mp3",
+      "present": false
+    },
+    {
+      "id": "cat",
+      "english": "cat",
+      "path": "assets/audio/words/cat.mp3",
+      "present": false
+    },
+    {
+      "id": "china",
+      "english": "China",
+      "path": "assets/audio/words/china.mp3",
+      "present": false
+    },
+    {
+      "id": "class",
+      "english": "class",
+      "path": "assets/audio/words/class.mp3",
+      "present": false
+    },
+    {
+      "id": "classmate",
+      "english": "classmate",
+      "path": "assets/audio/words/classmate.mp3",
+      "present": false
+    },
+    {
+      "id": "colour",
+      "english": "colour",
+      "path": "assets/audio/words/colour.mp3",
+      "present": false
+    },
+    {
+      "id": "colourful",
+      "english": "colourful",
+      "path": "assets/audio/words/colourful.mp3",
+      "present": false
+    },
+    {
+      "id": "computer",
+      "english": "computer",
+      "path": "assets/audio/words/computer.mp3",
+      "present": false
+    },
+    {
+      "id": "cool",
+      "english": "cool",
+      "path": "assets/audio/words/cool.mp3",
+      "present": false
+    },
+    {
+      "id": "cousin",
+      "english": "cousin",
+      "path": "assets/audio/words/cousin.mp3",
+      "present": false
+    },
+    {
+      "id": "cut",
+      "english": "cut",
+      "path": "assets/audio/words/cut.mp3",
+      "present": false
+    },
+    {
+      "id": "cute",
+      "english": "cute",
+      "path": "assets/audio/words/cute.mp3",
+      "present": false
+    },
+    {
+      "id": "dad",
+      "english": "dad",
+      "path": "assets/audio/words/dad.mp3",
+      "present": false
+    },
+    {
+      "id": "dance",
+      "english": "dance",
+      "path": "assets/audio/words/dance.mp3",
+      "present": false
+    },
+    {
+      "id": "dog",
+      "english": "dog",
+      "path": "assets/audio/words/dog.mp3",
+      "present": false
+    },
+    {
+      "id": "doll",
+      "english": "doll",
+      "path": "assets/audio/words/doll.mp3",
+      "present": false
+    },
+    {
+      "id": "draw",
+      "english": "draw",
+      "path": "assets/audio/words/draw.mp3",
+      "present": false
+    },
+    {
+      "id": "duck",
+      "english": "duck",
+      "path": "assets/audio/words/duck.mp3",
+      "present": false
+    },
+    {
+      "id": "ear",
+      "english": "ear",
+      "path": "assets/audio/words/ear.mp3",
+      "present": false
+    },
+    {
+      "id": "eat",
+      "english": "eat",
+      "path": "assets/audio/words/eat.mp3",
+      "present": false
+    },
+    {
+      "id": "egg",
+      "english": "egg",
+      "path": "assets/audio/words/egg.mp3",
+      "present": false
+    },
+    {
+      "id": "eight",
+      "english": "eight",
+      "path": "assets/audio/words/eight.mp3",
+      "present": false
+    },
+    {
+      "id": "eighteen",
+      "english": "eighteen",
+      "path": "assets/audio/words/eighteen.mp3",
+      "present": false
+    },
+    {
+      "id": "elephant",
+      "english": "elephant",
+      "path": "assets/audio/words/elephant.mp3",
+      "present": false
+    },
+    {
+      "id": "eleven",
+      "english": "eleven",
+      "path": "assets/audio/words/eleven.mp3",
+      "present": false
+    },
+    {
+      "id": "english",
+      "english": "English",
+      "path": "assets/audio/words/english.mp3",
+      "present": false
+    },
+    {
+      "id": "eraser",
+      "english": "eraser",
+      "path": "assets/audio/words/eraser.mp3",
+      "present": false
+    },
+    {
+      "id": "eye",
+      "english": "eye",
+      "path": "assets/audio/words/eye.mp3",
+      "present": false
+    },
+    {
+      "id": "face",
+      "english": "face",
+      "path": "assets/audio/words/face.mp3",
+      "present": false
+    },
+    {
+      "id": "family",
+      "english": "family",
+      "path": "assets/audio/words/family.mp3",
+      "present": false
+    },
+    {
+      "id": "farm",
+      "english": "farm",
+      "path": "assets/audio/words/farm.mp3",
+      "present": false
+    },
+    {
+      "id": "fast",
+      "english": "fast",
+      "path": "assets/audio/words/fast.mp3",
+      "present": false
+    },
+    {
+      "id": "fat",
+      "english": "fat",
+      "path": "assets/audio/words/fat.mp3",
+      "present": false
+    },
+    {
+      "id": "father",
+      "english": "father",
+      "path": "assets/audio/words/father.mp3",
+      "present": false
+    },
+    {
+      "id": "fifteen",
+      "english": "fifteen",
+      "path": "assets/audio/words/fifteen.mp3",
+      "present": false
+    },
+    {
+      "id": "find",
+      "english": "find",
+      "path": "assets/audio/words/find.mp3",
+      "present": false
+    },
+    {
+      "id": "fish",
+      "english": "fish",
+      "path": "assets/audio/words/fish.mp3",
+      "present": false
+    },
+    {
+      "id": "five",
+      "english": "five",
+      "path": "assets/audio/words/five.mp3",
+      "present": false
+    },
+    {
+      "id": "flower",
+      "english": "flower",
+      "path": "assets/audio/words/flower.mp3",
+      "present": false
+    },
+    {
+      "id": "four",
+      "english": "four",
+      "path": "assets/audio/words/four.mp3",
+      "present": false
+    },
+    {
+      "id": "fourteen",
+      "english": "fourteen",
+      "path": "assets/audio/words/fourteen.mp3",
+      "present": false
+    },
+    {
+      "id": "fox",
+      "english": "fox",
+      "path": "assets/audio/words/fox.mp3",
+      "present": false
+    },
+    {
+      "id": "friend",
+      "english": "friend",
+      "path": "assets/audio/words/friend.mp3",
+      "present": false
+    },
+    {
+      "id": "from",
+      "english": "from",
+      "path": "assets/audio/words/from.mp3",
+      "present": false
+    },
+    {
+      "id": "fruit",
+      "english": "fruit",
+      "path": "assets/audio/words/fruit.mp3",
+      "present": false
+    },
+    {
+      "id": "garden",
+      "english": "garden",
+      "path": "assets/audio/words/garden.mp3",
+      "present": false
+    },
+    {
+      "id": "get",
+      "english": "get",
+      "path": "assets/audio/words/get.mp3",
+      "present": false
+    },
+    {
+      "id": "gift",
+      "english": "gift",
+      "path": "assets/audio/words/gift.mp3",
+      "present": false
+    },
+    {
+      "id": "giraffe",
+      "english": "giraffe",
+      "path": "assets/audio/words/giraffe.mp3",
+      "present": false
+    },
+    {
+      "id": "girl",
+      "english": "girl",
+      "path": "assets/audio/words/girl.mp3",
+      "present": false
+    },
+    {
+      "id": "give",
+      "english": "give",
+      "path": "assets/audio/words/give.mp3",
+      "present": false
+    },
+    {
+      "id": "go",
+      "english": "go",
+      "path": "assets/audio/words/go.mp3",
+      "present": false
+    },
+    {
+      "id": "good",
+      "english": "good",
+      "path": "assets/audio/words/good.mp3",
+      "present": false
+    },
+    {
+      "id": "goodbye",
+      "english": "goodbye",
+      "path": "assets/audio/words/goodbye.mp3",
+      "present": false
+    },
+    {
+      "id": "grandfather",
+      "english": "grandfather",
+      "path": "assets/audio/words/grandfather.mp3",
+      "present": false
+    },
+    {
+      "id": "grandma",
+      "english": "grandma",
+      "path": "assets/audio/words/grandma.mp3",
+      "present": false
+    },
+    {
+      "id": "grandmother",
+      "english": "grandmother",
+      "path": "assets/audio/words/grandmother.mp3",
+      "present": false
+    },
+    {
+      "id": "grandpa",
+      "english": "grandpa",
+      "path": "assets/audio/words/grandpa.mp3",
+      "present": false
+    },
+    {
+      "id": "grape",
+      "english": "grape",
+      "path": "assets/audio/words/grape.mp3",
+      "present": false
+    },
+    {
+      "id": "grass",
+      "english": "grass",
+      "path": "assets/audio/words/grass.mp3",
+      "present": false
+    },
+    {
+      "id": "green",
+      "english": "green",
+      "path": "assets/audio/words/green.mp3",
+      "present": false
+    },
+    {
+      "id": "hand",
+      "english": "hand",
+      "path": "assets/audio/words/hand.mp3",
+      "present": false
+    },
+    {
+      "id": "has",
+      "english": "has",
+      "path": "assets/audio/words/has.mp3",
+      "present": false
+    },
+    {
+      "id": "have",
+      "english": "have",
+      "path": "assets/audio/words/have.mp3",
+      "present": false
+    },
+    {
+      "id": "he",
+      "english": "he",
+      "path": "assets/audio/words/he.mp3",
+      "present": false
+    },
+    {
+      "id": "healthy",
+      "english": "healthy",
+      "path": "assets/audio/words/healthy.mp3",
+      "present": false
+    },
+    {
+      "id": "hear",
+      "english": "hear",
+      "path": "assets/audio/words/hear.mp3",
+      "present": false
+    },
+    {
+      "id": "hello",
+      "english": "hello",
+      "path": "assets/audio/words/hello.mp3",
+      "present": false
+    },
+    {
+      "id": "help",
+      "english": "help",
+      "path": "assets/audio/words/help.mp3",
+      "present": false
+    },
+    {
+      "id": "her",
+      "english": "her",
+      "path": "assets/audio/words/her.mp3",
+      "present": false
+    },
+    {
+      "id": "hi",
+      "english": "hi",
+      "path": "assets/audio/words/hi.mp3",
+      "present": false
+    },
+    {
+      "id": "home",
+      "english": "home",
+      "path": "assets/audio/words/home.mp3",
+      "present": false
+    },
+    {
+      "id": "in",
+      "english": "in",
+      "path": "assets/audio/words/in.mp3",
+      "present": false
+    },
+    {
+      "id": "in class",
+      "english": "in class",
+      "path": "assets/audio/words/in class.mp3",
+      "present": false
+    },
+    {
+      "id": "juice",
+      "english": "juice",
+      "path": "assets/audio/words/juice.mp3",
+      "present": false
+    },
+    {
+      "id": "keep",
+      "english": "keep",
+      "path": "assets/audio/words/keep.mp3",
+      "present": false
+    },
+    {
+      "id": "learn",
+      "english": "learn",
+      "path": "assets/audio/words/learn.mp3",
+      "present": false
+    },
+    {
+      "id": "leg",
+      "english": "leg",
+      "path": "assets/audio/words/leg.mp3",
+      "present": false
+    },
+    {
+      "id": "like",
+      "english": "like",
+      "path": "assets/audio/words/like.mp3",
+      "present": false
+    },
+    {
+      "id": "lion",
+      "english": "lion",
+      "path": "assets/audio/words/lion.mp3",
+      "present": false
+    },
+    {
+      "id": "listen",
+      "english": "listen",
+      "path": "assets/audio/words/listen.mp3",
+      "present": false
+    },
+    {
+      "id": "long",
+      "english": "long",
+      "path": "assets/audio/words/long.mp3",
+      "present": false
+    },
+    {
+      "id": "love",
+      "english": "love",
+      "path": "assets/audio/words/love.mp3",
+      "present": false
+    },
+    {
+      "id": "make",
+      "english": "make",
+      "path": "assets/audio/words/make.mp3",
+      "present": false
+    },
+    {
+      "id": "man",
+      "english": "man",
+      "path": "assets/audio/words/man.mp3",
+      "present": false
+    },
+    {
+      "id": "map",
+      "english": "map",
+      "path": "assets/audio/words/map.mp3",
+      "present": false
+    },
+    {
+      "id": "me",
+      "english": "me",
+      "path": "assets/audio/words/me.mp3",
+      "present": false
+    },
+    {
+      "id": "meat",
+      "english": "meat",
+      "path": "assets/audio/words/meat.mp3",
+      "present": false
+    },
+    {
+      "id": "milk",
+      "english": "milk",
+      "path": "assets/audio/words/milk.mp3",
+      "present": false
+    },
+    {
+      "id": "miss",
+      "english": "Miss",
+      "path": "assets/audio/words/miss.mp3",
+      "present": false
+    },
+    {
+      "id": "monkey",
+      "english": "monkey",
+      "path": "assets/audio/words/monkey.mp3",
+      "present": false
+    },
+    {
+      "id": "mother",
+      "english": "mother",
+      "path": "assets/audio/words/mother.mp3",
+      "present": false
+    },
+    {
+      "id": "mouth",
+      "english": "mouth",
+      "path": "assets/audio/words/mouth.mp3",
+      "present": false
+    },
+    {
+      "id": "mr",
+      "english": "Mr",
+      "path": "assets/audio/words/mr.mp3",
+      "present": false
+    },
+    {
+      "id": "much",
+      "english": "much",
+      "path": "assets/audio/words/much.mp3",
+      "present": false
+    },
+    {
+      "id": "mum",
+      "english": "mum",
+      "path": "assets/audio/words/mum.mp3",
+      "present": false
+    },
+    {
+      "id": "name",
+      "english": "name",
+      "path": "assets/audio/words/name.mp3",
+      "present": false
+    },
+    {
+      "id": "need",
+      "english": "need",
+      "path": "assets/audio/words/need.mp3",
+      "present": false
+    },
+    {
+      "id": "neighbour",
+      "english": "neighbour",
+      "path": "assets/audio/words/neighbour.mp3",
+      "present": false
+    },
+    {
+      "id": "new",
+      "english": "new",
+      "path": "assets/audio/words/new.mp3",
+      "present": false
+    },
+    {
+      "id": "nice",
+      "english": "nice",
+      "path": "assets/audio/words/nice.mp3",
+      "present": false
+    },
+    {
+      "id": "nine",
+      "english": "nine",
+      "path": "assets/audio/words/nine.mp3",
+      "present": false
+    },
+    {
+      "id": "nineteen",
+      "english": "nineteen",
+      "path": "assets/audio/words/nineteen.mp3",
+      "present": false
+    },
+    {
+      "id": "noodle",
+      "english": "noodle",
+      "path": "assets/audio/words/noodle.mp3",
+      "present": false
+    },
+    {
+      "id": "nose",
+      "english": "nose",
+      "path": "assets/audio/words/nose.mp3",
+      "present": false
+    },
+    {
+      "id": "o'clock",
+      "english": "o'clock",
+      "path": "assets/audio/words/o'clock.mp3",
+      "present": false
+    },
+    {
+      "id": "old",
+      "english": "old",
+      "path": "assets/audio/words/old.mp3",
+      "present": false
+    },
+    {
+      "id": "on",
+      "english": "on",
+      "path": "assets/audio/words/on.mp3",
+      "present": false
+    },
+    {
+      "id": "one",
+      "english": "one",
+      "path": "assets/audio/words/one.mp3",
+      "present": false
+    },
+    {
+      "id": "or",
+      "english": "or",
+      "path": "assets/audio/words/or.mp3",
+      "present": false
+    },
+    {
+      "id": "orange",
+      "english": "orange",
+      "path": "assets/audio/words/orange.mp3",
+      "present": false
+    },
+    {
+      "id": "panda",
+      "english": "panda",
+      "path": "assets/audio/words/panda.mp3",
+      "present": false
+    },
+    {
+      "id": "paper",
+      "english": "paper",
+      "path": "assets/audio/words/paper.mp3",
+      "present": false
+    },
+    {
+      "id": "pay",
+      "english": "pay",
+      "path": "assets/audio/words/pay.mp3",
+      "present": false
+    },
+    {
+      "id": "pen",
+      "english": "pen",
+      "path": "assets/audio/words/pen.mp3",
+      "present": false
+    },
+    {
+      "id": "pencil",
+      "english": "pencil",
+      "path": "assets/audio/words/pencil.mp3",
+      "present": false
+    },
+    {
+      "id": "pet",
+      "english": "pet",
+      "path": "assets/audio/words/pet.mp3",
+      "present": false
+    },
+    {
+      "id": "picture",
+      "english": "picture",
+      "path": "assets/audio/words/picture.mp3",
+      "present": false
+    },
+    {
+      "id": "piggy bank",
+      "english": "piggy bank",
+      "path": "assets/audio/words/piggy bank.mp3",
+      "present": false
+    },
+    {
+      "id": "pink",
+      "english": "pink",
+      "path": "assets/audio/words/pink.mp3",
+      "present": false
+    },
+    {
+      "id": "plant",
+      "english": "plant",
+      "path": "assets/audio/words/plant.mp3",
+      "present": false
+    },
+    {
+      "id": "plate",
+      "english": "plate",
+      "path": "assets/audio/words/plate.mp3",
+      "present": false
+    },
+    {
+      "id": "purple",
+      "english": "purple",
+      "path": "assets/audio/words/purple.mp3",
+      "present": false
+    },
+    {
+      "id": "put",
+      "english": "put",
+      "path": "assets/audio/words/put.mp3",
+      "present": false
+    },
+    {
+      "id": "rabbit",
+      "english": "rabbit",
+      "path": "assets/audio/words/rabbit.mp3",
+      "present": false
+    },
+    {
+      "id": "red",
+      "english": "red",
+      "path": "assets/audio/words/red.mp3",
+      "present": false
+    },
+    {
+      "id": "red panda",
+      "english": "red panda",
+      "path": "assets/audio/words/red panda.mp3",
+      "present": false
+    },
+    {
+      "id": "rice",
+      "english": "rice",
+      "path": "assets/audio/words/rice.mp3",
+      "present": false
+    },
+    {
+      "id": "right",
+      "english": "right",
+      "path": "assets/audio/words/right.mp3",
+      "present": false
+    },
+    {
+      "id": "ruler",
+      "english": "ruler",
+      "path": "assets/audio/words/ruler.mp3",
+      "present": false
+    },
+    {
+      "id": "say",
+      "english": "say",
+      "path": "assets/audio/words/say.mp3",
+      "present": false
+    },
+    {
+      "id": "school",
+      "english": "school",
+      "path": "assets/audio/words/school.mp3",
+      "present": false
+    },
+    {
+      "id": "sea",
+      "english": "sea",
+      "path": "assets/audio/words/sea.mp3",
+      "present": false
+    },
+    {
+      "id": "see",
+      "english": "see",
+      "path": "assets/audio/words/see.mp3",
+      "present": false
+    },
+    {
+      "id": "seven",
+      "english": "seven",
+      "path": "assets/audio/words/seven.mp3",
+      "present": false
+    },
+    {
+      "id": "seventeen",
+      "english": "seventeen",
+      "path": "assets/audio/words/seventeen.mp3",
+      "present": false
+    },
+    {
+      "id": "share",
+      "english": "share",
+      "path": "assets/audio/words/share.mp3",
+      "present": false
+    },
+    {
+      "id": "she",
+      "english": "she",
+      "path": "assets/audio/words/she.mp3",
+      "present": false
+    },
+    {
+      "id": "shelf",
+      "english": "shelf",
+      "path": "assets/audio/words/shelf.mp3",
+      "present": false
+    },
+    {
+      "id": "short",
+      "english": "short",
+      "path": "assets/audio/words/short.mp3",
+      "present": false
+    },
+    {
+      "id": "sing",
+      "english": "sing",
+      "path": "assets/audio/words/sing.mp3",
+      "present": false
+    },
+    {
+      "id": "sister",
+      "english": "sister",
+      "path": "assets/audio/words/sister.mp3",
+      "present": false
+    },
+    {
+      "id": "six",
+      "english": "six",
+      "path": "assets/audio/words/six.mp3",
+      "present": false
+    },
+    {
+      "id": "sixteen",
+      "english": "sixteen",
+      "path": "assets/audio/words/sixteen.mp3",
+      "present": false
+    },
+    {
+      "id": "slow",
+      "english": "slow",
+      "path": "assets/audio/words/slow.mp3",
+      "present": false
+    },
+    {
+      "id": "small",
+      "english": "small",
+      "path": "assets/audio/words/small.mp3",
+      "present": false
+    },
+    {
+      "id": "smell",
+      "english": "smell",
+      "path": "assets/audio/words/smell.mp3",
+      "present": false
+    },
+    {
+      "id": "smile",
+      "english": "smile",
+      "path": "assets/audio/words/smile.mp3",
+      "present": false
+    },
+    {
+      "id": "so",
+      "english": "so",
+      "path": "assets/audio/words/so.mp3",
+      "present": false
+    },
+    {
+      "id": "some",
+      "english": "some",
+      "path": "assets/audio/words/some.mp3",
+      "present": false
+    },
+    {
+      "id": "song",
+      "english": "song",
+      "path": "assets/audio/words/song.mp3",
+      "present": false
+    },
+    {
+      "id": "soup",
+      "english": "soup",
+      "path": "assets/audio/words/soup.mp3",
+      "present": false
+    },
+    {
+      "id": "still",
+      "english": "still",
+      "path": "assets/audio/words/still.mp3",
+      "present": false
+    },
+    {
+      "id": "student",
+      "english": "student",
+      "path": "assets/audio/words/student.mp3",
+      "present": false
+    },
+    {
+      "id": "sun",
+      "english": "sun",
+      "path": "assets/audio/words/sun.mp3",
+      "present": false
+    },
+    {
+      "id": "tail",
+      "english": "tail",
+      "path": "assets/audio/words/tail.mp3",
+      "present": false
+    },
+    {
+      "id": "talk",
+      "english": "talk",
+      "path": "assets/audio/words/talk.mp3",
+      "present": false
+    },
+    {
+      "id": "tall",
+      "english": "tall",
+      "path": "assets/audio/words/tall.mp3",
+      "present": false
+    },
+    {
+      "id": "taste",
+      "english": "taste",
+      "path": "assets/audio/words/taste.mp3",
+      "present": false
+    },
+    {
+      "id": "teacher",
+      "english": "teacher",
+      "path": "assets/audio/words/teacher.mp3",
+      "present": false
+    },
+    {
+      "id": "ten",
+      "english": "ten",
+      "path": "assets/audio/words/ten.mp3",
+      "present": false
+    },
+    {
+      "id": "them",
+      "english": "them",
+      "path": "assets/audio/words/them.mp3",
+      "present": false
+    },
+    {
+      "id": "these",
+      "english": "these",
+      "path": "assets/audio/words/these.mp3",
+      "present": false
+    },
+    {
+      "id": "thin",
+      "english": "thin",
+      "path": "assets/audio/words/thin.mp3",
+      "present": false
+    },
+    {
+      "id": "thirteen",
+      "english": "thirteen",
+      "path": "assets/audio/words/thirteen.mp3",
+      "present": false
+    },
+    {
+      "id": "three",
+      "english": "three",
+      "path": "assets/audio/words/three.mp3",
+      "present": false
+    },
+    {
+      "id": "tiger",
+      "english": "tiger",
+      "path": "assets/audio/words/tiger.mp3",
+      "present": false
+    },
+    {
+      "id": "time",
+      "english": "time",
+      "path": "assets/audio/words/time.mp3",
+      "present": false
+    },
+    {
+      "id": "today",
+      "english": "today",
+      "path": "assets/audio/words/today.mp3",
+      "present": false
+    },
+    {
+      "id": "tongue",
+      "english": "tongue",
+      "path": "assets/audio/words/tongue.mp3",
+      "present": false
+    },
+    {
+      "id": "touch",
+      "english": "touch",
+      "path": "assets/audio/words/touch.mp3",
+      "present": false
+    },
+    {
+      "id": "toy",
+      "english": "toy",
+      "path": "assets/audio/words/toy.mp3",
+      "present": false
+    },
+    {
+      "id": "tree",
+      "english": "tree",
+      "path": "assets/audio/words/tree.mp3",
+      "present": false
+    },
+    {
+      "id": "twelve",
+      "english": "twelve",
+      "path": "assets/audio/words/twelve.mp3",
+      "present": false
+    },
+    {
+      "id": "twenty",
+      "english": "twenty",
+      "path": "assets/audio/words/twenty.mp3",
+      "present": false
+    },
+    {
+      "id": "two",
+      "english": "two",
+      "path": "assets/audio/words/two.mp3",
+      "present": false
+    },
+    {
+      "id": "uk",
+      "english": "UK",
+      "path": "assets/audio/words/uk.mp3",
+      "present": false
+    },
+    {
+      "id": "uncle",
+      "english": "uncle",
+      "path": "assets/audio/words/uncle.mp3",
+      "present": false
+    },
+    {
+      "id": "under",
+      "english": "under",
+      "path": "assets/audio/words/under.mp3",
+      "present": false
+    },
+    {
+      "id": "us",
+      "english": "us",
+      "path": "assets/audio/words/us.mp3",
+      "present": false
+    },
+    {
+      "id": "usa",
+      "english": "USA",
+      "path": "assets/audio/words/usa.mp3",
+      "present": false
+    },
+    {
+      "id": "vegetable",
+      "english": "vegetable",
+      "path": "assets/audio/words/vegetable.mp3",
+      "present": false
+    },
+    {
+      "id": "very",
+      "english": "very",
+      "path": "assets/audio/words/very.mp3",
+      "present": false
+    },
+    {
+      "id": "water",
+      "english": "water",
+      "path": "assets/audio/words/water.mp3",
+      "present": false
+    },
+    {
+      "id": "where",
+      "english": "where",
+      "path": "assets/audio/words/where.mp3",
+      "present": false
+    },
+    {
+      "id": "white",
+      "english": "white",
+      "path": "assets/audio/words/white.mp3",
+      "present": false
+    },
+    {
+      "id": "who",
+      "english": "who",
+      "path": "assets/audio/words/who.mp3",
+      "present": false
+    },
+    {
+      "id": "woman",
+      "english": "woman",
+      "path": "assets/audio/words/woman.mp3",
+      "present": false
+    },
+    {
+      "id": "wood",
+      "english": "wood",
+      "path": "assets/audio/words/wood.mp3",
+      "present": false
+    },
+    {
+      "id": "year",
+      "english": "year",
+      "path": "assets/audio/words/year.mp3",
+      "present": false
+    },
+    {
+      "id": "yellow",
+      "english": "yellow",
+      "path": "assets/audio/words/yellow.mp3",
+      "present": false
+    },
+    {
+      "id": "yummy",
+      "english": "yummy",
+      "path": "assets/audio/words/yummy.mp3",
+      "present": false
+    },
+    {
+      "id": "zoo",
+      "english": "zoo",
+      "path": "assets/audio/words/zoo.mp3",
+      "present": false
+    },
+    {
+      "id": "a box of",
+      "english": "a box of",
+      "path": "assets/audio/words/a box of.mp3",
+      "present": false
+    },
+    {
+      "id": "a lot of",
+      "english": "a lot of",
+      "path": "assets/audio/words/a lot of.mp3",
+      "present": false
+    },
+    {
+      "id": "afternoon",
+      "english": "afternoon",
+      "path": "assets/audio/words/afternoon.mp3",
+      "present": false
+    },
+    {
+      "id": "always",
+      "english": "always",
+      "path": "assets/audio/words/always.mp3",
+      "present": false
+    },
+    {
+      "id": "any",
+      "english": "any",
+      "path": "assets/audio/words/any.mp3",
+      "present": false
+    },
+    {
+      "id": "art",
+      "english": "art",
+      "path": "assets/audio/words/art.mp3",
+      "present": false
+    },
+    {
+      "id": "autumn",
+      "english": "autumn",
+      "path": "assets/audio/words/autumn.mp3",
+      "present": false
+    },
+    {
+      "id": "bad",
+      "english": "bad",
+      "path": "assets/audio/words/bad.mp3",
+      "present": false
+    },
+    {
+      "id": "basketball",
+      "english": "basketball",
+      "path": "assets/audio/words/basketball.mp3",
+      "present": false
+    },
+    {
+      "id": "bathroom",
+      "english": "bathroom",
+      "path": "assets/audio/words/bathroom.mp3",
+      "present": false
+    },
+    {
+      "id": "beautiful",
+      "english": "beautiful",
+      "path": "assets/audio/words/beautiful.mp3",
+      "present": false
+    },
+    {
+      "id": "bedroom",
+      "english": "bedroom",
+      "path": "assets/audio/words/bedroom.mp3",
+      "present": false
+    },
+    {
+      "id": "bee",
+      "english": "bee",
+      "path": "assets/audio/words/bee.mp3",
+      "present": false
+    },
+    {
+      "id": "best",
+      "english": "best",
+      "path": "assets/audio/words/best.mp3",
+      "present": false
+    },
+    {
+      "id": "blackboard",
+      "english": "blackboard",
+      "path": "assets/audio/words/blackboard.mp3",
+      "present": false
+    },
+    {
+      "id": "bowl",
+      "english": "bowl",
+      "path": "assets/audio/words/bowl.mp3",
+      "present": false
+    },
+    {
+      "id": "bus stop",
+      "english": "bus stop",
+      "path": "assets/audio/words/bus stop.mp3",
+      "present": false
+    },
+    {
+      "id": "busy",
+      "english": "busy",
+      "path": "assets/audio/words/busy.mp3",
+      "present": false
+    },
+    {
+      "id": "buy",
+      "english": "buy",
+      "path": "assets/audio/words/buy.mp3",
+      "present": false
+    },
+    {
+      "id": "carrot",
+      "english": "carrot",
+      "path": "assets/audio/words/carrot.mp3",
+      "present": false
+    },
+    {
+      "id": "chair",
+      "english": "chair",
+      "path": "assets/audio/words/chair.mp3",
+      "present": false
+    },
+    {
+      "id": "cheap",
+      "english": "cheap",
+      "path": "assets/audio/words/cheap.mp3",
+      "present": false
+    },
+    {
+      "id": "chicken",
+      "english": "chicken",
+      "path": "assets/audio/words/chicken.mp3",
+      "present": false
+    },
+    {
+      "id": "child",
+      "english": "child",
+      "path": "assets/audio/words/child.mp3",
+      "present": false
+    },
+    {
+      "id": "chinese",
+      "english": "Chinese",
+      "path": "assets/audio/words/chinese.mp3",
+      "present": false
+    },
+    {
+      "id": "chopstick",
+      "english": "chopstick",
+      "path": "assets/audio/words/chopstick.mp3",
+      "present": false
+    },
+    {
+      "id": "chore",
+      "english": "chore",
+      "path": "assets/audio/words/chore.mp3",
+      "present": false
+    },
+    {
+      "id": "classroom",
+      "english": "classroom",
+      "path": "assets/audio/words/classroom.mp3",
+      "present": false
+    },
+    {
+      "id": "clean",
+      "english": "clean",
+      "path": "assets/audio/words/clean.mp3",
+      "present": false
+    },
+    {
+      "id": "cleaner",
+      "english": "cleaner",
+      "path": "assets/audio/words/cleaner.mp3",
+      "present": false
+    },
+    {
+      "id": "clear the table",
+      "english": "clear the table",
+      "path": "assets/audio/words/clear the table.mp3",
+      "present": false
+    },
+    {
+      "id": "clock",
+      "english": "clock",
+      "path": "assets/audio/words/clock.mp3",
+      "present": false
+    },
+    {
+      "id": "closed",
+      "english": "closed",
+      "path": "assets/audio/words/closed.mp3",
+      "present": false
+    },
+    {
+      "id": "clothes",
+      "english": "clothes",
+      "path": "assets/audio/words/clothes.mp3",
+      "present": false
+    },
+    {
+      "id": "cloudy",
+      "english": "cloudy",
+      "path": "assets/audio/words/cloudy.mp3",
+      "present": false
+    },
+    {
+      "id": "coat",
+      "english": "coat",
+      "path": "assets/audio/words/coat.mp3",
+      "present": false
+    },
+    {
+      "id": "cold",
+      "english": "cold",
+      "path": "assets/audio/words/cold.mp3",
+      "present": false
+    },
+    {
+      "id": "community",
+      "english": "community",
+      "path": "assets/audio/words/community.mp3",
+      "present": false
+    },
+    {
+      "id": "cook",
+      "english": "cook",
+      "path": "assets/audio/words/cook.mp3",
+      "present": false
+    },
+    {
+      "id": "cow",
+      "english": "cow",
+      "path": "assets/audio/words/cow.mp3",
+      "present": false
+    },
+    {
+      "id": "dear",
+      "english": "dear",
+      "path": "assets/audio/words/dear.mp3",
+      "present": false
+    },
+    {
+      "id": "delicious",
+      "english": "delicious",
+      "path": "assets/audio/words/delicious.mp3",
+      "present": false
+    },
+    {
+      "id": "delivery worker",
+      "english": "delivery worker",
+      "path": "assets/audio/words/delivery worker.mp3",
+      "present": false
+    },
+    {
+      "id": "desk",
+      "english": "desk",
+      "path": "assets/audio/words/desk.mp3",
+      "present": false
+    },
+    {
+      "id": "dinner",
+      "english": "dinner",
+      "path": "assets/audio/words/dinner.mp3",
+      "present": false
+    },
+    {
+      "id": "doctor",
+      "english": "doctor",
+      "path": "assets/audio/words/doctor.mp3",
+      "present": false
+    },
+    {
+      "id": "door",
+      "english": "door",
+      "path": "assets/audio/words/door.mp3",
+      "present": false
+    },
+    {
+      "id": "dress",
+      "english": "dress",
+      "path": "assets/audio/words/dress.mp3",
+      "present": false
+    },
+    {
+      "id": "driver",
+      "english": "driver",
+      "path": "assets/audio/words/driver.mp3",
+      "present": false
+    },
+    {
+      "id": "everyone",
+      "english": "everyone",
+      "path": "assets/audio/words/everyone.mp3",
+      "present": false
+    },
+    {
+      "id": "expensive",
+      "english": "expensive",
+      "path": "assets/audio/words/expensive.mp3",
+      "present": false
+    },
+    {
+      "id": "factory worker",
+      "english": "factory worker",
+      "path": "assets/audio/words/factory worker.mp3",
+      "present": false
+    },
+    {
+      "id": "fall",
+      "english": "fall",
+      "path": "assets/audio/words/fall.mp3",
+      "present": false
+    },
+    {
+      "id": "fan",
+      "english": "fan",
+      "path": "assets/audio/words/fan.mp3",
+      "present": false
+    },
+    {
+      "id": "farmer",
+      "english": "farmer",
+      "path": "assets/audio/words/farmer.mp3",
+      "present": false
+    },
+    {
+      "id": "favourite",
+      "english": "favourite",
+      "path": "assets/audio/words/favourite.mp3",
+      "present": false
+    },
+    {
+      "id": "feed",
+      "english": "feed",
+      "path": "assets/audio/words/feed.mp3",
+      "present": false
+    },
+    {
+      "id": "feel",
+      "english": "feel",
+      "path": "assets/audio/words/feel.mp3",
+      "present": false
+    },
+    {
+      "id": "film",
+      "english": "film",
+      "path": "assets/audio/words/film.mp3",
+      "present": false
+    },
+    {
+      "id": "firefighter",
+      "english": "firefighter",
+      "path": "assets/audio/words/firefighter.mp3",
+      "present": false
+    },
+    {
+      "id": "first",
+      "english": "first",
+      "path": "assets/audio/words/first.mp3",
+      "present": false
+    },
+    {
+      "id": "floor",
+      "english": "floor",
+      "path": "assets/audio/words/floor.mp3",
+      "present": false
+    },
+    {
+      "id": "fly",
+      "english": "fly",
+      "path": "assets/audio/words/fly.mp3",
+      "present": false
+    },
+    {
+      "id": "follow",
+      "english": "follow",
+      "path": "assets/audio/words/follow.mp3",
+      "present": false
+    },
+    {
+      "id": "food",
+      "english": "food",
+      "path": "assets/audio/words/food.mp3",
+      "present": false
+    },
+    {
+      "id": "football",
+      "english": "football",
+      "path": "assets/audio/words/football.mp3",
+      "present": false
+    },
+    {
+      "id": "fork",
+      "english": "fork",
+      "path": "assets/audio/words/fork.mp3",
+      "present": false
+    },
+    {
+      "id": "free",
+      "english": "free",
+      "path": "assets/audio/words/free.mp3",
+      "present": false
+    },
+    {
+      "id": "fun",
+      "english": "fun",
+      "path": "assets/audio/words/fun.mp3",
+      "present": false
+    },
+    {
+      "id": "game",
+      "english": "game",
+      "path": "assets/audio/words/game.mp3",
+      "present": false
+    },
+    {
+      "id": "get together",
+      "english": "get together",
+      "path": "assets/audio/words/get together.mp3",
+      "present": false
+    },
+    {
+      "id": "get up",
+      "english": "get up",
+      "path": "assets/audio/words/get up.mp3",
+      "present": false
+    },
+    {
+      "id": "glove",
+      "english": "glove",
+      "path": "assets/audio/words/glove.mp3",
+      "present": false
+    },
+    {
+      "id": "go home",
+      "english": "go home",
+      "path": "assets/audio/words/go home.mp3",
+      "present": false
+    },
+    {
+      "id": "go to bed",
+      "english": "go to bed",
+      "path": "assets/audio/words/go to bed.mp3",
+      "present": false
+    },
+    {
+      "id": "go to school",
+      "english": "go to school",
+      "path": "assets/audio/words/go to school.mp3",
+      "present": false
+    },
+    {
+      "id": "green bean",
+      "english": "green bean",
+      "path": "assets/audio/words/green bean.mp3",
+      "present": false
+    },
+    {
+      "id": "hair",
+      "english": "hair",
+      "path": "assets/audio/words/hair.mp3",
+      "present": false
+    },
+    {
+      "id": "hand out",
+      "english": "hand out",
+      "path": "assets/audio/words/hand out.mp3",
+      "present": false
+    },
+    {
+      "id": "hard",
+      "english": "hard",
+      "path": "assets/audio/words/hard.mp3",
+      "present": false
+    },
+    {
+      "id": "hat",
+      "english": "hat",
+      "path": "assets/audio/words/hat.mp3",
+      "present": false
+    },
+    {
+      "id": "helpful",
+      "english": "helpful",
+      "path": "assets/audio/words/helpful.mp3",
+      "present": false
+    },
+    {
+      "id": "herself",
+      "english": "herself",
+      "path": "assets/audio/words/herself.mp3",
+      "present": false
+    },
+    {
+      "id": "his",
+      "english": "his",
+      "path": "assets/audio/words/his.mp3",
+      "present": false
+    },
+    {
+      "id": "homework",
+      "english": "homework",
+      "path": "assets/audio/words/homework.mp3",
+      "present": false
+    },
+    {
+      "id": "horse",
+      "english": "horse",
+      "path": "assets/audio/words/horse.mp3",
+      "present": false
+    },
+    {
+      "id": "hospital",
+      "english": "hospital",
+      "path": "assets/audio/words/hospital.mp3",
+      "present": false
+    },
+    {
+      "id": "hot",
+      "english": "hot",
+      "path": "assets/audio/words/hot.mp3",
+      "present": false
+    },
+    {
+      "id": "hurry up",
+      "english": "hurry up",
+      "path": "assets/audio/words/hurry up.mp3",
+      "present": false
+    },
+    {
+      "id": "idea",
+      "english": "idea",
+      "path": "assets/audio/words/idea.mp3",
+      "present": false
+    },
+    {
+      "id": "important",
+      "english": "important",
+      "path": "assets/audio/words/important.mp3",
+      "present": false
+    },
+    {
+      "id": "jacket",
+      "english": "jacket",
+      "path": "assets/audio/words/jacket.mp3",
+      "present": false
+    },
+    {
+      "id": "job",
+      "english": "job",
+      "path": "assets/audio/words/job.mp3",
+      "present": false
+    },
+    {
+      "id": "just",
+      "english": "just",
+      "path": "assets/audio/words/just.mp3",
+      "present": false
+    },
+    {
+      "id": "kid",
+      "english": "kid",
+      "path": "assets/audio/words/kid.mp3",
+      "present": false
+    },
+    {
+      "id": "kind",
+      "english": "kind",
+      "path": "assets/audio/words/kind.mp3",
+      "present": false
+    },
+    {
+      "id": "kitchen",
+      "english": "kitchen",
+      "path": "assets/audio/words/kitchen.mp3",
+      "present": false
+    },
+    {
+      "id": "kite",
+      "english": "kite",
+      "path": "assets/audio/words/kite.mp3",
+      "present": false
+    },
+    {
+      "id": "knife",
+      "english": "knife",
+      "path": "assets/audio/words/knife.mp3",
+      "present": false
+    },
+    {
+      "id": "large",
+      "english": "large",
+      "path": "assets/audio/words/large.mp3",
+      "present": false
+    },
+    {
+      "id": "late",
+      "english": "late",
+      "path": "assets/audio/words/late.mp3",
+      "present": false
+    },
+    {
+      "id": "leaf",
+      "english": "leaf",
+      "path": "assets/audio/words/leaf.mp3",
+      "present": false
+    },
+    {
+      "id": "library",
+      "english": "library",
+      "path": "assets/audio/words/library.mp3",
+      "present": false
+    },
+    {
+      "id": "light",
+      "english": "light",
+      "path": "assets/audio/words/light.mp3",
+      "present": false
+    },
+    {
+      "id": "list",
+      "english": "list",
+      "path": "assets/audio/words/list.mp3",
+      "present": false
+    },
+    {
+      "id": "living room",
+      "english": "living room",
+      "path": "assets/audio/words/living room.mp3",
+      "present": false
+    },
+    {
+      "id": "look after",
+      "english": "look after",
+      "path": "assets/audio/words/look after.mp3",
+      "present": false
+    },
+    {
+      "id": "loud",
+      "english": "loud",
+      "path": "assets/audio/words/loud.mp3",
+      "present": false
+    },
+    {
+      "id": "lunch",
+      "english": "lunch",
+      "path": "assets/audio/words/lunch.mp3",
+      "present": false
+    },
+    {
+      "id": "make the bed",
+      "english": "make the bed",
+      "path": "assets/audio/words/make the bed.mp3",
+      "present": false
+    },
+    {
+      "id": "maths",
+      "english": "maths",
+      "path": "assets/audio/words/maths.mp3",
+      "present": false
+    },
+    {
+      "id": "mine",
+      "english": "mine",
+      "path": "assets/audio/words/mine.mp3",
+      "present": false
+    },
+    {
+      "id": "minute",
+      "english": "minute",
+      "path": "assets/audio/words/minute.mp3",
+      "present": false
+    },
+    {
+      "id": "mouse",
+      "english": "mouse",
+      "path": "assets/audio/words/mouse.mp3",
+      "present": false
+    },
+    {
+      "id": "ms",
+      "english": "Ms",
+      "path": "assets/audio/words/ms.mp3",
+      "present": false
+    },
+    {
+      "id": "music",
+      "english": "music",
+      "path": "assets/audio/words/music.mp3",
+      "present": false
+    },
+    {
+      "id": "newspaper",
+      "english": "newspaper",
+      "path": "assets/audio/words/newspaper.mp3",
+      "present": false
+    },
+    {
+      "id": "now",
+      "english": "now",
+      "path": "assets/audio/words/now.mp3",
+      "present": false
+    },
+    {
+      "id": "nurse",
+      "english": "nurse",
+      "path": "assets/audio/words/nurse.mp3",
+      "present": false
+    },
+    {
+      "id": "office worker",
+      "english": "office worker",
+      "path": "assets/audio/words/office worker.mp3",
+      "present": false
+    },
+    {
+      "id": "over",
+      "english": "over",
+      "path": "assets/audio/words/over.mp3",
+      "present": false
+    },
+    {
+      "id": "pair",
+      "english": "pair",
+      "path": "assets/audio/words/pair.mp3",
+      "present": false
+    },
+    {
+      "id": "park",
+      "english": "park",
+      "path": "assets/audio/words/park.mp3",
+      "present": false
+    },
+    {
+      "id": "pass",
+      "english": "pass",
+      "path": "assets/audio/words/pass.mp3",
+      "present": false
+    },
+    {
+      "id": "pe",
+      "english": "PE",
+      "path": "assets/audio/words/pe.mp3",
+      "present": false
+    },
+    {
+      "id": "people",
+      "english": "people",
+      "path": "assets/audio/words/people.mp3",
+      "present": false
+    },
+    {
+      "id": "photo",
+      "english": "photo",
+      "path": "assets/audio/words/photo.mp3",
+      "present": false
+    },
+    {
+      "id": "pick",
+      "english": "pick",
+      "path": "assets/audio/words/pick.mp3",
+      "present": false
+    },
+    {
+      "id": "pig",
+      "english": "pig",
+      "path": "assets/audio/words/pig.mp3",
+      "present": false
+    },
+    {
+      "id": "place",
+      "english": "place",
+      "path": "assets/audio/words/place.mp3",
+      "present": false
+    },
+    {
+      "id": "play",
+      "english": "play",
+      "path": "assets/audio/words/play.mp3",
+      "present": false
+    },
+    {
+      "id": "playground",
+      "english": "playground",
+      "path": "assets/audio/words/playground.mp3",
+      "present": false
+    },
+    {
+      "id": "police officer",
+      "english": "police officer",
+      "path": "assets/audio/words/police officer.mp3",
+      "present": false
+    },
+    {
+      "id": "potato",
+      "english": "potato",
+      "path": "assets/audio/words/potato.mp3",
+      "present": false
+    },
+    {
+      "id": "quiet",
+      "english": "quiet",
+      "path": "assets/audio/words/quiet.mp3",
+      "present": false
+    },
+    {
+      "id": "rain",
+      "english": "rain",
+      "path": "assets/audio/words/rain.mp3",
+      "present": false
+    },
+    {
+      "id": "rainy",
+      "english": "rainy",
+      "path": "assets/audio/words/rainy.mp3",
+      "present": false
+    },
+    {
+      "id": "read",
+      "english": "read",
+      "path": "assets/audio/words/read.mp3",
+      "present": false
+    },
+    {
+      "id": "ready",
+      "english": "ready",
+      "path": "assets/audio/words/ready.mp3",
+      "present": false
+    },
+    {
+      "id": "room",
+      "english": "room",
+      "path": "assets/audio/words/room.mp3",
+      "present": false
+    },
+    {
+      "id": "rule",
+      "english": "rule",
+      "path": "assets/audio/words/rule.mp3",
+      "present": false
+    },
+    {
+      "id": "run",
+      "english": "run",
+      "path": "assets/audio/words/run.mp3",
+      "present": false
+    },
+    {
+      "id": "safe",
+      "english": "safe",
+      "path": "assets/audio/words/safe.mp3",
+      "present": false
+    },
+    {
+      "id": "salad",
+      "english": "salad",
+      "path": "assets/audio/words/salad.mp3",
+      "present": false
+    },
+    {
+      "id": "season",
+      "english": "season",
+      "path": "assets/audio/words/season.mp3",
+      "present": false
+    },
+    {
+      "id": "set the table",
+      "english": "set the table",
+      "path": "assets/audio/words/set the table.mp3",
+      "present": false
+    },
+    {
+      "id": "sheep",
+      "english": "sheep",
+      "path": "assets/audio/words/sheep.mp3",
+      "present": false
+    },
+    {
+      "id": "shirt",
+      "english": "shirt",
+      "path": "assets/audio/words/shirt.mp3",
+      "present": false
+    },
+    {
+      "id": "shoe",
+      "english": "shoe",
+      "path": "assets/audio/words/shoe.mp3",
+      "present": false
+    },
+    {
+      "id": "shop",
+      "english": "shop",
+      "path": "assets/audio/words/shop.mp3",
+      "present": false
+    },
+    {
+      "id": "shorts",
+      "english": "shorts",
+      "path": "assets/audio/words/shorts.mp3",
+      "present": false
+    },
+    {
+      "id": "size",
+      "english": "size",
+      "path": "assets/audio/words/size.mp3",
+      "present": false
+    },
+    {
+      "id": "skirt",
+      "english": "skirt",
+      "path": "assets/audio/words/skirt.mp3",
+      "present": false
+    },
+    {
+      "id": "sleep",
+      "english": "sleep",
+      "path": "assets/audio/words/sleep.mp3",
+      "present": false
+    },
+    {
+      "id": "snow",
+      "english": "snow",
+      "path": "assets/audio/words/snow.mp3",
+      "present": false
+    },
+    {
+      "id": "snowman",
+      "english": "snowman",
+      "path": "assets/audio/words/snowman.mp3",
+      "present": false
+    },
+    {
+      "id": "snowy",
+      "english": "snowy",
+      "path": "assets/audio/words/snowy.mp3",
+      "present": false
+    },
+    {
+      "id": "sock",
+      "english": "sock",
+      "path": "assets/audio/words/sock.mp3",
+      "present": false
+    },
+    {
+      "id": "sorry",
+      "english": "sorry",
+      "path": "assets/audio/words/sorry.mp3",
+      "present": false
+    },
+    {
+      "id": "speak",
+      "english": "speak",
+      "path": "assets/audio/words/speak.mp3",
+      "present": false
+    },
+    {
+      "id": "spoon",
+      "english": "spoon",
+      "path": "assets/audio/words/spoon.mp3",
+      "present": false
+    },
+    {
+      "id": "sport",
+      "english": "sport",
+      "path": "assets/audio/words/sport.mp3",
+      "present": false
+    },
+    {
+      "id": "spring",
+      "english": "spring",
+      "path": "assets/audio/words/spring.mp3",
+      "present": false
+    },
+    {
+      "id": "story",
+      "english": "story",
+      "path": "assets/audio/words/story.mp3",
+      "present": false
+    },
+    {
+      "id": "strong",
+      "english": "strong",
+      "path": "assets/audio/words/strong.mp3",
+      "present": false
+    },
+    {
+      "id": "study",
+      "english": "study",
+      "path": "assets/audio/words/study.mp3",
+      "present": false
+    },
+    {
+      "id": "summer",
+      "english": "summer",
+      "path": "assets/audio/words/summer.mp3",
+      "present": false
+    },
+    {
+      "id": "sunglasses",
+      "english": "sunglasses",
+      "path": "assets/audio/words/sunglasses.mp3",
+      "present": false
+    },
+    {
+      "id": "sunny",
+      "english": "sunny",
+      "path": "assets/audio/words/sunny.mp3",
+      "present": false
+    },
+    {
+      "id": "supermarket",
+      "english": "supermarket",
+      "path": "assets/audio/words/supermarket.mp3",
+      "present": false
+    },
+    {
+      "id": "sweater",
+      "english": "sweater",
+      "path": "assets/audio/words/sweater.mp3",
+      "present": false
+    },
+    {
+      "id": "sweep",
+      "english": "sweep",
+      "path": "assets/audio/words/sweep.mp3",
+      "present": false
+    },
+    {
+      "id": "swim",
+      "english": "swim",
+      "path": "assets/audio/words/swim.mp3",
+      "present": false
+    },
+    {
+      "id": "sydney",
+      "english": "Sydney",
+      "path": "assets/audio/words/sydney.mp3",
+      "present": false
+    },
+    {
+      "id": "t-shirt",
+      "english": "T-shirt",
+      "path": "assets/audio/words/t-shirt.mp3",
+      "present": false
+    },
+    {
+      "id": "take",
+      "english": "take",
+      "path": "assets/audio/words/take.mp3",
+      "present": false
+    },
+    {
+      "id": "tell",
+      "english": "tell",
+      "path": "assets/audio/words/tell.mp3",
+      "present": false
+    },
+    {
+      "id": "their",
+      "english": "their",
+      "path": "assets/audio/words/their.mp3",
+      "present": false
+    },
+    {
+      "id": "then",
+      "english": "then",
+      "path": "assets/audio/words/then.mp3",
+      "present": false
+    },
+    {
+      "id": "there",
+      "english": "there",
+      "path": "assets/audio/words/there.mp3",
+      "present": false
+    },
+    {
+      "id": "think",
+      "english": "think",
+      "path": "assets/audio/words/think.mp3",
+      "present": false
+    },
+    {
+      "id": "those",
+      "english": "those",
+      "path": "assets/audio/words/those.mp3",
+      "present": false
+    },
+    {
+      "id": "tidy",
+      "english": "tidy",
+      "path": "assets/audio/words/tidy.mp3",
+      "present": false
+    },
+    {
+      "id": "tired",
+      "english": "tired",
+      "path": "assets/audio/words/tired.mp3",
+      "present": false
+    },
+    {
+      "id": "together",
+      "english": "together",
+      "path": "assets/audio/words/together.mp3",
+      "present": false
+    },
+    {
+      "id": "toilet",
+      "english": "toilet",
+      "path": "assets/audio/words/toilet.mp3",
+      "present": false
+    },
+    {
+      "id": "tomato",
+      "english": "tomato",
+      "path": "assets/audio/words/tomato.mp3",
+      "present": false
+    },
+    {
+      "id": "tomorrow",
+      "english": "tomorrow",
+      "path": "assets/audio/words/tomorrow.mp3",
+      "present": false
+    },
+    {
+      "id": "trousers",
+      "english": "trousers",
+      "path": "assets/audio/words/trousers.mp3",
+      "present": false
+    },
+    {
+      "id": "try on",
+      "english": "try on",
+      "path": "assets/audio/words/try on.mp3",
+      "present": false
+    },
+    {
+      "id": "turn off",
+      "english": "turn off",
+      "path": "assets/audio/words/turn off.mp3",
+      "present": false
+    },
+    {
+      "id": "tv",
+      "english": "TV",
+      "path": "assets/audio/words/tv.mp3",
+      "present": false
+    },
+    {
+      "id": "understand",
+      "english": "understand",
+      "path": "assets/audio/words/understand.mp3",
+      "present": false
+    },
+    {
+      "id": "walk",
+      "english": "walk",
+      "path": "assets/audio/words/walk.mp3",
+      "present": false
+    },
+    {
+      "id": "wall",
+      "english": "wall",
+      "path": "assets/audio/words/wall.mp3",
+      "present": false
+    },
+    {
+      "id": "want",
+      "english": "want",
+      "path": "assets/audio/words/want.mp3",
+      "present": false
+    },
+    {
+      "id": "warm",
+      "english": "warm",
+      "path": "assets/audio/words/warm.mp3",
+      "present": false
+    },
+    {
+      "id": "wash",
+      "english": "wash",
+      "path": "assets/audio/words/wash.mp3",
+      "present": false
+    },
+    {
+      "id": "waste",
+      "english": "waste",
+      "path": "assets/audio/words/waste.mp3",
+      "present": false
+    },
+    {
+      "id": "watch",
+      "english": "watch",
+      "path": "assets/audio/words/watch.mp3",
+      "present": false
+    },
+    {
+      "id": "wear",
+      "english": "wear",
+      "path": "assets/audio/words/wear.mp3",
+      "present": false
+    },
+    {
+      "id": "weather",
+      "english": "weather",
+      "path": "assets/audio/words/weather.mp3",
+      "present": false
+    },
+    {
+      "id": "week",
+      "english": "week",
+      "path": "assets/audio/words/week.mp3",
+      "present": false
+    },
+    {
+      "id": "wet",
+      "english": "wet",
+      "path": "assets/audio/words/wet.mp3",
+      "present": false
+    },
+    {
+      "id": "when",
+      "english": "when",
+      "path": "assets/audio/words/when.mp3",
+      "present": false
+    },
+    {
+      "id": "which",
+      "english": "which",
+      "path": "assets/audio/words/which.mp3",
+      "present": false
+    },
+    {
+      "id": "whose",
+      "english": "whose",
+      "path": "assets/audio/words/whose.mp3",
+      "present": false
+    },
+    {
+      "id": "why",
+      "english": "why",
+      "path": "assets/audio/words/why.mp3",
+      "present": false
+    },
+    {
+      "id": "window",
+      "english": "window",
+      "path": "assets/audio/words/window.mp3",
+      "present": false
+    },
+    {
+      "id": "windy",
+      "english": "windy",
+      "path": "assets/audio/words/windy.mp3",
+      "present": false
+    },
+    {
+      "id": "winter",
+      "english": "winter",
+      "path": "assets/audio/words/winter.mp3",
+      "present": false
+    },
+    {
+      "id": "word",
+      "english": "word",
+      "path": "assets/audio/words/word.mp3",
+      "present": false
+    },
+    {
+      "id": "work",
+      "english": "work",
+      "path": "assets/audio/words/work.mp3",
+      "present": false
+    },
+    {
+      "id": "workbook",
+      "english": "workbook",
+      "path": "assets/audio/words/workbook.mp3",
+      "present": false
+    },
+    {
+      "id": "afraid",
+      "english": "afraid",
+      "path": "assets/audio/words/afraid.mp3",
+      "present": false
+    },
+    {
+      "id": "ago",
+      "english": "ago",
+      "path": "assets/audio/words/ago.mp3",
+      "present": false
+    },
+    {
+      "id": "agree",
+      "english": "agree",
+      "path": "assets/audio/words/agree.mp3",
+      "present": false
+    },
+    {
+      "id": "along",
+      "english": "along",
+      "path": "assets/audio/words/along.mp3",
+      "present": false
+    },
+    {
+      "id": "angry",
+      "english": "angry",
+      "path": "assets/audio/words/angry.mp3",
+      "present": false
+    },
+    {
+      "id": "answer",
+      "english": "answer",
+      "path": "assets/audio/words/answer.mp3",
+      "present": false
+    },
+    {
+      "id": "app",
+      "english": "app",
+      "path": "assets/audio/words/app.mp3",
+      "present": false
+    },
+    {
+      "id": "april",
+      "english": "April",
+      "path": "assets/audio/words/april.mp3",
+      "present": false
+    },
+    {
+      "id": "artist",
+      "english": "artist",
+      "path": "assets/audio/words/artist.mp3",
+      "present": false
+    },
+    {
+      "id": "ask",
+      "english": "ask",
+      "path": "assets/audio/words/ask.mp3",
+      "present": false
+    },
+    {
+      "id": "august",
+      "english": "August",
+      "path": "assets/audio/words/august.mp3",
+      "present": false
+    },
+    {
+      "id": "australia",
+      "english": "Australia",
+      "path": "assets/audio/words/australia.mp3",
+      "present": false
+    },
+    {
+      "id": "beach",
+      "english": "beach",
+      "path": "assets/audio/words/beach.mp3",
+      "present": false
+    },
+    {
+      "id": "because",
+      "english": "because",
+      "path": "assets/audio/words/because.mp3",
+      "present": false
+    },
+    {
+      "id": "beef",
+      "english": "beef",
+      "path": "assets/audio/words/beef.mp3",
+      "present": false
+    },
+    {
+      "id": "before",
+      "english": "before",
+      "path": "assets/audio/words/before.mp3",
+      "present": false
+    },
+    {
+      "id": "behind",
+      "english": "behind",
+      "path": "assets/audio/words/behind.mp3",
+      "present": false
+    },
+    {
+      "id": "beijing opera",
+      "english": "Beijing opera",
+      "path": "assets/audio/words/beijing opera.mp3",
+      "present": false
+    },
+    {
+      "id": "beside",
+      "english": "beside",
+      "path": "assets/audio/words/beside.mp3",
+      "present": false
+    },
+    {
+      "id": "between",
+      "english": "between",
+      "path": "assets/audio/words/between.mp3",
+      "present": false
+    },
+    {
+      "id": "bike",
+      "english": "bike",
+      "path": "assets/audio/words/bike.mp3",
+      "present": false
+    },
+    {
+      "id": "blog",
+      "english": "blog",
+      "path": "assets/audio/words/blog.mp3",
+      "present": false
+    },
+    {
+      "id": "borrow",
+      "english": "borrow",
+      "path": "assets/audio/words/borrow.mp3",
+      "present": false
+    },
+    {
+      "id": "both",
+      "english": "both",
+      "path": "assets/audio/words/both.mp3",
+      "present": false
+    },
+    {
+      "id": "bring",
+      "english": "bring",
+      "path": "assets/audio/words/bring.mp3",
+      "present": false
+    },
+    {
+      "id": "britain",
+      "english": "Britain",
+      "path": "assets/audio/words/britain.mp3",
+      "present": false
+    },
+    {
+      "id": "brush",
+      "english": "brush",
+      "path": "assets/audio/words/brush.mp3",
+      "present": false
+    },
+    {
+      "id": "building",
+      "english": "building",
+      "path": "assets/audio/words/building.mp3",
+      "present": false
+    },
+    {
+      "id": "cairo",
+      "english": "Cairo",
+      "path": "assets/audio/words/cairo.mp3",
+      "present": false
+    },
+    {
+      "id": "camel",
+      "english": "camel",
+      "path": "assets/audio/words/camel.mp3",
+      "present": false
+    },
+    {
+      "id": "carry",
+      "english": "carry",
+      "path": "assets/audio/words/carry.mp3",
+      "present": false
+    },
+    {
+      "id": "catch",
+      "english": "catch",
+      "path": "assets/audio/words/catch.mp3",
+      "present": false
+    },
+    {
+      "id": "celebrate",
+      "english": "celebrate",
+      "path": "assets/audio/words/celebrate.mp3",
+      "present": false
+    },
+    {
+      "id": "centre",
+      "english": "centre",
+      "path": "assets/audio/words/centre.mp3",
+      "present": false
+    },
+    {
+      "id": "check",
+      "english": "check",
+      "path": "assets/audio/words/check.mp3",
+      "present": false
+    },
+    {
+      "id": "chess",
+      "english": "chess",
+      "path": "assets/audio/words/chess.mp3",
+      "present": false
+    },
+    {
+      "id": "christmas",
+      "english": "Christmas",
+      "path": "assets/audio/words/christmas.mp3",
+      "present": false
+    },
+    {
+      "id": "cinema",
+      "english": "cinema",
+      "path": "assets/audio/words/cinema.mp3",
+      "present": false
+    },
+    {
+      "id": "city",
+      "english": "city",
+      "path": "assets/audio/words/city.mp3",
+      "present": false
+    },
+    {
+      "id": "clever",
+      "english": "clever",
+      "path": "assets/audio/words/clever.mp3",
+      "present": false
+    },
+    {
+      "id": "close",
+      "english": "close",
+      "path": "assets/audio/words/close.mp3",
+      "present": false
+    },
+    {
+      "id": "coconut",
+      "english": "coconut",
+      "path": "assets/audio/words/coconut.mp3",
+      "present": false
+    },
+    {
+      "id": "common",
+      "english": "common",
+      "path": "assets/audio/words/common.mp3",
+      "present": false
+    },
+    {
+      "id": "confucius",
+      "english": "Confucius",
+      "path": "assets/audio/words/confucius.mp3",
+      "present": false
+    },
+    {
+      "id": "could",
+      "english": "could",
+      "path": "assets/audio/words/could.mp3",
+      "present": false
+    },
+    {
+      "id": "country",
+      "english": "country",
+      "path": "assets/audio/words/country.mp3",
+      "present": false
+    },
+    {
+      "id": "cpc founding day",
+      "english": "CPC Founding Day",
+      "path": "assets/audio/words/cpc founding day.mp3",
+      "present": false
+    },
+    {
+      "id": "culture",
+      "english": "culture",
+      "path": "assets/audio/words/culture.mp3",
+      "present": false
+    },
+    {
+      "id": "cup",
+      "english": "cup",
+      "path": "assets/audio/words/cup.mp3",
+      "present": false
+    },
+    {
+      "id": "dangerous",
+      "english": "dangerous",
+      "path": "assets/audio/words/dangerous.mp3",
+      "present": false
+    },
+    {
+      "id": "december",
+      "english": "December",
+      "path": "assets/audio/words/december.mp3",
+      "present": false
+    },
+    {
+      "id": "desert",
+      "english": "desert",
+      "path": "assets/audio/words/desert.mp3",
+      "present": false
+    },
+    {
+      "id": "different",
+      "english": "different",
+      "path": "assets/audio/words/different.mp3",
+      "present": false
+    },
+    {
+      "id": "direct",
+      "english": "direct",
+      "path": "assets/audio/words/direct.mp3",
+      "present": false
+    },
+    {
+      "id": "dragon boat festival",
+      "english": "Dragon Boat Festival",
+      "path": "assets/audio/words/dragon boat festival.mp3",
+      "present": false
+    },
+    {
+      "id": "dumpling",
+      "english": "dumpling",
+      "path": "assets/audio/words/dumpling.mp3",
+      "present": false
+    },
+    {
+      "id": "early",
+      "english": "early",
+      "path": "assets/audio/words/early.mp3",
+      "present": false
+    },
+    {
+      "id": "easy",
+      "english": "easy",
+      "path": "assets/audio/words/easy.mp3",
+      "present": false
+    },
+    {
+      "id": "else",
+      "english": "else",
+      "path": "assets/audio/words/else.mp3",
+      "present": false
+    },
+    {
+      "id": "enough",
+      "english": "enough",
+      "path": "assets/audio/words/enough.mp3",
+      "present": false
+    },
+    {
+      "id": "environment",
+      "english": "environment",
+      "path": "assets/audio/words/environment.mp3",
+      "present": false
+    },
+    {
+      "id": "even",
+      "english": "even",
+      "path": "assets/audio/words/even.mp3",
+      "present": false
+    },
+    {
+      "id": "evening",
+      "english": "evening",
+      "path": "assets/audio/words/evening.mp3",
+      "present": false
+    },
+    {
+      "id": "everyday",
+      "english": "everyday",
+      "path": "assets/audio/words/everyday.mp3",
+      "present": false
+    },
+    {
+      "id": "excited",
+      "english": "excited",
+      "path": "assets/audio/words/excited.mp3",
+      "present": false
+    },
+    {
+      "id": "exercise",
+      "english": "exercise",
+      "path": "assets/audio/words/exercise.mp3",
+      "present": false
+    },
+    {
+      "id": "explore",
+      "english": "explore",
+      "path": "assets/audio/words/explore.mp3",
+      "present": false
+    },
+    {
+      "id": "famous",
+      "english": "famous",
+      "path": "assets/audio/words/famous.mp3",
+      "present": false
+    },
+    {
+      "id": "far",
+      "english": "far",
+      "path": "assets/audio/words/far.mp3",
+      "present": false
+    },
+    {
+      "id": "february",
+      "english": "February",
+      "path": "assets/audio/words/february.mp3",
+      "present": false
+    },
+    {
+      "id": "feel like",
+      "english": "feel like",
+      "path": "assets/audio/words/feel like.mp3",
+      "present": false
+    },
+    {
+      "id": "finally",
+      "english": "finally",
+      "path": "assets/audio/words/finally.mp3",
+      "present": false
+    },
+    {
+      "id": "fine",
+      "english": "fine",
+      "path": "assets/audio/words/fine.mp3",
+      "present": false
+    },
+    {
+      "id": "finish",
+      "english": "finish",
+      "path": "assets/audio/words/finish.mp3",
+      "present": false
+    },
+    {
+      "id": "fire",
+      "english": "fire",
+      "path": "assets/audio/words/fire.mp3",
+      "present": false
+    },
+    {
+      "id": "flash",
+      "english": "flash",
+      "path": "assets/audio/words/flash.mp3",
+      "present": false
+    },
+    {
+      "id": "flood",
+      "english": "flood",
+      "path": "assets/audio/words/flood.mp3",
+      "present": false
+    },
+    {
+      "id": "flu",
+      "english": "flu",
+      "path": "assets/audio/words/flu.mp3",
+      "present": false
+    },
+    {
+      "id": "fog",
+      "english": "fog",
+      "path": "assets/audio/words/fog.mp3",
+      "present": false
+    },
+    {
+      "id": "foot",
+      "english": "foot",
+      "path": "assets/audio/words/foot.mp3",
+      "present": false
+    },
+    {
+      "id": "foreign",
+      "english": "foreign",
+      "path": "assets/audio/words/foreign.mp3",
+      "present": false
+    },
+    {
+      "id": "forest",
+      "english": "forest",
+      "path": "assets/audio/words/forest.mp3",
+      "present": false
+    },
+    {
+      "id": "friday",
+      "english": "Friday",
+      "path": "assets/audio/words/friday.mp3",
+      "present": false
+    },
+    {
+      "id": "front",
+      "english": "front",
+      "path": "assets/audio/words/front.mp3",
+      "present": false
+    },
+    {
+      "id": "go hiking",
+      "english": "go hiking",
+      "path": "assets/audio/words/go hiking.mp3",
+      "present": false
+    },
+    {
+      "id": "grandparent",
+      "english": "grandparent",
+      "path": "assets/audio/words/grandparent.mp3",
+      "present": false
+    },
+    {
+      "id": "grassland",
+      "english": "grassland",
+      "path": "assets/audio/words/grassland.mp3",
+      "present": false
+    },
+    {
+      "id": "guard",
+      "english": "guard",
+      "path": "assets/audio/words/guard.mp3",
+      "present": false
+    },
+    {
+      "id": "habit",
+      "english": "habit",
+      "path": "assets/audio/words/habit.mp3",
+      "present": false
+    },
+    {
+      "id": "hamburger",
+      "english": "hamburger",
+      "path": "assets/audio/words/hamburger.mp3",
+      "present": false
+    },
+    {
+      "id": "hard-working",
+      "english": "hard-working",
+      "path": "assets/audio/words/hard-working.mp3",
+      "present": false
+    },
+    {
+      "id": "hawaii",
+      "english": "Hawaii",
+      "path": "assets/audio/words/hawaii.mp3",
+      "present": false
+    },
+    {
+      "id": "health",
+      "english": "health",
+      "path": "assets/audio/words/health.mp3",
+      "present": false
+    },
+    {
+      "id": "heavy",
+      "english": "heavy",
+      "path": "assets/audio/words/heavy.mp3",
+      "present": false
+    },
+    {
+      "id": "high",
+      "english": "high",
+      "path": "assets/audio/words/high.mp3",
+      "present": false
+    },
+    {
+      "id": "hill",
+      "english": "hill",
+      "path": "assets/audio/words/hill.mp3",
+      "present": false
+    },
+    {
+      "id": "him",
+      "english": "him",
+      "path": "assets/audio/words/him.mp3",
+      "present": false
+    },
+    {
+      "id": "history",
+      "english": "history",
+      "path": "assets/audio/words/history.mp3",
+      "present": false
+    },
+    {
+      "id": "holiday",
+      "english": "holiday",
+      "path": "assets/audio/words/holiday.mp3",
+      "present": false
+    },
+    {
+      "id": "hometown",
+      "english": "hometown",
+      "path": "assets/audio/words/hometown.mp3",
+      "present": false
+    },
+    {
+      "id": "hot pot",
+      "english": "hot pot",
+      "path": "assets/audio/words/hot pot.mp3",
+      "present": false
+    },
+    {
+      "id": "hotel",
+      "english": "hotel",
+      "path": "assets/audio/words/hotel.mp3",
+      "present": false
+    },
+    {
+      "id": "hour",
+      "english": "hour",
+      "path": "assets/audio/words/hour.mp3",
+      "present": false
+    },
+    {
+      "id": "house",
+      "english": "house",
+      "path": "assets/audio/words/house.mp3",
+      "present": false
+    },
+    {
+      "id": "hungry",
+      "english": "hungry",
+      "path": "assets/audio/words/hungry.mp3",
+      "present": false
+    },
+    {
+      "id": "hurt",
+      "english": "hurt",
+      "path": "assets/audio/words/hurt.mp3",
+      "present": false
+    },
+    {
+      "id": "ice",
+      "english": "ice",
+      "path": "assets/audio/words/ice.mp3",
+      "present": false
+    },
+    {
+      "id": "ice cream",
+      "english": "ice cream",
+      "path": "assets/audio/words/ice cream.mp3",
+      "present": false
+    },
+    {
+      "id": "if",
+      "english": "if",
+      "path": "assets/audio/words/if.mp3",
+      "present": false
+    },
+    {
+      "id": "india",
+      "english": "India",
+      "path": "assets/audio/words/india.mp3",
+      "present": false
+    },
+    {
+      "id": "information",
+      "english": "information",
+      "path": "assets/audio/words/information.mp3",
+      "present": false
+    },
+    {
+      "id": "inside",
+      "english": "inside",
+      "path": "assets/audio/words/inside.mp3",
+      "present": false
+    },
+    {
+      "id": "interesting",
+      "english": "interesting",
+      "path": "assets/audio/words/interesting.mp3",
+      "present": false
+    },
+    {
+      "id": "internet",
+      "english": "internet",
+      "path": "assets/audio/words/internet.mp3",
+      "present": false
+    },
+    {
+      "id": "island",
+      "english": "island",
+      "path": "assets/audio/words/island.mp3",
+      "present": false
+    },
+    {
+      "id": "italy",
+      "english": "Italy",
+      "path": "assets/audio/words/italy.mp3",
+      "present": false
+    },
+    {
+      "id": "its",
+      "english": "its",
+      "path": "assets/audio/words/its.mp3",
+      "present": false
+    },
+    {
+      "id": "january",
+      "english": "January",
+      "path": "assets/audio/words/january.mp3",
+      "present": false
+    },
+    {
+      "id": "join",
+      "english": "join",
+      "path": "assets/audio/words/join.mp3",
+      "present": false
+    },
+    {
+      "id": "july",
+      "english": "July",
+      "path": "assets/audio/words/july.mp3",
+      "present": false
+    },
+    {
+      "id": "jump",
+      "english": "jump",
+      "path": "assets/audio/words/jump.mp3",
+      "present": false
+    },
+    {
+      "id": "june",
+      "english": "June",
+      "path": "assets/audio/words/june.mp3",
+      "present": false
+    },
+    {
+      "id": "kangaroo",
+      "english": "kangaroo",
+      "path": "assets/audio/words/kangaroo.mp3",
+      "present": false
+    },
+    {
+      "id": "know",
+      "english": "know",
+      "path": "assets/audio/words/know.mp3",
+      "present": false
+    },
+    {
+      "id": "koala",
+      "english": "koala",
+      "path": "assets/audio/words/koala.mp3",
+      "present": false
+    },
+    {
+      "id": "labour day",
+      "english": "Labour Day",
+      "path": "assets/audio/words/labour day.mp3",
+      "present": false
+    },
+    {
+      "id": "lake",
+      "english": "lake",
+      "path": "assets/audio/words/lake.mp3",
+      "present": false
+    },
+    {
+      "id": "last",
+      "english": "last",
+      "path": "assets/audio/words/last.mp3",
+      "present": false
+    },
+    {
+      "id": "laugh",
+      "english": "laugh",
+      "path": "assets/audio/words/laugh.mp3",
+      "present": false
+    },
+    {
+      "id": "left",
+      "english": "left",
+      "path": "assets/audio/words/left.mp3",
+      "present": false
+    },
+    {
+      "id": "less",
+      "english": "less",
+      "path": "assets/audio/words/less.mp3",
+      "present": false
+    },
+    {
+      "id": "lesson",
+      "english": "lesson",
+      "path": "assets/audio/words/lesson.mp3",
+      "present": false
+    },
+    {
+      "id": "line",
+      "english": "line",
+      "path": "assets/audio/words/line.mp3",
+      "present": false
+    },
+    {
+      "id": "litter",
+      "english": "litter",
+      "path": "assets/audio/words/litter.mp3",
+      "present": false
+    },
+    {
+      "id": "little",
+      "english": "little",
+      "path": "assets/audio/words/little.mp3",
+      "present": false
+    },
+    {
+      "id": "live",
+      "english": "live",
+      "path": "assets/audio/words/live.mp3",
+      "present": false
+    },
+    {
+      "id": "local",
+      "english": "local",
+      "path": "assets/audio/words/local.mp3",
+      "present": false
+    },
+    {
+      "id": "lost",
+      "english": "lost",
+      "path": "assets/audio/words/lost.mp3",
+      "present": false
+    },
+    {
+      "id": "lotus",
+      "english": "lotus",
+      "path": "assets/audio/words/lotus.mp3",
+      "present": false
+    },
+    {
+      "id": "lovely",
+      "english": "lovely",
+      "path": "assets/audio/words/lovely.mp3",
+      "present": false
+    },
+    {
+      "id": "magazine",
+      "english": "magazine",
+      "path": "assets/audio/words/magazine.mp3",
+      "present": false
+    },
+    {
+      "id": "march",
+      "english": "March",
+      "path": "assets/audio/words/march.mp3",
+      "present": false
+    },
+    {
+      "id": "matter",
+      "english": "matter",
+      "path": "assets/audio/words/matter.mp3",
+      "present": false
+    },
+    {
+      "id": "may",
+      "english": "May",
+      "path": "assets/audio/words/may.mp3",
+      "present": false
+    },
+    {
+      "id": "maybe",
+      "english": "maybe",
+      "path": "assets/audio/words/maybe.mp3",
+      "present": false
+    },
+    {
+      "id": "middle",
+      "english": "middle",
+      "path": "assets/audio/words/middle.mp3",
+      "present": false
+    },
+    {
+      "id": "monday",
+      "english": "Monday",
+      "path": "assets/audio/words/monday.mp3",
+      "present": false
+    },
+    {
+      "id": "mount taishan",
+      "english": "Mount Taishan",
+      "path": "assets/audio/words/mount taishan.mp3",
+      "present": false
+    },
+    {
+      "id": "mountain",
+      "english": "mountain",
+      "path": "assets/audio/words/mountain.mp3",
+      "present": false
+    },
+    {
+      "id": "move",
+      "english": "move",
+      "path": "assets/audio/words/move.mp3",
+      "present": false
+    },
+    {
+      "id": "mrs",
+      "english": "Mrs",
+      "path": "assets/audio/words/mrs.mp3",
+      "present": false
+    },
+    {
+      "id": "must",
+      "english": "must",
+      "path": "assets/audio/words/must.mp3",
+      "present": false
+    },
+    {
+      "id": "national day",
+      "english": "National Day",
+      "path": "assets/audio/words/national day.mp3",
+      "present": false
+    },
+    {
+      "id": "nature",
+      "english": "nature",
+      "path": "assets/audio/words/nature.mp3",
+      "present": false
+    },
+    {
+      "id": "next",
+      "english": "next",
+      "path": "assets/audio/words/next.mp3",
+      "present": false
+    },
+    {
+      "id": "night",
+      "english": "night",
+      "path": "assets/audio/words/night.mp3",
+      "present": false
+    },
+    {
+      "id": "northeast",
+      "english": "northeast",
+      "path": "assets/audio/words/northeast.mp3",
+      "present": false
+    },
+    {
+      "id": "note",
+      "english": "note",
+      "path": "assets/audio/words/note.mp3",
+      "present": false
+    },
+    {
+      "id": "november",
+      "english": "November",
+      "path": "assets/audio/words/november.mp3",
+      "present": false
+    },
+    {
+      "id": "october",
+      "english": "October",
+      "path": "assets/audio/words/october.mp3",
+      "present": false
+    },
+    {
+      "id": "on foot",
+      "english": "on foot",
+      "path": "assets/audio/words/on foot.mp3",
+      "present": false
+    },
+    {
+      "id": "open",
+      "english": "open",
+      "path": "assets/audio/words/open.mp3",
+      "present": false
+    },
+    {
+      "id": "painting",
+      "english": "painting",
+      "path": "assets/audio/words/painting.mp3",
+      "present": false
+    },
+    {
+      "id": "palace",
+      "english": "palace",
+      "path": "assets/audio/words/palace.mp3",
+      "present": false
+    },
+    {
+      "id": "parent",
+      "english": "parent",
+      "path": "assets/audio/words/parent.mp3",
+      "present": false
+    },
+    {
+      "id": "party",
+      "english": "party",
+      "path": "assets/audio/words/party.mp3",
+      "present": false
+    },
+    {
+      "id": "password",
+      "english": "password",
+      "path": "assets/audio/words/password.mp3",
+      "present": false
+    },
+    {
+      "id": "phone",
+      "english": "phone",
+      "path": "assets/audio/words/phone.mp3",
+      "present": false
+    },
+    {
+      "id": "piano",
+      "english": "piano",
+      "path": "assets/audio/words/piano.mp3",
+      "present": false
+    },
+    {
+      "id": "ping-pong",
+      "english": "ping-pong",
+      "path": "assets/audio/words/ping-pong.mp3",
+      "present": false
+    },
+    {
+      "id": "pla day",
+      "english": "PLA Day",
+      "path": "assets/audio/words/pla day.mp3",
+      "present": false
+    },
+    {
+      "id": "plan",
+      "english": "plan",
+      "path": "assets/audio/words/plan.mp3",
+      "present": false
+    },
+    {
+      "id": "plane",
+      "english": "plane",
+      "path": "assets/audio/words/plane.mp3",
+      "present": false
+    },
+    {
+      "id": "player",
+      "english": "player",
+      "path": "assets/audio/words/player.mp3",
+      "present": false
+    },
+    {
+      "id": "project",
+      "english": "project",
+      "path": "assets/audio/words/project.mp3",
+      "present": false
+    },
+    {
+      "id": "pull",
+      "english": "pull",
+      "path": "assets/audio/words/pull.mp3",
+      "present": false
+    },
+    {
+      "id": "pyramid",
+      "english": "pyramid",
+      "path": "assets/audio/words/pyramid.mp3",
+      "present": false
+    },
+    {
+      "id": "raincoat",
+      "english": "raincoat",
+      "path": "assets/audio/words/raincoat.mp3",
+      "present": false
+    },
+    {
+      "id": "recycle",
+      "english": "recycle",
+      "path": "assets/audio/words/recycle.mp3",
+      "present": false
+    },
+    {
+      "id": "rest",
+      "english": "rest",
+      "path": "assets/audio/words/rest.mp3",
+      "present": false
+    },
+    {
+      "id": "return",
+      "english": "return",
+      "path": "assets/audio/words/return.mp3",
+      "present": false
+    },
+    {
+      "id": "ride",
+      "english": "ride",
+      "path": "assets/audio/words/ride.mp3",
+      "present": false
+    },
+    {
+      "id": "river",
+      "english": "river",
+      "path": "assets/audio/words/river.mp3",
+      "present": false
+    },
+    {
+      "id": "robot",
+      "english": "robot",
+      "path": "assets/audio/words/robot.mp3",
+      "present": false
+    },
+    {
+      "id": "root",
+      "english": "root",
+      "path": "assets/audio/words/root.mp3",
+      "present": false
+    },
+    {
+      "id": "rope",
+      "english": "rope",
+      "path": "assets/audio/words/rope.mp3",
+      "present": false
+    },
+    {
+      "id": "round",
+      "english": "round",
+      "path": "assets/audio/words/round.mp3",
+      "present": false
+    },
+    {
+      "id": "sad",
+      "english": "sad",
+      "path": "assets/audio/words/sad.mp3",
+      "present": false
+    },
+    {
+      "id": "saturday",
+      "english": "Saturday",
+      "path": "assets/audio/words/saturday.mp3",
+      "present": false
+    },
+    {
+      "id": "scare",
+      "english": "scare",
+      "path": "assets/audio/words/scare.mp3",
+      "present": false
+    },
+    {
+      "id": "science",
+      "english": "science",
+      "path": "assets/audio/words/science.mp3",
+      "present": false
+    },
+    {
+      "id": "scientist",
+      "english": "scientist",
+      "path": "assets/audio/words/scientist.mp3",
+      "present": false
+    },
+    {
+      "id": "seafood",
+      "english": "seafood",
+      "path": "assets/audio/words/seafood.mp3",
+      "present": false
+    },
+    {
+      "id": "seed",
+      "english": "seed",
+      "path": "assets/audio/words/seed.mp3",
+      "present": false
+    },
+    {
+      "id": "september",
+      "english": "September",
+      "path": "assets/audio/words/september.mp3",
+      "present": false
+    },
+    {
+      "id": "ship",
+      "english": "ship",
+      "path": "assets/audio/words/ship.mp3",
+      "present": false
+    },
+    {
+      "id": "should",
+      "english": "should",
+      "path": "assets/audio/words/should.mp3",
+      "present": false
+    },
+    {
+      "id": "shout",
+      "english": "shout",
+      "path": "assets/audio/words/shout.mp3",
+      "present": false
+    },
+    {
+      "id": "show",
+      "english": "show",
+      "path": "assets/audio/words/show.mp3",
+      "present": false
+    },
+    {
+      "id": "sign",
+      "english": "sign",
+      "path": "assets/audio/words/sign.mp3",
+      "present": false
+    },
+    {
+      "id": "sir",
+      "english": "sir",
+      "path": "assets/audio/words/sir.mp3",
+      "present": false
+    },
+    {
+      "id": "sit",
+      "english": "sit",
+      "path": "assets/audio/words/sit.mp3",
+      "present": false
+    },
+    {
+      "id": "skate",
+      "english": "skate",
+      "path": "assets/audio/words/skate.mp3",
+      "present": false
+    },
+    {
+      "id": "smoke",
+      "english": "smoke",
+      "path": "assets/audio/words/smoke.mp3",
+      "present": false
+    },
+    {
+      "id": "sometimes",
+      "english": "sometimes",
+      "path": "assets/audio/words/sometimes.mp3",
+      "present": false
+    },
+    {
+      "id": "special",
+      "english": "special",
+      "path": "assets/audio/words/special.mp3",
+      "present": false
+    },
+    {
+      "id": "stand",
+      "english": "stand",
+      "path": "assets/audio/words/stand.mp3",
+      "present": false
+    },
+    {
+      "id": "star",
+      "english": "star",
+      "path": "assets/audio/words/star.mp3",
+      "present": false
+    },
+    {
+      "id": "start",
+      "english": "start",
+      "path": "assets/audio/words/start.mp3",
+      "present": false
+    },
+    {
+      "id": "station",
+      "english": "station",
+      "path": "assets/audio/words/station.mp3",
+      "present": false
+    },
+    {
+      "id": "stay",
+      "english": "stay",
+      "path": "assets/audio/words/stay.mp3",
+      "present": false
+    },
+    {
+      "id": "stem",
+      "english": "stem",
+      "path": "assets/audio/words/stem.mp3",
+      "present": false
+    },
+    {
+      "id": "stone",
+      "english": "stone",
+      "path": "assets/audio/words/stone.mp3",
+      "present": false
+    },
+    {
+      "id": "street",
+      "english": "street",
+      "path": "assets/audio/words/street.mp3",
+      "present": false
+    },
+    {
+      "id": "subject",
+      "english": "subject",
+      "path": "assets/audio/words/subject.mp3",
+      "present": false
+    },
+    {
+      "id": "suggest",
+      "english": "suggest",
+      "path": "assets/audio/words/suggest.mp3",
+      "present": false
+    },
+    {
+      "id": "sunday",
+      "english": "Sunday",
+      "path": "assets/audio/words/sunday.mp3",
+      "present": false
+    },
+    {
+      "id": "sunshine",
+      "english": "sunshine",
+      "path": "assets/audio/words/sunshine.mp3",
+      "present": false
+    },
+    {
+      "id": "take care of",
+      "english": "take care of",
+      "path": "assets/audio/words/take care of.mp3",
+      "present": false
+    },
+    {
+      "id": "taxi",
+      "english": "taxi",
+      "path": "assets/audio/words/taxi.mp3",
+      "present": false
+    },
+    {
+      "id": "tea",
+      "english": "tea",
+      "path": "assets/audio/words/tea.mp3",
+      "present": false
+    },
+    {
+      "id": "teach",
+      "english": "teach",
+      "path": "assets/audio/words/teach.mp3",
+      "present": false
+    },
+    {
+      "id": "team",
+      "english": "team",
+      "path": "assets/audio/words/team.mp3",
+      "present": false
+    },
+    {
+      "id": "thursday",
+      "english": "Thursday",
+      "path": "assets/audio/words/thursday.mp3",
+      "present": false
+    },
+    {
+      "id": "tip",
+      "english": "tip",
+      "path": "assets/audio/words/tip.mp3",
+      "present": false
+    },
+    {
+      "id": "tooth",
+      "english": "tooth",
+      "path": "assets/audio/words/tooth.mp3",
+      "present": false
+    },
+    {
+      "id": "tour",
+      "english": "tour",
+      "path": "assets/audio/words/tour.mp3",
+      "present": false
+    },
+    {
+      "id": "traffic",
+      "english": "traffic",
+      "path": "assets/audio/words/traffic.mp3",
+      "present": false
+    },
+    {
+      "id": "train",
+      "english": "train",
+      "path": "assets/audio/words/train.mp3",
+      "present": false
+    },
+    {
+      "id": "travel",
+      "english": "travel",
+      "path": "assets/audio/words/travel.mp3",
+      "present": false
+    },
+    {
+      "id": "trip",
+      "english": "trip",
+      "path": "assets/audio/words/trip.mp3",
+      "present": false
+    },
+    {
+      "id": "tuesday",
+      "english": "Tuesday",
+      "path": "assets/audio/words/tuesday.mp3",
+      "present": false
+    },
+    {
+      "id": "turkey",
+      "english": "turkey",
+      "path": "assets/audio/words/turkey.mp3",
+      "present": false
+    },
+    {
+      "id": "twice",
+      "english": "twice",
+      "path": "assets/audio/words/twice.mp3",
+      "present": false
+    },
+    {
+      "id": "umbrella",
+      "english": "umbrella",
+      "path": "assets/audio/words/umbrella.mp3",
+      "present": false
+    },
+    {
+      "id": "underground",
+      "english": "underground",
+      "path": "assets/audio/words/underground.mp3",
+      "present": false
+    },
+    {
+      "id": "usually",
+      "english": "usually",
+      "path": "assets/audio/words/usually.mp3",
+      "present": false
+    },
+    {
+      "id": "visit",
+      "english": "visit",
+      "path": "assets/audio/words/visit.mp3",
+      "present": false
+    },
+    {
+      "id": "visitor",
+      "english": "visitor",
+      "path": "assets/audio/words/visitor.mp3",
+      "present": false
+    },
+    {
+      "id": "volunteer",
+      "english": "volunteer",
+      "path": "assets/audio/words/volunteer.mp3",
+      "present": false
+    },
+    {
+      "id": "wait",
+      "english": "wait",
+      "path": "assets/audio/words/wait.mp3",
+      "present": false
+    },
+    {
+      "id": "waterfall",
+      "english": "waterfall",
+      "path": "assets/audio/words/waterfall.mp3",
+      "present": false
+    },
+    {
+      "id": "way",
+      "english": "way",
+      "path": "assets/audio/words/way.mp3",
+      "present": false
+    },
+    {
+      "id": "wednesday",
+      "english": "Wednesday",
+      "path": "assets/audio/words/wednesday.mp3",
+      "present": false
+    },
+    {
+      "id": "weekend",
+      "english": "weekend",
+      "path": "assets/audio/words/weekend.mp3",
+      "present": false
+    },
+    {
+      "id": "west",
+      "english": "west",
+      "path": "assets/audio/words/west.mp3",
+      "present": false
+    },
+    {
+      "id": "wild",
+      "english": "wild",
+      "path": "assets/audio/words/wild.mp3",
+      "present": false
+    },
+    {
+      "id": "wind",
+      "english": "wind",
+      "path": "assets/audio/words/wind.mp3",
+      "present": false
+    },
+    {
+      "id": "wish",
+      "english": "wish",
+      "path": "assets/audio/words/wish.mp3",
+      "present": false
+    },
+    {
+      "id": "wonderful",
+      "english": "wonderful",
+      "path": "assets/audio/words/wonderful.mp3",
+      "present": false
+    },
+    {
+      "id": "world",
+      "english": "world",
+      "path": "assets/audio/words/world.mp3",
+      "present": false
+    },
+    {
+      "id": "worried",
+      "english": "worried",
+      "path": "assets/audio/words/worried.mp3",
+      "present": false
+    },
+    {
+      "id": "worry",
+      "english": "worry",
+      "path": "assets/audio/words/worry.mp3",
+      "present": false
+    },
+    {
+      "id": "write",
+      "english": "write",
+      "path": "assets/audio/words/write.mp3",
+      "present": false
+    },
+    {
+      "id": "wrong",
+      "english": "wrong",
+      "path": "assets/audio/words/wrong.mp3",
+      "present": false
+    },
+    {
+      "id": "young",
+      "english": "young",
+      "path": "assets/audio/words/young.mp3",
+      "present": false
+    },
+    {
+      "id": "yours",
+      "english": "yours",
+      "path": "assets/audio/words/yours.mp3",
+      "present": false
+    },
+    {
+      "id": "add",
+      "english": "add",
+      "path": "assets/audio/words/add.mp3",
+      "present": false
+    },
+    {
+      "id": "air conditioner",
+      "english": "air conditioner",
+      "path": "assets/audio/words/air conditioner.mp3",
+      "present": false
+    },
+    {
+      "id": "airport",
+      "english": "airport",
+      "path": "assets/audio/words/airport.mp3",
+      "present": false
+    },
+    {
+      "id": "alien",
+      "english": "alien",
+      "path": "assets/audio/words/alien.mp3",
+      "present": false
+    },
+    {
+      "id": "another",
+      "english": "another",
+      "path": "assets/audio/words/another.mp3",
+      "present": false
+    },
+    {
+      "id": "as",
+      "english": "as",
+      "path": "assets/audio/words/as.mp3",
+      "present": false
+    },
+    {
+      "id": "astronaut",
+      "english": "astronaut",
+      "path": "assets/audio/words/astronaut.mp3",
+      "present": false
+    },
+    {
+      "id": "badminton",
+      "english": "badminton",
+      "path": "assets/audio/words/badminton.mp3",
+      "present": false
+    },
+    {
+      "id": "bamboo",
+      "english": "bamboo",
+      "path": "assets/audio/words/bamboo.mp3",
+      "present": false
+    },
+    {
+      "id": "begin",
+      "english": "begin",
+      "path": "assets/audio/words/begin.mp3",
+      "present": false
+    },
+    {
+      "id": "better",
+      "english": "better",
+      "path": "assets/audio/words/better.mp3",
+      "present": false
+    },
+    {
+      "id": "bigger",
+      "english": "bigger",
+      "path": "assets/audio/words/bigger.mp3",
+      "present": false
+    },
+    {
+      "id": "book fair",
+      "english": "book fair",
+      "path": "assets/audio/words/book fair.mp3",
+      "present": false
+    },
+    {
+      "id": "bottle",
+      "english": "bottle",
+      "path": "assets/audio/words/bottle.mp3",
+      "present": false
+    },
+    {
+      "id": "bought",
+      "english": "bought",
+      "path": "assets/audio/words/bought.mp3",
+      "present": false
+    },
+    {
+      "id": "call",
+      "english": "call",
+      "path": "assets/audio/words/call.mp3",
+      "present": false
+    },
+    {
+      "id": "camp",
+      "english": "camp",
+      "path": "assets/audio/words/camp.mp3",
+      "present": false
+    },
+    {
+      "id": "camping",
+      "english": "camping",
+      "path": "assets/audio/words/camping.mp3",
+      "present": false
+    },
+    {
+      "id": "change",
+      "english": "change",
+      "path": "assets/audio/words/change.mp3",
+      "present": false
+    },
+    {
+      "id": "changed",
+      "english": "changed",
+      "path": "assets/audio/words/changed.mp3",
+      "present": false
+    },
+    {
+      "id": "cheer",
+      "english": "cheer",
+      "path": "assets/audio/words/cheer.mp3",
+      "present": false
+    },
+    {
+      "id": "clay",
+      "english": "clay",
+      "path": "assets/audio/words/clay.mp3",
+      "present": false
+    },
+    {
+      "id": "cleaned",
+      "english": "cleaned",
+      "path": "assets/audio/words/cleaned.mp3",
+      "present": false
+    },
+    {
+      "id": "climb",
+      "english": "climb",
+      "path": "assets/audio/words/climb.mp3",
+      "present": false
+    },
+    {
+      "id": "cloth",
+      "english": "cloth",
+      "path": "assets/audio/words/cloth.mp3",
+      "present": false
+    },
+    {
+      "id": "cloud",
+      "english": "cloud",
+      "path": "assets/audio/words/cloud.mp3",
+      "present": false
+    },
+    {
+      "id": "cough",
+      "english": "cough",
+      "path": "assets/audio/words/cough.mp3",
+      "present": false
+    },
+    {
+      "id": "count down",
+      "english": "count down",
+      "path": "assets/audio/words/count down.mp3",
+      "present": false
+    },
+    {
+      "id": "cry",
+      "english": "cry",
+      "path": "assets/audio/words/cry.mp3",
+      "present": false
+    },
+    {
+      "id": "cycling",
+      "english": "cycling",
+      "path": "assets/audio/words/cycling.mp3",
+      "present": false
+    },
+    {
+      "id": "daytime",
+      "english": "daytime",
+      "path": "assets/audio/words/daytime.mp3",
+      "present": false
+    },
+    {
+      "id": "diet",
+      "english": "diet",
+      "path": "assets/audio/words/diet.mp3",
+      "present": false
+    },
+    {
+      "id": "difference",
+      "english": "difference",
+      "path": "assets/audio/words/difference.mp3",
+      "present": false
+    },
+    {
+      "id": "dining hall",
+      "english": "dining hall",
+      "path": "assets/audio/words/dining hall.mp3",
+      "present": false
+    },
+    {
+      "id": "dirty",
+      "english": "dirty",
+      "path": "assets/audio/words/dirty.mp3",
+      "present": false
+    },
+    {
+      "id": "discuss",
+      "english": "discuss",
+      "path": "assets/audio/words/discuss.mp3",
+      "present": false
+    },
+    {
+      "id": "drank",
+      "english": "drank",
+      "path": "assets/audio/words/drank.mp3",
+      "present": false
+    },
+    {
+      "id": "drink",
+      "english": "drink",
+      "path": "assets/audio/words/drink.mp3",
+      "present": false
+    },
+    {
+      "id": "drive",
+      "english": "drive",
+      "path": "assets/audio/words/drive.mp3",
+      "present": false
+    },
+    {
+      "id": "dry",
+      "english": "dry",
+      "path": "assets/audio/words/dry.mp3",
+      "present": false
+    },
+    {
+      "id": "earth",
+      "english": "earth",
+      "path": "assets/audio/words/earth.mp3",
+      "present": false
+    },
+    {
+      "id": "eiffel tower",
+      "english": "Eiffel Tower",
+      "path": "assets/audio/words/eiffel tower.mp3",
+      "present": false
+    },
+    {
+      "id": "electricity",
+      "english": "electricity",
+      "path": "assets/audio/words/electricity.mp3",
+      "present": false
+    },
+    {
+      "id": "email",
+      "english": "email",
+      "path": "assets/audio/words/email.mp3",
+      "present": false
+    },
+    {
+      "id": "energy",
+      "english": "energy",
+      "path": "assets/audio/words/energy.mp3",
+      "present": false
+    },
+    {
+      "id": "enjoy",
+      "english": "enjoy",
+      "path": "assets/audio/words/enjoy.mp3",
+      "present": false
+    },
+    {
+      "id": "ever",
+      "english": "ever",
+      "path": "assets/audio/words/ever.mp3",
+      "present": false
+    },
+    {
+      "id": "exciting",
+      "english": "exciting",
+      "path": "assets/audio/words/exciting.mp3",
+      "present": false
+    },
+    {
+      "id": "fell",
+      "english": "fell",
+      "path": "assets/audio/words/fell.mp3",
+      "present": false
+    },
+    {
+      "id": "fever",
+      "english": "fever",
+      "path": "assets/audio/words/fever.mp3",
+      "present": false
+    },
+    {
+      "id": "fishing",
+      "english": "fishing",
+      "path": "assets/audio/words/fishing.mp3",
+      "present": false
+    },
+    {
+      "id": "fixed",
+      "english": "fixed",
+      "path": "assets/audio/words/fixed.mp3",
+      "present": false
+    },
+    {
+      "id": "for example",
+      "english": "for example",
+      "path": "assets/audio/words/for example.mp3",
+      "present": false
+    },
+    {
+      "id": "gala",
+      "english": "gala",
+      "path": "assets/audio/words/gala.mp3",
+      "present": false
+    },
+    {
+      "id": "gingerbread house",
+      "english": "gingerbread house",
+      "path": "assets/audio/words/gingerbread house.mp3",
+      "present": false
+    },
+    {
+      "id": "glass",
+      "english": "glass",
+      "path": "assets/audio/words/glass.mp3",
+      "present": false
+    },
+    {
+      "id": "goods",
+      "english": "goods",
+      "path": "assets/audio/words/goods.mp3",
+      "present": false
+    },
+    {
+      "id": "gym",
+      "english": "gym",
+      "path": "assets/audio/words/gym.mp3",
+      "present": false
+    },
+    {
+      "id": "haircut",
+      "english": "haircut",
+      "path": "assets/audio/words/haircut.mp3",
+      "present": false
+    },
+    {
+      "id": "half",
+      "english": "half",
+      "path": "assets/audio/words/half.mp3",
+      "present": false
+    },
+    {
+      "id": "head",
+      "english": "head",
+      "path": "assets/audio/words/head.mp3",
+      "present": false
+    },
+    {
+      "id": "heat",
+      "english": "heat",
+      "path": "assets/audio/words/heat.mp3",
+      "present": false
+    },
+    {
+      "id": "heavier",
+      "english": "heavier",
+      "path": "assets/audio/words/heavier.mp3",
+      "present": false
+    },
+    {
+      "id": "hong kong-zhuhai-macao bridge",
+      "english": "Hong Kong-Zhuhai-Macao Bridge",
+      "path": "assets/audio/words/hong kong-zhuhai-macao bridge.mp3",
+      "present": false
+    },
+    {
+      "id": "ice-skate",
+      "english": "ice-skate",
+      "path": "assets/audio/words/ice-skate.mp3",
+      "present": false
+    },
+    {
+      "id": "ill",
+      "english": "ill",
+      "path": "assets/audio/words/ill.mp3",
+      "present": false
+    },
+    {
+      "id": "inspiring",
+      "english": "inspiring",
+      "path": "assets/audio/words/inspiring.mp3",
+      "present": false
+    },
+    {
+      "id": "into",
+      "english": "into",
+      "path": "assets/audio/words/into.mp3",
+      "present": false
+    },
+    {
+      "id": "jar",
+      "english": "jar",
+      "path": "assets/audio/words/jar.mp3",
+      "present": false
+    },
+    {
+      "id": "jinggangshan revolution museum",
+      "english": "Jinggangshan Revolution Museum",
+      "path": "assets/audio/words/jinggangshan revolution museum.mp3",
+      "present": false
+    },
+    {
+      "id": "judge",
+      "english": "judge",
+      "path": "assets/audio/words/judge.mp3",
+      "present": false
+    },
+    {
+      "id": "kilogram",
+      "english": "kilogram",
+      "path": "assets/audio/words/kilogram.mp3",
+      "present": false
+    },
+    {
+      "id": "kilometre",
+      "english": "kilometre",
+      "path": "assets/audio/words/kilometre.mp3",
+      "present": false
+    },
+    {
+      "id": "later",
+      "english": "later",
+      "path": "assets/audio/words/later.mp3",
+      "present": false
+    },
+    {
+      "id": "laughed",
+      "english": "laughed",
+      "path": "assets/audio/words/laughed.mp3",
+      "present": false
+    },
+    {
+      "id": "longer",
+      "english": "longer",
+      "path": "assets/audio/words/longer.mp3",
+      "present": false
+    },
+    {
+      "id": "lucky",
+      "english": "lucky",
+      "path": "assets/audio/words/lucky.mp3",
+      "present": false
+    },
+    {
+      "id": "manage",
+      "english": "manage",
+      "path": "assets/audio/words/manage.mp3",
+      "present": false
+    },
+    {
+      "id": "marathon",
+      "english": "marathon",
+      "path": "assets/audio/words/marathon.mp3",
+      "present": false
+    },
+    {
+      "id": "marble",
+      "english": "marble",
+      "path": "assets/audio/words/marble.mp3",
+      "present": false
+    },
+    {
+      "id": "market",
+      "english": "market",
+      "path": "assets/audio/words/market.mp3",
+      "present": false
+    },
+    {
+      "id": "mars",
+      "english": "Mars",
+      "path": "assets/audio/words/mars.mp3",
+      "present": false
+    },
+    {
+      "id": "metre",
+      "english": "metre",
+      "path": "assets/audio/words/metre.mp3",
+      "present": false
+    },
+    {
+      "id": "microscope",
+      "english": "microscope",
+      "path": "assets/audio/words/microscope.mp3",
+      "present": false
+    },
+    {
+      "id": "money",
+      "english": "money",
+      "path": "assets/audio/words/money.mp3",
+      "present": false
+    },
+    {
+      "id": "month",
+      "english": "month",
+      "path": "assets/audio/words/month.mp3",
+      "present": false
+    },
+    {
+      "id": "moon",
+      "english": "moon",
+      "path": "assets/audio/words/moon.mp3",
+      "present": false
+    },
+    {
+      "id": "new zealand",
+      "english": "New Zealand",
+      "path": "assets/audio/words/new zealand.mp3",
+      "present": false
+    },
+    {
+      "id": "notice",
+      "english": "notice",
+      "path": "assets/audio/words/notice.mp3",
+      "present": false
+    },
+    {
+      "id": "ocean",
+      "english": "ocean",
+      "path": "assets/audio/words/ocean.mp3",
+      "present": false
+    },
+    {
+      "id": "older",
+      "english": "older",
+      "path": "assets/audio/words/older.mp3",
+      "present": false
+    },
+    {
+      "id": "outer space",
+      "english": "outer space",
+      "path": "assets/audio/words/outer space.mp3",
+      "present": false
+    },
+    {
+      "id": "own",
+      "english": "own",
+      "path": "assets/audio/words/own.mp3",
+      "present": false
+    },
+    {
+      "id": "paris",
+      "english": "Paris",
+      "path": "assets/audio/words/paris.mp3",
+      "present": false
+    },
+    {
+      "id": "paste",
+      "english": "paste",
+      "path": "assets/audio/words/paste.mp3",
+      "present": false
+    },
+    {
+      "id": "planet",
+      "english": "planet",
+      "path": "assets/audio/words/planet.mp3",
+      "present": false
+    },
+    {
+      "id": "pocket money",
+      "english": "pocket money",
+      "path": "assets/audio/words/pocket money.mp3",
+      "present": false
+    },
+    {
+      "id": "power",
+      "english": "power",
+      "path": "assets/audio/words/power.mp3",
+      "present": false
+    },
+    {
+      "id": "pumpkin",
+      "english": "pumpkin",
+      "path": "assets/audio/words/pumpkin.mp3",
+      "present": false
+    },
+    {
+      "id": "question",
+      "english": "question",
+      "path": "assets/audio/words/question.mp3",
+      "present": false
+    },
+    {
+      "id": "quick",
+      "english": "quick",
+      "path": "assets/audio/words/quick.mp3",
+      "present": false
+    },
+    {
+      "id": "race",
+      "english": "race",
+      "path": "assets/audio/words/race.mp3",
+      "present": false
+    },
+    {
+      "id": "reduce",
+      "english": "reduce",
+      "path": "assets/audio/words/reduce.mp3",
+      "present": false
+    },
+    {
+      "id": "resource",
+      "english": "resource",
+      "path": "assets/audio/words/resource.mp3",
+      "present": false
+    },
+    {
+      "id": "restaurant",
+      "english": "restaurant",
+      "path": "assets/audio/words/restaurant.mp3",
+      "present": false
+    },
+    {
+      "id": "reuse",
+      "english": "reuse",
+      "path": "assets/audio/words/reuse.mp3",
+      "present": false
+    },
+    {
+      "id": "rode",
+      "english": "rode",
+      "path": "assets/audio/words/rode.mp3",
+      "present": false
+    },
+    {
+      "id": "rover",
+      "english": "rover",
+      "path": "assets/audio/words/rover.mp3",
+      "present": false
+    },
+    {
+      "id": "run out",
+      "english": "run out",
+      "path": "assets/audio/words/run out.mp3",
+      "present": false
+    },
+    {
+      "id": "runny nose",
+      "english": "runny nose",
+      "path": "assets/audio/words/runny nose.mp3",
+      "present": false
+    },
+    {
+      "id": "sale",
+      "english": "sale",
+      "path": "assets/audio/words/sale.mp3",
+      "present": false
+    },
+    {
+      "id": "sand",
+      "english": "sand",
+      "path": "assets/audio/words/sand.mp3",
+      "present": false
+    },
+    {
+      "id": "satellite",
+      "english": "satellite",
+      "path": "assets/audio/words/satellite.mp3",
+      "present": false
+    },
+    {
+      "id": "save up",
+      "english": "save up",
+      "path": "assets/audio/words/save up.mp3",
+      "present": false
+    },
+    {
+      "id": "schoolbag",
+      "english": "schoolbag",
+      "path": "assets/audio/words/schoolbag.mp3",
+      "present": false
+    },
+    {
+      "id": "sell",
+      "english": "sell",
+      "path": "assets/audio/words/sell.mp3",
+      "present": false
+    },
+    {
+      "id": "send",
+      "english": "send",
+      "path": "assets/audio/words/send.mp3",
+      "present": false
+    },
+    {
+      "id": "service",
+      "english": "service",
+      "path": "assets/audio/words/service.mp3",
+      "present": false
+    },
+    {
+      "id": "shorter",
+      "english": "shorter",
+      "path": "assets/audio/words/shorter.mp3",
+      "present": false
+    },
+    {
+      "id": "shower",
+      "english": "shower",
+      "path": "assets/audio/words/shower.mp3",
+      "present": false
+    },
+    {
+      "id": "side",
+      "english": "side",
+      "path": "assets/audio/words/side.mp3",
+      "present": false
+    },
+    {
+      "id": "sky",
+      "english": "sky",
+      "path": "assets/audio/words/sky.mp3",
+      "present": false
+    },
+    {
+      "id": "slept",
+      "english": "slept",
+      "path": "assets/audio/words/slept.mp3",
+      "present": false
+    },
+    {
+      "id": "smaller",
+      "english": "smaller",
+      "path": "assets/audio/words/smaller.mp3",
+      "present": false
+    },
+    {
+      "id": "soil",
+      "english": "soil",
+      "path": "assets/audio/words/soil.mp3",
+      "present": false
+    },
+    {
+      "id": "solar",
+      "english": "solar",
+      "path": "assets/audio/words/solar.mp3",
+      "present": false
+    },
+    {
+      "id": "soon",
+      "english": "soon",
+      "path": "assets/audio/words/soon.mp3",
+      "present": false
+    },
+    {
+      "id": "space",
+      "english": "space",
+      "path": "assets/audio/words/space.mp3",
+      "present": false
+    },
+    {
+      "id": "space station",
+      "english": "space station",
+      "path": "assets/audio/words/space station.mp3",
+      "present": false
+    },
+    {
+      "id": "spaceship",
+      "english": "spaceship",
+      "path": "assets/audio/words/spaceship.mp3",
+      "present": false
+    },
+    {
+      "id": "stay up",
+      "english": "stay up",
+      "path": "assets/audio/words/stay up.mp3",
+      "present": false
+    },
+    {
+      "id": "stayed",
+      "english": "stayed",
+      "path": "assets/audio/words/stayed.mp3",
+      "present": false
+    },
+    {
+      "id": "stronger",
+      "english": "stronger",
+      "path": "assets/audio/words/stronger.mp3",
+      "present": false
+    },
+    {
+      "id": "sunrise",
+      "english": "sunrise",
+      "path": "assets/audio/words/sunrise.mp3",
+      "present": false
+    },
+    {
+      "id": "sunset",
+      "english": "sunset",
+      "path": "assets/audio/words/sunset.mp3",
+      "present": false
+    },
+    {
+      "id": "swam",
+      "english": "swam",
+      "path": "assets/audio/words/swam.mp3",
+      "present": false
+    },
+    {
+      "id": "taikonaut",
+      "english": "taikonaut",
+      "path": "assets/audio/words/taikonaut.mp3",
+      "present": false
+    },
+    {
+      "id": "taller",
+      "english": "taller",
+      "path": "assets/audio/words/taller.mp3",
+      "present": false
+    },
+    {
+      "id": "telescope",
+      "english": "telescope",
+      "path": "assets/audio/words/telescope.mp3",
+      "present": false
+    },
+    {
+      "id": "terracotta warriors",
+      "english": "Terracotta Warriors",
+      "path": "assets/audio/words/terracotta warriors.mp3",
+      "present": false
+    },
+    {
+      "id": "than",
+      "english": "than",
+      "path": "assets/audio/words/than.mp3",
+      "present": false
+    },
+    {
+      "id": "the red army",
+      "english": "the Red Army",
+      "path": "assets/audio/words/the red army.mp3",
+      "present": false
+    },
+    {
+      "id": "thinner",
+      "english": "thinner",
+      "path": "assets/audio/words/thinner.mp3",
+      "present": false
+    },
+    {
+      "id": "thousand",
+      "english": "thousand",
+      "path": "assets/audio/words/thousand.mp3",
+      "present": false
+    },
+    {
+      "id": "ticket",
+      "english": "ticket",
+      "path": "assets/audio/words/ticket.mp3",
+      "present": false
+    },
+    {
+      "id": "took",
+      "english": "took",
+      "path": "assets/audio/words/took.mp3",
+      "present": false
+    },
+    {
+      "id": "toothpaste",
+      "english": "toothpaste",
+      "path": "assets/audio/words/toothpaste.mp3",
+      "present": false
+    },
+    {
+      "id": "top",
+      "english": "top",
+      "path": "assets/audio/words/top.mp3",
+      "present": false
+    },
+    {
+      "id": "type",
+      "english": "type",
+      "path": "assets/audio/words/type.mp3",
+      "present": false
+    },
+    {
+      "id": "unhappy",
+      "english": "unhappy",
+      "path": "assets/audio/words/unhappy.mp3",
+      "present": false
+    },
+    {
+      "id": "unplug",
+      "english": "unplug",
+      "path": "assets/audio/words/unplug.mp3",
+      "present": false
+    },
+    {
+      "id": "useful",
+      "english": "useful",
+      "path": "assets/audio/words/useful.mp3",
+      "present": false
+    },
+    {
+      "id": "video",
+      "english": "video",
+      "path": "assets/audio/words/video.mp3",
+      "present": false
+    },
+    {
+      "id": "view",
+      "english": "view",
+      "path": "assets/audio/words/view.mp3",
+      "present": false
+    },
+    {
+      "id": "village",
+      "english": "village",
+      "path": "assets/audio/words/village.mp3",
+      "present": false
+    },
+    {
+      "id": "wake",
+      "english": "wake",
+      "path": "assets/audio/words/wake.mp3",
+      "present": false
+    },
+    {
+      "id": "was",
+      "english": "was",
+      "path": "assets/audio/words/was.mp3",
+      "present": false
+    },
+    {
+      "id": "washed",
+      "english": "washed",
+      "path": "assets/audio/words/washed.mp3",
+      "present": false
+    },
+    {
+      "id": "watched",
+      "english": "watched",
+      "path": "assets/audio/words/watched.mp3",
+      "present": false
+    },
+    {
+      "id": "win",
+      "english": "win",
+      "path": "assets/audio/words/win.mp3",
+      "present": false
+    },
+    {
+      "id": "winner",
+      "english": "winner",
+      "path": "assets/audio/words/winner.mp3",
+      "present": false
+    },
+    {
+      "id": "writer",
+      "english": "writer",
+      "path": "assets/audio/words/writer.mp3",
+      "present": false
+    },
+    {
+      "id": "yesterday",
+      "english": "yesterday",
+      "path": "assets/audio/words/yesterday.mp3",
+      "present": false
+    },
+    {
+      "id": "younger",
+      "english": "younger",
+      "path": "assets/audio/words/younger.mp3",
+      "present": false
+    }
+  ]
+}

@@ -8,39 +8,46 @@ function walk(dir, acc = []) {
     const full = path.join(dir, name);
     const stat = fs.statSync(full);
     if (stat.isDirectory()) walk(full, acc);
-    else acc.push({ file: path.relative(root, full), bytes: stat.size });
+    else acc.push({ file: path.relative(root, full).split(path.sep).join("/"), bytes: stat.size });
   }
   return acc;
 }
 
-const files = walk(root).filter((item) => !item.file.startsWith("evidence" + path.sep) && item.file !== "evidence");
+function ignored(file, rules) {
+  return rules.some((rule) => {
+    if (!rule || !rule.value) return false;
+    if (rule.type === "file") return file === rule.value;
+    if (rule.type === "folder") return file === rule.value || file.startsWith(`${rule.value}/`);
+    if (rule.type === "suffix") return file.endsWith(rule.value);
+    return false;
+  });
+}
+
+const project = JSON.parse(fs.readFileSync(path.join(root, "project.config.json"), "utf8"));
+const rules = project.packOptions && project.packOptions.ignore ? project.packOptions.ignore : [];
+const files = walk(root);
+const packed = files.filter((item) => !ignored(item.file, rules));
 const sum = (list) => list.reduce((total, item) => total + item.bytes, 0);
-const lib = files.filter((item) => item.file.startsWith("lib" + path.sep));
-const page = files.filter((item) => item.file.startsWith("pages" + path.sep) || item.file.startsWith("engine" + path.sep) || item.file.startsWith("platform" + path.sep) || item.file.startsWith("src" + path.sep) || item.file === "app.js" || item.file === "app.json" || item.file === "app.wxss");
+const lib = packed.filter((item) => item.file.startsWith("lib/"));
 const publicRoot = path.join(root, "..", "public");
 const publicFiles = walk(publicRoot);
-const wordAudio = publicFiles.filter((item) => item.file.includes(`${path.sep}audio${path.sep}words${path.sep}`) && item.file.endsWith(".mp3"));
-const fonts = publicFiles.filter((item) => item.file.endsWith(".woff2") || item.file.endsWith(".ttf") || item.file.endsWith(".woff"));
-const bytes = sum(files);
-console.log(`wechat tree bytes ${bytes}`);
-console.log(`lib bytes ${sum(lib)}`);
-console.log(`engine and page source bytes ${sum(page)}`);
-for (const item of lib) console.log(`${item.bytes}\t${item.file}`);
-console.log(`public bytes ${sum(publicFiles)}`);
-console.log(`word mp3 count ${wordAudio.length}`);
-console.log(`font files ${fonts.length}`);
-for (const item of fonts) console.log(`${item.bytes}\tpublic/${item.file}`);
-console.log("source: filesystem byte count. Not a WeChat DevTools package size.");
-console.log("main package limit was not measured by the IDE. Official single package limit is 2MB.");
-console.log("https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages");
-const diskTotal = bytes + sum(publicFiles);
+const publicAudio = publicFiles.filter((item) => item.file.includes("/audio/words/") && item.file.endsWith(".mp3"));
+const packedAudio = packed.filter((item) => item.file.endsWith(".mp3"));
+const packedFonts = packed.filter((item) => item.file.endsWith(".ttf") || item.file.endsWith(".woff2") || item.file.endsWith(".otf"));
 const mainLimit = 2 * 1024 * 1024;
-const totalLimit = 20 * 1024 * 1024;
-if (sum(lib) > mainLimit) console.log("lib js alone is over 2MB on disk");
-console.log(`disk wechat plus public ${diskTotal}`);
-if (diskTotal > totalLimit) {
-  console.log("FAIL disk total is over 20MB. IDE package size is 未验证. This is not a submitted package measurement.");
+console.log(`packed bytes ${sum(packed)}`);
+console.log(`lib bytes ${sum(lib)}`);
+for (const item of lib) console.log(`${item.bytes}\t${item.file}`);
+console.log(`packed mp3 ${packedAudio.length}`);
+console.log(`packed font files ${packedFonts.length}`);
+console.log(`public bytes ${sum(publicFiles)} excluded from the mini program`);
+console.log(`public word mp3 ${publicAudio.length}`);
+console.log("no subpackage was added. The packed tree is one main package on disk.");
+console.log("source: filesystem, after project.config.json packOptions.ignore. Not a DevTools upload size.");
+console.log("https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages");
+if (sum(packed) > mainLimit) {
+  console.log("FAIL packed disk bytes are over 2MB. This is still not an IDE measurement.");
   process.exit(2);
 }
-console.log("disk total is under 20MB. IDE package size is still 未验证.");
+console.log("packed disk bytes are within 2MB. IDE package size is 未验证.");
 process.exit(0);
