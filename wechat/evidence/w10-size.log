@@ -1,0 +1,25 @@
+wechat tree bytes 1353287
+lib bytes 1088806
+engine and page source bytes 130703
+251052	lib/domain.cjs.js
+837754	lib/game.cjs.js
+public bytes 33613886
+word mp3 count 0
+font files 12
+144344	public/../public/fonts/NotoSansSC-Bold-core.woff2
+23548	public/../public/fonts/NotoSansSC-Bold-g3.woff2
+19484	public/../public/fonts/NotoSansSC-Bold-g4.woff2
+23852	public/../public/fonts/NotoSansSC-Bold-g5.woff2
+15128	public/../public/fonts/NotoSansSC-Bold-g6.woff2
+141276	public/../public/fonts/NotoSansSC-Regular-core.woff2
+23192	public/../public/fonts/NotoSansSC-Regular-g3.woff2
+19188	public/../public/fonts/NotoSansSC-Regular-g4.woff2
+23376	public/../public/fonts/NotoSansSC-Regular-g5.woff2
+14896	public/../public/fonts/NotoSansSC-Regular-g6.woff2
+36148	public/../public/fonts/Nunito-latin.woff2
+27780	public/../public/fonts/ZCOOLKuaiLe-ui.woff2
+source: filesystem byte count. Not a WeChat DevTools package size.
+main package limit was not measured by the IDE. Official single package limit is 2MB.
+https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages
+disk wechat plus public 34967173
+FAIL disk total is over 20MB. IDE package size is 未验证. This is not a submitted package measurement.
