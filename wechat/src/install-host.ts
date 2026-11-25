@@ -1,4 +1,4 @@
-import { installMemoryStorage } from "../platform/storage";
+import { installMemoryStorage, installSessionStorage } from "../platform/storage";
 import { installRandomPolyfill } from "../platform/random";
 import { pbkdf2Hex } from "../platform/pbkdf2";
 
@@ -23,6 +23,7 @@ function storageWorks(): boolean {
 }
 
 if (!storageWorks()) installMemoryStorage();
+installSessionStorage();
 installRandomPolyfill();
 
 if (!root.crypto?.subtle) {
@@ -45,6 +46,17 @@ if (!root.crypto?.subtle) {
 
 if (typeof (globalThis as { window?: unknown }).window === "undefined") {
   Object.defineProperty(globalThis, "window", { configurable: true, value: globalThis });
+}
+const hostWindow = globalThis as { addEventListener?: unknown; removeEventListener?: unknown };
+if (typeof hostWindow.addEventListener !== "function") {
+  hostWindow.addEventListener = () => undefined;
+  hostWindow.removeEventListener = () => undefined;
+}
+if (typeof (globalThis as { location?: { search?: string } }).location === "undefined") {
+  Object.defineProperty(globalThis, "location", {
+    configurable: true,
+    value: { protocol: "https:", search: "", href: "https://local/", host: "local" },
+  });
 }
 
 class HostElement {

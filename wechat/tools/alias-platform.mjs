@@ -11,6 +11,8 @@ export function aliasPlatform(root) {
     [path.join(root, "src/game/audio.ts"), path.join(root, "wechat/platform/web/audio.ts")],
     [path.join(root, "src/game/webgl.ts"), path.join(root, "wechat/platform/web/webgl.ts")],
     [path.join(root, "src/game/pin-error.ts"), path.join(root, "wechat/platform/web/pin-error.ts")],
+    [path.join(root, "src/domain/host-copy.ts"), path.join(root, "wechat/platform/host-copy.ts")],
+    [path.join(root, "src/domain/speech.ts"), path.join(root, "wechat/platform/speech.ts")],
   ]);
   return {
     name: "alias-platform",

@@ -37,7 +37,7 @@ export function writeLimited(area: Memory, key: string, value: string): void {
   area.set(key, value);
 }
 
-export function installMemoryStorage(area = createMemoryArea()): Memory {
+export function memoryStorage(area: Memory) {
   const storage = {
     getItem: (key: string) => (area.has(key) ? area.get(key)! : null),
     setItem: (key: string, value: string) => {
@@ -54,7 +54,18 @@ export function installMemoryStorage(area = createMemoryArea()): Memory {
       return area.size;
     },
   };
-  Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
+  return storage;
+}
+
+export function installMemoryStorage(area = createMemoryArea()): Memory {
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, value: memoryStorage(area) });
+  installSessionStorage();
+  return area;
+}
+
+export function installSessionStorage(area = createMemoryArea()): Memory {
+  if (typeof (globalThis as { sessionStorage?: unknown }).sessionStorage !== "undefined") return area;
+  Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: memoryStorage(area) });
   return area;
 }
 
