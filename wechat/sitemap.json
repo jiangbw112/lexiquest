@@ -1,0 +1,4 @@
+{
+  "desc": "P0 skeleton. One page, not submitted for indexing or review.",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

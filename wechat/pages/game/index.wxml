@@ -1,0 +1,7 @@
+<canvas
+  type="2d"
+  id="game-canvas"
+  class="stage"
+  disable-scroll="{{true}}"
+  bindtouchstart="onTouchStart"
+></canvas>
