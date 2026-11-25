@@ -1,0 +1,3 @@
+check-uuid: 1000 v4 ids, no duplicates
+weakRandomUuid exists and is not installed as crypto.randomUUID
+source: Node crypto.getRandomValues. wx.getRandomValues is async and was not called.

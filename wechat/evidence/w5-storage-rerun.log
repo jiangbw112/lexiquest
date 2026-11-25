@@ -1,0 +1,2 @@
+check-storage: roundtrip and 1MB key rejection
+source: Node memory. Not wx.setStorageSync.

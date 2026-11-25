@@ -3,6 +3,7 @@
 - 分支 / 提交：`cursor/wechat-full-port`。提交号以本文件所在提交为准。
 - 环境：Linux 6.12.113+，Node v22.23.4，npm 10.9.9。微信开发者工具未安装。基础库未从运行时读取。模拟器机型未读取。真机未连接。
 - 结论：未通过。开发者工具、真机、主包体积、场景重排、词音频、字体加载和 `host-copy` 都没有完成。
+- 续修后的结论仍是未通过。页面链、词表、战斗到结算、逻辑像素和磁盘分包口径有新的实测，见文末「续修」。开发者工具和真机仍待授权验证。
 
 ## 逐项结果
 
@@ -64,3 +65,74 @@
 - `setScrollFactor` 只记录数值。战斗场景没有滚动相机。
 - 缺图写入 `game.failures`，不记成加载成功。
 - 存档检查用内存 `localStorage`。微信存储上限按文档是单 key 1MB、总计 10MB，本机没有调用 `wx.setStorageSync`。
+
+## 续修（父提交 1226b89 之后）
+
+上一节保持原样。下面是这一轮普通追加提交的实测。全部门未过：开发者工具和真机仍是待授权验证。
+
+### 实做
+
+| 项 | 证据 | 来源 | 复现命令 |
+|---|---|---|---|
+| 页面入口加载 port，port 再加载 domain 与 game | `pages/game/index.js` 含 `require("./port.js")`。`evidence/w7-page-chain.log` | Node | `node wechat/tools/check-page-chain.cjs` |
+| 词表 863，构建无 `import.meta` | `evidence/w2-rebuild.log` 无 `EMPTY_IMPORT_META`。两个产物里 `import.meta` 出现 0 次 | Node | `node wechat/tools/build-lib.mjs` |
+| 默认 boot 进入档案页 | 日志 `scene boot active profiles nodes 25 texts 8` | Node | 同上 |
+| 学习四档字号、热区、间距 | 844×390、667×375、915×412、1024×768 都是 font 14、hit 44、gap 8 | Node | 同上 |
+| 战斗不是 0 节点 | `battle texts 13 hits 6 font 14`。文案含学习者、林缘小径、1 攻击 | Node | 同上 |
+| 点击走到结算，并写入胜场 | `results texts 32 font 14 hit 44 gap 8 battles 1/0` | Node | 同上 |
+| 微信文案走适配层 | 家长说明含「小程序数据」。`src/domain/host-copy.ts` 未改 | Node | 同上 |
+| 世界层仍是 8.78，UI 字号映射是 16 | `evidence/w6-layout-rerun.log`：`world layer design 18 scales to 8.78; UI map is 16` | Node | `node wechat/tools/check-layout.cjs` |
+| 可分发磁盘字节 | `evidence/w10-size-rerun.log`：packed 1084640，lib 932706（domain 251052，game 681654） | 文件系统 | `node wechat/tools/size-report.cjs` |
+| 桌面基线 | vitest 637 passed / 1 skipped。web boot 3162002 | Node，网页构建 | `npx vitest run`；`npm run build` |
+| p05 | `evidence/w11-p05-rerun.log`：checks 452。engine 断言仍是「目录必须在」 | Node | `node wechat/p05-check.cjs` |
+
+### 场景矩阵
+
+`evidence/w8-chain.json`。来源是 Node 通过 `pages/game/port.js`。
+
+| 启动 | 实际场景 | 节点 | 文本 | 说明 |
+|---|---|---|---|---|
+| boot | profiles | 25 | 8 | 页面默认路由。约 50ms 后进入档案 |
+| profiles | profiles | 25 | 8 | 有文案 |
+| title | title | 41 | 4 | 有文案 |
+| grades | grades | 52 | 10 | 有文案 |
+| create（无年级） | grades | 52 | 10 | 游戏自己的重定向 |
+| create（G3） | create | 52 | 27 | 起名页 |
+| overworld | overworld | 50 | 13 | 有文案 |
+| learn | learn | 94 | 25 | 有文案 |
+| stages | stages | 66 | 20 | 有文案 |
+| battle | battle | 战斗 13 条文本 | 13 | 带关卡数据 |
+| battle-results | battle-results | 结算 32 条文本 | 32 | 由点击战斗得到，胜场 1 |
+| collection | collection | 11 | 4 | 空册文案 |
+| review | review | 11 | 4 | 空复习桌文案 |
+| skills | skills | 60 | 17 | 有文案 |
+| wardrobe | wardrobe | 51 | 17 | 有文案 |
+| ending | ending | 35 | 9 | 有文案 |
+| duel | duel | 19 | 6 | 有文案 |
+| guide | guide | 10 | 3 | 家长密码说明 |
+| exam-battle（无 id） | stages | 66 | 20 | 游戏自己的重定向 |
+| exam-battle（exam_g3_s1_mid） | exam-battle | 5 | 4 | 文案是「先打败前面的章节守护者」和「回地图」 |
+
+### 未完成
+
+- 词 mp3：863 条路径 `assets/audio/words/<id>.mp3`，存在 0。清单 `evidence/w10-resource-gap.json`（114360 字节）。没有生成音频。
+- 字体：public 里 12 个 woff2。包内字体文件 0。没有转换成 TTF/WOFF，也没有调用 `wx.loadFontFace`。
+- 图：public 图片 297。包内图片只有 `assets/atlas/skeleton-atlas.png`（383 字节，P0.6 骨架）。温色图集 PNG 和 webp 不在小程序包里。13 份图集 JSON 在 `wechat/assets/atlas-json/index.js`。
+- 没有新增分包页。磁盘可分发树低于 2MB，所以没有为了过 2MB 去拆包。
+- `visual-diff` 仍无截图。`evidence/w7/NOT-CAPTURED.json` 继续有效。这一项是未验证。
+
+### 真实 IDE 待验
+
+- 开发者工具编译、上传体积、`wx.getWindowInfo`、`wx.getPerformance`、真机输入法、真机 `wx.setStorageSync`、`wx.loadFontFace` 成功回调、手机截图。
+- 上表的 1084640 字节是按 `project.config.json` 的 `packOptions.ignore` 数的磁盘文件。它不是开发者工具主包。public 的 33613886 字节已排除，不能当成已分包。
+
+### 体积（这一轮）
+
+| 包 | 字节 | 说明 |
+|---|---|---|
+| packed | 1084640 | ignore 之后的 wechat 文件。低于 2MB。IDE 未验证 |
+| lib | 932706 | domain.cjs.js 251052，game.cjs.js 681654 |
+| public | 33613886 | 排除，未打进小程序 |
+| 词 mp3 | 0 | 包内和 public 都是 0 |
+| 字体文件 | 0 | 包内。public 仍是 12 个 woff2 |
+

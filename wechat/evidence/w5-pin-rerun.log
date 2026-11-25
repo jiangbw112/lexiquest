@@ -1,0 +1,4 @@
+iterations 1 match 5001ff339ca26af59e3782a56d2989643dec48c4fccef2530e6a5e09bac08ac5
+iterations 1000 match 23ad2daa4e59be477bd7ef0eb0dc22c3e4f52a97976a7824b1a17a910ff6bc66
+iterations 100000 match in 938 ms (pure JS plus one subtle call)
+source: Node webcrypto. Not a phone. Iterations were not reduced.
