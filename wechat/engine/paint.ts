@@ -180,6 +180,14 @@ function axisGap(a: { x: number; y: number; w: number; h: number }, b: { x: numb
   };
 }
 
+function tooClose(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean {
+  const gap = axisGap(a, b);
+  if (gap.gapX < 0 && gap.gapY < 0) return true;
+  if (gap.gapY < 0 && gap.gapX < UI_GAP) return true;
+  if (gap.gapX < 0 && gap.gapY < UI_GAP) return true;
+  return false;
+}
+
 function neighborGap(a: PaintBox, b: PaintBox): number | null {
   const gap = axisGap(a, b);
   if (gap.gapX < 0 && gap.gapY < 0) return Math.max(gap.gapX, gap.gapY);
@@ -280,6 +288,21 @@ function isPaperFrame(frame: string): boolean {
 interface Plate {
   box: WorldRect;
   kind: "room" | "paper" | "art";
+  frame: string;
+}
+
+export interface LayoutOptions {
+  trial?: "cross-bar";
+}
+
+function sceneKeyOf(scene: { children: { list: GameNode[] } } | null): string {
+  if (scene && "key" in scene) return String((scene as { key?: string }).key ?? "");
+  return "";
+}
+
+function nestedPanels(plates: Plate[]): Plate[] {
+  const panels = plates.filter((plate) => plate.frame === "panel_parchment" || plate.frame === "panel_wood");
+  return panels.filter((plate) => panels.some((host) => host !== plate && boxInside(plate.box, host.box) && host.box.w * host.box.h > plate.box.w * plate.box.h * 1.2));
 }
 
 function boxInside(inner: WorldRect, outer: WorldRect): boolean {
@@ -330,6 +353,7 @@ function placeUnits(
   plates: Plate[],
   fills: Array<{ x: number; y: number; w: number; h: number; color: number; node?: GameNode; role?: "sheet" }>,
   measure: MeasureText | undefined,
+  options?: LayoutOptions,
 ): void {
   // 原来：羊皮纸九宫格被拆开，中心块不够大时整段说明落到纸外，再铺一条和字一样大的奶油底。
   // 现在：整张羊皮纸、木牌和列表行是一张纸。说明按行排进纸心，字号可以收到 14，不再铺纸外条。没有纸的画面另开一张有内边距的纸。
@@ -439,19 +463,216 @@ function placeUnits(
     });
     return false;
   };
-  const openSheet = (): boolean => {
-    if (copy.length === 0) return false;
+  const shelfSome = (region: WorldRect, group: Unit[], obstacles: WorldRect[]): Unit[] => {
+    if (group.length === 0) return [];
+    if (region.w < 28 || region.h < 14) return group.slice();
+    const originals = group.map((unit) => unit.fontPx);
+    const arts = plates.filter((plate) => plate.kind === "art" && intersectsBox(plate.box, region) && !(options?.trial === "cross-bar" && plate.frame === "progress_frame"));
+    const maskBand = scene ? firstMask(scene) : null;
+    const maskHits = maskBand ? screenShapes(maskBand.shapes, view) : [];
+    const blocked = (rect: WorldRect) => obstacles.some((box) => tooClose(rect, box)) || arts.some((plate) => intersectsBox(rect, plate.box)) || maskHits.some((shape) => boxHitsShape(rect, shape));
+    const bags: WorldRect[][] = [];
+    const run = (cap: number): Unit[] => {
+      const placed: WorldRect[] = [];
+      bags.push(placed);
+      const missed: Unit[] = [];
+      let x = region.x;
+      let y = region.y;
+      let rowH = 0;
+      for (let index = 0; index < group.length; index += 1) {
+        const unit = group[index];
+        unit.fontPx = Math.max(14, Math.min(originals[index], cap));
+        fitText(unit, Math.max(28, region.w), measure);
+        const accept = (px: number, py: number) => {
+          const rect = { x: px, y: py, w: unit.w, h: unit.h };
+          if (py + rect.h > region.y + region.h + 0.1 || px + rect.w > region.x + region.w + 0.1) return false;
+          if (blocked(rect) || placed.some((prev) => tooClose(rect, prev))) return false;
+          unit.x = px;
+          unit.y = py;
+          return true;
+        };
+        if (x > region.x && x + unit.w > region.x + region.w) {
+          x = region.x;
+          y += rowH + UI_GAP;
+          rowH = 0;
+        }
+        let parked = y + unit.h <= region.y + region.h + 0.1 && accept(x, y);
+        if (!parked) {
+          for (let yy = y; yy + unit.h <= region.y + region.h && !parked; yy += Math.max(14, unit.h)) {
+            for (let xx = region.x; xx + unit.w <= region.x + region.w && !parked; xx += 12) {
+              if (!accept(xx, yy)) continue;
+              x = xx;
+              y = yy;
+              rowH = 0;
+              parked = true;
+            }
+          }
+        }
+        if (!parked) {
+          unit.onPaper = false;
+          missed.push(unit);
+          continue;
+        }
+        unit.onPaper = true;
+        placed.push({ x: unit.x, y: unit.y, w: unit.w, h: unit.h });
+        x = unit.x + unit.w + UI_GAP;
+        rowH = Math.max(rowH, unit.h);
+      }
+      return missed;
+    };
+    let bestCap = Math.max(14, ...originals, 14);
+    let bestMiss = group.length + 1;
+    for (let cap = bestCap; cap >= 14; cap -= 1) {
+      const missed = run(cap);
+      if (missed.length < bestMiss) {
+        bestMiss = missed.length;
+        bestCap = cap;
+      }
+    }
+    const missed = run(bestCap);
+    const placed = bags[bags.length - 1] ?? [];
+    for (const rect of placed) markBox(grid, { x: rect.x - UI_GAP, y: rect.y - UI_GAP, w: rect.w + UI_GAP * 2, h: rect.h + UI_GAP * 2 });
+    return missed;
+  };
+  const openSheet = (group: Unit[]): boolean => {
+    if (group.length === 0) return true;
+    const sheetOriginals = group.map((unit) => unit.fontPx);
+    const maxFont = Math.max(14, ...sheetOriginals, 14);
+    const originOf = (unit: Unit) => sheetOriginals[group.indexOf(unit)] ?? unit.fontPx;
+    const layoutColumns = (columns: Unit[][], innerW: number, cap: number): number => {
+      let height = 0;
+      for (const column of columns) {
+        let y = 0;
+        for (const unit of column) {
+          unit.fontPx = Math.max(14, Math.min(originOf(unit), cap));
+          fitText(unit, Math.max(28, innerW), measure);
+          if (y > 0) y += UI_GAP;
+          y += unit.h;
+        }
+        height = Math.max(height, y);
+      }
+      return height;
+    };
+    const paintColumns = (outer: WorldRect, columns: Unit[][], innerW: number): void => {
+      columns.forEach((column, columnIndex) => {
+        let penY = outer.y + 16;
+        const penX = outer.x + 20 + columnIndex * (innerW + UI_GAP);
+        for (const unit of column) {
+          unit.x = penX;
+          unit.y = penY;
+          unit.onPaper = true;
+          penY += unit.h + UI_GAP;
+          markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+        }
+      });
+    };
+    const tryCard = (columns: Unit[][], innerW: number, cap: number): boolean => {
+      const height = layoutColumns(columns, innerW, cap);
+      const outerH = Math.max(72, height + 32);
+      const outerW = 40 + columns.length * innerW + Math.max(0, columns.length - 1) * UI_GAP;
+      if (height <= 0 || outerH > view.h - 56 || outerW > view.w - 16) return false;
+      for (let y = 52; y + outerH <= view.h - 4; y += step) {
+        for (let x = 8; x + outerW <= view.w - 4; x += step) {
+          if (!cellFree(grid, x, y, outerW, outerH)) continue;
+          const outer = { x, y, w: outerW, h: outerH };
+          if (sceneKeyOf(scene) === "stages" && plates.some((plate) => (plate.frame === "panel_parchment" || plate.frame === "panel_wood") && tooClose(outer, plate.box))) continue;
+          fills.push({ ...outer, color: 0xfff4dc, role: "sheet" });
+          plates.push({ box: outer, kind: "paper", frame: "sheet" });
+          markBox(grid, outer);
+          paintColumns(outer, columns, innerW);
+          return true;
+        }
+      }
+      return false;
+    };
+    const columnWidths = [440, 360, 300, 240, 180, 150]
+      .map((value) => Math.min(value, view.w - 72))
+      .filter((value, index, list) => value >= 120 && list.indexOf(value) === index);
+    for (const innerW of columnWidths) {
+      for (let cap = maxFont; cap >= 14; cap -= 1) {
+        if (tryCard([group], innerW, cap)) return true;
+      }
+    }
+    if (group.length > 1) {
+      const mid = Math.ceil(group.length / 2);
+      const pairWidths = [220, 180, 150, 120]
+        .map((value) => Math.min(value, Math.floor((view.w - 88) / 2)))
+        .filter((value, index, list) => value >= 100 && list.indexOf(value) === index);
+      for (const innerW of pairWidths) {
+        for (let cap = maxFont; cap >= 14; cap -= 1) {
+          if (tryCard([group.slice(0, mid), group.slice(mid)], innerW, cap)) return true;
+        }
+      }
+    }
+    const packHole = (): boolean => {
+      for (const bandH of [150, 180, 210, 240, 280, 320]) {
+        if (bandH > view.h - 56) continue;
+        let best: { x: number; y: number; w: number } | null = null;
+        for (let y = 52; y + bandH <= view.h - 4; y += 8) {
+          let run = 0;
+          let runX = 8;
+          for (let x = 8; x <= view.w - 4; x += 4) {
+            if (cellFree(grid, x, y, 4, bandH)) {
+              if (run === 0) runX = x;
+              run += 4;
+              if (!best || run > best.w) best = { x: runX, y, w: run };
+            } else run = 0;
+          }
+        }
+        if (!best || best.w < 140) continue;
+        if (sceneKeyOf(scene) === "stages" && plates.some((plate) => (plate.frame === "panel_parchment" || plate.frame === "panel_wood") && tooClose({ x: best.x, y: best.y, w: best.w, h: bandH }, plate.box))) continue;
+        const innerW = best.w - 40;
+        const innerH = bandH - 32;
+        for (let cap = maxFont; cap >= 14; cap -= 1) {
+          const spots: Array<{ unit: Unit; x: number; y: number }> = [];
+          let penX = 0;
+          let penY = 0;
+          let rowH = 0;
+          let fits = true;
+          for (let index = 0; index < group.length; index += 1) {
+            const unit = group[index];
+            unit.fontPx = Math.max(14, Math.min(sheetOriginals[index], cap));
+            fitText(unit, Math.max(28, innerW), measure);
+            if (penX > 0 && penX + unit.w > innerW) {
+              penX = 0;
+              penY += rowH + UI_GAP;
+              rowH = 0;
+            }
+            if (unit.w > innerW || penY + unit.h > innerH) {
+              fits = false;
+              break;
+            }
+            spots.push({ unit, x: penX, y: penY });
+            penX += unit.w + UI_GAP;
+            rowH = Math.max(rowH, unit.h);
+          }
+          if (!fits || spots.length !== group.length) continue;
+          const outer = { x: best.x, y: best.y, w: best.w, h: bandH };
+          fills.push({ ...outer, color: 0xfff4dc, role: "sheet" });
+          plates.push({ box: outer, kind: "paper", frame: "sheet" });
+          markBox(grid, outer);
+          for (const spot of spots) {
+            spot.unit.x = outer.x + 20 + spot.x;
+            spot.unit.y = outer.y + 16 + spot.y;
+            spot.unit.onPaper = true;
+            markBox(grid, { x: spot.unit.x - UI_GAP, y: spot.unit.y - UI_GAP, w: spot.unit.w + UI_GAP * 2, h: spot.unit.h + UI_GAP * 2 });
+          }
+          return true;
+        }
+      }
+      return false;
+    };
+    if (packHole()) return true;
     const width = Math.min(480, view.w - 32);
-    const originals = copy.map((unit) => unit.fontPx);
-    for (let cap = Math.max(14, ...originals, 14); cap >= 14; cap -= 1) {
+    for (let cap = maxFont; cap >= 14; cap -= 1) {
       const innerW = width - 40;
       let cursorX = 0;
       let cursorY = 0;
       let rowH = 0;
       let tooTall = false;
-      for (let index = 0; index < copy.length; index += 1) {
-        const unit = copy[index];
-        unit.fontPx = Math.max(14, Math.min(originals[index], cap));
+      for (let index = 0; index < group.length; index += 1) {
+        const unit = group[index];
+        unit.fontPx = Math.max(14, Math.min(sheetOriginals[index], cap));
         fitText(unit, Math.max(28, innerW), measure);
         if (cursorX > 0 && cursorX + unit.w > innerW) {
           cursorX = 0;
@@ -469,14 +690,15 @@ function placeUnits(
         for (let x = 8; x + outerW <= view.w - 4; x += step) {
           if (!cellFree(grid, x, y, outerW, outerH)) continue;
           const outer = { x, y, w: outerW, h: outerH };
+          if (sceneKeyOf(scene) === "stages" && plates.some((plate) => (plate.frame === "panel_parchment" || plate.frame === "panel_wood") && tooClose(outer, plate.box))) continue;
           const inner = { x: x + 20, y: y + 16, w: innerW, h: outerH - 32 };
           fills.push({ ...outer, color: 0xfff4dc, role: "sheet" });
-          plates.push({ box: outer, kind: "paper" });
+          plates.push({ box: outer, kind: "paper", frame: "sheet" });
           markBox(grid, outer);
           let penX = inner.x;
           let penY = inner.y;
           let lineH = 0;
-          for (const unit of copy) {
+          for (const unit of group) {
             if (penX > inner.x && penX + unit.w > inner.x + inner.w) {
               penX = inner.x;
               penY += lineH + UI_GAP;
@@ -493,20 +715,95 @@ function placeUnits(
         }
       }
     }
-    copy.forEach((unit, index) => {
-      unit.fontPx = originals[index];
+    group.forEach((unit, index) => {
+      unit.fontPx = sheetOriginals[index];
       unit.onPaper = false;
     });
     return false;
   };
-  let onPaper = false;
-  for (const plate of packing) {
-    if (shelfInto(plate.inner)) {
-      onPaper = true;
-      break;
+  const sceneKey = sceneKeyOf(scene);
+  // 原来：关卡图把未解锁词的「?」和说明排进同一张垫纸，右列几乎全是问号。
+  // 现在：「?」回到词卡中心，说明单独排。问号仍在，不删。
+  // 为什么：问号是词卡上的标记，不是说明句子。留在右列会把左侧纸挤成两列。
+  const stageFaces = sceneKey === "stages" ? copy.filter((unit) => unit.text.trim() === "?") : [];
+  if (stageFaces.length > 0) {
+    for (let index = copy.length - 1; index >= 0; index -= 1) {
+      if (copy[index]?.text.trim() === "?") copy.splice(index, 1);
     }
   }
-  if (!onPaper) onPaper = openSheet();
+  const parkStageFaces = (): void => {
+    if (stageFaces.length === 0) return;
+    const cards = plates
+      .filter((plate) => plate.frame === "map_word_unknown" || plate.frame === "map_word_card")
+      .sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x);
+    stageFaces.forEach((unit, index) => {
+      const card = cards[index];
+      if (!card) return;
+      unit.fontPx = 14;
+      fitText(unit, Math.max(14, card.box.w - 8), measure);
+      unit.x = card.box.x + Math.max(0, (card.box.w - unit.w) / 2);
+      unit.y = card.box.y + Math.max(0, (card.box.h - unit.h) / 2);
+      unit.onPaper = true;
+    });
+  };
+  const strictRows = sceneKey === "battle-results" || sceneKey === "skills";
+  const strictBar = sceneKey === "battle-results" && options?.trial !== "cross-bar";
+  const strictNest = sceneKey === "duel";
+  const nests = strictNest ? nestedPanels(plates) : [];
+  const bars = plates.filter((plate) => (strictRows && plate.frame === "list_row") || (strictBar && plate.frame === "progress_frame"));
+  let onPaper = false;
+  if (!strictRows && !strictNest) {
+    for (const plate of packing) {
+      if (shelfInto(plate.inner)) {
+        onPaper = true;
+        break;
+      }
+    }
+    if (!onPaper) onPaper = openSheet(copy);
+  } else {
+    // 原来：结算句子排进整张纸心，后两行盖住奖励卡并贴着经验条。技能说明穿过列表行。对战说明穿过内层小纸。overlap 仍是 0。
+    // 现在：这些框计入阻挡。纸心排得下的留在纸内，排不下的改放到有内边距的垫纸。穿过经验条只在 trial=cross-bar 时出现，页面不会打开它。
+    // 为什么：垫纸把排不下的句子留在可读的纸上，不再靠 overlap 0 把字留在卡或经验条上。
+    const inflate = (box: WorldRect): WorldRect => ({ x: box.x - UI_GAP, y: box.y - UI_GAP, w: box.w + UI_GAP * 2, h: box.h + UI_GAP * 2 });
+    for (const plate of bars) markBox(grid, inflate(plate.box));
+    for (const plate of nests) markBox(grid, inflate(plate.box));
+    const host = packing[0];
+    const missed: Unit[] = [];
+    const rest = copy;
+    const obstacles = [
+      ...bars.flatMap((plate) => plate.frame === "progress_frame" && host
+        ? [{ x: host.inner.x, y: plate.box.y - UI_GAP, w: host.inner.w, h: plate.box.h + UI_GAP * 2 }]
+        : [plate.box]),
+      ...nests.map((plate) => plate.box),
+    ];
+    if (host) missed.push(...shelfSome(host.inner, rest, obstacles));
+    else missed.push(...rest);
+    if (host) {
+      markBox(host.outer, 0);
+      for (const unit of copy) {
+        if (!unit.onPaper) continue;
+        markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+      }
+      for (const plate of plates) if (plate.kind === "art") markBox(grid, plate.box);
+      for (const plate of bars) if (plate.frame !== "list_row") markBox(grid, inflate(plate.box));
+      for (const plate of nests) markBox(grid, inflate(plate.box));
+    }
+    if (sceneKey === "skills") {
+      for (const plate of bars) markBox(grid, inflate(plate.box), 0);
+      for (const unit of copy) {
+        if (!unit.onPaper) continue;
+        markBox(grid, { x: unit.x - UI_GAP, y: unit.y - UI_GAP, w: unit.w + UI_GAP * 2, h: unit.h + UI_GAP * 2 });
+      }
+    }
+    onPaper = openSheet(missed);
+  }
+  parkStageFaces();
+  if (sceneKey === "stages") {
+    for (const plate of plates) {
+      if (plate.frame !== "panel_parchment" && plate.frame !== "panel_wood") continue;
+      markBox(grid, { x: plate.box.x - 16, y: plate.box.y - 16, w: plate.box.w + 32, h: plate.box.h + 32 });
+    }
+  }
   const ordered = [...units].sort((a, b) => Number(b.interactive) - Number(a.interactive) || a.design.y - b.design.y || a.design.x - b.design.x);
   let overflowY = view.h;
   const spansAt = (y: number, h: number) => {
@@ -553,7 +850,7 @@ function placeUnits(
     return false;
   };
   for (const unit of ordered) {
-    if (!unit.interactive && unit.text.length > 0 && onPaper) continue;
+    if (!unit.interactive && unit.text.length > 0 && unit.onPaper) continue;
     const natural = Math.max(16, unit.w);
     if (tryPlace(unit, natural, null)) {
       if (!unit.interactive) unit.onPaper = false;
@@ -919,7 +1216,7 @@ function collectTreeHits(scene: { children: { list: GameNode[] } }, view: ViewBo
   return hits;
 }
 
-export function layoutFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, measure?: MeasureText): FramePlan {
+export function layoutFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, measure?: MeasureText, options?: LayoutOptions): FramePlan {
   const flat: GameNode[] = [];
   if (scene) flatten(scene.children.list, flat);
   const visible = flat.filter((node) => node.visible);
@@ -939,7 +1236,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const dest = { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
     const frame = node.type === "nineslice" ? String((node as GameNode & { frame?: string }).frame ?? "") : "";
     const kind = isPaperFrame(frame) ? "paper" : plateKind(dest, view);
-    plates.push({ box: dest, kind });
+    plates.push({ box: dest, kind, frame });
     emitArt(images, fills, node, dest);
   }
 
@@ -981,7 +1278,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       lines,
     });
   }
-  placeUnits(units, view, scene, plates, fills, measure);
+  placeUnits(units, view, scene, plates, fills, measure, options);
 
   const items: PaintBox[] = [];
   for (const unit of units) {
@@ -1091,6 +1388,10 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   const mask = scene ? firstMask(scene) : null;
   const maskShapes = mask ? screenShapes(mask.shapes, view) : [];
   const overlapLabels: string[] = [];
+  const watchKey = sceneKeyOf(scene);
+  const watchRows = watchKey === "battle-results" || watchKey === "skills";
+  const watchBar = watchKey === "battle-results";
+  const watchNest = watchKey === "duel" ? nestedPanels(plates) : [];
   for (const item of texts) {
     const before = overlapLabels.length;
     const box = { x: item.x, y: item.y, w: item.w, h: item.h };
@@ -1098,8 +1399,28 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     let onFrame = false;
     let artHit = "";
     for (const art of plates) {
-      if (art.box.w <= 0 || art.box.h <= 0 || !intersectsBox(box, art.box)) continue;
-      if (art.kind === "room") continue;
+      if (art.box.w <= 0 || art.box.h <= 0) continue;
+      if (watchBar && art.frame === "progress_frame" && box.y < art.box.y + art.box.h + UI_GAP && box.y + box.h > art.box.y - UI_GAP && box.x < art.box.x + art.box.w + UI_GAP && box.x + box.w > art.box.x - UI_GAP) {
+        overlapLabels.push(`${item.text.slice(0, 16)} on progress_frame`);
+        continue;
+      }
+      if (watchRows && art.frame === "list_row" && tooClose(box, art.box)) {
+        const covered = plates.some((plate) => plate.frame === "sheet" && boxInside(box, { x: plate.box.x + 12, y: plate.box.y + 12, w: plate.box.w - 24, h: plate.box.h - 24 }));
+        if (!covered) overlapLabels.push(`${item.text.slice(0, 16)} on list_row`);
+        continue;
+      }
+      if (watchNest.some((panel) => panel === art) && tooClose(box, art.box)) {
+        const room = { x: art.box.x + 10, y: art.box.y + 10, w: art.box.w - 20, h: art.box.h - 20 };
+        if (!(room.w >= 14 && room.h >= 14 && boxInside(box, room))) overlapLabels.push(`${item.text.slice(0, 16)} on inner`);
+        continue;
+      }
+      if (!intersectsBox(box, art.box)) continue;
+      if (art.kind === "room" || art.box.w < 4 || art.box.h < 4) continue;
+      if (art.frame === "sheet") {
+        const pad = { x: art.box.x + 8, y: art.box.y + 8, w: Math.max(1, art.box.w - 16), h: Math.max(1, art.box.h - 16) };
+        if (boxInside(box, pad)) insidePaper = true;
+        continue;
+      }
       if (art.kind === "paper") {
         const interior = paperInterior(art.box);
         const slack = { x: interior.x - 4, y: interior.y - 4, w: interior.w + 8, h: interior.h + 8 };
@@ -1107,6 +1428,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         else onFrame = true;
         continue;
       }
+      if ((art.frame === "map_word_unknown" || art.frame === "map_word_card") && boxInside(box, art.box)) continue;
       artHit = `${item.text.slice(0, 16)} on art ${Math.round(art.box.x)},${Math.round(art.box.y)} ${Math.round(art.box.w)}x${Math.round(art.box.h)}`;
       break;
     }

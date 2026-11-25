@@ -155,9 +155,9 @@ async function main() {
       return { texts: plan.texts.length, images: plan.images.length, hits: names, overflow: plan.overflow, overlap: plan.overlap };
     });
     log(`full scene ${JSON.stringify(full)}`);
-    await shot("w3-wardrobe-full-r6.png");
-    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full-r6.png"), path.join(evidence, "w3-wardrobe-overlap-after-r6.png"));
-    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full-r6.png"), path.join(shots, "w3-wardrobe-overlap-after-r6.png"));
+    await shot("w3-wardrobe-full-r7.png");
+    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full-r7.png"), path.join(evidence, "w3-wardrobe-overlap-after-r7.png"));
+    fs.copyFileSync(path.join(evidence, "w3-wardrobe-full-r7.png"), path.join(shots, "w3-wardrobe-overlap-after-r7.png"));
     assert.ok(full.hits.some((name) => name.startsWith("wardrobe:")), "wardrobe hits missing");
 
     const composition = await page.evaluate(() => {
@@ -336,7 +336,7 @@ async function main() {
       window.__clip.afterUrl = image;
     });
     const afterPng = await page.evaluate(() => window.__clip.afterUrl);
-    fs.writeFileSync(path.join(evidence, "w3-wardrobe-after-r6.png"), Buffer.from(afterPng.split(",")[1], "base64"));
+    fs.writeFileSync(path.join(evidence, "w3-wardrobe-after-r7.png"), Buffer.from(afterPng.split(",")[1], "base64"));
 
     await page.evaluate(() => {
       const { game, ctx, scene, view, canvas, board, held } = window.__clip;
@@ -348,12 +348,12 @@ async function main() {
       board.setMask(held);
     });
     const beforePng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
-    fs.writeFileSync(path.join(evidence, "w3-wardrobe-before-r6.png"), Buffer.from(beforePng.split(",")[1], "base64"));
-    for (const name of ["w3-wardrobe-before-r6.png", "w3-wardrobe-after-r6.png"]) {
+    fs.writeFileSync(path.join(evidence, "w3-wardrobe-before-r7.png"), Buffer.from(beforePng.split(",")[1], "base64"));
+    for (const name of ["w3-wardrobe-before-r7.png", "w3-wardrobe-after-r7.png"]) {
       fs.copyFileSync(path.join(evidence, name), path.join(shots, name));
     }
-    log("screenshot w3-wardrobe-before-r6.png");
-    log("screenshot w3-wardrobe-after-r6.png");
+    log("screenshot w3-wardrobe-before-r7.png");
+    log("screenshot w3-wardrobe-after-r7.png");
 
     const scroll = await page.evaluate(() => {
       const { game, ctx, scene, view, canvas, board, held, markAt } = window.__clip;
@@ -377,8 +377,8 @@ async function main() {
     });
     log(`scroll ${JSON.stringify(scroll)}`);
     const scrolledPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
-    fs.writeFileSync(path.join(evidence, "w3-wardrobe-scrolled-r6.png"), Buffer.from(scrolledPng.split(",")[1], "base64"));
-    fs.copyFileSync(path.join(evidence, "w3-wardrobe-scrolled-r6.png"), path.join(shots, "w3-wardrobe-scrolled-r6.png"));
+    fs.writeFileSync(path.join(evidence, "w3-wardrobe-scrolled-r7.png"), Buffer.from(scrolledPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-wardrobe-scrolled-r7.png"), path.join(shots, "w3-wardrobe-scrolled-r7.png"));
     assert.ok(scroll.maxScroll > 0, "list does not overflow");
     assert.ok(scroll.y1 < scroll.y0, "wheel did not move the nested board");
     assert.ok(scroll.scroll > 0, "scroll stayed 0");
@@ -518,8 +518,8 @@ async function main() {
     });
     log(`transform ${JSON.stringify(probe)}`);
     const transformPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
-    fs.writeFileSync(path.join(evidence, "w3-clip-transform-r6.png"), Buffer.from(transformPng.split(",")[1], "base64"));
-    fs.copyFileSync(path.join(evidence, "w3-clip-transform-r6.png"), path.join(shots, "w3-clip-transform-r6.png"));
+    fs.writeFileSync(path.join(evidence, "w3-clip-transform-r7.png"), Buffer.from(transformPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-clip-transform-r7.png"), path.join(shots, "w3-clip-transform-r7.png"));
     function close(found, expected) {
       return Math.abs(found[0] - expected[0]) < 20 && Math.abs(found[1] - expected[1]) < 20 && Math.abs(found[2] - expected[2]) < 20;
     }
@@ -585,8 +585,8 @@ async function main() {
     });
     log(`nested ${JSON.stringify(nested)}`);
     const nestedPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
-    fs.writeFileSync(path.join(evidence, "w3-clip-nested-r6.png"), Buffer.from(nestedPng.split(",")[1], "base64"));
-    fs.copyFileSync(path.join(evidence, "w3-clip-nested-r6.png"), path.join(shots, "w3-clip-nested-r6.png"));
+    fs.writeFileSync(path.join(evidence, "w3-clip-nested-r7.png"), Buffer.from(nestedPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-clip-nested-r7.png"), path.join(shots, "w3-clip-nested-r7.png"));
     assert.ok(close(nested.samples.center.rgba, [255, 204, 0]), "nested intersection did not draw");
     assert.ok(close(nested.samples.circleCorner.rgba, [32, 32, 32]), "circle mask used its bounding square");
     assert.ok(close(nested.samples.gap.rgba, [32, 32, 32]), "two fillRects were replaced by their union box");
@@ -646,8 +646,8 @@ async function main() {
     });
     log(`container-transform ${JSON.stringify(transformed)}`);
     const turnedPng = await page.evaluate(() => document.getElementById("c").toDataURL("image/png"));
-    fs.writeFileSync(path.join(evidence, "w3-clip-container-r6.png"), Buffer.from(turnedPng.split(",")[1], "base64"));
-    fs.copyFileSync(path.join(evidence, "w3-clip-container-r6.png"), path.join(shots, "w3-clip-container-r6.png"));
+    fs.writeFileSync(path.join(evidence, "w3-clip-container-r7.png"), Buffer.from(turnedPng.split(",")[1], "base64"));
+    fs.copyFileSync(path.join(evidence, "w3-clip-container-r7.png"), path.join(shots, "w3-clip-container-r7.png"));
     assert.ok(close(transformed.flipAt, [255, 0, 0]), "container flipX did not move the child");
     assert.ok(close(transformed.flipAway, [32, 32, 32]), "container flipX left the child in place");
     assert.ok(close(transformed.turnAt, [0, 0, 255]), "container rotation did not move the child");
@@ -662,12 +662,12 @@ async function main() {
   } finally {
     await browser.close();
   }
-  fs.writeFileSync(path.join(evidence, "w3-clip-r6.log"), `${lines.join("\n")}\n`);
+  fs.writeFileSync(path.join(evidence, "w3-clip-r7.log"), `${lines.join("\n")}\n`);
 }
 
 main().catch((error) => {
   log(`FAIL ${error && error.stack ? error.stack : error}`);
   fs.mkdirSync(evidence, { recursive: true });
-  fs.writeFileSync(path.join(evidence, "w3-clip-r6.log"), `${lines.join("\n")}\n`);
+  fs.writeFileSync(path.join(evidence, "w3-clip-r7.log"), `${lines.join("\n")}\n`);
   process.exit(1);
 });
