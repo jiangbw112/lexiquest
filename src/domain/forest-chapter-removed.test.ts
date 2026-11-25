@@ -12,9 +12,9 @@ import {
 } from "./chapter-plan";
 import {
   academyForestChapter,
-  academyForestWordIds,
   battleReturn,
   commitBattleEntry,
+  confirmLearnSelection,
   legalLearnChapters,
 } from "./chapter-route";
 import { learnCardsDoneCopy } from "./learn-batch";
@@ -83,10 +83,10 @@ describe("independent forest chapter", () => {
       const battle = gradeChapters(grade);
       const firstBattle = battle[0]!;
       const second = battle[1]!;
-      expect(lesson[0]?.wordIds).toEqual(academyForestWordIds(grade));
-      expect(lesson[0]?.wordIds.length).toBeGreaterThan(0);
-      expect(lesson[1]).toMatchObject({ id: firstBattle.id, grade });
-      expect(lesson[1]?.wordIds).toEqual(firstBattle.wordIds);
+      expect(lesson.map((chapter) => chapter.id)).toEqual(battle.map((chapter) => chapter.id));
+      expect(lesson.some((chapter) => chapter.id === "forest_adventure")).toBe(false);
+      expect(lesson[0]).toMatchObject({ id: firstBattle.id, grade });
+      expect(lesson[0]?.wordIds).toEqual(firstBattle.wordIds);
       expect(firstBattle.wordIds.length).toBeGreaterThanOrEqual(3);
       expect(isChapterUnlocked(save, firstBattle)).toBe(true);
       expect(isChapterUnlocked(save, second)).toBe(false);
@@ -178,6 +178,73 @@ describe("independent forest chapter", () => {
     expect(loadedOther?.wordCards.map).toBeUndefined();
     expect(loadedForest?.wordCards.sun).toBeUndefined();
     expect(loadProfile(store, second.slotId)?.player.name).toBe(other.player.name);
+  });
+
+  it("teaches every forest word from one grade chapter and does not drop a card", () => {
+    const home: Record<string, string> = {
+      big: "pep_g3_01",
+      bird: "pep_g3_02",
+      fish: "pep_g3_02",
+      tree: "pep_g3_03",
+      sun: "pep_g3_03",
+      flower: "pep_g3_03",
+      red: "pep_g3_03",
+      map: "pep_g3_08",
+      bridge: "pep_g4_02",
+      rain: "pep_g4_03",
+      weather: "pep_g4_03",
+      run: "pep_g4_05",
+      jump: "pep_g5_01",
+      brave: "pep_g5_01",
+      river: "pep_g5_04",
+      forest: "pep_g5_04",
+      mountain: "pep_g5_04",
+      dangerous: "pep_g5_04",
+      path: "pep_g5_04",
+      explore: "pep_g5_09",
+      village: "pep_g6_01",
+      climb: "pep_g6_01",
+      treasure: "pep_g6_01",
+      adventure: "pep_g6_01",
+      cloud: "pep_g6_04",
+      discover: "pep_g6_04",
+      protect: "pep_g6_04",
+      journey: "pep_g6_06",
+    };
+    expect(Object.keys(home)).toHaveLength(28);
+    const found = new Map<string, string>();
+    for (const grade of GRADES) {
+      for (const chapter of legalLearnChapters(fresh([grade]), grade)) {
+        expect(chapter.id).not.toBe("forest_adventure");
+        for (const id of chapter.wordIds) {
+          if (!chapterWordIds().includes(id)) continue;
+          expect(found.has(id), id).toBe(false);
+          found.set(id, chapter.id);
+        }
+      }
+    }
+    expect([...found.keys()].sort()).toEqual(chapterWordIds().slice().sort());
+    for (const [id, chapterId] of Object.entries(home)) expect(found.get(id)).toBe(chapterId);
+    const onlyG3 = legalLearnChapters(fresh(["G3"]), "G3").flatMap((chapter) => chapter.wordIds);
+    expect(onlyG3).toEqual(expect.arrayContaining(["big", "bird", "fish", "tree", "sun", "flower", "red", "map"]));
+    expect(onlyG3).not.toContain("bridge");
+    expect(onlyG3).not.toContain("explore");
+    const onlyG4 = legalLearnChapters(fresh(["G4"]), "G4").flatMap((chapter) => chapter.wordIds);
+    expect(onlyG4).toEqual(expect.arrayContaining(["bridge", "rain", "weather", "run"]));
+    expect(onlyG4).not.toContain("bird");
+    let learned = learnWord(fresh(["G3"]), "bridge", START);
+    const card = learned.wordCards.bridge;
+    const claimed = learned.clearRewardClaimed;
+    const queue = learned.rewardQueue;
+    learned = { ...learned, selectedGrades: ["G3"] };
+    expect(learned.wordCards.bridge).toEqual(card);
+    expect(learnWord(learned, "bridge", START)).toBe(learned);
+    expect(learned.clearRewardClaimed).toBe(claimed);
+    expect(learned.rewardQueue).toEqual(queue);
+    expect(confirmLearnSelection(learned, "G3", "forest_adventure")).toBe(learned);
+    const added = fresh(["G3", "G4"]);
+    expect(legalLearnChapters(added, "G4").flatMap((chapter) => chapter.wordIds)).toContain("bridge");
+    expect(isChapterUnlocked({ ...fresh(["G3"]), chapterCleared: true }, gradeChapters("G3")[1]!)).toBe(false);
   });
 
   it("does not point the map or battle scenes at a forest fight", () => {

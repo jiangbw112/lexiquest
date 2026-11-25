@@ -14,9 +14,9 @@ import type { SaveData } from "./types";
 
 const GRADES = ["G3", "G4", "G5", "G6"] as const;
 /** Question pools for every grade chapter under every grade selection. */
-const POOL_HASH = "f0ba41f01d06bd53717c250d72cc68a1e8d65be91bda65af7f1df3cf8949d6f8";
+const POOL_HASH = "9bc8471845681f3b81fe9edaea57697d5250044bab92146c34883cd66aa5a550";
 /** Exam meaning choices for a full card pool after the near-synonym blocks. */
-const EXAM_CHOICE_HASH = "8b3eca1f93a7241dd6c0092be675b868672b533e99cdedd648f493d15a4a1408";
+const EXAM_CHOICE_HASH = "243b27bbea5b0f82f0c772c02085d5703abd9bf31396609e7baee283a310b013";
 const EXCLUSION_SHA = "516cc9da9ac457e400b71530ec77174179e13ad643311dfa84423e866c7fb311";
 
 function combos(): string[][] {
@@ -96,14 +96,12 @@ describe("short choice fill", () => {
     expect(wordById(later)?.grade).toBe("G5");
     const chapterOnly = wordsOf(["bridge", "treasure", "protect", about]);
     const fromChapter = quizForWord("bridge", 1, "zh-to-en", chapterOnly);
-    expect(fromChapter.choices.map((choice) => choice.id).sort()).toEqual(["bridge", "protect", "treasure"]);
+    expect(fromChapter.choices.map((choice) => choice.id).sort()).toEqual(["arm", "bridge"]);
     const oneChapterWord = wordsOf(["bridge", "treasure", about, later]);
     const mixed = quizForWord("bridge", 4, "zh-to-en", oneChapterWord);
-    expect(mixed.choices.map((choice) => choice.id)).toContain("treasure");
     expect(mixed.choices).toHaveLength(MEANING_CHOICE_COUNT);
-    const outsider = mixed.choices.map((choice) => choice.id).filter((id) => id !== "bridge" && id !== "treasure");
-    expect(outsider).toHaveLength(1);
-    expect([about, later]).toContain(outsider[0]);
+    expect(mixed.choices.map((choice) => choice.id).sort()).toEqual([about, "bridge", later].sort());
+    expect(mixed.choices.map((choice) => choice.id)).not.toContain("treasure");
   });
 
   it("gives the first grade-3 chapter three unique choices from its own words", () => {
@@ -185,7 +183,7 @@ describe("short choice fill", () => {
       }
     }
     expect(problems).toEqual([]);
-    expect(questions).toBe(6744);
+    expect(questions).toBe(6968);
     expect(pools.digest("hex")).toBe(POOL_HASH);
   }, 20000);
 
@@ -207,7 +205,7 @@ describe("short choice fill", () => {
         }
       }
     }
-    expect(examQuestions).toBe(2526);
+    expect(examQuestions).toBe(2604);
     expect(hash.digest("hex")).toBe(EXAM_CHOICE_HASH);
     const next = wordById("next");
     expect(next).toBeTruthy();

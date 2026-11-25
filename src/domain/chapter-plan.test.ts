@@ -29,7 +29,7 @@ import { chapterWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
 /** chapters_v0.2.json. pep_g3_07 boss is 营养餐盘守护者; its theme note no longer says Old toys. */
-const CHAPTERS_SHA256 = "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c";
+const CHAPTERS_SHA256 = "ea65235c604c44ac22c2c0844196b9a944574b8de5a74d9c6ce4e03502b8fa3e";
 const GLOSS_SHA256 = "29d9c690d11324ed2b0e10b213c0653826309d05f853ee162d5088204c48ba79";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -232,9 +232,10 @@ describe("grade chapters", () => {
     const seen = new Set<string>();
     for (const grade of GRADES) {
       const ids = gradeChapters(grade).flatMap((chapter) => chapter.wordIds);
-      expect(new Set(ids)).toEqual(new Set(remainder[grade]));
-      expect(ids).toHaveLength(remainder[grade].length);
-      expect(new Set(ids)).toEqual(new Set(continuationWordIds(grade)));
+      const kept = ids.filter((id) => !forest.has(id));
+      expect(new Set(kept)).toEqual(new Set(remainder[grade]));
+      expect(kept).toHaveLength(remainder[grade].length);
+      expect(new Set(kept)).toEqual(new Set(continuationWordIds(grade)));
       for (const chapter of gradeChapters(grade)) {
         expect(chapter.stages).toHaveLength(5);
         expect(chapter.stages[4]?.type).toBe("boss");
@@ -242,9 +243,8 @@ describe("grade chapters", () => {
       }
       for (const id of ids) {
         expect(seen.has(id)).toBe(false);
-        expect(forest.has(id)).toBe(false);
-        expect(extras.has(id)).toBe(false);
         expect(wordById(id)?.grade).toBe(grade);
+        if (extras.has(id)) expect(forest.has(id)).toBe(true);
         seen.add(id);
       }
     }
@@ -254,21 +254,21 @@ describe("grade chapters", () => {
       G5: 251,
       G6: 161,
     });
-    expect(seen.size).toBe(843);
+    expect(seen.size).toBe(871);
     expect(GRADES.map((grade) => gradeChapters(grade).length)).toEqual([8, 8, 9, 6]);
     const sizes = (id: string) => gradeChapters(id.slice(4, 6) === "g3" ? "G3" : id.slice(4, 6) === "g4" ? "G4" : id.slice(4, 6) === "g5" ? "G5" : "G6")
       .find((chapter) => chapter.id === id)!;
-    expect(sizes("pep_g3_08").wordIds).toHaveLength(24);
-    expect(sizes("pep_g3_08").stages.map((stage) => stage.new_words.length)).toEqual([5, 5, 5, 5, 4]);
+    expect(sizes("pep_g3_08").wordIds).toHaveLength(25);
+    expect(sizes("pep_g3_08").stages.map((stage) => stage.new_words.length)).toEqual([6, 5, 5, 5, 4]);
     expect(sizes("pep_g4_08").wordIds).toHaveLength(15);
     expect(sizes("pep_g4_08").stages.map((stage) => stage.new_words.length)).toEqual([3, 3, 3, 3, 3]);
-    expect(sizes("pep_g5_09").wordIds).toHaveLength(27);
-    expect(sizes("pep_g5_09").stages.map((stage) => stage.new_words.length)).toEqual([6, 6, 6, 6, 3]);
-    expect(sizes("pep_g6_06").wordIds).toHaveLength(21);
-    expect(sizes("pep_g6_06").stages.map((stage) => stage.new_words.length)).toEqual([5, 4, 4, 4, 4]);
+    expect(sizes("pep_g5_09").wordIds).toHaveLength(28);
+    expect(sizes("pep_g5_09").stages.map((stage) => stage.new_words.length)).toEqual([7, 6, 6, 6, 3]);
+    expect(sizes("pep_g6_06").wordIds).toHaveLength(22);
+    expect(sizes("pep_g6_06").stages.map((stage) => stage.new_words.length)).toEqual([6, 4, 4, 4, 4]);
     const friends = gradeChapters("G3")[0]!;
     expect(friends).toMatchObject({ id: "pep_g3_01", name: "朋友与家人", bossName: "全家福守护者" });
-    expect(friends.stages[0]?.new_words).toEqual(["arm", "can", "ear", "eye", "friend", "good"]);
+    expect(friends.stages[0]?.new_words).toEqual(["arm", "can", "ear", "eye", "friend", "good", "big"]);
     const places = gradeChapters("G6")[0]!;
     expect(places.id).toBe("pep_g6_01");
     const early = new Set(places.stages.slice(0, 3).flatMap((stage) => stage.new_words));

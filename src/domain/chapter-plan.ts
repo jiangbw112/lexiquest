@@ -132,6 +132,7 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
   }
   const forest = new Set(chapterWordIds());
   const seen = new Set<string>();
+  let migrated = 0;
   const chapters: PlayChapter[] = [];
   const perGrade = new Map<GradeBand, number>();
   const rawSkip: string[] = [];
@@ -155,9 +156,10 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
       }
       const wordIds: string[] = [];
       for (const id of stage.word_refs) {
-        if (seen.has(id) || forest.has(id)) throw new Error(`chapter word ${id} is repeated or already in the forest`);
+        if (seen.has(id)) throw new Error(`chapter word ${id} is repeated`);
         const word = wordById(id);
         if (!word || word.grade !== grade) throw new Error(`chapter word ${id} is not a ${grade} catalog word`);
+        if (forest.has(id)) migrated += 1;
         seen.add(id);
         wordIds.push(id);
       }
@@ -206,7 +208,8 @@ function loadPlan(file: ChapterFile[], gloss: GlossFile): LoadedPlan {
     const expected = grade === "G5" ? 9 : grade === "G6" ? 6 : 8;
     if (count !== expected) throw new Error(`${grade} has ${count} chapters`);
   }
-  if (seen.size !== 843) throw new Error(`chapter words ${seen.size}`);
+  if (seen.size !== 871) throw new Error(`chapter words ${seen.size}`);
+  if (migrated !== 28) throw new Error(`migrated forest words ${migrated}`);
   for (const id of SPELLING_EXCEPTIONS) {
     if (!rawSkip.includes(id)) throw new Error(`spelling exception ${id} is missing from the chapter file`);
   }

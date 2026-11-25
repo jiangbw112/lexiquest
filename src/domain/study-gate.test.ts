@@ -6,6 +6,7 @@ import {
   academyForestChapter,
   academyForestWordIds,
   assessLearnSelection,
+  legalLearnChapters,
   openAcademyForStage,
 } from "./chapter-route";
 import {
@@ -90,12 +91,12 @@ describe("forest study list", () => {
     const stage = stageById(4);
     if (!stage) throw new Error("stage 4 missing");
     const opened = openAcademyForStage(save, stage);
-    expect(opened.learnSelection).toEqual({ grade: "G6", chapterId: "forest_adventure" });
+    expect(opened.learnSelection).toEqual({ grade: "G6", chapterId: "pep_g6_01" });
     const assessed = assessLearnSelection(opened);
     expect(assessed.status).toBe("ready");
     if (assessed.status !== "ready") return;
-    const left = assessed.chapter.wordIds.filter((id) => !opened.wordCards[id]);
-    expect(left).toEqual(["cloud", "climb"]);
+    expect(assessed.chapter.wordIds).toContain("climb");
+    expect(legalLearnChapters(opened, "G6").find((chapter) => chapter.id === "pep_g6_04")?.wordIds).toContain("cloud");
     expect(chapterLearnScope(opened, { ...assessed.chapter, wordIds: ["cloud", "climb"] })).toEqual(["cloud", "climb"]);
     expect(assessed.chapter.grade).toBe("G6");
     const cloud = wordById("cloud");
@@ -120,6 +121,7 @@ describe("forest study list", () => {
       label: "去学堂学",
       grade: "G6",
       wordIds: ["cloud", "climb"],
+      chapterId: "pep_g6_01",
     });
     const view = buildResultsView({
       before: save,

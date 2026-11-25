@@ -123,7 +123,7 @@
   "chapter_index_in_grade": 1,
   "name_zh": "朋友与家人",
   "boss_name_zh": "全家福守护者",
-  "word_count": 28,
+  "word_count": 29,
   "units_covered": [
    {
     "unit_code": "3a-u1",
@@ -143,7 +143,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   7,
    6,
    6,
    6,
@@ -177,7 +177,8 @@
    "family",
    "father",
    "grandfather",
-   "grandma"
+   "grandma",
+   "big"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -191,7 +192,8 @@
      "ear",
      "eye",
      "friend",
-     "good"
+     "good",
+     "big"
     ]
    },
    {
@@ -267,7 +269,7 @@
   "chapter_index_in_grade": 2,
   "name_zh": "动物好朋友",
   "boss_name_zh": "温柔小虎灵",
-  "word_count": 28,
+  "word_count": 30,
   "units_covered": [
    {
     "unit_code": "3a-u2",
@@ -287,7 +289,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   8,
    6,
    6,
    6,
@@ -321,7 +323,9 @@
    "rabbit",
    "red panda",
    "tall",
-   "tiger"
+   "tiger",
+   "bird",
+   "fish"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -335,7 +339,9 @@
      "have",
      "me",
      "mother",
-     "mum"
+     "mum",
+     "bird",
+     "fish"
     ]
    },
    {
@@ -411,7 +417,7 @@
   "chapter_index_in_grade": 3,
   "name_zh": "花园调色盘",
   "boss_name_zh": "绿鸭画笔灵",
-  "word_count": 28,
+  "word_count": 32,
   "units_covered": [
    {
     "unit_code": "3a-u3",
@@ -439,7 +445,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   10,
    6,
    6,
    6,
@@ -473,7 +479,11 @@
    "draw",
    "duck",
    "green",
-   "make"
+   "make",
+   "tree",
+   "sun",
+   "flower",
+   "red"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -487,7 +497,11 @@
      "apple",
      "banana",
      "farm",
-     "garden"
+     "garden",
+     "tree",
+     "sun",
+     "flower",
+     "red"
     ]
    },
    {
@@ -1155,7 +1169,7 @@
   "chapter_index_in_grade": 8,
   "name_zh": "玩具与数字",
   "boss_name_zh": "存钱罐守护者",
-  "word_count": 24,
+  "word_count": 25,
   "units_covered": [
    {
     "unit_code": "3b-u5",
@@ -1175,7 +1189,7 @@
    }
   ],
   "stage_sizes": [
-   5,
+   6,
    5,
    5,
    5,
@@ -1205,7 +1219,8 @@
    "sixteen",
    "thirteen",
    "twelve",
-   "twenty"
+   "twenty",
+   "map"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -1218,7 +1233,8 @@
      "cool",
      "doll",
      "home",
-     "nineteen"
+     "nineteen",
+     "map"
     ]
    },
    {
@@ -1461,7 +1477,7 @@
   "chapter_index_in_grade": 2,
   "name_zh": "我们的社区",
   "boss_name_zh": "社区守望者",
-  "word_count": 28,
+  "word_count": 29,
   "units_covered": [
    {
     "unit_code": "4a-u2",
@@ -1489,7 +1505,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   7,
    6,
    6,
    6,
@@ -1523,7 +1539,8 @@
    "delivery worker",
    "driver",
    "everyone",
-   "firefighter"
+   "firefighter",
+   "bridge"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -1537,7 +1554,8 @@
      "read",
      "strong",
      "afternoon",
-     "bus stop"
+     "bus stop",
+     "bridge"
     ]
    },
    {
@@ -1613,7 +1631,7 @@
   "chapter_index_in_grade": 3,
   "name_zh": "天气变变变",
   "boss_name_zh": "明天风向灵",
-  "word_count": 28,
+  "word_count": 30,
   "units_covered": [
    {
     "unit_code": "4a-u4",
@@ -1633,7 +1651,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   8,
    6,
    6,
    6,
@@ -1667,7 +1685,9 @@
    "their",
    "tomorrow",
    "warm",
-   "windy"
+   "windy",
+   "rain",
+   "weather"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -1681,7 +1701,9 @@
      "ms",
      "now",
      "police officer",
-     "tell"
+     "tell",
+     "rain",
+     "weather"
     ]
    },
    {
@@ -1901,7 +1923,7 @@
   "chapter_index_in_grade": 5,
   "name_zh": "家规小约定",
   "boss_name_zh": "安睡小夜灵",
-  "word_count": 28,
+  "word_count": 29,
   "units_covered": [
    {
     "unit_code": "4b-u1",
@@ -1921,7 +1943,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   7,
    6,
    6,
    6,
@@ -1955,7 +1977,8 @@
    "living room",
    "loud",
    "safe",
-   "sleep"
+   "sleep",
+   "run"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -1969,7 +1992,8 @@
      "light",
      "music",
      "newspaper",
-     "ready"
+     "ready",
+     "run"
     ]
    },
    {
@@ -2459,7 +2483,7 @@
   "chapter_index_in_grade": 1,
   "name_zh": "不一样的朋友",
   "boss_name_zh": "笑脸心情灵",
-  "word_count": 28,
+  "word_count": 30,
   "units_covered": [
    {
     "unit_code": "5a-u1",
@@ -2479,7 +2503,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   8,
    6,
    6,
    6,
@@ -2513,7 +2537,9 @@
    "finish",
    "laugh",
    "matter",
-   "move"
+   "move",
+   "jump",
+   "brave"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -2527,7 +2553,9 @@
      "clever",
      "easy",
      "front",
-     "hard-working"
+     "hard-working",
+     "jump",
+     "brave"
     ]
    },
    {
@@ -2916,7 +2944,7 @@
   "chapter_index_in_grade": 4,
   "name_zh": "走进大自然",
   "boss_name_zh": "风雨瀑布灵",
-  "word_count": 28,
+  "word_count": 33,
   "units_covered": [
    {
     "unit_code": "5a-u5",
@@ -2936,7 +2964,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   11,
    6,
    6,
    6,
@@ -2970,7 +2998,12 @@
    "umbrella",
    "waterfall",
    "wind",
-   "worry"
+   "worry",
+   "river",
+   "forest",
+   "mountain",
+   "dangerous",
+   "path"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -2984,7 +3017,12 @@
      "root",
      "round",
      "seed",
-     "stem"
+     "stem",
+     "river",
+     "forest",
+     "mountain",
+     "dangerous",
+     "path"
     ]
    },
    {
@@ -3655,7 +3693,7 @@
   "chapter_index_in_grade": 9,
   "name_zh": "旅行计划",
   "boss_name_zh": "旅行地图灵",
-  "word_count": 27,
+  "word_count": 28,
   "units_covered": [
    {
     "unit_code": "5b-u5",
@@ -3675,7 +3713,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   7,
    6,
    6,
    6,
@@ -3708,7 +3746,8 @@
    "plan",
    "seafood",
    "stone",
-   "tour"
+   "tour",
+   "explore"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -3722,7 +3761,8 @@
      "plane",
      "ship",
      "suggest",
-     "tip"
+     "tip",
+     "explore"
     ]
    },
    {
@@ -3797,7 +3837,7 @@
   "chapter_index_in_grade": 1,
   "name_zh": "神奇的地方",
   "boss_name_zh": "倒数星光灵",
-  "word_count": 28,
+  "word_count": 32,
   "units_covered": [
    {
     "unit_code": "6a-u1",
@@ -3817,7 +3857,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   10,
    6,
    6,
    6,
@@ -3851,7 +3891,11 @@
    "count down",
    "ever",
    "exciting",
-   "gala"
+   "gala",
+   "village",
+   "climb",
+   "treasure",
+   "adventure"
   ],
   "no_spelling_word_refs": [
    "eiffel tower",
@@ -3872,7 +3916,11 @@
      "clay",
      "dry",
      "eiffel tower",
-     "gingerbread house"
+     "gingerbread house",
+     "village",
+     "climb",
+     "treasure",
+     "adventure"
     ]
    },
    {
@@ -4244,7 +4292,7 @@
   "chapter_index_in_grade": 4,
   "name_zh": "星空与能源",
   "boss_name_zh": "暖暖能量灵",
-  "word_count": 28,
+  "word_count": 31,
   "units_covered": [
    {
     "unit_code": "6a-u5",
@@ -4264,7 +4312,7 @@
    }
   ],
   "stage_sizes": [
-   6,
+   9,
    6,
    6,
    6,
@@ -4298,7 +4346,10 @@
    "heat",
    "market",
    "own",
-   "power"
+   "power",
+   "cloud",
+   "discover",
+   "protect"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -4312,7 +4363,10 @@
      "planet",
      "question",
      "rover",
-     "satellite"
+     "satellite",
+     "cloud",
+     "discover",
+     "protect"
     ]
    },
    {
@@ -4549,7 +4603,7 @@
   "chapter_index_in_grade": 6,
   "name_zh": "上周去哪儿",
   "boss_name_zh": "旧相册守护者",
-  "word_count": 21,
+  "word_count": 22,
   "units_covered": [
    {
     "unit_code": "6b-u2",
@@ -4577,7 +4631,7 @@
    }
   ],
   "stage_sizes": [
-   5,
+   6,
    4,
    4,
    4,
@@ -4604,7 +4658,8 @@
    "cycling",
    "dining hall",
    "gym",
-   "ice-skate"
+   "ice-skate",
+   "journey"
   ],
   "no_spelling_word_refs": [],
   "stages": [
@@ -4617,7 +4672,8 @@
      "slept",
      "stayed",
      "washed",
-     "watched"
+     "watched",
+     "journey"
     ]
    },
    {

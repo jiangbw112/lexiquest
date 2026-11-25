@@ -115,7 +115,6 @@ export function learnCardsDoneCopy(save: SaveData, chapter: PlayChapter): LearnS
         primary: "grade",
         grade: first.grade,
         wordIds: first.wordIds,
-        mapChapterId: forestId,
       };
     }
     return {

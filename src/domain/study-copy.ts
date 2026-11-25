@@ -201,5 +201,5 @@ export function otherGradeForestLine(here: GradeBand, groups: readonly GradePrac
   });
   const first = groups[0];
   const next = first ? gradeLabel(first.grade) : "";
-  return `${gradeLabel(here)}的词学完了。还差${bits.join("。还差")}。去${next}的森林冒险。`;
+  return `${gradeLabel(here)}的词学完了。还差${bits.join("。还差")}。去${next}学。`;
 }

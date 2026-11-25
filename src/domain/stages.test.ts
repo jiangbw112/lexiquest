@@ -253,8 +253,8 @@ describe("forest chapter", () => {
     expect(stageStatuses(onlySecond)[0]).toBe("open");
     expect(stageStatuses(onlySecond)[2]).toBe("locked");
     expect(explorationCleared(onlySecond)).toBe(false);
-    expect(questLine(grade5)).toContain("五年级 · 不一样的朋友：已学 0/28 个词");
-    expect(questLine(grade5)).toContain("还有 28 个没在学堂学过");
+    expect(questLine(grade5)).toContain("五年级 · 不一样的朋友：已学 0/30 个词");
+    expect(questLine(grade5)).toContain("还有 30 个没在学堂学过");
     expect(questLine(grade5)).not.toContain("森林冒险");
     expect(questLine(grade5)).not.toContain("0/0");
     const wonFirst = { ...grade5, stageWins: { "1": 1 } as Record<string, number> };
@@ -277,7 +277,7 @@ describe("forest chapter", () => {
     const wonSixthFirst = { ...grade6, stageWins: { "1": 1 } };
     expect(stageStatuses(wonSixthFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
     const sixthName = gradeChapters("G6")[0]!.name;
-    expect(questLine(wonSixthFirst)).toContain(`六年级 · ${sixthName}：已学 0/28 个词`);
+    expect(questLine(wonSixthFirst)).toContain(`六年级 · ${sixthName}：已学 0/32 个词`);
     expect(questLine(wonSixthFirst)).not.toContain("森林冒险");
     expect(questLine(wonSixthFirst)).not.toContain("0/0");
     const wonBoth = { ...grade6, stageWins: { "1": 1, "2": 1 } };
@@ -378,7 +378,7 @@ describe("forest chapter", () => {
     expect(lost.stageWins).toEqual(save.stageWins);
     expect(lost.battlesLost).toBe(1);
     expect(bossReady(lost)).toBe(true);
-    expect(questLine(lost)).toContain("朋友与家人：已学 0/28 个词");
+    expect(questLine(lost)).toContain("朋友与家人：已学 1/29 个词");
     expect(questLine(lost)).not.toContain("森林冒险");
     const retry = startBattle({
       encounterId: "canopy",

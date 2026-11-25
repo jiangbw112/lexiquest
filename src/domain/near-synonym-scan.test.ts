@@ -10,7 +10,7 @@ import { pickDistractors } from "./questions";
 import { shuffle } from "./rng";
 import { maskedSpellingFace, SPELLING_EXCLUSION_SHA256 } from "./spelling-leak";
 
-const EXAM_POOL_WORDS = 1263;
+const EXAM_POOL_WORDS = 1302;
 const REVIEW_PAIRS = ["drank|drink", "finally|last", "outer space|space"] as const;
 
 function pairKey(a: string, b: string): string {
@@ -112,14 +112,16 @@ describe("near synonym distractors", () => {
     const blocked = pairsToBlock(report);
     expect(report.wordCount).toBe(871);
     expect(report.candidates.filter((pair) => pair.decision === "already-blocked")).toHaveLength(49);
-    expect(report.candidates.filter((pair) => pair.decision === "leave")).toHaveLength(79);
+    expect(report.candidates.filter((pair) => pair.decision === "leave")).toHaveLength(78);
     const filePairs = file.near_synonym.map((pair) => ({ a: pair.a, b: pair.b }));
-    // rain/rainy only shared a battle question inside the removed forest chapter. The gloss block stays.
-    expect(blocked).toEqual(filePairs.filter((pair) => pair.a !== "rain" || pair.b !== "rainy"));
+    // rain and rainy now share the grade-4 weather chapter. The existing gloss entry still blocks them.
+    expect(blocked).toEqual(filePairs);
     expect(glossPairBlocked("rain", "rainy")).toBe(true);
     const rain = report.candidates.find((pair) => pair.a === "rain" && pair.b === "rainy");
-    expect(rain?.decision).toBe("leave");
-    expect(rain?.togetherBefore).toBe(0);
+    expect(rain?.decision).toBe("block");
+    expect(rain?.togetherBefore).toBe(32);
+    expect(rain?.doubleAnswerBefore).toBe(32);
+    expect(rain?.doubleAnswerAfter).toBe(0);
     for (const pair of file.near_synonym) {
       expect(glossPairBlocked(pair.a, pair.b), pair.a).toBe(true);
       const answer = wordById(pair.a);
@@ -135,8 +137,7 @@ describe("near synonym distractors", () => {
       expect(pair?.togetherBefore, key).toBe(32);
     }
     for (const pair of report.candidates) {
-      const keptForestBlock = pair.a === "rain" && pair.b === "rainy";
-      if (pair.decision === "leave" && !keptForestBlock) expect(glossPairBlocked(pair.a, pair.b), `${pair.a}/${pair.b}`).toBe(false);
+      if (pair.decision === "leave") expect(glossPairBlocked(pair.a, pair.b), `${pair.a}/${pair.b}`).toBe(false);
       if (pair.decision === "block") expect(pair.doubleAnswerAfter).toBe(0);
     }
   }, 15000);
@@ -154,11 +155,11 @@ describe("near synonym distractors", () => {
     expect(report.minChoicesAfter).toEqual(report.minChoicesBefore);
     expect(report.minSelectedChoicesAfter).toEqual(report.minSelectedChoicesBefore);
     // Grade 6 fully open is 4 of 322 meaning questions: camp and camping, both directions.
-    expect(report.totalQuestions).toBe(13488);
-    expect(report.doubleAnswerBefore).toBe(208);
-    expect(report.g6OpenQuestions).toBe(322);
+    expect(report.totalQuestions).toBe(13936);
+    expect(report.doubleAnswerBefore).toBe(240);
+    expect(report.g6OpenQuestions).toBe(338);
     expect(report.g6OpenDoubleBefore).toBe(4);
-    expect(report.frontierDoubleBefore).toBe(112);
+    expect(report.frontierDoubleBefore).toBe(144);
   }, 15000);
 
   it("keeps exam prompts and answers, and still draws two distractors", () => {
@@ -187,13 +188,15 @@ describe("near synonym distractors", () => {
     }
     expect(promptChanged).toBe(0);
     expect(answerChanged).toBe(0);
-    expect(changed).toBe(44);
+    expect(changed).toBe(52);
     expect(Object.fromEntries([...byAnswer].sort(([a], [b]) => a.localeCompare(b)))).toEqual({
       camp: 2,
       camping: 2,
       finally: 4,
       last: 4,
       "outer space": 4,
+      rain: 4,
+      rainy: 4,
       snow: 4,
       snowy: 4,
       space: 4,

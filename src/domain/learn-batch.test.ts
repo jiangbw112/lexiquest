@@ -63,7 +63,7 @@ describe("academy batch settlement", () => {
 
   it("uses this chapter's stage lists, not a fixed batch size", () => {
     expect(chapter.id).toBe("pep_g3_01");
-    expect(batches.map((batch) => batch.length)).toEqual([6, 6, 6, 6, 4]);
+    expect(batches.map((batch) => batch.length)).toEqual([7, 6, 6, 6, 4]);
     expect(batches.flat()).toEqual(chapter.wordIds);
     expect(batches.some((batch) => batch.length === 11)).toBe(false);
     expect(chapter.wordIds.length).not.toBe(11);
