@@ -1,0 +1,2 @@
+check-save: createSave writeSave loadSave roundtrip
+source: Node localStorage polyfill or host localStorage. Not wx storage and not a second process.
