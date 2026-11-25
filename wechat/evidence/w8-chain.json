@@ -1,0 +1,131 @@
+{
+  "source": "Node page port.js. Not WeChat DevTools or a phone.",
+  "matrix": [
+    {
+      "key": "create:grades",
+      "active": "create",
+      "nodes": 52,
+      "texts": 27,
+      "font": 14
+    },
+    {
+      "key": "profiles",
+      "active": "profiles",
+      "nodes": 25,
+      "texts": 8,
+      "font": 14
+    },
+    {
+      "key": "title",
+      "active": "title",
+      "nodes": 41,
+      "texts": 4,
+      "font": 20
+    },
+    {
+      "key": "grades",
+      "active": "grades",
+      "nodes": 52,
+      "texts": 10,
+      "font": 16
+    },
+    {
+      "key": "create",
+      "active": "grades",
+      "nodes": 52,
+      "texts": 10,
+      "font": 16
+    },
+    {
+      "key": "overworld",
+      "active": "overworld",
+      "nodes": 50,
+      "texts": 13,
+      "font": 14
+    },
+    {
+      "key": "learn",
+      "active": "learn",
+      "nodes": 94,
+      "texts": 25,
+      "font": 14
+    },
+    {
+      "key": "stages",
+      "active": "stages",
+      "nodes": 66,
+      "texts": 20,
+      "font": 14
+    },
+    {
+      "key": "collection",
+      "active": "collection",
+      "nodes": 11,
+      "texts": 4,
+      "font": 16
+    },
+    {
+      "key": "review",
+      "active": "review",
+      "nodes": 11,
+      "texts": 4,
+      "font": 14
+    },
+    {
+      "key": "skills",
+      "active": "skills",
+      "nodes": 60,
+      "texts": 17,
+      "font": 14
+    },
+    {
+      "key": "wardrobe",
+      "active": "wardrobe",
+      "nodes": 51,
+      "texts": 17,
+      "font": 14
+    },
+    {
+      "key": "ending",
+      "active": "ending",
+      "nodes": 35,
+      "texts": 9,
+      "font": 14
+    },
+    {
+      "key": "duel",
+      "active": "duel",
+      "nodes": 19,
+      "texts": 6,
+      "font": 16
+    },
+    {
+      "key": "guide",
+      "active": "guide",
+      "nodes": 10,
+      "texts": 3,
+      "font": 18
+    },
+    {
+      "key": "exam-battle",
+      "active": "stages",
+      "nodes": 66,
+      "texts": 20,
+      "font": 14
+    },
+    {
+      "key": "exam-battle:exam_g3_s1_mid",
+      "active": "exam-battle",
+      "nodes": 5,
+      "texts": 4,
+      "font": 20
+    },
+    {
+      "key": "boot",
+      "active": "profiles",
+      "nodes": 25,
+      "texts": 8,
+      "font": 14
+    }
+  ]
+}
