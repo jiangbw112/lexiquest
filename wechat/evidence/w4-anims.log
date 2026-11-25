@@ -1,0 +1,7 @@
+Sine.easeInOut 0,0.49999999999999994,1
+Quad.easeOut 0,0.75,1
+Quad.easeIn 0,0.25,1
+Linear 0,0.5,1
+Back.easeOut 1.0876975
+check-anims: curves and timer reset
+source: Node. Not WeChat.
