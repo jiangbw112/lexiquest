@@ -163,4 +163,9 @@
 | 旧页面链 | `check-page-chain.cjs` 仍用练习档和 `start("battle")`，只作回归。它改写 `w8-chain-r2.json`，不覆盖 `w8-chain.json` | `evidence/w7-page-chain-r2.log` | Node。不是这条用户链的证明 |
 | 桌面基线 | vitest 637 passed / 1 skipped。web boot 3162002。p05 checks 452 | `evidence/w11-vitest-r2.log`，`evidence/w11-npm-build-r2.log` | Node 网页构建。`src` 未改 |
 | 开发者工具和真机 | 未验证 | 无 | 待授权 |
+| 衣柜裁剪 | 通过这一项，不代表移植通过。6 行里窗口内 3 行仍在，窗口外像素从 `[245,230,205]` 变成清屏 `[32,32,32]`，窗口内像素保持 `[206,215,192]`。滚轮把 `board.y` 从 168 收到 -32（scroll 200 / maxScroll 288），画面换成下面三行。边界内点击把 `equippedOutfitId` 从 traveler 改成 forest-cape；列表外的指针和被裁掉的点都不改。`clearMask` 之后溢出像素回到 `[245,230,205]`。paint 返回后的绿色填充是 `[0,204,68]`，clip 没有留在后续绘制上 | `evidence/w3-clip.log`，`evidence/w3-wardrobe-before.png`，`evidence/w3-wardrobe-after.png`，`evidence/w3-wardrobe-scrolled.png`，`evidence/w3-wardrobe-full.png` | Chrome 画布，跑的是 `wechat/lib/game.cjs.js`。不是开发者工具，不是真机 |
+| 旋转和翻转 | 独立画布：左红右蓝的图，`flipX` 后左边是蓝、右边是红；旋转 90° 后上红下蓝。跨出 mask 的右半边是清屏 `[32,32,32]`，`clearMask` 后变成蓝 `[0,0,255]`。mask 后面的绿色矩形一直是 `[0,204,68]`。容器自身的旋转、翻转，以及旋转后的命中，这次没有采样 | `evidence/w3-clip-transform.png`，`evidence/w3-clip.log` | Chrome 画布。不是开发者工具，不是真机 |
+| 裁剪之后仍未完成 | 全场景截图里货架文字仍叠在衣柜面板上。字形仍是 `fillText`。276 张图未入包，mp3 仍是 0，12 个字体在没有 `wx` 时仍失败，`libVersion` 仍是 3.5.5。班级和章节图集这次仍报缺资源 | `evidence/w3-wardrobe-full.png`，上一行的体积和字体 | 同上。开发者工具和真机仍未验证 |
+
+默认存档只有 traveler，列表不溢出。这次把目录里的 forest-cape、star-sash、forest_leaf_cape、acorn_pin、forest_wreath 写进衣柜已经在读的那个存档，用来让第 4 行落到窗口外。这不是新衣服。`board.add` 会把子节点从场景根上拿掉，所以 `check-page-chain` 的根节点数变少，文字数除衣柜外不变。旧的矩阵留在 `evidence/w8-chain-r2-before-clip.json`。衣柜文字从 12 变成 7，是因为行标签改在 mask 里画，不再进货架。p05 仍是 checks 452。`check-engine` 通过。用户链和桌面 vitest 这次没有重跑，`src` 没有改。
 

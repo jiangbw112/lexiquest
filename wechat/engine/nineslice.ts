@@ -50,4 +50,9 @@ export class NineSlice extends GameNode {
   parts(): Array<{ dx: number; dy: number; dw: number; dh: number }> {
     return nineSliceParts(this.width, this.height, this.insets);
   }
+
+  setFrame(frame: string): this {
+    (this as { frame: string }).frame = frame;
+    return this;
+  }
 }

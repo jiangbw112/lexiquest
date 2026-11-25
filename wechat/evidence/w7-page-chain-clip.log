@@ -1,0 +1,26 @@
+learn 844x390 texts 25 font 14 hit 44 gap 8
+learn 667x375 texts 25 font 14 hit 44 gap 8
+learn 915x412 texts 25 font 14 hit 44 gap 8
+learn 1024x768 texts 25 font 14 hit 44 gap 8
+battle texts 13 hits 6 font 14
+results texts 33 font 14 hit 44 gap 8 battles 1/0
+scene create:grades active create nodes 47 texts 27
+scene profiles active profiles nodes 10 texts 8
+scene title active title nodes 8 texts 4
+scene grades active grades nodes 14 texts 10
+scene create active grades nodes 14 texts 10
+scene overworld active overworld nodes 17 texts 13
+scene learn active learn nodes 18 texts 25
+scene stages active stages nodes 41 texts 20
+scene collection active collection nodes 6 texts 4
+scene review active review nodes 6 texts 4
+scene skills active skills nodes 40 texts 17
+scene wardrobe active wardrobe nodes 13 texts 7
+scene ending active ending nodes 12 texts 9
+scene duel active duel nodes 9 texts 6
+scene guide active guide nodes 5 texts 3
+scene exam-battle active stages nodes 41 texts 20
+scene exam-battle:exam_g3_s1_mid active exam-battle nodes 1 texts 2
+scene boot active profiles nodes 10 texts 8
+check-page-chain: learn, battle, results, and the scene matrix
+source: Node through wechat/pages/game/port.js. Not WeChat.

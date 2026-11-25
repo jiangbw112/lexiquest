@@ -321,15 +321,33 @@ class ContainerNode extends GameNode {
     this.originY = 0.5;
   }
   add(...node: Array<GameNode | GameNode[]>): this {
-    const nodes = node.flat();
-    for (const child of nodes) {
+    // 原来：board.add 只改 parent，子节点仍留在场景根上，mask 盖不到它们。
+    // 现在：先从场景列表和旧容器拿出来，再挂到这个容器。
+    // 为什么：衣柜先 add 再 board.add。不挪走就会画两次，滚动也带不动。
+    const scene = this.scene as { children?: { list: GameNode[] } } | null;
+    for (const child of node.flat()) {
+      if (!child) continue;
+      const sceneList = scene?.children?.list;
+      const sceneIndex = sceneList?.indexOf(child) ?? -1;
+      if (sceneList && sceneIndex >= 0) sceneList.splice(sceneIndex, 1);
+      const previous = child.parent as ContainerNode | null;
+      if (previous && previous !== this) {
+        const index = previous.list.indexOf(child);
+        if (index >= 0) previous.list.splice(index, 1);
+      }
       child.parent = this;
-      this.list.push(child);
+      if (!this.list.includes(child)) this.list.push(child);
     }
     return this;
   }
   setMask(mask: unknown): this {
     this.data.set("mask", mask);
+    return this;
+  }
+  clearMask(destroyGraphics = false): this {
+    const mask = this.data.get("mask") as { graphics?: { destroy?: () => void } } | undefined;
+    this.data.delete("mask");
+    if (destroyGraphics) mask?.graphics?.destroy?.();
     return this;
   }
 
@@ -410,9 +428,10 @@ export class RuntimeScene {
     keyboard: Keyboard;
     cursor: string | null;
     setDefaultCursor: (cursor: string) => void;
-    on: Keyboard["on"];
-    off: Keyboard["off"];
-    once: Keyboard["once"];
+    on: (event: string, fn: (...args: unknown[]) => void, context?: unknown) => unknown;
+    off: (event: string, fn?: (...args: unknown[]) => void, context?: unknown) => unknown;
+    once: (event: string, fn: (...args: unknown[]) => void, context?: unknown) => unknown;
+    emit: (event: string, ...args: unknown[]) => void;
     activePointer: { x: number; y: number };
   };
   readonly scale: { displaySize: { width: number; height: number }; on: Emitter["on"]; off: Emitter["off"] };
@@ -465,15 +484,21 @@ export class RuntimeScene {
     this.textures = this.game.textures ?? new TextureStore();
     this.load = new Loader(this);
     const keyboard = new Keyboard();
+    const pointer = new Emitter();
+    // 原来：on 绑在键盘上，后面又把 emit 改到另一个指针对象。衣柜的滚轮监听收不到。
+    // 现在：key 开头进键盘，其余（wheel、pointer）进同一个指针对象。on 和 emit 走这一条。
+    // 为什么：场景用 input.on("wheel") 注册，滚动必须用 input.emit("wheel") 打到同一处。
+    const route = (event: string) => (event.startsWith("key") ? keyboard : pointer);
     this.input = {
       keyboard,
       cursor: null as string | null,
       setDefaultCursor(cursor: string) {
         this.cursor = cursor;
       },
-      on: keyboard.on.bind(keyboard),
-      off: keyboard.off.bind(keyboard),
-      once: keyboard.once.bind(keyboard),
+      on: (event, fn, context) => route(event).on(event, fn, context),
+      off: (event, fn, context) => route(event).off(event, fn, context),
+      once: (event, fn, context) => route(event).once(event, fn, context),
+      emit: (event, ...args) => route(event).emit(event, ...args),
       activePointer: { x: 0, y: 0 },
     };
     const scaleEvents = new Emitter();
@@ -513,7 +538,6 @@ export class RuntimeScene {
     this.make = {
       graphics: (config) => new GameGraphics(this, config?.x ?? 0, config?.y ?? 0),
     };
-    const pointer = new Emitter();
     this.scene = {
       start: (key: string, data?: unknown) => this.game.start(key, data),
       // 原来：Phaser 的 launch 把结算叠在战斗上面。
@@ -524,11 +548,6 @@ export class RuntimeScene {
       stop: () => this.shutdown(),
       isActive: () => this.game.active() === this,
     };
-    this.input.once = (event: string, fn: (...args: unknown[]) => void) => {
-      if (event.startsWith("keydown")) return keyboard.once(event, fn);
-      return pointer.once(event, fn);
-    };
-    this.input.emit = pointer.emit.bind(pointer);
   }
 
   update(_time: number, delta: number): void {

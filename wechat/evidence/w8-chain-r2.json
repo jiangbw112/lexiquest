@@ -18,7 +18,7 @@
     {
       "key": "title",
       "active": "title",
-      "nodes": 26,
+      "nodes": 8,
       "texts": 4,
       "font": 20
     },
@@ -39,7 +39,7 @@
     {
       "key": "overworld",
       "active": "overworld",
-      "nodes": 29,
+      "nodes": 17,
       "texts": 13,
       "font": 14
     },
@@ -81,14 +81,14 @@
     {
       "key": "wardrobe",
       "active": "wardrobe",
-      "nodes": 46,
-      "texts": 12,
+      "nodes": 13,
+      "texts": 7,
       "font": 14
     },
     {
       "key": "ending",
       "active": "ending",
-      "nodes": 30,
+      "nodes": 12,
       "texts": 9,
       "font": 14
     },
@@ -116,7 +116,7 @@
     {
       "key": "exam-battle:exam_g3_s1_mid",
       "active": "exam-battle",
-      "nodes": 5,
+      "nodes": 1,
       "texts": 2,
       "font": 20
     },

@@ -1,0 +1,11 @@
+deadlock fixed sequence
+after start: {"id":7,"target":"play","cancelled":false} action null
+end changedTouches id 9, liveTouches []: {"id":null,"target":null,"cancelled":false} action null
+next start: {"id":8,"target":"play","cancelled":false} action null
+next end: {"id":null,"target":null,"cancelled":false} action play
+p05-check: static/unit/layout only — not WeChat DevTools, not a device, not a wx mock runtime
+checks 452
+landscape 844x390 scale 0.4875 offset 110,0 play 44x44
+safeArea swapped sample edges 44,0,778,375 sideUncertain true
+safeArea right<=bottom kept right 300 bottom 390 swapped false
+debug win 844x390 dpr 3 backing 2532x1170 scale 0.4875 off 110,0 safe 0,0,844,390 frames play=btn_up reset=mark safeArea ok rect 0,0 point none
