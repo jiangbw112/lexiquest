@@ -3,3 +3,18 @@
   height: 100%;
   display: block;
 }
+
+/* 原来：没有这层文本，canvas 查询失败时页面是空的。
+   现在：cover-view 盖住原生画布，只显示 canvas node missing 这一类诊断句。
+   为什么：type="2d" 画布是原生组件，普通 view 会垫在它下面；这一类失败又不能画进缺失的 canvas。 */
+.fallback {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  padding: 12px;
+  color: #ff5c5c;
+  font-size: 16px;
+  font-weight: 700;
+  background-color: #143d2c;
+}
