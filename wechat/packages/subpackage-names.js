@@ -17,5 +17,6 @@ module.exports = [
   "art-extra-13",
   "art-extra-14",
   "art-extra-15",
-  "art-extra-16"
+  "art-extra-16",
+  "art-json"
 ];

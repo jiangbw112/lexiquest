@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_heightrod_body_w_hit_00": {
+   "frame": {
+    "x": 717,
+    "y": 2,
+    "w": 709,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 38,
+    "y": 70,
+    "w": 709,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 643,
+    "w": 705,
+    "h": 637
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 42,
+    "y": 71,
+    "w": 705,
+    "h": 637
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_heightrod_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 713,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 33,
+    "y": 69,
+    "w": 713,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.9_g78 tools/pack.py (code-drawn)",
+  "version": "0.9-g78",
+  "image": "boss_heightrod_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1428,
+   "h": 1284
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.9 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

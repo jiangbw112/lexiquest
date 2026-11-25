@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "boss_travelmap_body_w_idle_00": {
+   "frame": {
+    "x": 707,
+    "y": 637,
+    "w": 703,
+    "h": 632
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 33,
+    "y": 78,
+    "w": 703,
+    "h": 632
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_travelmap_body_w_idle_01": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 703,
+    "h": 633
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 77,
+    "w": 703,
+    "h": 633
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_travelmap_body_w_idle_02": {
+   "frame": {
+    "x": 707,
+    "y": 2,
+    "w": 703,
+    "h": 633
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 33,
+    "y": 77,
+    "w": 703,
+    "h": 633
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_travelmap_body_w_idle_03": {
+   "frame": {
+    "x": 2,
+    "y": 637,
+    "w": 703,
+    "h": 633
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 30,
+    "y": 77,
+    "w": 703,
+    "h": 633
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_travelmap_w_idle@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1412,
+   "h": 1272
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

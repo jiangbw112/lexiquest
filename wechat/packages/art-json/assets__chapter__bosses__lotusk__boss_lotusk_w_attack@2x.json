@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_lotusk_body_w_attack_00": {
+   "frame": {
+    "x": 726,
+    "y": 651,
+    "w": 694,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 35,
+    "y": 72,
+    "w": 694,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_attack_01": {
+   "frame": {
+    "x": 712,
+    "y": 1295,
+    "w": 680,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 40,
+    "y": 75,
+    "w": 680,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_attack_02": {
+   "frame": {
+    "x": 2,
+    "y": 651,
+    "w": 722,
+    "h": 642
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 25,
+    "y": 68,
+    "w": 722,
+    "h": 642
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 736,
+    "h": 647
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 20,
+    "y": 63,
+    "w": 736,
+    "h": 647
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_attack_04": {
+   "frame": {
+    "x": 740,
+    "y": 2,
+    "w": 722,
+    "h": 643
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 26,
+    "y": 67,
+    "w": 722,
+    "h": 643
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_attack_05": {
+   "frame": {
+    "x": 2,
+    "y": 1295,
+    "w": 708,
+    "h": 638
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 31,
+    "y": 72,
+    "w": 708,
+    "h": 638
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_lotusk_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1464,
+   "h": 1936
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

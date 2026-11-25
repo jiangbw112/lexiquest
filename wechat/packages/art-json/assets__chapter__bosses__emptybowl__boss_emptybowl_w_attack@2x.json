@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_emptybowl_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1329,
+    "w": 725,
+    "h": 652
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 60,
+    "w": 725,
+    "h": 652
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1329,
+    "w": 725,
+    "h": 649
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 63,
+    "w": 725,
+    "h": 649
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_attack_02": {
+   "frame": {
+    "x": 724,
+    "y": 2,
+    "w": 725,
+    "h": 660
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 52,
+    "w": 725,
+    "h": 660
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 720,
+    "h": 663
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 27,
+    "y": 49,
+    "w": 720,
+    "h": 663
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 667,
+    "w": 725,
+    "h": 660
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 52,
+    "w": 725,
+    "h": 660
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 667,
+    "w": 725,
+    "h": 656
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 56,
+    "w": 725,
+    "h": 656
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.7_g34 tools/pack.py (code-drawn)",
+  "version": "0.7-g34",
+  "image": "boss_emptybowl_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1984
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.7 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

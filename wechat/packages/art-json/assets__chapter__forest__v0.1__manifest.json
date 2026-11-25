@@ -1,0 +1,262 @@
+{
+ "version": "0.1-provisional",
+ "status": "暂定（风格/配色待 Bowen 看 MVP 后定）",
+ "pack": "char_cos_forest_rewards_battle_e",
+ "spec": "英语学习2D RPG 美术规范 v0.2 + 槽位表 v0.2 + DES-04b v1 §6",
+ "baseCharacterPack": "p0/manifest.json (char_p0_warrior_heroA_battle_e)",
+ "view": "battle side view",
+ "dir": "e (facing right); 敌方镜像用 Container flipX",
+ "logicW": 256,
+ "logicH": 256,
+ "sourceW": 512,
+ "sourceH": 512,
+ "scaleFactor": 2,
+ "pivot": {
+  "name": "foot",
+  "x": 256.0,
+  "y": 448.0,
+  "normalized": [
+   0.5,
+   0.875
+  ]
+ },
+ "animations": [
+  {
+   "key": "idle",
+   "frameCount": 4,
+   "fps": 6,
+   "repeat": -1,
+   "frameNames": [
+    "{layerPrefix}_idle_00",
+    "{layerPrefix}_idle_01",
+    "{layerPrefix}_idle_02",
+    "{layerPrefix}_idle_03"
+   ]
+  },
+  {
+   "key": "walk",
+   "frameCount": 6,
+   "fps": 10,
+   "repeat": -1,
+   "frameNames": [
+    "{layerPrefix}_walk_00",
+    "{layerPrefix}_walk_01",
+    "{layerPrefix}_walk_02",
+    "{layerPrefix}_walk_03",
+    "{layerPrefix}_walk_04",
+    "{layerPrefix}_walk_05"
+   ]
+  },
+  {
+   "key": "attack",
+   "frameCount": 5,
+   "fps": 12,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_attack_00",
+    "{layerPrefix}_attack_01",
+    "{layerPrefix}_attack_02",
+    "{layerPrefix}_attack_03",
+    "{layerPrefix}_attack_04"
+   ]
+  },
+  {
+   "key": "hit",
+   "frameCount": 2,
+   "fps": 8,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_hit_00",
+    "{layerPrefix}_hit_01"
+   ]
+  },
+  {
+   "key": "victory",
+   "frameCount": 4,
+   "fps": 8,
+   "repeat": 0,
+   "frameNames": [
+    "{layerPrefix}_victory_00",
+    "{layerPrefix}_victory_01",
+    "{layerPrefix}_victory_02",
+    "{layerPrefix}_victory_03"
+   ]
+  }
+ ],
+ "anchorsPerFrame": "与 p0/manifest.json → anchorsPerFrame 完全相同（同一骨架逐帧绘制）",
+ "layerOrder_backToFront_withCosmetics": [
+  "shadow(0)",
+  "back(5,预留)",
+  "cosmetic_back(6)",
+  "hand_main(10)",
+  "body_back(20)",
+  "outfit_back(25)",
+  "body(30)",
+  "outfit_body(40)",
+  "cosmetic_chest(47)",
+  "hair(50)",
+  "outfit_head(60)",
+  "cosmetic_head(65)",
+  "body_front(70)",
+  "outfit_front(75)",
+  "hand_off(80)"
+ ],
+ "hideRules": [
+  {
+   "when": "cosmetic_back",
+   "hide": [
+    "back"
+   ],
+   "note": "披肩与职业 back（背包/箭袋等）同装：显示披肩，整层隐藏 back"
+  },
+  {
+   "when": "cosmetic_head",
+   "hide": [
+    "outfit_head"
+   ],
+   "note": "花环与任何职业头饰（战士头盔整件，含羽饰）同装：显示花环，整层隐藏 outfit_head"
+  }
+ ],
+ "items": [
+  {
+   "itemId": "forest_leaf_cape",
+   "name": "林叶披肩",
+   "unlock": "通关（击败林冠）",
+   "slot": "cosmetic_back",
+   "group": "chapter",
+   "z": 6,
+   "fileToken": "cosBack",
+   "subject": "forestLeafCape",
+   "anchor": "back",
+   "classes": "all (六职通用，同一儿童体型)",
+   "colorVariant": "c01（MVP 唯一配色；多色以后预导出，不用运行时 tint）",
+   "hides": [
+    "back"
+   ],
+   "textureKey": "forest_leaf_cape",
+   "layerPrefix": "char_forestLeafCape_cosBack_e",
+   "atlas": {
+    "json": "atlas/char_cos_forestLeafCape_e@2x.json",
+    "image": "atlas/char_cos_forestLeafCape_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/cosmetic_back/",
+   "frameCount": 21,
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_rewards.py（复用 P0 战士逐帧骨架）",
+   "qaStatus": "integrable",
+   "placeholder": false
+  },
+  {
+   "itemId": "acorn_pin",
+   "name": "橡实别针",
+   "unlock": "掌握度 50% 里程碑",
+   "slot": "cosmetic_chest",
+   "group": "chapter",
+   "z": 47,
+   "fileToken": "cosChest",
+   "subject": "acornPin",
+   "anchor": "chest",
+   "classes": "all (六职通用，同一儿童体型)",
+   "colorVariant": "c01（MVP 唯一配色；多色以后预导出，不用运行时 tint）",
+   "hides": [],
+   "textureKey": "acorn_pin",
+   "layerPrefix": "char_acornPin_cosChest_e",
+   "atlas": {
+    "json": "atlas/char_cos_acornPin_e@2x.json",
+    "image": "atlas/char_cos_acornPin_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/cosmetic_chest/",
+   "frameCount": 21,
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_rewards.py（复用 P0 战士逐帧骨架）",
+   "qaStatus": "integrable",
+   "placeholder": false,
+   "anchorOffset": {
+    "fromAnchor": "chest",
+    "px@2x_local": [
+     -30,
+     10
+    ],
+    "note": "胸前被盾和近侧手臂长期遮挡，别针放在胸侧可见区（hip 局部坐标 [-30, -40]）"
+   }
+  },
+  {
+   "itemId": "forest_wreath",
+   "name": "森语花环",
+   "unlock": "掌握度 100% 里程碑",
+   "slot": "cosmetic_head",
+   "group": "chapter",
+   "z": 65,
+   "fileToken": "cosHead",
+   "subject": "forestWreath",
+   "anchor": "head",
+   "classes": "all (六职通用，同一儿童体型)",
+   "colorVariant": "c01（MVP 唯一配色；多色以后预导出，不用运行时 tint）",
+   "hides": [
+    "outfit_head"
+   ],
+   "textureKey": "forest_wreath",
+   "layerPrefix": "char_forestWreath_cosHead_e",
+   "atlas": {
+    "json": "atlas/char_cos_forestWreath_e@2x.json",
+    "image": "atlas/char_cos_forestWreath_e@2x.png",
+    "format": "Phaser3 JSON Hash (trimmed, sourceSize 512x512)"
+   },
+   "framesDir": "frames/cosmetic_head/",
+   "frameCount": 21,
+   "license": "项目自有（LexiQuest 原创，由原创脚本生成）",
+   "source": "原创脚本 tools/make_rewards.py（复用 P0 战士逐帧骨架）",
+   "qaStatus": "integrable",
+   "placeholder": false
+  }
+ ],
+ "ui": {
+  "textureKey": "ui_title_forest",
+  "atlas": {
+   "json": "atlas/ui_title_forest@2x.json",
+   "image": "atlas/ui_title_forest@2x.png"
+  },
+  "frames": {
+   "ui_title_leafIcon": {
+    "itemId": "title_leaf_icon",
+    "size@2x": [
+     64,
+     64
+    ],
+    "logical": [
+     32,
+     32
+    ],
+    "usage": "三个森林称号共用；无稀有度色"
+   },
+   "ui_title_chip": {
+    "size@2x": [
+     96,
+     56
+    ],
+    "logical": [
+     48,
+     28
+    ],
+    "usage": "称号条底板（温和绿色）",
+    "nineSlice@2x": {
+     "left": 26,
+     "right": 26,
+     "top": 24,
+     "bottom": 24
+    },
+    "nineSliceLogical": {
+     "left": 13.0,
+     "right": 13.0,
+     "top": 12.0,
+     "bottom": 12.0
+    }
+   }
+  }
+ },
+ "fonts": "无（精灵与 UI 图内无文字；称号文字由游戏渲染）",
+ "qaStatus": "integrable",
+ "qaNote": "脚本自检 9/9 通过 + 人工目检联系表/换装图；尚未在 Phaser 运行时实际加载"
+}

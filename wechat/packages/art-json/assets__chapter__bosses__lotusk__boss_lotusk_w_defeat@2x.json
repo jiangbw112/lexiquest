@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_lotusk_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 688,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 80,
+    "w": 688,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_defeat_01": {
+   "frame": {
+    "x": 692,
+    "y": 2,
+    "w": 677,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 49,
+    "y": 94,
+    "w": 677,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 634,
+    "w": 677,
+    "h": 599
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 111,
+    "w": 677,
+    "h": 599
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_defeat_03": {
+   "frame": {
+    "x": 681,
+    "y": 634,
+    "w": 677,
+    "h": 585
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 125,
+    "w": 677,
+    "h": 585
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_defeat_04": {
+   "frame": {
+    "x": 1360,
+    "y": 634,
+    "w": 677,
+    "h": 572
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 138,
+    "w": 677,
+    "h": 572
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lotusk_body_w_defeat_05": {
+   "frame": {
+    "x": 2,
+    "y": 1235,
+    "w": 677,
+    "h": 565
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 145,
+    "w": 677,
+    "h": 565
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_lotusk_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2040,
+   "h": 1804
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_bowlkin_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1334,
+    "w": 707,
+    "h": 655
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 57,
+    "w": 707,
+    "h": 655
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_bowlkin_body_w_attack_01": {
+   "frame": {
+    "x": 711,
+    "y": 1334,
+    "w": 706,
+    "h": 651
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 61,
+    "w": 706,
+    "h": 651
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_bowlkin_body_w_attack_02": {
+   "frame": {
+    "x": 715,
+    "y": 2,
+    "w": 709,
+    "h": 662
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 50,
+    "w": 709,
+    "h": 662
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_bowlkin_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 711,
+    "h": 666
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 46,
+    "w": 711,
+    "h": 666
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_bowlkin_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 670,
+    "w": 710,
+    "h": 662
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 50,
+    "w": 710,
+    "h": 662
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_bowlkin_body_w_attack_05": {
+   "frame": {
+    "x": 714,
+    "y": 670,
+    "w": 708,
+    "h": 658
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 11,
+    "y": 54,
+    "w": 708,
+    "h": 658
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.4_formal_g34 tools/pack.py (code-drawn)",
+  "version": "0.4-formal-g34",
+  "image": "boss_bowlkin_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1428,
+   "h": 1992
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 formal g3/g4 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

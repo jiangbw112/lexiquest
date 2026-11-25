@@ -1,0 +1,12 @@
+{
+  "source": "filesystem copy of existing public class and chapter JSON. Not an IDE upload size. No file was dropped.",
+  "packages": [
+    {
+      "name": "art-json",
+      "bytes": 1203952,
+      "files": 158
+    }
+  ],
+  "files": 158,
+  "bytes": 1203952
+}

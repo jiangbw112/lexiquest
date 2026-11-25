@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_piggybank_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 94,
+    "w": 725,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_defeat_01": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 602
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 108,
+    "w": 725,
+    "h": 602
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 620,
+    "w": 725,
+    "h": 586
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 124,
+    "w": 725,
+    "h": 586
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_defeat_03": {
+   "frame": {
+    "x": 2,
+    "y": 1208,
+    "w": 725,
+    "h": 573
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 137,
+    "w": 725,
+    "h": 573
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_defeat_04": {
+   "frame": {
+    "x": 729,
+    "y": 620,
+    "w": 725,
+    "h": 574
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 136,
+    "w": 725,
+    "h": 574
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_defeat_05": {
+   "frame": {
+    "x": 729,
+    "y": 1208,
+    "w": 725,
+    "h": 573
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 137,
+    "w": 725,
+    "h": 573
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0_g12 tools/pack.py (code-drawn)",
+  "version": "1.0-g12",
+  "image": "boss_piggybank_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1784
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v1.0 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

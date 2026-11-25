@@ -1,0 +1,520 @@
+{
+ "frames": {
+  "char_forestWreath_cosHead_e_attack_00": {
+   "frame": {
+    "x": 270,
+    "y": 2,
+    "w": 140,
+    "h": 68
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 176,
+    "y": 129,
+    "w": 140,
+    "h": 68
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_attack_01": {
+   "frame": {
+    "x": 556,
+    "y": 2,
+    "w": 143,
+    "h": 62
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 173,
+    "y": 129,
+    "w": 143,
+    "h": 62
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_attack_02": {
+   "frame": {
+    "x": 1865,
+    "y": 2,
+    "w": 144,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 166,
+    "y": 136,
+    "w": 144,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_attack_03": {
+   "frame": {
+    "x": 1135,
+    "y": 2,
+    "w": 142,
+    "h": 58
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 166,
+    "y": 136,
+    "w": 142,
+    "h": 58
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_attack_04": {
+   "frame": {
+    "x": 890,
+    "y": 93,
+    "w": 145,
+    "h": 43
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 134,
+    "w": 145,
+    "h": 43
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_hit_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 126,
+    "h": 89
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 187,
+    "y": 135,
+    "w": 126,
+    "h": 89
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_hit_01": {
+   "frame": {
+    "x": 130,
+    "y": 2,
+    "w": 138,
+    "h": 73
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 177,
+    "y": 132,
+    "w": 138,
+    "h": 73
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_idle_00": {
+   "frame": {
+    "x": 1279,
+    "y": 2,
+    "w": 145,
+    "h": 55
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 171,
+    "y": 130,
+    "w": 145,
+    "h": 55
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_idle_01": {
+   "frame": {
+    "x": 1426,
+    "y": 2,
+    "w": 144,
+    "h": 53
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 172,
+    "y": 133,
+    "w": 144,
+    "h": 53
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_idle_02": {
+   "frame": {
+    "x": 1718,
+    "y": 2,
+    "w": 145,
+    "h": 52
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 172,
+    "y": 134,
+    "w": 145,
+    "h": 52
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_idle_03": {
+   "frame": {
+    "x": 1572,
+    "y": 2,
+    "w": 144,
+    "h": 53
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 172,
+    "y": 132,
+    "w": 144,
+    "h": 53
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_victory_00": {
+   "frame": {
+    "x": 990,
+    "y": 2,
+    "w": 143,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 170,
+    "y": 134,
+    "w": 143,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_victory_01": {
+   "frame": {
+    "x": 701,
+    "y": 2,
+    "w": 142,
+    "h": 62
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 169,
+    "y": 126,
+    "w": 142,
+    "h": 62
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_victory_02": {
+   "frame": {
+    "x": 412,
+    "y": 2,
+    "w": 142,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 168,
+    "y": 123,
+    "w": 142,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_victory_03": {
+   "frame": {
+    "x": 845,
+    "y": 2,
+    "w": 143,
+    "h": 61
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 169,
+    "y": 128,
+    "w": 143,
+    "h": 61
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_00": {
+   "frame": {
+    "x": 2,
+    "y": 93,
+    "w": 146,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 135,
+    "w": 146,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_01": {
+   "frame": {
+    "x": 298,
+    "y": 93,
+    "w": 146,
+    "h": 45
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 132,
+    "w": 146,
+    "h": 45
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_02": {
+   "frame": {
+    "x": 446,
+    "y": 93,
+    "w": 146,
+    "h": 45
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 132,
+    "w": 146,
+    "h": 45
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_03": {
+   "frame": {
+    "x": 150,
+    "y": 93,
+    "w": 146,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 135,
+    "w": 146,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_04": {
+   "frame": {
+    "x": 594,
+    "y": 93,
+    "w": 146,
+    "h": 45
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 132,
+    "w": 146,
+    "h": 45
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestWreath_cosHead_e_walk_05": {
+   "frame": {
+    "x": 742,
+    "y": 93,
+    "w": 146,
+    "h": 45
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 167,
+    "y": 132,
+    "w": 146,
+    "h": 45
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest forest_rewards/tools/pack_atlas.py (original)",
+  "version": "0.1-provisional",
+  "image": "char_cos_forestWreath_e@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2012,
+   "h": 144
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

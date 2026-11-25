@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_camelbell_body_w_hit_00": {
+   "frame": {
+    "x": 709,
+    "y": 2,
+    "w": 705,
+    "h": 615
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 42,
+    "y": 95,
+    "w": 705,
+    "h": 615
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 624,
+    "w": 705,
+    "h": 609
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 46,
+    "y": 101,
+    "w": 705,
+    "h": 609
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_camelbell_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 705,
+    "h": 620
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 37,
+    "y": 90,
+    "w": 705,
+    "h": 620
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.6_formal_g78 tools/pack.py (code-drawn)",
+  "version": "0.6-formal-g78",
+  "image": "boss_camelbell_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1416,
+   "h": 1236
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.6 formal · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

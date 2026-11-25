@@ -1,0 +1,520 @@
+{
+ "frames": {
+  "char_forestLeafCape_cosBack_e_attack_00": {
+   "frame": {
+    "x": 1527,
+    "y": 2,
+    "w": 112,
+    "h": 149
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 161,
+    "y": 244,
+    "w": 112,
+    "h": 149
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_attack_01": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 111,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 241,
+    "w": 111,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_attack_02": {
+   "frame": {
+    "x": 126,
+    "y": 155,
+    "w": 132,
+    "h": 148
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 166,
+    "y": 236,
+    "w": 132,
+    "h": 148
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_attack_03": {
+   "frame": {
+    "x": 385,
+    "y": 155,
+    "w": 139,
+    "h": 146
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 169,
+    "y": 235,
+    "w": 139,
+    "h": 146
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_attack_04": {
+   "frame": {
+    "x": 689,
+    "y": 2,
+    "w": 123,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 236,
+    "w": 123,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_hit_00": {
+   "frame": {
+    "x": 814,
+    "y": 2,
+    "w": 113,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 160,
+    "y": 250,
+    "w": 113,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_hit_01": {
+   "frame": {
+    "x": 1641,
+    "y": 2,
+    "w": 112,
+    "h": 149
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 162,
+    "y": 247,
+    "w": 112,
+    "h": 149
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_idle_00": {
+   "frame": {
+    "x": 115,
+    "y": 2,
+    "w": 112,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 164,
+    "y": 239,
+    "w": 112,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_idle_01": {
+   "frame": {
+    "x": 229,
+    "y": 2,
+    "w": 113,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 241,
+    "w": 113,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_idle_02": {
+   "frame": {
+    "x": 344,
+    "y": 2,
+    "w": 113,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 242,
+    "w": 113,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_idle_03": {
+   "frame": {
+    "x": 459,
+    "y": 2,
+    "w": 113,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 240,
+    "w": 113,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_victory_00": {
+   "frame": {
+    "x": 574,
+    "y": 2,
+    "w": 113,
+    "h": 151
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 244,
+    "w": 113,
+    "h": 151
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_victory_01": {
+   "frame": {
+    "x": 929,
+    "y": 2,
+    "w": 115,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 161,
+    "y": 236,
+    "w": 115,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_victory_02": {
+   "frame": {
+    "x": 1755,
+    "y": 2,
+    "w": 115,
+    "h": 149
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 161,
+    "y": 233,
+    "w": 115,
+    "h": 149
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_victory_03": {
+   "frame": {
+    "x": 1046,
+    "y": 2,
+    "w": 114,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 162,
+    "y": 238,
+    "w": 114,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_00": {
+   "frame": {
+    "x": 260,
+    "y": 155,
+    "w": 123,
+    "h": 147
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 160,
+    "y": 239,
+    "w": 123,
+    "h": 147
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_01": {
+   "frame": {
+    "x": 1872,
+    "y": 2,
+    "w": 122,
+    "h": 149
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 161,
+    "y": 235,
+    "w": 122,
+    "h": 149
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_02": {
+   "frame": {
+    "x": 1162,
+    "y": 2,
+    "w": 120,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 235,
+    "w": 120,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_03": {
+   "frame": {
+    "x": 1284,
+    "y": 2,
+    "w": 119,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 164,
+    "y": 239,
+    "w": 119,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_04": {
+   "frame": {
+    "x": 1405,
+    "y": 2,
+    "w": 120,
+    "h": 150
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 163,
+    "y": 235,
+    "w": 120,
+    "h": 150
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "char_forestLeafCape_cosBack_e_walk_05": {
+   "frame": {
+    "x": 2,
+    "y": 155,
+    "w": 122,
+    "h": 149
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 161,
+    "y": 235,
+    "w": 122,
+    "h": 149
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest forest_rewards/tools/pack_atlas.py (original)",
+  "version": "0.1-provisional",
+  "image": "char_cos_forestLeafCape_e@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1996,
+   "h": 308
+  },
+  "scale": "2",
+  "premultipliedAlpha": false
+ }
+}

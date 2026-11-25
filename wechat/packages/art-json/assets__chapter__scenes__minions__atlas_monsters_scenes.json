@@ -1,0 +1,258 @@
+{
+ "frames": {
+  "monster_cushion_idle": {
+   "frame": {
+    "x": 0,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_cushion_hit": {
+   "frame": {
+    "x": 512,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_pawlet_idle": {
+   "frame": {
+    "x": 1024,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_pawlet_hit": {
+   "frame": {
+    "x": 1536,
+    "y": 2,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_sprout_idle": {
+   "frame": {
+    "x": 0,
+    "y": 516,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_sprout_hit": {
+   "frame": {
+    "x": 512,
+    "y": 516,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_rubkin_idle": {
+   "frame": {
+    "x": 1024,
+    "y": 516,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_rubkin_hit": {
+   "frame": {
+    "x": 1536,
+    "y": 516,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_steam_idle": {
+   "frame": {
+    "x": 0,
+    "y": 1030,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_steam_hit": {
+   "frame": {
+    "x": 512,
+    "y": 1030,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_lampkin_idle": {
+   "frame": {
+    "x": 1024,
+    "y": 1030,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  },
+  "monster_lampkin_hit": {
+   "frame": {
+    "x": 1536,
+    "y": 1030,
+    "w": 512,
+    "h": 512
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 512
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest integration_v1.0.1 fix_atlas (boundary repair; pixels from scenes_v0.6_formal_g78/components/monsters)",
+  "version": "1.0.1-fix-atlas",
+  "image": "atlas_monsters_scenes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2048,
+   "h": 1544
+  },
+  "scale": "2",
+  "status": "v1.0.1 边界修复 · 画面取自 v0.6 已通过组件帧，未改绘 · code-drawn (Pillow/NumPy, no AI)",
+  "layout": "three rows of four 512 frames; vertical pad 2 (y=2/516/1030); horizontal pad 0 (x=0/512/1024/1536) because 2+4*514=2058 exceeds MAXW 2048. v0.6 used x=1544 for column 4, clipping 8 px of each *hit frame.",
+  "fix_note": "v0.6/v0.5 atlas_monsters_scenes.png is 2048x2048; pawlet_hit, rubkin_hit, lampkin_hit had right=2056 (8 px off-canvas; 6-7 non-transparent pixels lost). Rebuild uses the same approved component frames, fully in-bounds. Visual content otherwise unchanged. Tight height 1544 (unused bottom of old 2048 canvas dropped)."
+ }
+}

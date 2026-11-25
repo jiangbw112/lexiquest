@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_piggybank_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1271,
+    "w": 725,
+    "h": 619
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 91,
+    "w": 725,
+    "h": 619
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1271,
+    "w": 725,
+    "h": 614
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 96,
+    "w": 725,
+    "h": 614
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_attack_02": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 80,
+    "w": 725,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 75,
+    "w": 725,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 639,
+    "w": 725,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 80,
+    "w": 725,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 639,
+    "w": 725,
+    "h": 624
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 86,
+    "w": 725,
+    "h": 624
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0_g12 tools/pack.py (code-drawn)",
+  "version": "1.0-g12",
+  "image": "boss_piggybank_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1892
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v1.0 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

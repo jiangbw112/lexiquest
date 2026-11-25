@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_piggybank_body_w_hit_00": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 614
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 96,
+    "w": 725,
+    "h": 614
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 623,
+    "w": 725,
+    "h": 608
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 102,
+    "w": 725,
+    "h": 608
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_piggybank_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 619
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 91,
+    "w": 725,
+    "h": 619
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0_g12 tools/pack.py (code-drawn)",
+  "version": "1.0-g12",
+  "image": "boss_piggybank_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1236
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v1.0 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

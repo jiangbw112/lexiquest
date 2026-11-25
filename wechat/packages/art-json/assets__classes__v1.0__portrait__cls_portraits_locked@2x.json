@@ -1,0 +1,100 @@
+{
+ "frames": {
+  "portrait_inventor_locked": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 173,
+    "h": 347
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 178,
+    "y": 115,
+    "w": 173,
+    "h": 347
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "portrait_inventor_side_locked": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 173,
+    "h": 347
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 178,
+    "y": 115,
+    "w": 173,
+    "h": 347
+   },
+   "sourceSize": {
+    "w": 512,
+    "h": 512
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "portrait_inventor_top_s_locked": {
+   "frame": {
+    "x": 177,
+    "y": 2,
+    "w": 151,
+    "h": 249
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 57,
+    "y": 65,
+    "w": 151,
+    "h": 249
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 320
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 1.0
+   }
+  }
+ },
+ "meta": {
+  "app": "lexiquest projectiles_v1.0 tools/locked.py (original, project-owned, code-drawn)",
+  "version": "1.0",
+  "image": "cls_portraits_locked@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 332,
+   "h": 352
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "lexiquest": {
+   "textureKey": "cls:portraits_locked",
+   "classId": "inventor",
+   "view": "portrait",
+   "state": "locked",
+   "frameCount": 3,
+   "uniqueRects": 2,
+   "alias": {
+    "portrait_inventor_locked": "portrait_inventor_side_locked"
+   },
+   "trim": "与 cls:portraits 的 portrait_inventor_side / _top_s 完全同一 spriteSourceSize/sourceSize/pivot；剪影 alpha = 正式立绘 alpha"
+  }
+ }
+}

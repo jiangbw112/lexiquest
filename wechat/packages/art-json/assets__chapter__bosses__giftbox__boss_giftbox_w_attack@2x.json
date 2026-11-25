@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_giftbox_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1301,
+    "w": 725,
+    "h": 645
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 67,
+    "w": 725,
+    "h": 645
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_giftbox_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1301,
+    "w": 725,
+    "h": 644
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 68,
+    "w": 725,
+    "h": 644
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_giftbox_body_w_attack_02": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 647
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 65,
+    "w": 725,
+    "h": 647
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_giftbox_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 648
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 64,
+    "w": 725,
+    "h": 648
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_giftbox_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 652,
+    "w": 725,
+    "h": 647
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 65,
+    "w": 725,
+    "h": 647
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_giftbox_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 652,
+    "w": 725,
+    "h": 646
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 66,
+    "w": 725,
+    "h": 646
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.7_g34 tools/pack.py (code-drawn)",
+  "version": "0.7-g34",
+  "image": "boss_giftbox_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1948
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.7 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

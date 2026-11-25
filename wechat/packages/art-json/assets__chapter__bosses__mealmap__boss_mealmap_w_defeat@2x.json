@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_mealmap_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 540
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 170,
+    "w": 725,
+    "h": 540
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_defeat_01": {
+   "frame": {
+    "x": 2,
+    "y": 544,
+    "w": 725,
+    "h": 526
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 184,
+    "w": 725,
+    "h": 526
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_defeat_02": {
+   "frame": {
+    "x": 729,
+    "y": 544,
+    "w": 725,
+    "h": 509
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 201,
+    "w": 725,
+    "h": 509
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_defeat_03": {
+   "frame": {
+    "x": 729,
+    "y": 1072,
+    "w": 725,
+    "h": 497
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 213,
+    "w": 725,
+    "h": 497
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 1072,
+    "w": 725,
+    "h": 509
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 201,
+    "w": 725,
+    "h": 509
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_mealmap_body_w_defeat_05": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 529
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 181,
+    "w": 725,
+    "h": 529
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0.3_g3_07 tools/pack.py (code-drawn)",
+  "version": "1.0.3-g3_07",
+  "image": "boss_mealmap_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1584
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "v1.0.3 拟用、待审 · LexiQuest 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

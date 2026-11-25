@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_sleeplamp_body_w_attack_00": {
+   "frame": {
+    "x": 2,
+    "y": 1288,
+    "w": 725,
+    "h": 630
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 80,
+    "w": 725,
+    "h": 630
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleeplamp_body_w_attack_01": {
+   "frame": {
+    "x": 729,
+    "y": 1288,
+    "w": 725,
+    "h": 626
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 84,
+    "w": 725,
+    "h": 626
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleeplamp_body_w_attack_02": {
+   "frame": {
+    "x": 729,
+    "y": 2,
+    "w": 725,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 71,
+    "w": 725,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleeplamp_body_w_attack_03": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 725,
+    "h": 643
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 67,
+    "w": 725,
+    "h": 643
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleeplamp_body_w_attack_04": {
+   "frame": {
+    "x": 2,
+    "y": 647,
+    "w": 725,
+    "h": 639
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 71,
+    "w": 725,
+    "h": 639
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_sleeplamp_body_w_attack_05": {
+   "frame": {
+    "x": 729,
+    "y": 647,
+    "w": 725,
+    "h": 634
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 22,
+    "y": 76,
+    "w": 725,
+    "h": 634
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v1.0_g12 tools/pack.py (code-drawn)",
+  "version": "1.0-g12",
+  "image": "boss_sleeplamp_w_attack@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1456,
+   "h": 1920
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v1.0 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

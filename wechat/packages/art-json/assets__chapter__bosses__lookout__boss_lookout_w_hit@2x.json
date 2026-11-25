@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_lookout_body_w_hit_00": {
+   "frame": {
+    "x": 698,
+    "y": 2,
+    "w": 689,
+    "h": 662
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 44,
+    "y": 48,
+    "w": 689,
+    "h": 662
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 672,
+    "w": 685,
+    "h": 656
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 48,
+    "y": 54,
+    "w": 685,
+    "h": 656
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 694,
+    "h": 668
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 39,
+    "y": 42,
+    "w": 694,
+    "h": 668
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.5_formal_g56 tools/pack.py (code-drawn)",
+  "version": "0.5-formal-g56",
+  "image": "boss_lookout_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1392,
+   "h": 1332
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.5 formal g5/g6 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

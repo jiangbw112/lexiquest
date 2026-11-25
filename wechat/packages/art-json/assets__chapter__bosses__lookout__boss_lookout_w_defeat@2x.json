@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_lookout_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 693,
+    "h": 665
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 40,
+    "y": 45,
+    "w": 693,
+    "h": 665
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_defeat_01": {
+   "frame": {
+    "x": 697,
+    "y": 2,
+    "w": 696,
+    "h": 649
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 37,
+    "y": 61,
+    "w": 696,
+    "h": 649
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 669,
+    "w": 695,
+    "h": 632
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 78,
+    "w": 695,
+    "h": 632
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_defeat_03": {
+   "frame": {
+    "x": 699,
+    "y": 669,
+    "w": 695,
+    "h": 619
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 91,
+    "w": 695,
+    "h": 619
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 1303,
+    "w": 695,
+    "h": 617
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 93,
+    "w": 695,
+    "h": 617
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_lookout_body_w_defeat_05": {
+   "frame": {
+    "x": 699,
+    "y": 1303,
+    "w": 695,
+    "h": 616
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 36,
+    "y": 94,
+    "w": 695,
+    "h": 616
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.5_formal_g56 tools/pack.py (code-drawn)",
+  "version": "0.5-formal-g56",
+  "image": "boss_lookout_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1396,
+   "h": 1924
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.5 formal g5/g6 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -6,11 +6,11 @@
 
 const domain = require("../../lib/domain.cjs.js");
 const game = require("../../lib/game.cjs.js");
-const atlasText = require("../../assets/atlas-json/index.js");
+const { readAsset } = require("../../platform/read-asset.js");
 const packedImages = require("../../packages/art-index.js");
 
 if (typeof globalThis.__LEXI_READ_ASSET__ !== "function") {
-  globalThis.__LEXI_READ_ASSET__ = (url) => (Object.prototype.hasOwnProperty.call(atlasText, url) ? atlasText[url] : null);
+  globalThis.__LEXI_READ_ASSET__ = (url) => readAsset(url);
 }
 globalThis.__LEXI_PACKED_IMAGE__ = (url) => (Object.prototype.hasOwnProperty.call(packedImages, url) ? packedImages[url] : null);
 globalThis.__LEXI_WORD_ID__ = (english) => {

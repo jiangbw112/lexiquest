@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_turnsign_body_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 718,
+    "h": 626
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 29,
+    "y": 86,
+    "w": 718,
+    "h": 626
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_defeat_01": {
+   "frame": {
+    "x": 722,
+    "y": 2,
+    "w": 721,
+    "h": 611
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 26,
+    "y": 101,
+    "w": 721,
+    "h": 611
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_defeat_02": {
+   "frame": {
+    "x": 2,
+    "y": 630,
+    "w": 723,
+    "h": 594
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 118,
+    "w": 723,
+    "h": 594
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_defeat_03": {
+   "frame": {
+    "x": 727,
+    "y": 1226,
+    "w": 723,
+    "h": 580
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 132,
+    "w": 723,
+    "h": 580
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 1226,
+    "w": 723,
+    "h": 581
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 131,
+    "w": 723,
+    "h": 581
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_turnsign_body_w_defeat_05": {
+   "frame": {
+    "x": 727,
+    "y": 630,
+    "w": 723,
+    "h": 582
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 130,
+    "w": 723,
+    "h": 582
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.8_g56 tools/pack.py (code-drawn)",
+  "version": "0.8-g56",
+  "image": "boss_turnsign_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1452,
+   "h": 1812
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.8 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

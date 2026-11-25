@@ -1,0 +1,113 @@
+{
+ "frames": {
+  "boss_penciler_body_w_idle_00": {
+   "frame": {
+    "x": 1211,
+    "y": 2,
+    "w": 401,
+    "h": 634
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 194,
+    "y": 74,
+    "w": 401,
+    "h": 634
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_idle_01": {
+   "frame": {
+    "x": 405,
+    "y": 2,
+    "w": 401,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 197,
+    "y": 73,
+    "w": 401,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_idle_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 401,
+    "h": 636
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 194,
+    "y": 72,
+    "w": 401,
+    "h": 636
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_penciler_body_w_idle_03": {
+   "frame": {
+    "x": 808,
+    "y": 2,
+    "w": 401,
+    "h": 635
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 191,
+    "y": 73,
+    "w": 401,
+    "h": 635
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest scenes_v0.4_formal_g34 tools/pack.py (code-drawn)",
+  "version": "0.4-formal-g34",
+  "image": "boss_penciler_w_idle@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1616,
+   "h": 640
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.4 formal g3/g4 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

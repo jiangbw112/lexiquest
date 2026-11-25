@@ -135,6 +135,13 @@
       "pages": [
         "pages/hold/index"
       ]
+    },
+    {
+      "root": "packages/art-json",
+      "name": "art-json",
+      "pages": [
+        "pages/hold/index"
+      ]
     }
   ],
   "preloadRule": {

@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_emptybowl_body_w_hit_00": {
+   "frame": {
+    "x": 728,
+    "y": 2,
+    "w": 719,
+    "h": 649
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 28,
+    "y": 63,
+    "w": 719,
+    "h": 649
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_hit_01": {
+   "frame": {
+    "x": 2,
+    "y": 656,
+    "w": 715,
+    "h": 645
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 32,
+    "y": 67,
+    "w": 715,
+    "h": 645
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_emptybowl_body_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 724,
+    "h": 652
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 23,
+    "y": 60,
+    "w": 724,
+    "h": 652
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest bosses_v0.7_g34 tools/pack.py (code-drawn)",
+  "version": "0.7-g34",
+  "image": "boss_emptybowl_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1452,
+   "h": 1304
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "暂定 provisional · LexiQuest 绘本暖光 v0.7 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

@@ -35,13 +35,25 @@ function mime(file) {
   return "image/png";
 }
 
+function packedJsonText() {
+  const index = require(path.join(root, "packages", "art-json-index.js"));
+  const texts = {};
+  for (const [url, rel] of Object.entries(index)) {
+    const file = path.join(root, rel);
+    assert.ok(fs.existsSync(file), url);
+    texts[url] = fs.readFileSync(file, "utf8");
+  }
+  return texts;
+}
+
 async function main() {
   const atlas = require(path.join(root, "assets", "atlas-json", "index.js"));
-  const texts = {};
+  const texts = { ...packedJsonText() };
   for (const key of ["assets/warm/atlas/atlas_ui_core.json", "assets/warm/atlas/atlas_wardrobe.json"]) {
     assert.ok(atlas[key], key);
     texts[key] = atlas[key];
   }
+  const packedIndex = require(path.join(root, "packages", "art-index.js"));
   const images = {};
   for (const url of [
     "assets/warm/atlas/atlas_wardrobe.png",
@@ -75,7 +87,7 @@ async function main() {
     await page.addScriptTag({ path: "/tmp/lexi-clip/game.js" });
     const loaded = await page.evaluate(() => ({ has: typeof window.__GAME__, err: window.__GAME_ERR__ || "", keys: window.__GAME__ ? Object.keys(window.__GAME__).slice(0, 8) : [] }));
     if (!loaded.has || loaded.has === "undefined") throw new Error(`game bundle did not load ${loaded.err} ${pageErrors.join(" | ")}`);
-    const boot = await page.evaluate(async ({ texts, images, w, h }) => {
+    const boot = await page.evaluate(async ({ texts, images, packedIndex, w, h }) => {
       const canvas = document.getElementById("c");
       canvas.width = w;
       canvas.height = h;
@@ -84,7 +96,7 @@ async function main() {
       const ctx = canvas.getContext("2d");
       if (typeof ctx.clip !== "function" || typeof ctx.save !== "function") throw new Error("canvas has no clip");
       globalThis.__LEXI_READ_ASSET__ = (url) => (Object.prototype.hasOwnProperty.call(texts, url) ? texts[url] : null);
-      globalThis.__LEXI_PACKED_IMAGE__ = (url) => (images[url] ? url : null);
+      globalThis.__LEXI_PACKED_IMAGE__ = (url) => (Object.prototype.hasOwnProperty.call(packedIndex, url) ? packedIndex[url] : null);
       const bitmaps = {};
       for (const [url, file] of Object.entries(images)) {
         const image = new Image();
@@ -117,10 +129,12 @@ async function main() {
         beforeIds,
         failures: runtime.failures.slice(0, 12),
         failureCount: runtime.failures.length,
+        missingAssets: runtime.failures.filter((item) => item.startsWith("asset text missing") || item.startsWith("atlas pixels not in package") || item.startsWith("image not in package")),
       };
-    }, { texts, images, w: view.w, h: view.h });
+    }, { texts, images, packedIndex, w: view.w, h: view.h });
     log(`runtime Chrome canvas, not WeChat DevTools, not a phone`);
     log(`boot ${JSON.stringify(boot)}`);
+    assert.deepStrictEqual(boot.missingAssets, [], `packed class/chapter assets still missing ${boot.missingAssets.join(" | ")}`);
     assert.strictEqual(boot.scene, "wardrobe");
     assert.ok(boot.owned.includes("traveler") && boot.owned.includes("forest-cape") && boot.owned.includes("star-sash"));
     assert.strictEqual(boot.cosmetics.length, 3);
@@ -648,12 +662,12 @@ async function main() {
   } finally {
     await browser.close();
   }
-  fs.writeFileSync(path.join(evidence, "w3-clip.log"), `${lines.join("\n")}\n`);
+  fs.writeFileSync(path.join(evidence, "w3-clip-r3.log"), `${lines.join("\n")}\n`);
 }
 
 main().catch((error) => {
   log(`FAIL ${error && error.stack ? error.stack : error}`);
   fs.mkdirSync(evidence, { recursive: true });
-  fs.writeFileSync(path.join(evidence, "w3-clip.log"), `${lines.join("\n")}\n`);
+  fs.writeFileSync(path.join(evidence, "w3-clip-r3.log"), `${lines.join("\n")}\n`);
   process.exit(1);
 });
