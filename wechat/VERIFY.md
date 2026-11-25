@@ -5,7 +5,9 @@
 - 结论：未通过。开发者工具、真机、主包体积、场景重排、词音频、字体加载和 `host-copy` 都没有完成。
 - 续修后的结论仍是未通过。页面链、词表、战斗到结算、逻辑像素和磁盘分包口径有新的实测，见文末「续修」。开发者工具和真机仍待授权验证。
 
-## 逐项结果
+下面两节是历史，不是当前状态。首轮「逐项结果」「体积」停在 `1226b89` 之前。`续修（父提交 1226b89 之后）` 停在 `ec88639`。当前只看文末「当前（父提交 ec88639 之后）」。
+
+## 逐项结果（历史，首轮）
 
 | 项 | 结论 | 证据 | 来源 | 复现命令 |
 |---|---|---|---|---|
@@ -66,9 +68,9 @@
 - 缺图写入 `game.failures`，不记成加载成功。
 - 存档检查用内存 `localStorage`。微信存储上限按文档是单 key 1MB、总计 10MB，本机没有调用 `wx.setStorageSync`。
 
-## 续修（父提交 1226b89 之后）
+## 续修（历史，父提交 1226b89 之后，停在 ec88639）
 
-上一节保持原样。下面是这一轮普通追加提交的实测。全部门未过：开发者工具和真机仍是待授权验证。
+上一节保持原样。下面是那一轮普通追加提交的实测，不是当前状态。全部门未过：开发者工具和真机仍是待授权验证。
 
 ### 实做
 
@@ -135,4 +137,30 @@
 | public | 33613886 | 排除，未打进小程序 |
 | 词 mp3 | 0 | 包内和 public 都是 0 |
 | 字体文件 | 0 | 包内。public 仍是 12 个 woff2 |
+
+## 当前（父提交 ec88639 之后）
+
+门禁：未通过。开发者工具、真机、`wx.loadFontFace` 成功回调、词 mp3、以及和原画面重合的重排都没有完成。下面这张表是当前唯一状态。
+
+| 项 | 当前 | 证据 | 来源 |
+|---|---|---|---|
+| 用户链 | 新建角色、三年级、原生输入「小林」、学堂听一听、选出「n. 树」、对战里的小战斗、结算、词卡册、复习桌。存档名小林，年级 G3，词卡 tree，胜 1 负 0，复习不再发一张卡 | `evidence/w7-user-chain.log`，`evidence/w7-user-chain.json` | Node 页面适配器的点击和表单。不是 `openPractice`，也不是 `start("battle")` |
+| 复习有数据但未到时间 | 册子「已收集 1 个」和 tree。复习桌同时有 tree、「大约 10 分钟后」和「现在没有到复习时间的词」。沙漏按钮只在 `devModeEnabled(location.search)` 时出现，这次没有打开 | 同上 | Node。游戏自己的到期规则 |
+| 几何 | 学堂、战斗、结算、词卡册、复习在 844×390、667×375、915×412、1024×768 上 `measured true`，字号至少 14，热区至少 44，间距至少 8，溢出 0 | 同上 | Chrome `measureText`。不是 Node 的汉字宽度估算，不是开发者工具，不是真机 |
+| 图集绘制 | 结算画面 57 个 `drawImage`，都带源矩形。其中一个是 `atlas_ui_core.png` 的 sx 680、sy 2、sw 40、sh 40。采样 8×8 有 29 种颜色 | `evidence/w3-browser-canvas.png`，`evidence/w7-user-chain.log` | Chrome 画布重放。不是开发者工具，不是真机 |
+| 旋转、翻转、着色 | 这条结算画面的 rotation、flip、tint 都是 0。`paintImage` 会在节点自己带这些值时应用。这次没有这样的节点 | 用户链日志 | Node 计划，Chrome 绘制 |
+| 构图 | 未通过。背景和面板仍按世界缩放画在原位，重排后的文字叠在上面。截图看得到星星、面板和文字叠在一起 | 同上截图 | Chrome 画布 |
+| 字形缓存 | 未完成。文字仍是 `fillText`，没有按帧缓存成纹理 | `wechat/engine/paint.ts` | 源码 |
+| 字体调用 | 12 个已打包 TTF 都调用了 `loadPackedFonts`。这次没有 `wx`，12 次都是失败。原因写明官方 `source` 是 https，或基础库 3.7.9 起的 Data URL。没有编造云地址 | 用户链日志 | Node |
+| 字体素材 | 12 个 TTF，998884 字节，在 `packages/fonts`。`project.config.json` 的 `libVersion` 仍是 3.5.5。仓库里没有私有配置里的 3.18.1 | `evidence/w10-size-r2.log` | 文件系统。IDE 能否加载未验证 |
+| 词音调用 | 学堂「听一听」调用了 `speakWordFile`。失败原文是 `word audio missing: tree` | 用户链日志 | Node |
+| 词音素材 | 包内 mp3 为 0，public 词 mp3 为 0。没有购买，没有生成音频 | `evidence/w10-size-r2.log` | 文件系统 |
+| 可导入包 | 主包 1100496。`packages/art-ui` 1986863。`packages/art-world` 384080。`packages/fonts` 999279。合计 4470718。都在 2MB 以内，合计在 20MB 以内 | `evidence/w10-size-r2.log`，`evidence/w10-resource-r2.json` | 磁盘。不是开发者工具上传体积，也不是 git 压缩包 |
+| 历史体积 | `ec88639` 的 packed 1084640 是当时还没有这些图和字体的主包磁盘数。它不是现在的可导入包 | 上一节 | 历史 |
+| 必需但未入包 | public 图片 297 个、31515282 字节。其中 21 张温色图打进分包。其余 276 张、29145129 字节没有打进包，也没有删 | 同上 | 文件系统 |
+| public | 33613886 字节排除在小程序包外 | 同上 | 文件系统 |
+| 分包加载 | `app.js` 在有 `wx` 时调用 `wx.loadSubpackage`。这次运行没有 `wx`，没有真的下载 | `wechat/app.js` | 源码。IDE 未验证 |
+| 旧页面链 | `check-page-chain.cjs` 仍用练习档和 `start("battle")`，只作回归。它改写 `w8-chain-r2.json`，不覆盖 `w8-chain.json` | `evidence/w7-page-chain-r2.log` | Node。不是这条用户链的证明 |
+| 桌面基线 | vitest 637 passed / 1 skipped。web boot 3162002。p05 checks 452 | `evidence/w11-vitest-r2.log`，`evidence/w11-npm-build-r2.log` | Node 网页构建。`src` 未改 |
+| 开发者工具和真机 | 未验证 | 无 | 待授权 |
 
