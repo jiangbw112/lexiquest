@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { aliasPlatform } from "./tools/alias-platform.mjs";
+import { rewriteImportMeta } from "./tools/rewrite-import-meta.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -22,7 +23,7 @@ export default defineConfig({
       phaser: path.join(root, "wechat/engine/phaser-shim.ts"),
     },
   },
-  plugins: [aliasPlatform(root)],
+  plugins: [rewriteImportMeta(), aliasPlatform(root)],
   build: {
     lib: {
       entry,
