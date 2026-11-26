@@ -1,0 +1,302 @@
+{
+  "source": "Chrome on dist/ versus a Chrome canvas replay of the wechat layout at the same viewport. Not WeChat DevTools. Not a phone. Counts are full-viewport pixels.",
+  "examBattle": "Not compared. Both sides stayed on stages. The web picture is the empty-question panel, not the exam battle.",
+  "pairs": [
+    {
+      "viewport": "1280x800",
+      "scene": "title",
+      "webActive": "title",
+      "adapterActive": "title",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 1021939,
+      "differenceOver16": 1011901,
+      "percentAny": 99.8,
+      "percentOver16": 98.82,
+      "meanAbs": 101.01
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "skills",
+      "webActive": "skills",
+      "adapterActive": "skills",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 626004,
+      "differenceOver16": 419511,
+      "percentAny": 61.13,
+      "percentOver16": 40.97,
+      "meanAbs": 39.77
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "wardrobe",
+      "webActive": "wardrobe",
+      "adapterActive": "wardrobe",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 528338,
+      "differenceOver16": 413179,
+      "percentAny": 51.6,
+      "percentOver16": 40.35,
+      "meanAbs": 33.32
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "duel",
+      "webActive": "duel",
+      "adapterActive": "duel",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 427222,
+      "differenceOver16": 355959,
+      "percentAny": 41.72,
+      "percentOver16": 34.76,
+      "meanAbs": 29.93
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "guide",
+      "webActive": "guide",
+      "adapterActive": "guide",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 909300,
+      "differenceOver16": 881382,
+      "percentAny": 88.8,
+      "percentOver16": 86.07,
+      "meanAbs": 142.72
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "ending",
+      "webActive": "ending",
+      "adapterActive": "ending",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        1280,
+        800
+      ],
+      "webSize": [
+        1280,
+        800
+      ],
+      "pixels": 1024000,
+      "anyDifference": 584835,
+      "differenceOver16": 542717,
+      "percentAny": 57.11,
+      "percentOver16": 53.0,
+      "meanAbs": 46.87
+    },
+    {
+      "viewport": "1280x800",
+      "scene": "exam-battle",
+      "webActive": "stages",
+      "adapterActive": "stages",
+      "webOk": false,
+      "adapterOk": false,
+      "compared": false,
+      "why": "scene was not entered on both sides"
+    },
+    {
+      "viewport": "844x390",
+      "scene": "title",
+      "webActive": "title",
+      "adapterActive": "title",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 259806,
+      "differenceOver16": 256741,
+      "percentAny": 78.93,
+      "percentOver16": 78.0,
+      "meanAbs": 79.92
+    },
+    {
+      "viewport": "844x390",
+      "scene": "skills",
+      "webActive": "skills",
+      "adapterActive": "skills",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 214414,
+      "differenceOver16": 129290,
+      "percentAny": 65.14,
+      "percentOver16": 39.28,
+      "meanAbs": 40.57
+    },
+    {
+      "viewport": "844x390",
+      "scene": "wardrobe",
+      "webActive": "wardrobe",
+      "adapterActive": "wardrobe",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 159557,
+      "differenceOver16": 124062,
+      "percentAny": 48.47,
+      "percentOver16": 37.69,
+      "meanAbs": 36.4
+    },
+    {
+      "viewport": "844x390",
+      "scene": "duel",
+      "webActive": "duel",
+      "adapterActive": "duel",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 152091,
+      "differenceOver16": 121692,
+      "percentAny": 46.21,
+      "percentOver16": 36.97,
+      "meanAbs": 37.11
+    },
+    {
+      "viewport": "844x390",
+      "scene": "guide",
+      "webActive": "guide",
+      "adapterActive": "guide",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 241681,
+      "differenceOver16": 232640,
+      "percentAny": 73.42,
+      "percentOver16": 70.68,
+      "meanAbs": 112.48
+    },
+    {
+      "viewport": "844x390",
+      "scene": "ending",
+      "webActive": "ending",
+      "adapterActive": "ending",
+      "webOk": true,
+      "adapterOk": true,
+      "compared": true,
+      "adapterSize": [
+        844,
+        390
+      ],
+      "webSize": [
+        844,
+        390
+      ],
+      "pixels": 329160,
+      "anyDifference": 171990,
+      "differenceOver16": 153708,
+      "percentAny": 52.25,
+      "percentOver16": 46.7,
+      "meanAbs": 44.61
+    },
+    {
+      "viewport": "844x390",
+      "scene": "exam-battle",
+      "webActive": "stages",
+      "adapterActive": "stages",
+      "webOk": false,
+      "adapterOk": false,
+      "compared": false,
+      "why": "scene was not entered on both sides"
+    }
+  ]
+}

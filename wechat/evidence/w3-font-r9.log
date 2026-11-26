@@ -1,0 +1,3 @@
+fontCount 12 ok 0 fail 12
+reasons wx.loadFontFace is not available in this runtime. Official source is an https URL, or a Data URL from base library 3.7.9. No cloud URL was created.
+source: Node attach(), no wx. Not a successful font load. Not DevTools. Not a phone.

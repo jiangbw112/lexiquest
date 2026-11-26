@@ -1,0 +1,289 @@
+{
+  "source": "Adapter rows are a Chrome canvas replay of the wechat layout. Web rows are Chrome on the production dist. Neither is WeChat DevTools or a phone.",
+  "shots": [
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "title",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-title.png",
+      "active": "title",
+      "texts": 4,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "skills",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-skills.png",
+      "active": "skills",
+      "texts": 15,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "wardrobe",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-wardrobe.png",
+      "active": "wardrobe",
+      "texts": 7,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "guide",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-guide.png",
+      "active": "guide",
+      "texts": 3,
+      "overlap": 1,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "ending",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-ending.png",
+      "active": "ending",
+      "texts": 9,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "duel",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-duel.png",
+      "active": "duel",
+      "texts": 6,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "1280x800",
+      "scene": "exam-battle",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-1280x800-exam-battle.png",
+      "active": "stages",
+      "texts": 20,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": false,
+      "error": "active stages"
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "title",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-title.png",
+      "active": "title",
+      "texts": 4,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "skills",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-skills.png",
+      "active": "skills",
+      "texts": 15,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "wardrobe",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-wardrobe.png",
+      "active": "wardrobe",
+      "texts": 7,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "guide",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-guide.png",
+      "active": "guide",
+      "texts": 3,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "ending",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-ending.png",
+      "active": "ending",
+      "texts": 9,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "duel",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-duel.png",
+      "active": "duel",
+      "texts": 6,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": true
+    },
+    {
+      "side": "adapter",
+      "viewport": "844x390",
+      "scene": "exam-battle",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-adapter-844x390-exam-battle.png",
+      "active": "stages",
+      "texts": 20,
+      "overlap": 0,
+      "overflow": 0,
+      "ok": false,
+      "error": "active stages"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "title",
+      "active": "title",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-title.png",
+      "ok": true,
+      "note": "production dist. Boot opens profiles; title is the screen after choosing the new character."
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "skills",
+      "active": "skills",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-skills.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "wardrobe",
+      "active": "wardrobe",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-wardrobe.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "duel",
+      "active": "duel",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-duel.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "guide",
+      "active": "guide",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-guide.png",
+      "ok": true,
+      "note": "web guide opens the parent pin gate before the note body"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "ending",
+      "active": "ending",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-ending.png",
+      "ok": true,
+      "note": "chapterCleared was set on the save this page had just written, then 回顾结局 was clicked"
+    },
+    {
+      "side": "web",
+      "viewport": "1280x800",
+      "scene": "exam-battle",
+      "active": "stages",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-1280x800-stages-no-questions.png",
+      "ok": false,
+      "note": "Did not enter exam-battle. dataset.lexiScene stayed stages. The picture is the empty-question panel.",
+      "error": "landed on stages"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "title",
+      "active": "title",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-title.png",
+      "ok": true,
+      "note": "production dist. Boot opens profiles; title is the screen after choosing the new character."
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "skills",
+      "active": "skills",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-skills.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "wardrobe",
+      "active": "wardrobe",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-wardrobe.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "duel",
+      "active": "duel",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-duel.png",
+      "ok": true,
+      "note": "opened from overworld by the digit key"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "guide",
+      "active": "guide",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-guide.png",
+      "ok": true,
+      "note": "web guide opens the parent pin gate before the note body"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "ending",
+      "active": "ending",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-ending.png",
+      "ok": true,
+      "note": "chapterCleared was set on the save this page had just written, then 回顾结局 was clicked"
+    },
+    {
+      "side": "web",
+      "viewport": "844x390",
+      "scene": "exam-battle",
+      "active": "stages",
+      "file": "/agent/repos/lexiquest-full-port/wechat/evidence/w8-r9-web-844x390-stages-no-questions.png",
+      "ok": false,
+      "note": "Did not enter exam-battle. dataset.lexiScene stayed stages. The picture is the empty-question panel.",
+      "error": "landed on stages"
+    }
+  ]
+}
