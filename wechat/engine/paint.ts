@@ -29,6 +29,8 @@ export interface PaintBox {
   lines?: string[];
   /** Center the glyph inside the box. Used for labels that share the control's box. */
   align?: "center";
+  /** Overrides the donor node's ink. Used for badges that do not have their own text node. */
+  ink?: string;
   polygon?: Array<{ x: number; y: number }>;
   masks?: MaskShape[][];
 }
@@ -251,6 +253,7 @@ interface Unit {
   lines: string[];
   onPaper?: boolean;
   label?: "center" | "sign";
+  signFrac?: number;
   suppressFace?: boolean;
   designX: number;
   designY: number;
@@ -1509,6 +1512,9 @@ const PHONE_SLICE: Record<string, { left: number; right: number; top: number; bo
   panel_wood: { left: 48, right: 48, top: 48, bottom: 48 },
   input_normal: { left: 40, right: 40, top: 40, bottom: 40 },
   option_normal: { left: 36, right: 36, top: 24, bottom: 24 },
+  hp_frame: { left: 24, right: 24, top: 0, bottom: 0 },
+  hp_fill_teal: { left: 16, right: 16, top: 0, bottom: 0 },
+  hp_fill_coral: { left: 16, right: 16, top: 0, bottom: 0 },
 };
 
 function phoneDestInsets(source: { left: number; right: number; top: number; bottom: number }, box: { w: number; h: number }): { left: number; right: number; top: number; bottom: number } {
@@ -1667,6 +1673,24 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     : null;
   if (scene) rememberPhone(scene, phone);
   if (phone?.chrome?.length && scene) emitPhoneChrome(scene, images, phone.chrome);
+  if (phone?.bars?.length && scene) {
+    for (const bar of phone.bars) {
+      if (!(bar.w > 8) || !(bar.h > 4) || !(bar.ratio >= 0)) continue;
+      emitPhoneChrome(scene, images, [{ frame: "hp_frame", box: bar }]);
+      if (bar.ratio <= 0) continue;
+      const inner = Math.max(12, Math.min(bar.w - 8, (bar.w - 8) * bar.ratio));
+      emitPhoneChrome(scene, images, [{
+        frame: bar.tone === "coral" ? "hp_fill_coral" : "hp_fill_teal",
+        box: { x: bar.x + 4, y: bar.y + 2, w: inner, h: Math.max(6, bar.h - 4) },
+      }]);
+    }
+  }
+  if (phone?.portraits?.length) {
+    for (const portrait of phone.portraits) {
+      const frame = String((portrait.node as GameNode & { frame?: string }).frame ?? "");
+      pushImage(images, portrait.node, frame, portrait.box, null);
+    }
+  }
   if (!phone) placeUnits(units, view, scene, plates, fills, measure, options);
 
   const items: PaintBox[] = [];
@@ -1732,7 +1756,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
           width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
         }
         const textX = Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2);
-        const textY = unit.label === "sign" ? unit.y + unit.h * 0.72 : unit.y + Math.max(0, (unit.h - fontPx) / 2);
+        const textY = unit.label === "sign" ? unit.y + unit.h * (unit.signFrac ?? 0.72) : unit.y + Math.max(0, (unit.h - fontPx) / 2);
         items.push({
           kind: "text",
           text,
@@ -1778,6 +1802,28 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
           }
         }
       }
+    }
+  }
+
+  const donor = visible.find((node) => node.type === "text");
+  if (donor && phone?.captions?.length) {
+    for (const caption of phone.captions) {
+      if (!caption.text.trim() || caption.w < 8 || caption.h < 8) continue;
+      items.push({
+        kind: "text",
+        text: caption.text,
+        fontPx: caption.font,
+        align: "center",
+        x: caption.x,
+        y: caption.y,
+        w: caption.w,
+        h: caption.h,
+        interactive: false,
+        nested: true,
+        node: donor,
+        lines: [caption.text],
+        ink: caption.color,
+      });
     }
   }
 
@@ -1935,8 +1981,14 @@ function glyphSpec(node: GameNode, lines: string[], fontPx: number): GlyphSpec {
   };
 }
 
-function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number, align: "left" | "center" = "left"): void {
-  const texture = glyphTexture(glyphSpec(node, lines, fontPx));
+function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number, align: "left" | "center" = "left", ink?: string): void {
+  const spec = glyphSpec(node, lines, fontPx);
+  if (ink) {
+    spec.color = ink;
+    spec.stroke = "";
+    spec.strokeThickness = 0;
+  }
+  const texture = glyphTexture(spec);
   if (texture && ctx.drawImage) {
     const fit = Math.min(1, boxW / Math.max(1, texture.w), boxH / Math.max(1, texture.h));
     const dw = Math.max(1, texture.w * fit);
@@ -1953,7 +2005,7 @@ function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: 
   const style = styleOf(node);
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
-  ctx.fillStyle = style.color || "#17352a";
+  ctx.fillStyle = ink || style.color || "#17352a";
   ctx.font = `${style.fontStyle ? `${style.fontStyle} ` : ""}${fontPx}px ${style.fontFamily || "sans-serif"}`;
   const textH = fontPx * Math.max(1, lines.length);
   const drawY = align === "center" ? y + Math.max(0, (boxH - textH) / 2) : y;
@@ -2099,10 +2151,11 @@ function paintTree(ctx: PaintContext, node: GameNode, parent: Mat, view: ViewBox
 
 function paintCharacters(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
   const camera = phoneLayoutOf(scene)?.hero ?? null;
+  const skipped = new Set(phoneLayoutOf(scene)?.skipSheets ?? []);
   const visit = (node: GameNode, parent: Mat) => {
     if (!node.visible) return;
     const mat = mul(parent, localMat(node));
-    if (characterSheet(node)) {
+    if (characterSheet(node) && !skipped.has(node)) {
       ctx.save?.();
       applyScreen(ctx, mat, view, camera);
       if ("globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
@@ -2136,7 +2189,7 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.text && item.fontPx > 0) {
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left");
+      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink);
     }
   }
 }

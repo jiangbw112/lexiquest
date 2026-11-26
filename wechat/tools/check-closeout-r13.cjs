@@ -250,8 +250,11 @@ async function main() {
     const hint = skills.texts.find((item) => item.text.includes("卡组分开存"));
     const slash = skills.texts.find((item) => item.text.includes("旋风斩") || item.text.includes("词灵推远"));
     const job = skills.hits.find((item) => item.text === "换职业");
-    const badges = skills.hits.filter((item) => item.text === "已装备" || item.text === "未装备");
+    const badges = [...skills.hits, ...skills.texts].filter((item) => item.text === "已装备" || item.text === "未装备");
     log(`skill badges ${badges.map((item) => `${item.text}@${item.x},${item.y}`).join(" | ") || "none"}`);
+    const slashName = skills.texts.find((item) => item.text === "旋风斩");
+    const slashBadge = badges.find((item) => item.text === "未装备" && slashName && item.x > slashName.x && Math.abs(item.y - slashName.y) < 48);
+    if (!slashBadge) problem("fresh save does not show 未装备 on 旋风斩");
     if (badges.some((item) => item.text === "已装备")) {
       await press("已装备");
       const off = await paint("w8-v02-skills-unequipped-844x390.png");
@@ -523,6 +526,10 @@ async function main() {
       }
     }
     for (const digit of ["1", "2", "3", "4"]) await press(digit);
+    const filled = await paint("w8-v02-guide-filled-844x390.png");
+    const solid = filled.texts.filter((item) => item.text === "●");
+    log(`filled capsules ${solid.map((item) => `@${item.x},${item.y}`).join(" | ") || "none"}`);
+    if (solid.length < 4) problem(`filled gate has ${solid.length} solid capsules`);
     await press("确认");
     const again = await paint("w8-v02-guide-reenter-844x390.png");
     if (!again.texts.some((item) => item.text.startsWith("再输入一次"))) problem(`reenter title missing: ${again.texts.map((item) => item.text).join(" / ")}`);

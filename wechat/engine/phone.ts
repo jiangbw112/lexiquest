@@ -23,6 +23,8 @@ export interface PhoneUnit {
   onPaper?: boolean;
   /** Where the visible label sits inside the control. */
   label?: "center" | "sign";
+  /** Fraction down a village sign box. Only the academy nameplate sets this. */
+  signFrac?: number;
   /** Skip the control's own face so phone chrome is the visible button. */
   suppressFace?: boolean;
   designX: number;
@@ -76,12 +78,43 @@ export interface PhoneHero {
   oy: number;
 }
 
+export interface PhoneBar {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** 0–1 from the battle state the scene already stores. */
+  ratio: number;
+  tone: "teal" | "coral";
+}
+
+export interface PhoneCaption {
+  text: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  color: string;
+  font: number;
+}
+
+export interface PhonePortrait {
+  node: GameNode;
+  box: { x: number; y: number; w: number; h: number };
+}
+
 export interface PhoneLayout {
   hero: PhoneHero | null;
   skipMasks: boolean;
   chrome?: PhoneChrome[];
   /** Drawn after chrome when the bitmap is loaded. The plaque already contains its letters. */
   logo?: { x: number; y: number; w: number; h: number };
+  /** Class sheets to draw inside a placed box instead of at their desktop feet. */
+  portraits?: PhonePortrait[];
+  /** Same nodes, so the character pass does not also paint them on the top bar. */
+  skipSheets?: GameNode[];
+  bars?: PhoneBar[];
+  captions?: PhoneCaption[];
 }
 
 const cameras = new WeakMap<object, PhoneLayout>();

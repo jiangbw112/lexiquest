@@ -11,12 +11,12 @@ w8-v02-wardrobe-844x390.png scene=wardrobe overflow=0 phase=- edge=149,110,82,25
 press 返回 -> 返回 (wardrobe -> overworld, on=true)
 press 技能 -> 技能 (overworld -> skills, on=true)
 w8-v02-skills-844x390.png scene=skills overflow=0 phase=- edge=149,110,82,255 | 255,244,220,255 | 154,123,96,255
-  texts 技能卡 / 技能卡不绑定单词。最多带 3 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。 / 盾击 / ★1 / 撞上去，并挡住下一次一些伤害。 / 已装备 / 战吼 / 大喊一声，打出更重的一击。 / 坚守 / 举起盾，接下词灵的冲撞。 / 旋风斩 / 转一圈，把词灵推远。 / 返回 / 换职业 / 词卡、等级和进度都不会变。每个职业的卡组分开存。
+  texts 技能卡 / 技能卡不绑定单词。最多带 3 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。 / 盾击 / ★1 / 撞上去，并挡住下一次一些伤害。 / 已装备 / 战吼 / 大喊一声，打出更重的一击。 / 坚守 / 举起盾，接下词灵的冲撞。 / 旋风斩 / 转一圈，把词灵推远。 / 返回 / 换职业 / 词卡、等级和进度都不会变。每个职业的卡组分开存。 / 未装备 / 未装备 / 未装备
   hits 已装备@260,80 88x32 | 返回@56,16 100x44 | 换职业@628,312 140x48
-skill badges 已装备@260,80
+skill badges 已装备@260,80 | 已装备@283,89 | 未装备@570,80 | 未装备@260,176 | 未装备@570,176
 press 已装备 -> 已装备 (skills -> skills, on=true)
 w8-v02-skills-unequipped-844x390.png scene=skills overflow=0 phase=- edge=149,110,82,255 | 255,244,220,255 | 154,123,96,255
-  texts 技能卡 / 技能卡不绑定单词。最多带 3 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。 / 盾击 / ★1 / 撞上去，并挡住下一次一些伤害。 / 未装备 / 战吼 / 大喊一声，打出更重的一击。 / 坚守 / 举起盾，接下词灵的冲撞。 / 旋风斩 / 转一圈，把词灵推远。 / 返回 / 换职业 / 词卡、等级和进度都不会变。每个职业的卡组分开存。
+  texts 技能卡 / 技能卡不绑定单词。最多带 3 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。 / 盾击 / ★1 / 撞上去，并挡住下一次一些伤害。 / 未装备 / 战吼 / 大喊一声，打出更重的一击。 / 坚守 / 举起盾，接下词灵的冲撞。 / 旋风斩 / 转一圈，把词灵推远。 / 返回 / 换职业 / 词卡、等级和进度都不会变。每个职业的卡组分开存。 / 未装备 / 未装备 / 未装备
   hits 未装备@260,80 88x32 | 返回@56,16 100x44 | 换职业@628,312 140x48
 press 未装备 -> 未装备 (skills -> skills, on=true)
 press 返回 -> 返回 (skills -> overworld, on=true)
@@ -57,17 +57,17 @@ w8-v02-battle-844x390.png scene=battle overflow=0 phase=- edge=162,202,191,255 |
   hits 盾击 ★1@300,148 64x52 | 基础招式@372,148 64x52 | 基础招式@444,148 64x52 | 攻击@220,300 128x48 | 格挡@360,300 128x48 | 治疗@500,300 128x48
 press 攻击 -> 攻击 (battle -> battle, on=true)
 w8-v02-battle-question-844x390.png scene=battle overflow=0 phase=- edge=162,202,191,255 | 171,205,193,255 | 160,202,193,255
-  texts 学习者 / 林缘小径 / 「n. 小路」用英语怎么说？ / brave / journey / path
-  hits brave@76,278 160x48 | journey@252,278 160x48 | path@428,278 160x48
+  texts 学习者 · 第1题 / 林缘小径 / 「n. 地图」用英语怎么说？ / tree / fish / map
+  hits tree@76,278 160x48 | fish@252,278 160x48 | map@428,278 160x48
 battle chain question hp=40/42 q=meaning || choose hp=32/37 q=- || choose hp=32/37 q=- || choose hp=32/37 q=- || question hp=32/37 q=meaning || choose hp=24/32 q=- || choose hp=24/32 q=- || choose hp=24/32 q=- || question hp=24/32 q=meaning || choose hp=16/27 q=- || choose hp=16/27 q=- || choose hp=16/27 q=- || question hp=16/27 q=meaning || choose hp=8/22 q=- || choose hp=8/22 q=- || choose hp=8/22 q=- || question hp=8/22 q=meaning || won hp=0/22 q=- || after-arm:battle-results
 w8-v02-battle-results-844x390.png scene=battle-results overflow=0 phase=- edge=31,102,87,255 | 255,244,220,255 | 50,60,52,255
-  texts 胜利！ / 太棒了！ / 答对 5 题 / 一共 5 题 / 本场单词 / path / 小路 / flower / 花 / map / 地图 / red / 红色的 / fish / 鱼 / 这一关还有 5 个新词可以去学堂学 / 经验 / +经验 / 卡牌升级 / 盾击 / ★1 到 ★2 / 升级了！ / ★1 / ★2 / 获得物品 / 新外观 · 林间斗篷 / 已经穿上啦，可以去衣柜看看 / 新技能卡 / 坚守 / 继续
+  texts 胜利！ / 太棒了！ / 答对 5 题 / 一共 5 题 / 本场单词 / map / 地图 / discover / 发现 / fish / 鱼 / adventure / 冒险 / protect / 保护 / 这一关还有 5 个新词可以去学堂学 / 经验 / +经验 / 卡牌升级 / 盾击 / ★1 到 ★2 / 升级了！ / ★1 / ★2 / 获得物品 / 新外观 · 林间斗篷 / 已经穿上啦，可以去衣柜看看 / 新技能卡 / 坚守 / 继续
   hits 继续@628,308 160x48
-result path -> 小路,+经验
-result flower -> 花,获得物品
-result map -> 地图,卡牌升级,新外观 · 林间斗篷
-result red -> 红色的,盾击
-result fish -> 鱼,★1 到 ★2
+result map -> 地图,+经验
+result discover -> 发现,获得物品
+result fish -> 鱼,卡牌升级,新外观 · 林间斗篷
+result adventure -> 冒险,盾击
+result protect -> 保护,★1 到 ★2
 press 继续 -> 继续 (battle-results -> stages, on=true)
 exam words learned 56 cards via learnWord on 2026-01-15, then the map button
 exam save marked (chapterProgress pep_g3_01 and pep_g3_02 cleared, then the map button)
@@ -85,12 +85,12 @@ w8-v02-exam-intro-844x390.png scene=exam-battle overflow=0 phase=- edge=156,118,
   hits 开始答题@250,292 180x52
 press 开始答题 -> 开始答题 (exam-battle -> exam-battle, on=true)
 w8-v02-exam-battle-844x390.png scene=exam-battle overflow=0 phase=- edge=156,118,87,255 | 156,118,87,255 | 232,217,191,255
-  texts 期中挑战 / 「n. 堂（表）兄弟姐妹」用英语怎么说？
-  hits rabbit@76,278 160x48 | cousin@252,278 160x48 | help@428,278 160x48
+  texts 期中挑战 / 「v. 喜欢」用英语怎么说？ / 第1题
+  hits dad@76,278 160x48 | like@252,278 160x48 | help@428,278 160x48
 w8-v02-exam-question-844x390.png scene=exam-battle overflow=0 phase=- edge=156,118,87,255 | 156,118,87,255 | 232,217,191,255
-  texts 期中挑战 / 「n. 堂（表）兄弟姐妹」用英语怎么说？
-  hits rabbit@76,278 160x48 | cousin@252,278 160x48 | help@428,278 160x48
-exam-question stem=true choices=rabbit|cousin|help
+  texts 期中挑战 / 「v. 喜欢」用英语怎么说？ / 第1题
+  hits dad@76,278 160x48 | like@252,278 160x48 | help@428,278 160x48
+exam-question stem=true choices=dad|like|help
 press 重新开始 -> 重新开始 (title -> grades, on=true)
 w8-v02-grades-844x390.png scene=grades overflow=0 phase=- edge=35,73,58,255 | 227,214,173,255 | 35,68,59,255
   texts 先选年级 / 先选年级。三到六年级可以多选。选好以后再起名字。 / 三年级 / 四年级 / 五年级 / 六年级 / 至少选一个年级 / 选好了，去起名字 / 返回
@@ -113,10 +113,14 @@ press 1 -> 1 (guide -> guide, on=true)
 press 2 -> 2 (guide -> guide, on=true)
 press 3 -> 3 (guide -> guide, on=true)
 press 4 -> 4 (guide -> guide, on=true)
+w8-v02-guide-filled-844x390.png scene=guide overflow=0 phase=- edge=238,223,191,255 | 255,244,220,255 | 238,223,191,255
+  texts 给家长 / 改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉小程序数据后要重新设置。这不是安全登录。 / 取消 / 先设一个家长密码 / ● / ● / ● / ● / 4 位数字。不会显示明文。 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 清除 / 0 / 确认
+  hits 取消@176,300 100x44 | 1@484,70 48x48 | 2@540,70 48x48 | 3@596,70 48x48 | 4@484,126 48x48 | 5@540,126 48x48 | 6@596,126 48x48 | 7@484,182 48x48 | 8@540,182 48x48 | 9@596,182 48x48 | 清除@452,238 80x48 | 0@540,238 48x48 | 确认@596,238 80x48
+filled capsules @176,96 | @228,96 | @280,96 | @332,96
 press 确认 -> 确认 (guide -> guide, on=true)
 w8-v02-guide-reenter-844x390.png scene=guide overflow=0 phase=- edge=238,223,191,255 | 255,244,220,255 | 238,223,191,255
   texts 改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉小程序数据后要重新设置。这不是安全登录。 / 取消 / 再输入一次 / ○ / ○ / ○ / ○ / 4 位数字。不会显示明文。 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 清除 / 0 / 确认
   hits 取消@176,300 100x44 | 1@484,70 48x48 | 2@540,70 48x48 | 3@596,70 48x48 | 4@484,126 48x48 | 5@540,126 48x48 | 6@596,126 48x48 | 7@484,182 48x48 | 8@540,182 48x48 | 9@596,182 48x48 | 清除@452,238 80x48 | 0@540,238 48x48 | 确认@596,238 80x48
 reenter slots ○@176,76 44x48 | ○@228,76 44x48 | ○@280,76 44x48 | ○@332,76 44x48
-saved w8-v02-overworld-844x390.png w8-v02-wardrobe-844x390.png w8-v02-skills-844x390.png w8-v02-skills-unequipped-844x390.png w8-v02-learn-844x390.png w8-v02-learn-ready-844x390.png w8-v02-learn-study-844x390.png w8-v02-stages-844x390.png w8-v02-stages-next-844x390.png w8-v02-stages-prev-844x390.png w8-v02-battle-844x390.png w8-v02-battle-question-844x390.png w8-v02-battle-results-844x390.png w8-v02-stages-exam-844x390.png w8-v02-exam-intro-844x390.png w8-v02-exam-battle-844x390.png w8-v02-exam-question-844x390.png w8-v02-grades-844x390.png w8-v02-grades-ready-844x390.png w8-v02-create-844x390.png w8-v02-guide-setup-844x390.png w8-v02-guide-reenter-844x390.png
+saved w8-v02-overworld-844x390.png w8-v02-wardrobe-844x390.png w8-v02-skills-844x390.png w8-v02-skills-unequipped-844x390.png w8-v02-learn-844x390.png w8-v02-learn-ready-844x390.png w8-v02-learn-study-844x390.png w8-v02-stages-844x390.png w8-v02-stages-next-844x390.png w8-v02-stages-prev-844x390.png w8-v02-battle-844x390.png w8-v02-battle-question-844x390.png w8-v02-battle-results-844x390.png w8-v02-stages-exam-844x390.png w8-v02-exam-intro-844x390.png w8-v02-exam-battle-844x390.png w8-v02-exam-question-844x390.png w8-v02-grades-844x390.png w8-v02-grades-ready-844x390.png w8-v02-create-844x390.png w8-v02-guide-setup-844x390.png w8-v02-guide-filled-844x390.png w8-v02-guide-reenter-844x390.png
 closeout r13 done. Chrome adapter paintFrame replay, not WeChat, not a phone.

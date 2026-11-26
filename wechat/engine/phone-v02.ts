@@ -5,7 +5,7 @@
  */
 
 import type { GameNode } from "./node";
-import type { PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhoneUnit } from "./phone";
+import type { PhoneBar, PhoneCaption, PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhonePortrait, PhoneUnit } from "./phone";
 
 interface Box {
   x: number;
@@ -236,6 +236,11 @@ function layoutVillage(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     if (!unit) continue;
     place(unit, s.box(x, y0, 112, 104), 16);
     unit.label = "sign";
+    // 学堂的门比别的房子宽，字落在深色门上就读不清。只把这一块放到奶油招牌里。
+    if (label === "学堂") {
+      unit.fontPx = 15;
+      unit.signFrac = 0.815;
+    }
   }
   const foot = s.box(430, 214, 0, 0);
   return { hero: placeHero(ctx, foot.x, foot.y, 86 * s.sy), skipMasks: true, chrome };
@@ -463,6 +468,7 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     ink(rule, "#46363A");
     write(ctx, rule, s.box(324, 14, 0, 0).x, s.box(0, 14, 0, 0).y, s.box(0, 0, 500, 0).w, 12);
   }
+  const captions: PhoneCaption[] = [];
   const toggles = ctx.units.filter((unit) => unit.interactive && (unit.text === "卸下" || unit.text === "装备" || unit.text === "已装备" || unit.text === "未装备"));
   const usedToggles = new Set<PhoneUnit>();
   const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim() && unit !== title && unit !== rule && unit !== hint).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
@@ -488,6 +494,7 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       ink(desc, "#46363A");
       write(ctx, desc, card.x + 64 * s.sx, card.y + 46 * s.sy, card.w - 80 * s.sx, 14);
     }
+    const badge = { x: card.x + card.w - 96 * s.sx, y: card.y + 8 * s.sy, w: 88 * s.sx, h: 32 * s.sy };
     const toggle = toggles
       .filter((unit) => !usedToggles.has(unit))
       .sort((a, b) => Math.abs(a.designY - name.designY) - Math.abs(b.designY - name.designY))[0];
@@ -497,9 +504,12 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       toggle.text = equipped ? "已装备" : "未装备";
       toggle.lines = [toggle.text];
       ink(toggle, toggle.text === "未装备" ? "#46363A" : "#FFF4DC");
-      const badge = { x: card.x + card.w - 96 * s.sx, y: card.y + 8 * s.sy, w: 88 * s.sx, h: 32 * s.sy };
       place(toggle, badge, 14, true);
       chrome.push({ frame: toggle.text === "未装备" ? "btn_secondary_normal" : "btn_action_teal_normal", box: badge });
+    } else {
+      // 新存档里旋风斩还锁着，场景不给它卸下按钮。牌子仍按稿子标未装备，不解锁、不改装备张数。
+      captions.push({ text: "未装备", x: badge.x, y: badge.y, w: badge.w, h: badge.h, color: "#46363A", font: 14 });
+      chrome.push({ frame: "btn_secondary_normal", box: badge });
     }
   });
   for (const toggle of toggles) if (!usedToggles.has(toggle)) hide(toggle);
@@ -515,7 +525,7 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     const line = Math.floor(index / 2);
     placeImage(image, s.box(68 + col * 310, 86 + line * 96, 48, 48));
   });
-  return { hero: null, skipMasks: true, chrome };
+  return { hero: null, skipMasks: true, chrome, captions };
 }
 
 function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
@@ -653,7 +663,7 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   if (back) place(back, s.box(56, 14, 100, 44), 16);
   chrome.push({ frame: "panel_wood", box: s.box(156, 14, 186, 40) });
   const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80 && unit.design.w < 400).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
-  const portraits = ctx.images.filter((image) => /portrait/i.test(textureOf(image)));
+  const sheets = walk(ctx.scene).filter((node) => /portrait/i.test(String((node as GameNode & { texture?: string }).texture ?? "")));
   let selectedX = cards[0]?.node.x ?? 0;
   for (const node of walk(ctx.scene)) {
     if (node.type === "rectangle" && Number(node.data.get("strokeWidth") || 0) >= 6) selectedX = node.x;
@@ -672,16 +682,12 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       const cy = unit.design.y + unit.design.h / 2;
       return cx >= card.design.x - 8 && cx <= card.design.x + card.design.w + 8 && cy >= card.design.y - 12 && cy <= card.design.y + card.design.h + 12;
     }).sort((a, b) => a.designY - b.designY);
-    const portrait = portraits.find((image) => Math.abs((image.node?.x ?? 0) - card.node.x) < 40);
-    const onCard = Boolean(portrait && Math.abs((portrait.node?.x ?? 0) - selectedX) >= 40);
     texts.forEach((text, line) => {
       owned.add(text);
       ink(text, line === 0 ? "#3B2A20" : "#46363A");
       const font = line === 0 ? 15 : 11;
-      const textX = box.x + (onCard ? 46 : 8) * s.sx;
-      place(text, { x: textX, y: box.y + (28 + line * 16) * s.sy, w: box.w - (onCard ? 54 : 16) * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
+      place(text, { x: box.x + 8 * s.sx, y: box.y + (28 + line * 16) * s.sy, w: box.w - 16 * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
     });
-    if (onCard && portrait) placeImage(portrait, { x: box.x + 6 * s.sx, y: box.y + 8 * s.sy, w: 36 * s.sx, h: 52 * s.sy });
   });
   if (sign) {
     ink(sign);
@@ -689,8 +695,9 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   }
   const preview = s.box(546, 64, 250, 160);
   chrome.push({ frame: "panel_parchment", box: preview });
-  const selectedPortrait = portraits.find((image) => Math.abs((image.node?.x ?? 0) - selectedX) < 40);
-  if (selectedPortrait) placeImage(selectedPortrait, s.box(690, 76, 84, 120));
+  const selectedSheet = sheets.find((node) => Math.abs(node.x - selectedX) < 40) ?? null;
+  // 说明占预览板左 120。立绘放在右边，不压说明，也不再画到顶栏和木牌上。
+  const portraits: PhonePortrait[] = selectedSheet ? [{ node: selectedSheet, box: s.box(692, 72, 96, 136) }] : [];
   if (name) {
     ink(name, name.text === "给角色起个名字" ? "#766758" : "#3B2A20");
     const field = s.box(546, 248, 250, 48);
@@ -714,7 +721,7 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     ink(unit, unit.text.includes("已选") ? "#1F6F64" : "#46363A");
     previewY = write(ctx, unit, s.box(558, 0, 0, 0).x, previewY, s.box(0, 0, 120, 0).w, 13) + 4 * s.sy;
   }
-  return { hero: null, skipMasks: true, chrome };
+  return { hero: null, skipMasks: true, chrome, portraits, skipSheets: sheets };
 }
 
 function walk(scene: PhoneContext["scene"]): GameNode[] {
@@ -802,6 +809,33 @@ function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   return { hero: null, skipMasks: true, chrome };
 }
 
+function lifeReadout(scene: PhoneContext["scene"]): { asked: number | null; player: number | null; enemy: number | null } {
+  const host = scene as {
+    state?: { questionsAsked?: number; phase?: string; playerHp?: number; playerMaxHp?: number; enemyHp?: number; enemyMaxHp?: number };
+    displayHp?: { playerHp?: number; enemyHp?: number };
+  };
+  const state = host.state;
+  if (!state) return { asked: null, player: null, enemy: null };
+  const asked = state.phase === "question" && typeof state.questionsAsked === "number" && Number.isFinite(state.questionsAsked) && state.questionsAsked >= 1
+    ? state.questionsAsked
+    : null;
+  const ratio = (hp: number | undefined, max: number | undefined): number | null => {
+    if (typeof hp !== "number" || typeof max !== "number" || !(max > 0) || !Number.isFinite(hp)) return null;
+    return Math.max(0, Math.min(1, hp / max));
+  };
+  const playerHp = typeof host.displayHp?.playerHp === "number" ? host.displayHp.playerHp : state.playerHp;
+  const enemyHp = typeof host.displayHp?.enemyHp === "number" ? host.displayHp.enemyHp : state.enemyHp;
+  return { asked, player: ratio(playerHp, state.playerMaxHp), enemy: ratio(enemyHp, state.enemyMaxHp) };
+}
+
+function parkBar(bars: PhoneBar[], x: number, y: number, w: number, h: number, ratio: number | null, tone: PhoneBar["tone"], floorY: number): void {
+  if (ratio == null || !(w > 8) || !(h > 4)) return;
+  let top = y;
+  if (top + h > floorY - 4) top = floorY - 4 - h;
+  if (top < y - 1 || top < 8) return;
+  bars.push({ x, y: top, w, h, ratio, tone });
+}
+
 function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   const actions = ["攻击", "格挡", "治疗"];
@@ -829,6 +863,14 @@ function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const leave = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回") || unit.text.includes("再试") || unit.text.includes("结局")));
   if (leave) place(leave, s.box(56, 16, Math.max(100, textWidth(ctx, leave.text, 16) + 24), 44), 16);
   const hud = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.text.trim());
+  const life = lifeReadout(ctx.scene);
+  if (prompt && life.asked != null) {
+    const name = hud.find((unit) => unit.designX < 500 && unit.designY < 120 && unit.text.length <= 12 && !/[？?题]/.test(unit.text));
+    if (name) {
+      name.text = `${name.text} · 第${life.asked}题`;
+      name.lines = [name.text];
+    }
+  }
   let leftY = s.box(0, 20, 0, 0).y;
   let rightY = leftY;
   for (const unit of hud.sort((a, b) => a.designY - b.designY)) {
@@ -838,8 +880,14 @@ function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       continue;
     }
     ink(unit);
-    if (unit.designX > 700) rightY = write(ctx, unit, s.box(620, 0, 0, 0).x, rightY, s.box(0, 0, 180, 0).w, 14);
-    else leftY = write(ctx, unit, s.box(72, 0, 0, 0).x, leftY, s.box(0, 0, 240, 0).w, 14);
+    if (unit.designX > 700) rightY = write(ctx, unit, s.box(620, 0, 0, 0).x, rightY, s.box(0, 0, 110, 0).w, 14);
+    else leftY = write(ctx, unit, s.box(72, 0, 0, 0).x, leftY, s.box(0, 0, 220, 0).w, 14);
+  }
+  const bars: PhoneBar[] = [];
+  if (prompt) {
+    const barH = 16 * s.sy;
+    parkBar(bars, s.box(72, 0, 0, 0).x, leftY + 4 * s.sy, 168 * s.sx, barH, life.player, "teal", s.box(0, 68, 0, 0).y);
+    parkBar(bars, s.box(620, 0, 0, 0).x, rightY + 4 * s.sy, 110 * s.sx, barH, life.enemy, "coral", s.box(0, 64, 0, 0).y);
   }
   const skills = ctx.units.filter((unit) => unit.interactive && !unit.onPaper && unit.text.trim());
   skills.slice(0, 3).forEach((unit, index) => place(unit, s.box(300 + index * 72, 148, 64, 52), 12));
@@ -849,7 +897,7 @@ function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     if (/monster|enemy|pawn|spirit/i.test(key) && !/card_frame_|skill_/.test(key)) placeImage(image, s.box(640, 64, 140, 140));
   }
   const foot = s.box(160, 200, 0, 0);
-  return { hero: placeHero(ctx, foot.x, foot.y, 130 * s.sy), skipMasks: true, chrome };
+  return { hero: placeHero(ctx, foot.x, foot.y, 130 * s.sy), skipMasks: true, chrome, bars };
 }
 
 function layoutResults(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
@@ -1007,18 +1055,37 @@ function layoutExam(ctx: PhoneContext, chrome: PhoneChrome[], intro: PhoneUnit |
     place(attack, box, 18, true);
     chrome.push({ frame: "btn_primary_normal", box });
   }
+  const life = lifeReadout(ctx.scene);
+  const captions: PhoneCaption[] = [];
   let hudY = s.box(0, 22, 0, 0).y;
+  let named = false;
   for (const unit of ctx.units) {
     if (unit.onPaper || unit.interactive || !unit.text.trim()) continue;
     if (unit.text.length > 22 || unit.designY > 180) {
       hide(unit);
       continue;
     }
+    if (prompt && life.asked != null && !named && unit.designX < 500 && !/[？?]/.test(unit.text)) {
+      unit.text = `${unit.text} · 第${life.asked}题`;
+      unit.lines = [unit.text];
+      named = true;
+    }
     ink(unit);
-    hudY = write(ctx, unit, s.box(72, 0, 0, 0).x, hudY, s.box(0, 0, 240, 0).w, 14);
+    hudY = write(ctx, unit, s.box(72, 0, 0, 0).x, hudY, s.box(0, 0, 220, 0).w, 14);
   }
-  placeBoss(ctx, s.box(620, 48, 160, 170));
-  return { hero: placeHero(ctx, s.box(150, 190, 0, 0).x, s.box(0, 190, 0, 0).y, 120 * s.sy), skipMasks: true, chrome };
+  if (prompt && life.asked != null && !named) {
+    const tag = { x: s.box(72, 0, 0, 0).x, y: hudY, w: 140 * s.sx, h: 22 * s.sy };
+    captions.push({ text: `第${life.asked}题`, x: tag.x, y: tag.y, w: tag.w, h: tag.h, color: "#3B2A20", font: 14 });
+    hudY = tag.y + tag.h;
+  }
+  const bars: PhoneBar[] = [];
+  if (prompt) {
+    const barH = 16 * s.sy;
+    parkBar(bars, s.box(72, 0, 0, 0).x, hudY + 4 * s.sy, 150 * s.sx, barH, life.player, "teal", s.box(0, 68, 0, 0).y);
+    parkBar(bars, s.box(620, 0, 0, 0).x, s.box(0, 50, 0, 0).y, 110 * s.sx, barH, life.enemy, "coral", s.box(0, 70, 0, 0).y);
+  }
+  placeBoss(ctx, prompt && life.enemy != null ? s.box(620, 70, 150, 148) : s.box(620, 48, 160, 170));
+  return { hero: placeHero(ctx, s.box(150, 190, 0, 0).x, s.box(0, 190, 0, 0).y, 120 * s.sy), skipMasks: true, chrome, bars, captions };
 }
 
 function layoutGeneric(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {

@@ -1,6 +1,6 @@
 {
   "source": "filesystem. Not an IDE upload size.",
-  "mainBytes": 1271850,
+  "mainBytes": 1274576,
   "subpackages": {
     "packages/art-ui": 1498414,
     "packages/art-world": 375151,
@@ -23,7 +23,7 @@
     "packages/art-extra-16": 416011,
     "packages/art-json": 1464211
   },
-  "importableBytes": 20613028,
+  "importableBytes": 20615754,
   "packedFontBytes": 998884,
   "packedFontFiles": 12,
   "packedMp3": 0,
