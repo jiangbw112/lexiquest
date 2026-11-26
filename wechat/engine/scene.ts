@@ -1,4 +1,5 @@
 import { SpritePlayback, AnimationManager, type AnimDef } from "./anims";
+import { presentWechat } from "./present";
 import { GameGraphics } from "./graphics";
 import { GeomRectangle } from "./hit";
 import { NineSlice, type SliceInsets } from "./nineslice";
@@ -177,6 +178,41 @@ export interface FrameRect {
   y: number;
   w: number;
   h: number;
+}
+
+export interface FramePlacement {
+  cut: FrameRect;
+  sourceW: number;
+  sourceH: number;
+  trimX: number;
+  trimY: number;
+  trimW: number;
+  trimH: number;
+}
+
+/**
+ * 原来：图集帧只返回裁过的矩形，角色层按节点的 1×1 去画。
+ * 现在：同时返回源画布和 spriteSourceSize，方便把裁块放回 512 的脚点。
+ * 为什么：侧视层是按同一张源画布对齐的。旋转帧不在这条路径上。
+ */
+export function framePlacementOf(data: unknown, name: string): FramePlacement | null {
+  if (!data || typeof data !== "object" || !name) return null;
+  const frames = (data as { frames?: Record<string, { frame?: FrameRect; rotated?: boolean; spriteSourceSize?: FrameRect; sourceSize?: { w?: number; h?: number } }> }).frames;
+  const entry = frames?.[name];
+  const cut = entry?.frame;
+  if (!cut || cut.w <= 0 || cut.h <= 0 || entry.rotated) return null;
+  const sourceW = entry.sourceSize?.w && entry.sourceSize.w > 0 ? entry.sourceSize.w : cut.w;
+  const sourceH = entry.sourceSize?.h && entry.sourceSize.h > 0 ? entry.sourceSize.h : cut.h;
+  const trim = entry.spriteSourceSize;
+  return {
+    cut: { x: cut.x, y: cut.y, w: cut.w, h: cut.h },
+    sourceW,
+    sourceH,
+    trimX: trim?.x ?? 0,
+    trimY: trim?.y ?? 0,
+    trimW: trim?.w && trim.w > 0 ? trim.w : cut.w,
+    trimH: trim?.h && trim.h > 0 ? trim.h : cut.h,
+  };
 }
 
 export function frameRectOf(data: unknown, name: string): FrameRect | null {
@@ -612,6 +648,7 @@ export class RuntimeGame {
     if (preload) preload.call(scene);
     if (scene.load.totalToLoad > 0) scene.load.start();
     if (create) create.call(scene);
+    presentWechat(scene);
     return scene;
   }
 

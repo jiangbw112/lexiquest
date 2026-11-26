@@ -1,7 +1,7 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
 import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
-import { frameRectOf, type FrameRect } from "./scene";
+import { framePlacementOf, frameRectOf, type FrameRect } from "./scene";
 
 /**
  * 原来：外层 ctx.clip 之后子树改走 paintRelative，内层 mask 不再裁。文字每帧 fillText，货架从 (12, 58) 把字排到世界面板上。
@@ -392,7 +392,7 @@ function placeUnits(
       if (band) markBox(grid, band);
     }
   }
-  const copy = units.filter((unit) => !unit.interactive && unit.text.length > 0).sort((a, b) => a.design.y - b.design.y || a.design.x - b.design.x);
+  const copy = units.filter((unit) => !unit.interactive && unit.text.length > 0 && unit.text !== "词境练习家" && !String(unit.node.name || "").startsWith("pin:")).sort((a, b) => a.design.y - b.design.y || a.design.x - b.design.x);
   const separated = (rect: WorldRect, prev: WorldRect): boolean => {
     const gapX = Math.max(rect.x - (prev.x + prev.w), prev.x - (rect.x + rect.w));
     const gapY = Math.max(rect.y - (prev.y + prev.h), prev.y - (rect.y + rect.h));
@@ -964,6 +964,60 @@ function placeUnits(
     }
     onPaper = openSheet(missed);
   }
+  // 原来：给家长的密码只在 DOM 里，画布上没有可点的数字键。
+  // 现在：pin: 开头的字和键排成一块小键盘，宽屏放在说明纸旁边，窄屏放在纸下面。
+  // 为什么：这是微信自己的数字键，不把网页右侧那张设密码卡搬过来。键仍写入原来的家长密码字段。
+  const stackPin = (): void => {
+    const pinNamed = (unit: Unit) => String(unit.node.name || "").startsWith("pin:");
+    const labels = units.filter((unit) => pinNamed(unit) && !unit.interactive && unit.text.length > 0);
+    const keys = units.filter((unit) => pinNamed(unit) && unit.interactive);
+    if (labels.length === 0 && keys.length === 0) return;
+    const panel = plates.find((plate) => plate.frame === "panel_parchment" || plate.frame === "panel_wood");
+    const gap = UI_GAP;
+    const keyH = UI_HIT;
+    const fitCols = (cols: number) => cols * UI_HIT + Math.max(0, cols - 1) * gap + 16;
+    const cols = fitCols(4) <= Math.max(220, view.w * 0.42) ? 4 : 3;
+    const rows = Math.max(1, Math.ceil(keys.length / cols));
+    let labelH = 0;
+    for (const unit of labels) {
+      unit.fontPx = Math.max(14, Math.min(unit.fontPx, 18));
+      labelH += unit.fontPx + 4;
+    }
+    const blockH = labelH + rows * keyH + Math.max(0, rows - 1) * gap + 16;
+    const blockW = fitCols(cols);
+    let band = { x: Math.max(8, view.w - blockW - 8), y: Math.max(56, view.h - blockH - 8), w: blockW, h: blockH };
+    if (panel) {
+      const rightX = panel.box.x + panel.box.w + 12;
+      const rightW = view.w - rightX - 8;
+      const belowY = panel.box.y + panel.box.h + 8;
+      if (rightW >= blockW) band = { x: rightX, y: Math.max(56, panel.box.y + 8), w: Math.min(rightW, 320), h: blockH };
+      else if (view.h - belowY >= blockH) band = { x: Math.max(8, panel.box.x), y: belowY, w: Math.min(panel.box.w, blockW), h: blockH };
+      else band = { x: Math.max(8, view.w - blockW - 8), y: Math.max(56, Math.min(panel.box.y + 8, view.h - blockH - 8)), w: blockW, h: blockH };
+    }
+    if (band.x + band.w > view.w - 4) band.x = Math.max(8, view.w - 4 - band.w);
+    if (band.y + band.h > view.h - 4) band.y = Math.max(56, view.h - 4 - band.h);
+    fills.push({ x: band.x, y: band.y, w: Math.min(band.w, view.w - band.x - 4), h: band.h, color: 0xfff4dc, role: "sheet" });
+    markBox(grid, { x: band.x - UI_GAP, y: band.y - UI_GAP, w: band.w + UI_GAP * 2, h: band.h + UI_GAP * 2 });
+    let y = band.y + 8;
+    for (const unit of labels) {
+      fitText(unit, Math.max(28, band.w - 16), measure);
+      unit.x = band.x + 8;
+      unit.y = y;
+      unit.onPaper = true;
+      y += unit.h + 4;
+    }
+    const keyW = Math.max(UI_HIT, Math.min(72, Math.floor((band.w - 16 - gap * (cols - 1)) / cols)));
+    keys.forEach((unit, index) => {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      unit.w = keyW;
+      unit.h = keyH;
+      unit.x = band.x + 8 + col * (keyW + gap);
+      unit.y = y + row * (keyH + gap);
+      unit.onPaper = true;
+    });
+  };
+  stackPin();
   parkStageFaces();
   if (sceneKey === "stages") {
     for (const plate of plates) {
@@ -1017,6 +1071,7 @@ function placeUnits(
     return false;
   };
   for (const unit of ordered) {
+    if (String(unit.node.name || "").startsWith("pin:") || unit.text === "词境练习家") continue;
     if (!unit.interactive && unit.text.length > 0 && unit.onPaper) continue;
     const natural = Math.max(16, unit.w);
     if (tryPlace(unit, natural, null)) {
@@ -1027,6 +1082,17 @@ function placeUnits(
     unit.y = overflowY;
     unit.onPaper = false;
     overflowY += Math.max(unit.h, unit.fontPx || UI_HIT) + UI_GAP;
+  }
+  if (sceneKey === "title") {
+    const brand = units.find((unit) => unit.text === "词境练习家");
+    if (brand) {
+      brand.fontPx = Math.max(22, Math.min(40, Math.floor(view.w / 14)));
+      fitText(brand, Math.max(80, view.w - 48), measure);
+      brand.x = Math.max(16, (view.w - brand.w) / 2);
+      brand.y = 14;
+      brand.onPaper = true;
+      fills.push({ x: brand.x - 16, y: Math.max(4, brand.y - 6), w: brand.w + 32, h: brand.h + 12, color: 0xfff4dc, role: "sheet" });
+    }
   }
 }
 
@@ -1243,10 +1309,17 @@ function maskShapesWorld(node: GameNode): MaskShape[] | null {
   return shapes.length ? shapes : null;
 }
 
+function characterSheet(node: GameNode): boolean {
+  if (node.type !== "image" && node.type !== "sprite") return false;
+  if (node.displaySized || node.width > 1.5 || node.height > 1.5) return false;
+  const key = (node as GameNode & { texture?: string }).texture ?? "";
+  return key.startsWith("cls:");
+}
+
 function paintedByTree(node: GameNode): boolean {
   let current: GameNode | null = node;
   while (current) {
-    if (maskShapesWorld(current) || current.rotation || current.flipX) return true;
+    if (maskShapesWorld(current) || current.rotation || current.flipX || characterSheet(current)) return true;
     current = current.parent;
   }
   return false;
@@ -1710,8 +1783,24 @@ function drawLocal(ctx: PaintContext, node: GameNode): void {
   if (node.type === "image" || node.type === "sprite") {
     const texture = textureOf(node);
     const bitmap = texture ? bitmapFor(texture.image) : null;
-    const frame = texture?.frameRect((node as GameNode & { frame?: string }).frame ?? "") ?? texture?.frameRect("") ?? null;
+    const frameName = (node as GameNode & { frame?: string }).frame ?? "";
     if (!texture || !bitmap || !ctx.drawImage) return;
+    // 原来：没调用 setDisplaySize 的角色层停在 1×1，镜子里看起来是空的。
+    // 现在：按图集源画布和裁切偏移来画，父容器的缩放仍由矩阵承担。
+    // 为什么：侧视层共用 512 的脚点。已经 setDisplaySize 的背景和木牌仍走原来的宽高。
+    if (!node.displaySized) {
+      const scene = node.scene as { textures?: { get: (key: string) => { data: unknown; missing: boolean } } } | null;
+      const key = (node as GameNode & { texture?: string }).texture;
+      const data = key && scene?.textures ? scene.textures.get(key) : null;
+      const placed = data && !data.missing ? framePlacementOf(data.data, frameName) : null;
+      if (placed) {
+        const dx = -node.originX * placed.sourceW + placed.trimX;
+        const dy = -node.originY * placed.sourceH + placed.trimY;
+        ctx.drawImage(bitmap, placed.cut.x, placed.cut.y, placed.cut.w, placed.cut.h, dx, dy, placed.trimW, placed.trimH);
+        return;
+      }
+    }
+    const frame = texture.frameRect(frameName) ?? texture.frameRect("");
     const ox = node.originX * node.width;
     const oy = node.originY * node.height;
     if (frame && frame.w > 0 && frame.h > 0) ctx.drawImage(bitmap, frame.x, frame.y, frame.w, frame.h, -ox, -oy, node.width, node.height);
@@ -1800,9 +1889,9 @@ function paintTree(ctx: PaintContext, node: GameNode, parent: Mat, view: ViewBox
   if (!node.visible) return;
   const mat = mul(parent, localMat(node));
   const shapes = maskShapesWorld(node);
-  const draw = inherited || Boolean(node.rotation) || node.flipX || Boolean(shapes);
+  const draw = inherited || Boolean(node.rotation) || node.flipX || Boolean(shapes) || characterSheet(node);
   const body = () => {
-    if (draw && node.type !== "container") {
+    if (draw && node.type !== "container" && !characterSheet(node)) {
       ctx.save?.();
       applyScreen(ctx, mat, view);
       if ("globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
@@ -1825,6 +1914,23 @@ function paintTree(ctx: PaintContext, node: GameNode, parent: Mat, view: ViewBox
     const list = childList(node);
     if (list) for (const child of list) paintTree(ctx, child, mat, view, false);
   }
+}
+
+function paintCharacters(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
+  const visit = (node: GameNode, parent: Mat) => {
+    if (!node.visible) return;
+    const mat = mul(parent, localMat(node));
+    if (characterSheet(node)) {
+      ctx.save?.();
+      applyScreen(ctx, mat, view);
+      if ("globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
+      drawLocal(ctx, node);
+      ctx.restore?.();
+    }
+    const list = childList(node);
+    if (list) for (const child of list) visit(child, mat);
+  };
+  for (const node of scene.children.list) visit(node, IDENTITY);
 }
 
 function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
@@ -1870,6 +1976,10 @@ export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
   }
   for (const op of plan.images.filter((op) => !before(op))) paintImage(ctx, op);
+  // 原来：衣柜镜子的拱和图是在遮罩之后画的，角色先画就被拱心盖住。
+  // 现在：角色层等全部图片画完再画。
+  // 为什么：拱心不是透明的。角色要站在镜子里，不能留在拱的后面。
+  if (scene) paintCharacters(scene, ctx, view);
   for (const fill of plan.fills.filter(sheet)) {
     ctx.fillStyle = hex(fill.color);
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);

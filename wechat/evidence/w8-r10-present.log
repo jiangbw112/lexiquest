@@ -1,0 +1,28 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone
+profile {"profile":"学习者","classId":"warrior","outfits":["traveler"],"chapterId":"forest_adventure"}
+title {"key":"title","missing":[],"failures":[],"texts":["认识单词，收集词卡，和词灵比试。","继续冒险 Enter","新的冒险 N","词境练习家"]}
+screenshot w8-r10-title-1280x800.png hero=217,102,75,255 away=122,184,181,255 card=213,206,177,255 overflow=1 off=
+screenshot w8-r10-title-844x390.png hero=218,101,73,255 away=122,184,181,255 card=255,244,220,255 overflow=1 off=
+guide setup {"key":"guide","missing":[],"failures":[],"texts":["给家长","改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉小程序数据后要重新设置。这不是安全登录。","先设一个家长密码","▸ 密码 ","确定"]}
+screenshot w8-r10-guide-setup-1280x800.png hero=232,217,185,255 away=232,216,187,255 card=205,192,172,255 overflow=1 off=
+screenshot w8-r10-guide-setup-844x390.png hero=232,217,185,255 away=254,241,216,255 card=255,244,220,255 overflow=1 off=
+press 2 {"ok":true,"text":"2","pin":"2","again":"","name":"pin:2"}
+press 5 {"ok":true,"text":"5","pin":"25","again":"","name":"pin:5"}
+press 8 {"ok":true,"text":"8","pin":"258","again":"","name":"pin:8"}
+press 0 {"ok":true,"text":"0","pin":"2580","again":"","name":"pin:0"}
+screenshot w8-r10-guide-filled-1280x800.png hero=232,217,185,255 away=232,216,187,255 card=205,192,172,255 overflow=1 off=
+press 再输 {"ok":true,"text":"再输","pin":"2580","again":"","name":"pin:再输"}
+fields before submit {"pin":"2580","again":"2580"}
+press 确定 {"ok":true,"text":"确定","pin":"2580","again":"2580","name":"pin:确定"}
+after setup {"unlocked":true,"texts":["给家长","学习进度","今天没有到期复习，学 3 个新词也算完成今日目标。已完成 0 / 3  ·  累计完成 0 天","还没有学习记录。和孩子一起从森林冒险的第一关开始吧。","每日目标从明天的新一天起改档。今天的数量不会变多。"],"error":"","stored":true,"storedBytes":172}
+screenshot w8-r10-guide-unlocked-1280x800.png hero=232,217,185,255 away=232,216,187,255 card=255,244,220,255 overflow=0 off=
+guide verify {"key":"guide","texts":["改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉小程序数据后要重新设置。这不是安全登录。","输入家长密码","▸ 密码 "]}
+after verify {"checked":true,"error":""}
+screenshot w8-r10-guide-verify-1280x800.png hero=232,217,185,255 away=232,216,187,255 card=255,244,220,255 overflow=0 off=
+wardrobe {"key":"wardrobe","missing":[],"failures":[],"texts":["衣柜","已有装备","整","旅行短衣","就是职业原本的衣服","穿着"],"cls":["cls:shared:side:char_heroA_shadow_e_idle_00","cls:warrior:side:char_warrior_back_e_idle_00","cls:warrior:side:char_warrior_handMain_e_idle_00","cls:shared:side:char_heroA_bodyBack_e_idle_00","cls:warrior:side:char_warrior_outfitBack_e_idle_00","cls:shared:side:char_heroA_body_e_idle_00"]}
+screenshot w8-r10-wardrobe-1280x800.png hero=151,81,59,255 away=77,52,33,255 card=206,215,192,255 overflow=0 off=
+screenshot w8-r10-wardrobe-844x390.png hero=54,49,36,255 away=59,42,32,255 card=206,215,192,255 overflow=0 off=
+screenshot w8-r10-stages-1280x800.png hero=159,176,114,255 away=254,243,219,255 card=219,198,173,255 overflow=0 off=
+exam entry path unchanged. scene=stages. empty-question notice=absent. not a pass
+stages texts 森林冒险 | 上一章 | 第 1 / 9 章 | 下一章 | 三年级 · 森林冒险：已学 0/16 个词 | 还有 16 个没在学堂学过  战斗 0/5 关通过  熟练 0/28  到期 0 | 林缘小径 | 进行中 | 本关已学 0/5 个词 | 小战斗 0 胜 | 这一关还有 5 个新词可以去学堂学 | ?
+present r10 done

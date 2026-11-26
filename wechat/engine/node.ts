@@ -24,6 +24,8 @@ export class GameNode {
   scrollFactorX = 1;
   scrollFactorY = 1;
   name = "";
+  /** True after setDisplaySize. Placeholder sprites stay false and keep width 1 until paint. */
+  displaySized = false;
   order = 0;
   scene: unknown;
   parent: GameNode | null = null;
@@ -170,6 +172,7 @@ export class GameNode {
   }
 
   setDisplaySize(width: number, height: number): this {
+    this.displaySized = true;
     this.width = width;
     this.height = height;
     return this;
