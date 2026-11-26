@@ -33,6 +33,7 @@ function place(unit: PhoneUnit, box: Box, font: number, center = false): void {
   unit.h = box.h;
   unit.fontPx = font;
   unit.onPaper = true;
+  unit.clip = undefined;
   if (center && unit.node.type !== "container") unit.label = "center";
   if (center) unit.suppressFace = true;
   if (unit.text.trim()) unit.lines = [unit.text];
@@ -58,6 +59,7 @@ function hide(unit: PhoneUnit): void {
   unit.fontPx = 0;
   unit.lines = [];
   unit.onPaper = true;
+  unit.clip = undefined;
 }
 
 function ink(unit: PhoneUnit, color = "#3B2A20"): void {
@@ -900,7 +902,340 @@ function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   return { hero: placeHero(ctx, foot.x, foot.y, 130 * s.sy), skipMasks: true, chrome, bars };
 }
 
+interface ResultsWord {
+  english?: string;
+  gloss?: string;
+  correct?: boolean;
+}
+
+interface ResultsCard {
+  id?: string;
+  name?: string;
+  from?: number;
+  to?: number;
+}
+
+interface ResultsItem {
+  id?: string;
+  heading?: string;
+  line?: string;
+  atlas?: string;
+  frame?: string;
+}
+
+interface ResultsView {
+  won?: boolean;
+  correct?: number;
+  total?: number;
+  words?: ResultsWord[];
+  xpBefore?: number;
+  xpAfter?: number;
+  practiceOnly?: boolean;
+  card?: ResultsCard | null;
+  items?: ResultsItem[];
+}
+
+interface ResultsHost {
+  view?: ResultsView;
+  __resultsWordScroll?: number;
+  __resultsWordMax?: number;
+  __resultsWordClip?: Box;
+}
+
+const FONT_TITLE = '"ZCOOL KuaiLe", "Noto Sans SC", sans-serif';
+const FONT_BODY = '"Noto Sans SC", "WenQuanYi Micro Hei", sans-serif';
+const FONT_LATIN = '"Nunito", "Noto Sans SC", sans-serif';
+/** ZCOOL 「胜利！」 ink center is 275 units left of the advance center, and 21 units below the em center. upem 1000. */
+const VICTORY_INK_LEFT_EM = 275 / 1000;
+const VICTORY_INK_BELOW_EM = 21 / 1000;
+const TEAL = "#1F6F64";
+const INK = "#3B2A20";
+const CREAM = "#FFF4DC";
+
+function resultsView(ctx: PhoneContext): ResultsView | null {
+  const view = (ctx.scene as ResultsHost).view;
+  if (!view || typeof view !== "object") return null;
+  if (typeof view.won !== "boolean" && !Array.isArray(view.words)) return null;
+  return view;
+}
+
+function wonBattle(ctx: PhoneContext): boolean {
+  const view = resultsView(ctx);
+  if (view && typeof view.won === "boolean") return view.won;
+  return ctx.units.some((unit) => unit.text.includes("胜利") || unit.text.includes("打败了"));
+}
+
+function skillFrame(id: string): string {
+  if (id.endsWith("-base") || id.startsWith("basic-")) return "skill_base";
+  return `skill_${id.replaceAll("-", "_")}`;
+}
+
+function face(unit: PhoneUnit, family: string, color: string, weight = ""): void {
+  const paint = (node: GameNode) => {
+    const styled = node as GameNode & { style?: { fontFamily?: string; color?: string; fontStyle?: string } };
+    if (!styled.style) styled.style = {};
+    styled.style.fontFamily = family;
+    styled.style.color = color;
+    styled.style.fontStyle = weight;
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (!list) return;
+    for (const child of list) paint(child);
+  };
+  paint(unit.node);
+}
+
+function characterSheets(scene: PhoneContext["scene"]): GameNode[] {
+  const sheets: GameNode[] = [];
+  const visit = (node: GameNode) => {
+    const key = String((node as GameNode & { texture?: string }).texture ?? "");
+    if (key.startsWith("cls:")) sheets.push(node);
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (list) for (const child of list) visit(child);
+  };
+  for (const node of scene.children.list) visit(node);
+  return sheets;
+}
+
+/**
+ * 原来：胜利页把桌面的「答对 / 一共 / 经验 / 获得物品」再堆进一张小木牌。
+ * 现在：按已采用的 v0.3 结算稿排横屏胜利页。分数、单词和奖励读这一场的结果。
+ * 为什么：稿上的 5/5 和 flower 只是样子。坐标是稿面假设，不是实机安全区。
+ */
+function layoutVictory(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const view = resultsView(ctx);
+  const host = ctx.scene as ResultsHost;
+  for (const fill of ctx.fills) {
+    fill.w = 0;
+    fill.h = 0;
+  }
+  const board = s.box(56, 72, 732, 228);
+  chrome.push({ frame: "panel_parchment", box: board });
+  ctx.fills.push({
+    x: 372 * s.sx,
+    y: 116 * s.sy,
+    w: Math.max(1, 2 * s.sx),
+    h: 168 * s.sy,
+    color: 0xd9c7a6,
+    role: "sheet",
+  });
+
+  const cont = ctx.units.find((unit) => unit.interactive && (unit.text === "继续" || unit.text.includes("结局")));
+  const academy = ctx.units.find((unit) => unit.interactive && unit !== cont && /学堂/.test(unit.text));
+  const title = ctx.units.find((unit) => !unit.interactive && (unit.text.includes("胜利") || unit.text.includes("打败了")));
+  const used = new Set<PhoneUnit>();
+  if (title) used.add(title);
+  if (cont) used.add(cont);
+  if (academy) used.add(academy);
+  const claim = (pred?: (unit: PhoneUnit) => boolean): PhoneUnit | null => {
+    const found = ctx.units.find((unit) => !unit.interactive && !used.has(unit) && (!pred || pred(unit)));
+    if (!found) return null;
+    used.add(found);
+    return found;
+  };
+  const widthOf = (text: string, font: number, weight: string, family: string): number => {
+    if (ctx.measure) return Math.max(1, Math.ceil(ctx.measure(text, font, weight, family)));
+    return Math.max(1, Math.ceil(textWidth(ctx, text, font)));
+  };
+  for (const unit of ctx.units) hide(unit);
+
+  if (cont) {
+    const box = s.box(628, 308, 160, 48);
+    place(cont, box, 18 * s.sy, true);
+    face(cont, FONT_TITLE, INK, "");
+    chrome.push({ frame: "btn_primary_normal", box });
+  }
+  if (academy) {
+    const font = 16 * s.sy;
+    const width = Math.max(120 * s.sx, Math.min(200 * s.sx, widthOf(academy.text || "去学堂", font, "700", FONT_BODY) + 28 * s.sx));
+    const box = { x: 628 * s.sx - 8 * s.sx - width, y: 308 * s.sy, w: width, h: 48 * s.sy };
+    place(academy, box, font, true);
+    face(academy, FONT_BODY, INK, "700");
+    chrome.push({ frame: "btn_secondary_normal", box });
+  }
+
+  const floats: PhoneImage[] = [];
+  const take = (pred: (image: PhoneImage) => boolean): PhoneImage | null => {
+    const index = ctx.images.findIndex(pred);
+    if (index < 0) return null;
+    const [image] = ctx.images.splice(index, 1);
+    return image ?? null;
+  };
+  const floatAt = (image: PhoneImage | null, box: Box) => {
+    if (!image) return;
+    placeImage(image, box);
+    floats.push(image);
+  };
+  const banner = take((image) => frameOf(image) === "result_banner" || frameOf(image) === "result_banner_boss");
+  const bossBanner = banner ? frameOf(banner) === "result_banner_boss" : false;
+  const bannerBox = bossBanner ? s.box(122, 12, 600, 99) : s.box(162, 20, 520, 82);
+  floatAt(banner, bannerBox);
+
+  if (title) {
+    const victoryMark = title.text === "胜利！";
+    const font = (victoryMark ? 28 : 22) * s.sy;
+    const plaqueCx = victoryMark ? 421.75 * s.sx : bannerBox.x + bannerBox.w / 2;
+    const plaqueCy = victoryMark ? 58.25 * s.sy : bannerBox.y + bannerBox.h * 0.46;
+    const typoCx = plaqueCx + (victoryMark ? VICTORY_INK_LEFT_EM * font : 0);
+    const typoCy = plaqueCy - (victoryMark ? VICTORY_INK_BELOW_EM * font : 0);
+    const textW = widthOf(title.text, font, "", FONT_TITLE) + 2;
+    place(title, { x: typoCx - textW / 2, y: typoCy - font / 2, w: textW, h: font }, font, true);
+    face(title, FONT_TITLE, CREAM, "");
+  }
+
+  const correct = typeof view?.correct === "number" ? view.correct : null;
+  const total = typeof view?.total === "number" ? view.total : null;
+  const scoreText = correct !== null && total !== null ? `${correct}/${total}` : "";
+  const scoreUnit = claim((unit) => /答对/.test(unit.text)) ?? (scoreText ? claim() : null);
+  claim((unit) => /一共/.test(unit.text));
+  const scoreBox = s.box(88, 110, 36, 36);
+  floatAt(take((image) => textureOf(image) === "results_ico_score"), scoreBox);
+  if (scoreUnit && scoreText) {
+    const font = 22 * s.sy;
+    scoreUnit.text = scoreText;
+    const textW = widthOf(scoreText, font, "700", FONT_LATIN);
+    place(scoreUnit, { x: scoreBox.x + scoreBox.w + 8 * s.sx, y: scoreBox.y + (scoreBox.h - font) / 2, w: textW + 2, h: font }, font);
+    face(scoreUnit, FONT_LATIN, TEAL, "700");
+  }
+
+  const words = (view?.words ?? []).filter((word) => word.english).map((word) => ({
+    en: String(word.english),
+    zh: word.gloss ? String(word.gloss) : "",
+  }));
+  const heading = words.length ? claim((unit) => unit.text.includes("本场单词")) ?? claim() : null;
+  if (heading) {
+    const font = 16 * s.sy;
+    heading.text = "本场单词";
+    const textW = widthOf(heading.text, font, "700", FONT_BODY);
+    place(heading, { x: 88 * s.sx, y: 147 * s.sy, w: textW + 2, h: font }, font);
+    face(heading, FONT_BODY, INK, "700");
+  }
+
+  const rowFont = 15 * s.sy;
+  const pitch = 23 * s.sy;
+  const clip: Box = { x: 72 * s.sx, y: 171 * s.sy, w: 290 * s.sx, h: 117 * s.sy };
+  const maxScroll = Math.max(0, words.length * pitch - clip.h);
+  const scroll = Math.max(0, Math.min(maxScroll, host.__resultsWordScroll || 0));
+  host.__resultsWordScroll = scroll;
+  host.__resultsWordMax = maxScroll;
+  host.__resultsWordClip = maxScroll > 0 ? clip : undefined;
+  words.forEach((word, index) => {
+    const y = clip.y + index * pitch - scroll;
+    const enUnit = claim((unit) => unit.text === word.en) ?? claim();
+    const zhUnit = word.zh ? claim((unit) => unit.text === word.zh) ?? claim() : null;
+    const visible = y >= clip.y - 0.5 && y + rowFont <= clip.y + clip.h + 0.5;
+    if (!visible) return;
+    const enW = Math.min(140 * s.sx, widthOf(word.en, rowFont, "700", FONT_LATIN));
+    const zhW = word.zh ? Math.min(108 * s.sx, widthOf(word.zh, rowFont, "", FONT_BODY)) : 0;
+    const enX = 88 * s.sx;
+    let zhX = 348 * s.sx - zhW;
+    if (word.zh && zhX < enX + enW + 8 * s.sx) zhX = enX + enW + 8 * s.sx;
+    if (enUnit) {
+      enUnit.text = word.en;
+      place(enUnit, { x: enX, y, w: Math.max(enW, 8), h: rowFont }, rowFont);
+      face(enUnit, FONT_LATIN, INK, "700");
+      enUnit.clip = clip;
+    }
+    if (zhUnit && word.zh) {
+      zhUnit.text = word.zh;
+      place(zhUnit, { x: zhX, y, w: Math.max(zhW, 8), h: rowFont }, rowFont);
+      face(zhUnit, FONT_BODY, INK, "");
+      zhUnit.clip = clip;
+    }
+  });
+
+  interface RewardRow {
+    id: string;
+    label: string;
+    image: PhoneImage | null;
+  }
+  const rows: RewardRow[] = [];
+  const seen = new Set<string>();
+  const addRow = (row: RewardRow) => {
+    if (!row.label || seen.has(row.id)) return;
+    seen.add(row.id);
+    rows.push(row);
+  };
+  if (view && typeof view.xpBefore === "number" && typeof view.xpAfter === "number") {
+    const delta = Math.round(view.xpAfter - view.xpBefore);
+    if (delta > 0) addRow({ id: "xp", label: `+${delta}`, image: take((image) => textureOf(image) === "results_ico_xp") });
+  } else if (view && !view.practiceOnly) {
+    addRow({ id: "xp", label: "+经验", image: take((image) => textureOf(image) === "results_ico_xp") });
+  }
+  const items = view?.items ?? [];
+  const labelOf = (item: ResultsItem): string => {
+    if (item.id === "forest-cape" || item.frame === "thumb_outfit_forest_cape") return "林间斗篷";
+    if (item.atlas === "atlas_skills") {
+      const name = (item.line || "").trim();
+      if (!name || /新技能|获得|升级|已经穿上|经验/.test(name)) return "";
+      return name.includes("★") ? name : `${name} ★1`;
+    }
+    const named = (item.heading || "").includes("·") ? (item.heading || "").split("·").pop()?.trim() || "" : "";
+    if (!named || /新外观|新称号|获得|已经穿上|升级|经验/.test(named)) return "";
+    return named;
+  };
+  for (const item of items) {
+    if (item.id !== "forest-cape" && item.frame !== "thumb_outfit_forest_cape") continue;
+    addRow({
+      id: "forest-cape",
+      label: "林间斗篷",
+      image: take((image) => frameOf(image) === (item.frame || "thumb_outfit_forest_cape")),
+    });
+  }
+  for (const item of items) {
+    if (item.atlas === "atlas_skills" || item.id === "forest-cape" || item.frame === "thumb_outfit_forest_cape") continue;
+    addRow({
+      id: item.id || item.frame || labelOf(item),
+      label: labelOf(item),
+      image: item.frame ? take((image) => frameOf(image) === item.frame && (!item.atlas || textureOf(image) === item.atlas)) : null,
+    });
+  }
+  if (view?.card?.name) {
+    const card = view.card;
+    const from = Math.round(card.from ?? 1);
+    const to = Math.round(card.to ?? from);
+    addRow({
+      id: card.id || card.name,
+      label: `${card.name} ★${from}→★${to}`,
+      image: card.id ? take((image) => frameOf(image) === skillFrame(card.id || "") && textureOf(image) === "atlas_skills") : null,
+    });
+  }
+  for (const item of items) {
+    if (item.atlas !== "atlas_skills") continue;
+    addRow({
+      id: item.id || item.frame || item.line || "",
+      label: labelOf(item),
+      image: item.frame ? take((image) => frameOf(image) === item.frame && textureOf(image) === "atlas_skills") : null,
+    });
+  }
+
+  const icon = 36 * s.sy;
+  const iconTop = 110 * s.sy;
+  const free = 292 * s.sy - iconTop - rows.length * icon;
+  const gap = rows.length <= 1 ? 0 : Math.min(8 * s.sy, Math.max(2 * s.sy, free / (rows.length - 1)));
+  rows.forEach((row, index) => {
+    const y = iconTop + index * (icon + gap);
+    const iconBox = { x: 396 * s.sx, y, w: icon, h: icon };
+    floatAt(row.image, iconBox);
+    const label = claim();
+    if (!label) return;
+    const font = 15 * s.sy;
+    label.text = row.label;
+    const textW = Math.min(300 * s.sx, widthOf(row.label, font, "700", FONT_BODY));
+    place(label, { x: iconBox.x + iconBox.w + 8 * s.sx, y: y + (icon - font) / 2, w: textW + 2, h: font }, font);
+    face(label, FONT_BODY, TEAL, "700");
+  });
+
+  floatAt(take((image) => textureOf(image) === "results_ico_stamp"), s.box(744, 80, 28, 28));
+  return { hero: null, skipMasks: true, chrome, floats, skipSheets: characterSheets(ctx.scene) };
+}
+
 function layoutResults(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  if (wonBattle(ctx)) return layoutVictory(ctx, chrome);
+  return layoutResultsLoss(ctx, chrome);
+}
+
+function layoutResultsLoss(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   const board = s.box(56, 72, 732, 228);
   chrome.push({ frame: "panel_parchment", box: board });

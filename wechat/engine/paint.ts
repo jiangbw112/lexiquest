@@ -31,6 +31,8 @@ export interface PaintBox {
   align?: "center";
   /** Overrides the donor node's ink. Used for badges that do not have their own text node. */
   ink?: string;
+  /** Keeps a scrolling column inside its parchment. */
+  clip?: { x: number; y: number; w: number; h: number };
   polygon?: Array<{ x: number; y: number }>;
   masks?: MaskShape[][];
 }
@@ -1673,6 +1675,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     : null;
   if (scene) rememberPhone(scene, phone);
   if (phone?.chrome?.length && scene) emitPhoneChrome(scene, images, phone.chrome);
+  if (phone?.floats?.length) {
+    for (const image of phone.floats) {
+      if (image.w > 0 && image.h > 0) images.push(image as DrawImageOp);
+    }
+  }
   if (phone?.bars?.length && scene) {
     for (const bar of phone.bars) {
       if (!(bar.w > 8) || !(bar.h > 4) || !(bar.ratio >= 0)) continue;
@@ -1710,6 +1717,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       node: unit.node,
       lines: unit.lines,
       onPaper: unit.onPaper,
+      clip: unit.clip,
     });
     if (!unit.interactive) continue;
     const phoneButton = scene ? Boolean(phoneLayoutOf(scene)) : false;
@@ -2189,7 +2197,20 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.text && item.fontPx > 0) {
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink);
+      const draw = () => paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink);
+      const clip = item.clip;
+      if (clip && clip.w > 0 && clip.h > 0 && ctx.save && ctx.restore && ctx.beginPath && ctx.moveTo && ctx.lineTo && ctx.closePath && ctx.clip) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(clip.x, clip.y);
+        ctx.lineTo(clip.x + clip.w, clip.y);
+        ctx.lineTo(clip.x + clip.w, clip.y + clip.h);
+        ctx.lineTo(clip.x, clip.y + clip.h);
+        ctx.closePath();
+        ctx.clip();
+        draw();
+        ctx.restore();
+      } else draw();
     }
   }
 }

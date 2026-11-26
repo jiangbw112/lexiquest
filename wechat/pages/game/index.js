@@ -424,13 +424,36 @@ Page({
     // 探针模式只用于看字号和热区，按下不发声、不改骨架状态。
     if (this._probeFrame) return;
     if (this._port) {
-      if (type === "end") {
-        const touch = event && event.changedTouches && event.changedTouches[0];
-        if (touch) {
+      const touch = event && ((type === "end" || type === "cancel")
+        ? event.changedTouches && event.changedTouches[0]
+        : event.touches && event.touches[0]);
+      if (touch && this._port.wordScroll) {
+        const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
+        const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
+        const x = typeof touch.x === "number" ? touch.x : touch.clientX - left;
+        const y = typeof touch.y === "number" ? touch.y : touch.clientY - top;
+        if (type === "start") {
+          this._resultsLast = { x, y };
+          this._port.wordScroll("start", x, y, 0);
+        } else if (type === "move" && this._resultsLast) {
+          const dy = y - this._resultsLast.y;
+          this._resultsLast = { x, y };
+          this._port.wordScroll("move", x, y, dy);
+        } else if (type === "end") {
+          const scrolled = this._port.wordScroll("end", x, y, 0);
+          this._resultsLast = null;
+          if (!scrolled) this._port.press(x, y, { w: this._viewW, h: this._viewH });
+        } else if (type === "cancel") {
+          this._port.wordScroll("end", x, y, 0);
+          this._resultsLast = null;
+        }
+      } else if (type === "end") {
+        const endTouch = event && event.changedTouches && event.changedTouches[0];
+        if (endTouch) {
           const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
           const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
-          const x = typeof touch.x === "number" ? touch.x : touch.clientX - left;
-          const y = typeof touch.y === "number" ? touch.y : touch.clientY - top;
+          const x = typeof endTouch.x === "number" ? endTouch.x : endTouch.clientX - left;
+          const y = typeof endTouch.y === "number" ? endTouch.y : endTouch.clientY - top;
           this._port.press(x, y, { w: this._viewW, h: this._viewH });
         }
       }

@@ -90,6 +90,31 @@ function attach(canvas, view) {
     press(x, y, next) {
       return game.pressFrame(runtime.active(), box(next || view), x, y);
     },
+    wordScroll(phase, x, y, dy) {
+      const scene = runtime.active();
+      if (!scene || scene.key !== "battle-results") return false;
+      if (phase === "start") {
+        const clip = scene.__resultsWordClip;
+        const max = scene.__resultsWordMax || 0;
+        scene.__resultsWordDrag = Boolean(clip && max > 0 && x >= clip.x && x < clip.x + clip.w && y >= clip.y && y < clip.y + clip.h);
+        scene.__resultsWordMoved = false;
+        return false;
+      }
+      if (phase === "move") {
+        if (!scene.__resultsWordDrag) return false;
+        const max = scene.__resultsWordMax || 0;
+        const prev = scene.__resultsWordScroll || 0;
+        const next = Math.max(0, Math.min(max, prev - dy));
+        if (next === prev) return scene.__resultsWordMoved === true;
+        scene.__resultsWordScroll = next;
+        scene.__resultsWordMoved = true;
+        return true;
+      }
+      const moved = scene.__resultsWordMoved === true;
+      scene.__resultsWordDrag = false;
+      scene.__resultsWordMoved = false;
+      return moved;
+    },
     stop() {
       const scene = runtime.active();
       if (scene && typeof scene.shutdown === "function") scene.shutdown();

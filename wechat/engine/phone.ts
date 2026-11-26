@@ -27,6 +27,8 @@ export interface PhoneUnit {
   signFrac?: number;
   /** Skip the control's own face so phone chrome is the visible button. */
   suppressFace?: boolean;
+  /** Screen clip for a column that scrolls. Rows outside it are not drawn. */
+  clip?: { x: number; y: number; w: number; h: number };
   designX: number;
   designY: number;
   design: { x: number; y: number; w: number; h: number };
@@ -115,6 +117,8 @@ export interface PhoneLayout {
   skipSheets?: GameNode[];
   bars?: PhoneBar[];
   captions?: PhoneCaption[];
+  /** Scene images painted after the parchment, still under the glyphs. */
+  floats?: PhoneImage[];
 }
 
 const cameras = new WeakMap<object, PhoneLayout>();

@@ -327,22 +327,39 @@ function presentCreate(scene: PadScene): void {
   add();
 }
 
-function presentResults(scene: PadScene): void {
+function ensureImage(scene: PadScene, key: string, url: string): boolean {
   const host = scene as PadScene & { textures?: { exists: (key: string) => boolean }; load?: { image: (key: string, url: string) => void; start: () => void; totalToLoad: number } };
-  if (host.textures && host.load && !host.textures.exists("bg_ending")) {
-    host.load.image("bg_ending", "assets/warm/backgrounds/bg_ending_2x.webp");
+  if (host.textures && host.load && !host.textures.exists(key)) {
+    host.load.image(key, url);
     if (host.load.totalToLoad > 0) host.load.start();
   }
-  if (!host.textures?.exists("bg_ending") || !scene.add.image) return;
-  if (scene.children.list.some((node) => (node as { texture?: string }).texture === "bg_ending")) return;
-  const picture = scene.add.image(640, 400, "bg_ending");
-  picture.setDisplaySize?.(1280, 800);
-  const list = scene.children.list;
-  const index = list.indexOf(picture);
-  if (index > 0) {
-    list.splice(index, 1);
-    list.unshift(picture);
+  return Boolean(host.textures?.exists(key));
+}
+
+function pinResultIcon(scene: PadScene, key: string, url: string, size: number): void {
+  if (!ensureImage(scene, key, url) || !scene.add.image) return;
+  if (scene.children.list.some((node) => (node as { texture?: string }).texture === key)) return;
+  const picture = scene.add.image(0, 0, key);
+  picture.setDisplaySize?.(size, size);
+  picture.name = key;
+}
+
+function presentResults(scene: PadScene): void {
+  if (ensureImage(scene, "bg_ending", "assets/warm/backgrounds/bg_ending_2x.webp") && scene.add.image) {
+    if (!scene.children.list.some((node) => (node as { texture?: string }).texture === "bg_ending")) {
+      const picture = scene.add.image(640, 400, "bg_ending");
+      picture.setDisplaySize?.(1280, 800);
+      const list = scene.children.list;
+      const index = list.indexOf(picture);
+      if (index > 0) {
+        list.splice(index, 1);
+        list.unshift(picture);
+      }
+    }
   }
+  pinResultIcon(scene, "results_ico_score", "assets/warm/results/ico_score.png", 36);
+  pinResultIcon(scene, "results_ico_xp", "assets/warm/results/ico_xp.png", 36);
+  pinResultIcon(scene, "results_ico_stamp", "assets/warm/results/ico_stamp.png", 28);
 }
 
 function ensureAtlas(scene: PadScene, key: string, image: string, data: string): void {
