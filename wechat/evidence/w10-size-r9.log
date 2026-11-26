@@ -1,0 +1,57 @@
+main bytes 1201756 files 25
+packages/art-ui bytes 1480656 files 16
+packages/art-world bytes 375151 files 13
+packages/fonts bytes 999279 files 16
+packages/art-extra-01 bytes 586757 files 8
+packages/art-extra-02 bytes 724247 files 10
+packages/art-extra-03 bytes 965367 files 10
+packages/art-extra-04 bytes 1044681 files 11
+packages/art-extra-05 bytes 986602 files 13
+packages/art-extra-06 bytes 976499 files 15
+packages/art-extra-07 bytes 951145 files 16
+packages/art-extra-08 bytes 907135 files 17
+packages/art-extra-09 bytes 1031599 files 19
+packages/art-extra-10 bytes 967891 files 21
+packages/art-extra-11 bytes 1088457 files 22
+packages/art-extra-12 bytes 1027441 files 24
+packages/art-extra-13 bytes 1136895 files 26
+packages/art-extra-14 bytes 928953 files 32
+packages/art-extra-15 bytes 1264443 files 53
+packages/art-extra-16 bytes 416011 files 43
+packages/art-json bytes 1204347 files 162
+importable bytes 20265312 files 572
+packed images 298 bytes 16853203
+packed fonts 12 bytes 998884
+packed mp3 0
+public bytes 33613886 excluded from the mini program
+public images 297 bytes 31515282
+art-index images 297
+required-but-not-packed images 0 bytes 0
+wrote evidence/w10-resource-r9.json
+budget running main 1201756
+budget running packages/art-ui cumulative 2682412
+budget running packages/art-world cumulative 3057563
+budget running packages/fonts cumulative 4056842
+budget running packages/art-extra-01 cumulative 4643599
+budget running packages/art-extra-02 cumulative 5367846
+budget running packages/art-extra-03 cumulative 6333213
+budget running packages/art-extra-04 cumulative 7377894
+budget running packages/art-extra-05 cumulative 8364496
+budget running packages/art-extra-06 cumulative 9340995
+budget running packages/art-extra-07 cumulative 10292140
+budget running packages/art-extra-08 cumulative 11199275
+budget running packages/art-extra-09 cumulative 12230874
+budget running packages/art-extra-10 cumulative 13198765
+budget running packages/art-extra-11 cumulative 14287222
+budget running packages/art-extra-12 cumulative 15314663
+budget running packages/art-extra-13 cumulative 16451558
+budget running packages/art-extra-14 cumulative 17380511
+budget running packages/art-extra-15 cumulative 18644954
+budget running packages/art-extra-16 cumulative 19060965
+budget running packages/art-json cumulative 20265312
+public word mp3 0
+source: filesystem after project.config.json packOptions.ignore, split by app.json subpackage roots.
+https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages
+limits used here: each package 2MB, all packages 20MB for 服务商代开发. The ordinary all-package limit is 30MB.
+IDE upload size is 未验证. A git archive is not this package.
+main and each subpackage are within 2MB, and the importable total is within 20MB. IDE package size is 未验证.

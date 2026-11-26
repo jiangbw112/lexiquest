@@ -1,3 +1,6 @@
+// Copies original bytes from public/assets/warm into art-ui and art-world.
+// Do not run this over a tree that compress-packed.py has already rewritten:
+// it would put the large originals back into those two packages.
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
