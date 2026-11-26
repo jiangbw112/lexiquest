@@ -55,6 +55,13 @@ function presentTitle(scene: PadScene): void {
   });
   brand.setOrigin(0, 0);
   brand.name = "brand";
+  const sub = scene.add.text(640, 72, "LexiQuest", {
+    fontFamily: "WenQuanYi Micro Hei, sans-serif",
+    fontSize: "16px",
+    color: "#3e6b56",
+  });
+  sub.setOrigin(0, 0);
+  sub.name = "brand-sub";
 }
 
 function presentGuide(scene: PadScene): void {

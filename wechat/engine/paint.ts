@@ -1,4 +1,5 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
+import { composePhone, coverBox, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, type PhoneUnit } from "./phone";
 import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
 import { framePlacementOf, frameRectOf, type FrameRect } from "./scene";
@@ -210,6 +211,8 @@ interface Unit {
   h: number;
   lines: string[];
   onPaper?: boolean;
+  designX: number;
+  designY: number;
 }
 
 function shapeBounds(shapes: MaskShape[]): WorldRect | null {
@@ -1457,6 +1460,7 @@ function collectTreeHits(scene: { children: { list: GameNode[] } }, view: ViewBo
 }
 
 export function layoutFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, measure?: MeasureText, options?: LayoutOptions): FramePlan {
+  if (scene) rewriteSceneCopy(scene);
   const flat: GameNode[] = [];
   if (scene) flatten(scene.children.list, flat);
   const visible = flat.filter((node) => node.visible);
@@ -1473,15 +1477,18 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
-    const dest = { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
+    const phoneKey = sceneKeyOf(scene);
+    const covered = (phoneKey === "title" || phoneKey === "guide" || phoneKey === "wardrobe") && isBackdrop(node) ? coverBox(view) : null;
+    const dest = covered ?? { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
     const frame = node.type === "nineslice" ? String((node as GameNode & { frame?: string }).frame ?? "") : "";
     const kind = isPaperFrame(frame) ? "paper" : plateKind(dest, view);
     plates.push({ box: dest, kind, frame });
     emitArt(images, fills, node, dest);
   }
 
+  const liftMaskText = sceneKeyOf(scene) === "wardrobe";
   for (const node of visible) {
-    if (paintedByTree(node)) continue;
+    if (paintedByTree(node) && !(liftMaskText && node.type === "text")) continue;
     const root = outermostHit(node);
     const owner = root ?? (node.type === "text" ? node : null);
     if (!owner || used.has(owner)) continue;
@@ -1505,20 +1512,36 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       : 0;
     units.push({
       node: owner,
-      text,
+      text: owner.type === "text" ? text : nestedText,
       fontPx: owner.type === "text" ? fontPx : nestedText ? nestedFont : 0,
       weight,
       family,
       interactive: owner.inputEnabled,
       design,
+      designX: design.x,
+      designY: design.y,
       x: 0,
       y: 0,
       w: owner.inputEnabled ? Math.min(144, Math.max(UI_HIT, Math.min(design.w || UI_HIT, 144), Math.min(nestedWidth + 16, 144))) : Math.max(1, measured || fontPx),
       h: owner.inputEnabled ? UI_HIT : Math.max(fontPx, fontPx * Math.max(1, lines.length)),
-      lines,
+      lines: owner.type === "text" ? lines : nestedText ? [nestedText] : [],
     });
   }
-  placeUnits(units, view, scene, plates, fills, measure, options);
+  const phone = scene
+    ? composePhone({
+      key: sceneKeyOf(scene),
+      view,
+      scene,
+      units,
+      images,
+      plates,
+      fills,
+      measure,
+      fitText: (unit: PhoneUnit, maxW: number) => fitText(unit, maxW, measure),
+    })
+    : null;
+  if (scene) rememberPhone(scene, phone);
+  if (!phone) placeUnits(units, view, scene, plates, fills, measure, options);
 
   const items: PaintBox[] = [];
   for (const unit of units) {
@@ -1624,7 +1647,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       if (gap !== null) gaps.push(Math.round(gap * 1000) / 1000);
     }
   }
-  const overflow = items.filter((item) => item.y < 50 || item.y + item.h > view.h - 4 || item.x < 8 || item.x + item.w > view.w - 4).length;
+  const phoneOn = scene ? Boolean(phoneLayoutOf(scene)) : false;
+  const overflow = items.filter((item) => item.y < (phoneOn ? 4 : 50) || item.y + item.h > view.h - 4 || item.x < 4 || item.x + item.w > view.w - 4).length;
   const mask = scene ? firstMask(scene) : null;
   const maskShapes = mask ? screenShapes(mask.shapes, view) : [];
   const overlapLabels: string[] = [];
@@ -1879,9 +1903,9 @@ function traceClip(ctx: PaintContext, shapes: MaskShape[], view: ViewBox): void 
   ctx.clip?.();
 }
 
-function applyScreen(ctx: PaintContext, mat: Mat, view: ViewBox): void {
-  const scale = worldScale(view);
-  const offset = worldOffset(view);
+function applyScreen(ctx: PaintContext, mat: Mat, view: ViewBox, camera?: { scale: number; ox: number; oy: number } | null): void {
+  const scale = camera ? camera.scale : worldScale(view);
+  const offset = camera ? { x: camera.ox, y: camera.oy } : worldOffset(view);
   ctx.setTransform?.(scale * mat.a, scale * mat.b, scale * mat.c, scale * mat.d, offset.x + scale * mat.e, offset.y + scale * mat.f);
 }
 
@@ -1917,12 +1941,13 @@ function paintTree(ctx: PaintContext, node: GameNode, parent: Mat, view: ViewBox
 }
 
 function paintCharacters(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
+  const camera = phoneLayoutOf(scene)?.hero ?? null;
   const visit = (node: GameNode, parent: Mat) => {
     if (!node.visible) return;
     const mat = mul(parent, localMat(node));
     if (characterSheet(node)) {
       ctx.save?.();
-      applyScreen(ctx, mat, view);
+      applyScreen(ctx, mat, view, camera);
       if ("globalAlpha" in ctx) ctx.globalAlpha = node.alpha;
       drawLocal(ctx, node);
       ctx.restore?.();
@@ -1934,6 +1959,7 @@ function paintCharacters(scene: { children: { list: GameNode[] } }, ctx: PaintCo
 }
 
 function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintContext, view: ViewBox): void {
+  if (phoneLayoutOf(scene)?.skipMasks) return;
   if (!canClip(ctx)) return;
   for (const node of scene.children.list) paintTree(ctx, node, IDENTITY, view, false);
 }
