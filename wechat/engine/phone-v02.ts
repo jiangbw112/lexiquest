@@ -26,13 +26,15 @@ function scaler(view: { w: number; h: number }) {
   };
 }
 
-function place(unit: PhoneUnit, box: Box, font: number): void {
+function place(unit: PhoneUnit, box: Box, font: number, center = false): void {
   unit.x = box.x;
   unit.y = box.y;
   unit.w = box.w;
   unit.h = box.h;
   unit.fontPx = font;
   unit.onPaper = true;
+  if (center && unit.node.type !== "container") unit.label = "center";
+  if (center) unit.suppressFace = true;
   if (unit.text.trim()) unit.lines = [unit.text];
   const list = (unit.node as GameNode & { list?: GameNode[] }).list;
   const text = list?.find((child) => child.type === "text") as (GameNode & { style?: { fontSize?: string } }) | undefined;
@@ -59,8 +61,14 @@ function hide(unit: PhoneUnit): void {
 }
 
 function ink(unit: PhoneUnit, color = "#3B2A20"): void {
-  const node = unit.node as GameNode & { style?: { color?: string } };
-  if (node.style) node.style.color = color;
+  const paint = (node: GameNode) => {
+    const styled = node as GameNode & { style?: { color?: string } };
+    if (styled.style) styled.style.color = color;
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (!list) return;
+    for (const child of list) if (child.type === "text") paint(child);
+  };
+  paint(unit.node);
 }
 
 function find(units: PhoneUnit[], text: string): PhoneUnit | undefined {
@@ -291,22 +299,44 @@ function layoutGuide(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const error = pins.find((unit) => unit.node.name === "pin:error");
   const again = pins.find((unit) => unit.node.name === "pin:again");
   if (again && !again.text.trim()) hide(again);
+  const slots = [0, 1, 2, 3]
+    .map((index) => pins.find((unit) => unit.node.name === `pin:slot:${index}`))
+    .filter((unit): unit is PhoneUnit => Boolean(unit));
+  const reenter = Boolean(title && title.text.startsWith("再输入一次"));
   let y = s.box(0, 46, 0, 0).y;
-  const sceneTitle = ctx.units.find((unit) => !unit.interactive && unit.text === "给家长");
-  if (sceneTitle) {
-    ink(sceneTitle);
-    y = write(ctx, sceneTitle, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 240, 0).w, 22) + 6 * s.sy;
-  }
-  if (title) {
+  const sceneTitle = ctx.units.find((unit) => !unit.interactive && unit.text === "给家长" && unit.node.name !== "pin:title");
+  if (reenter && title) {
+    if (sceneTitle) hide(sceneTitle);
     ink(title);
-    y = write(ctx, title, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 250, 0).w, 14) + 8 * s.sy;
+    y = write(ctx, title, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 280, 0).w, 22) + 8 * s.sy;
+  } else {
+    if (sceneTitle) {
+      ink(sceneTitle);
+      y = write(ctx, sceneTitle, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 240, 0).w, 22) + 6 * s.sy;
+    }
+    if (title && title !== sceneTitle) {
+      ink(title);
+      y = write(ctx, title, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 250, 0).w, 14) + 8 * s.sy;
+    }
   }
   const field = s.box(176, 0, 200, 48);
   field.y = y;
-  chrome.push({ frame: "input_normal", box: field });
-  if (dots) {
-    ink(dots);
-    place(dots, field, 18);
+  if (slots.length === 4) {
+    if (dots) hide(dots);
+    const slotW = s.box(0, 0, 44, 48);
+    const gap = 8 * s.sx;
+    slots.forEach((slot, index) => {
+      const box = { x: field.x + index * (slotW.w + gap), y: field.y, w: slotW.w, h: slotW.h };
+      chrome.push({ frame: "input_normal", box });
+      ink(slot);
+      place(slot, box, 18, true);
+    });
+  } else {
+    chrome.push({ frame: "input_normal", box: field });
+    if (dots) {
+      ink(dots);
+      place(dots, field, 18, true);
+    }
   }
   y = field.y + field.h + 8 * s.sy;
   if (hint && hint.text.trim()) {
@@ -357,8 +387,10 @@ function layoutGuide(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     chrome.push({ frame: "btn_secondary_normal", box: { x: zero.x, y: zero.y, w: zero.w, h: zero.h } });
   }
   if (ok) {
-    place(ok, { x: pad.x + pad.w - wide.w, y: bottomY, w: wide.w, h: digit.h }, 16);
-    chrome.push({ frame: "btn_primary_normal", box: { x: ok.x, y: ok.y, w: ok.w, h: ok.h } });
+    const box = { x: pad.x + pad.w - wide.w, y: bottomY, w: wide.w, h: digit.h };
+    place(ok, box, 16, true);
+    ink(ok, "#FFF4DC");
+    chrome.push({ frame: "btn_action_teal_normal", box });
   }
   for (const unit of pins) if (!unit.onPaper) hide(unit);
   for (const unit of ctx.units) {
@@ -400,10 +432,10 @@ function layoutWardrobe(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   }
   const worn = body.find((unit) => unit.text === "穿着");
   if (worn) {
-    const chip = { x: sheet.x + sheet.w - 112 * s.sx, y: worn.y - 8 * s.sy, w: 88 * s.sx, h: 44 * s.sy };
-    chrome.push({ frame: "btn_secondary_normal", box: chip });
-    ink(worn);
-    place(worn, chip, 14);
+    const chip = { x: sheet.x + sheet.w - 112 * s.sx, y: worn.y - 8 * s.sy, w: Math.max(88, 88 * s.sx), h: Math.max(44, 44 * s.sy) };
+    chrome.push({ frame: "btn_action_teal_normal", box: chip });
+    ink(worn, "#FFF4DC");
+    place(worn, chip, 14, true);
   }
   for (const image of ctx.images) {
     const frame = frameOf(image);
@@ -429,9 +461,10 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   chrome.push({ frame: "panel_wood", box: s.box(160, 14, 150, 44) });
   if (rule) {
     ink(rule, "#46363A");
-    write(ctx, rule, s.box(320, 24, 0, 0).x, s.box(0, 22, 0, 0).y, s.box(0, 0, 460, 0).w, 14);
+    write(ctx, rule, s.box(324, 14, 0, 0).x, s.box(0, 14, 0, 0).y, s.box(0, 0, 500, 0).w, 12);
   }
   const toggles = ctx.units.filter((unit) => unit.interactive && (unit.text === "卸下" || unit.text === "装备" || unit.text === "已装备" || unit.text === "未装备"));
+  const usedToggles = new Set<PhoneUnit>();
   const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim() && unit !== title && unit !== rule && unit !== hint).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
   const used = new Set<PhoneUnit>();
   const names = ["盾击", "战吼", "坚守", "旋风斩"].map((label) => texts.find((unit) => unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
@@ -446,25 +479,30 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     const card = s.box(56 + col * 310, 72 + line * 96, 300, 88);
     chrome.push({ frame: "panel_parchment", box: card });
     ink(name);
-    place(name, { x: card.x + 64 * s.sx, y: card.y + 12 * s.sy, w: card.w * 0.45, h: 20 * s.sy }, 16);
+    place(name, { x: card.x + 64 * s.sx, y: card.y + 10 * s.sy, w: card.w - 168 * s.sx, h: 20 * s.sy }, 16);
     if (star) {
       ink(star, "#61402D");
-      place(star, { x: name.x + name.w * 0.55, y: name.y, w: 48 * s.sx, h: 20 * s.sy }, 14);
+      place(star, { x: name.x + 64 * s.sx, y: name.y, w: 48 * s.sx, h: 20 * s.sy }, 14);
     }
     if (desc) {
       ink(desc, "#46363A");
-      write(ctx, desc, card.x + 64 * s.sx, card.y + 36 * s.sy, card.w - 150 * s.sx, 14);
+      write(ctx, desc, card.x + 64 * s.sx, card.y + 46 * s.sy, card.w - 80 * s.sx, 14);
     }
-    const toggle = toggles.find((unit) => Math.abs(unit.designY - name.designY) < 90);
-    if (toggle) {
-      toggle.text = toggle.text === "装备" || toggle.text === "未装备" ? "未装备" : "已装备";
+    const toggle = toggles
+      .filter((unit) => !usedToggles.has(unit))
+      .sort((a, b) => Math.abs(a.designY - name.designY) - Math.abs(b.designY - name.designY))[0];
+    if (toggle && Math.abs(toggle.designY - name.designY) < 160) {
+      usedToggles.add(toggle);
+      const equipped = toggle.text === "卸下" || toggle.text === "已装备";
+      toggle.text = equipped ? "已装备" : "未装备";
       toggle.lines = [toggle.text];
       ink(toggle, toggle.text === "未装备" ? "#46363A" : "#FFF4DC");
-      const badge = { x: card.x + card.w - 100 * s.sx, y: card.y + 22 * s.sy, w: 88 * s.sx, h: 44 * s.sy };
-      place(toggle, badge, 14);
+      const badge = { x: card.x + card.w - 96 * s.sx, y: card.y + 8 * s.sy, w: 88 * s.sx, h: 32 * s.sy };
+      place(toggle, badge, 14, true);
       chrome.push({ frame: toggle.text === "未装备" ? "btn_secondary_normal" : "btn_action_teal_normal", box: badge });
     }
   });
+  for (const toggle of toggles) if (!usedToggles.has(toggle)) hide(toggle);
   for (const unit of texts) if (!used.has(unit)) hide(unit);
   if (hint) {
     ink(hint, "#46363A");
@@ -494,14 +532,16 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     ink(heading);
     place(heading, s.box(176, 20, 280, 32), 20);
   }
-  chrome.push({ frame: "panel_wood", box: s.box(164, 14, 140, 44) });
+  chrome.push({ frame: "panel_wood", box: s.box(164, 14, 320, 44) });
   if (modes.length) {
+    const phase = String((ctx.scene as { phase?: string }).phase ?? "study");
+    const selected = phase === "listen" ? "听一听" : phase === "quiz" ? "选意思" : phase === "spell" ? "拼一拼" : "学一学";
     const tabs = [study, ...modes].filter((unit): unit is PhoneUnit => Boolean(unit));
     tabs.forEach((tab, index) => {
-      const box = s.box(168 + index * 116, 68, 108, 44);
-      place(tab, box, 16);
-      ink(tab);
-      chrome.push({ frame: index === 0 ? "panel_parchment" : "btn_secondary_normal", box });
+      const box = s.box(56 + index * 116, 68, 108, 44);
+      place(tab, box, 16, true);
+      ink(tab, tab.text === selected ? "#3B2A20" : "#46363A");
+      chrome.push({ frame: tab.text === selected ? "panel_parchment" : "btn_secondary_normal", box });
     });
     const card = s.box(56, 122, 520, 200);
     chrome.push({ frame: "panel_parchment", box: card });
@@ -510,18 +550,34 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     const gloss = ctx.units.find((unit) => !unit.onPaper && !unit.interactive && /^[\u4e00-\u9fff·]{1,6}$/.test(unit.text));
     if (word) {
       ink(word);
-      place(word, s.box(200, 150, 280, 40), 32);
+      place(word, s.box(80, 150, 280, 40), 32);
     }
     if (gloss) {
       ink(gloss, "#1F6F64");
-      place(gloss, s.box(200, 196, 280, 32), 28);
+      place(gloss, s.box(80, 196, 280, 32), 28);
     }
     let y = s.box(0, 240, 0, 0).y;
     for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim())) {
       ink(unit, "#46363A");
-      y = write(ctx, unit, s.box(200, 0, 0, 0).x, y, s.box(0, 0, 340, 0).w, 14) + 4 * s.sy;
+      y = write(ctx, unit, s.box(80, 0, 0, 0).x, y, s.box(0, 0, 460, 0).w, 14) + 4 * s.sy;
     }
-    if (confirm) place(confirm, s.box(604, 300, 180, 48), 18);
+    const prev = ctx.units.find((unit) => unit.text === "上一个" || unit.node.name === "learn:prev");
+    const next = ctx.units.find((unit) => unit.text === "下一个" || unit.node.name === "learn:next");
+    if (prev) {
+      const box = s.box(604, 122, 180, 44);
+      place(prev, box, 16, true);
+      chrome.push({ frame: "btn_secondary_normal", box });
+    }
+    if (next) {
+      const box = s.box(604, 174, 180, 44);
+      place(next, box, 16, true);
+      chrome.push({ frame: "btn_secondary_normal", box });
+    }
+    if (confirm) {
+      const box = s.box(604, 300, 180, 52);
+      place(confirm, box, 18, true);
+      chrome.push({ frame: "btn_primary_normal", box });
+    }
     return { hero: null, skipMasks: true, chrome };
   }
   if (confirm) place(confirm, s.box(604, 308, 180, 48), 18);
@@ -587,7 +643,7 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   for (const node of walk(ctx.scene)) {
     const key = (node as GameNode & { texture?: string }).texture ?? "";
-    if (key.startsWith("cls:")) node.visible = false;
+    if (key.startsWith("cls:") && !key.includes("portrait")) node.visible = false;
   }
   const back = ctx.units.find((unit) => unit.interactive && unit.text.startsWith("返回"));
   const sign = ctx.units.find((unit) => unit.text.includes("选一个职业"));
@@ -595,12 +651,13 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const go = ctx.units.find((unit) => unit.interactive && (unit.text === "出发" || unit.node.name === "name:go"));
   const name = ctx.units.find((unit) => unit.node.name === "name:field" || unit.text === "给角色起个名字");
   if (back) place(back, s.box(56, 14, 100, 44), 16);
-  if (sign) {
-    ink(sign);
-    place(sign, s.box(164, 16, 170, 32), 16);
-  }
   chrome.push({ frame: "panel_wood", box: s.box(156, 14, 186, 40) });
-  const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80 && unit.design.w < 400).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const portraits = ctx.images.filter((image) => /portrait/i.test(textureOf(image)));
+  let selectedX = cards[0]?.node.x ?? 0;
+  for (const node of walk(ctx.scene)) {
+    if (node.type === "rectangle" && Number(node.data.get("strokeWidth") || 0) >= 6) selectedX = node.x;
+  }
   const owned = new Set<PhoneUnit>();
   cards.forEach((card, index) => {
     const col = index % 3;
@@ -609,38 +666,53 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     place(card, box, 0);
     chrome.push({ frame: "panel_parchment", box });
     const texts = ctx.units.filter((unit) => {
-      if (unit.interactive || !unit.text.trim() || owned.has(unit)) return false;
+      if (unit.interactive || !unit.text.trim() || owned.has(unit) || unit === sign || unit === name) return false;
+      if (/选一个职业|已选年级|重选年级|给角色起个名字/.test(unit.text)) return false;
       const cx = unit.design.x + unit.design.w / 2;
       const cy = unit.design.y + unit.design.h / 2;
       return cx >= card.design.x - 8 && cx <= card.design.x + card.design.w + 8 && cy >= card.design.y - 12 && cy <= card.design.y + card.design.h + 12;
     }).sort((a, b) => a.designY - b.designY);
+    const portrait = portraits.find((image) => Math.abs((image.node?.x ?? 0) - card.node.x) < 40);
+    const onCard = Boolean(portrait && Math.abs((portrait.node?.x ?? 0) - selectedX) >= 40);
     texts.forEach((text, line) => {
       owned.add(text);
       ink(text, line === 0 ? "#3B2A20" : "#46363A");
       const font = line === 0 ? 15 : 11;
-      place(text, { x: box.x + 8 * s.sx, y: box.y + (36 + line * 16) * s.sy, w: box.w - 16 * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
+      const textX = box.x + (onCard ? 46 : 8) * s.sx;
+      place(text, { x: textX, y: box.y + (28 + line * 16) * s.sy, w: box.w - (onCard ? 54 : 16) * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
     });
+    if (onCard && portrait) placeImage(portrait, { x: box.x + 6 * s.sx, y: box.y + 8 * s.sy, w: 36 * s.sx, h: 52 * s.sy });
   });
+  if (sign) {
+    ink(sign);
+    place(sign, s.box(164, 16, 170, 32), 16, true);
+  }
   const preview = s.box(546, 64, 250, 160);
   chrome.push({ frame: "panel_parchment", box: preview });
-  const chosen = ctx.units.find((unit) => !unit.onPaper && unit.text.includes("已选年级"));
-  if (chosen) {
-    ink(chosen, "#46363A");
-    write(ctx, chosen, s.box(340, 28, 0, 0).x, s.box(0, 24, 0, 0).y, s.box(0, 0, 220, 0).w, 14);
-  }
+  const selectedPortrait = portraits.find((image) => Math.abs((image.node?.x ?? 0) - selectedX) < 40);
+  if (selectedPortrait) placeImage(selectedPortrait, s.box(690, 76, 84, 120));
   if (name) {
     ink(name, name.text === "给角色起个名字" ? "#766758" : "#3B2A20");
     const field = s.box(546, 248, 250, 48);
     chrome.push({ frame: "input_normal", box: field });
     place(name, field, 15);
   }
-  if (go) place(go, s.box(546, 312, 130, 48), 18);
+  if (go) {
+    const box = s.box(546, 312, 130, 48);
+    place(go, box, 18, true);
+    chrome.push({ frame: "btn_primary_normal", box });
+  }
   if (retry) place(retry, s.box(684, 312, 112, 48), 15);
+  let previewY = s.box(0, 78, 0, 0).y;
+  const previewBottom = s.box(0, 214, 0, 0).y;
   for (const unit of ctx.units) {
-    if (!unit.onPaper && !unit.interactive && unit.text.trim()) {
-      ink(unit, "#46363A");
-      write(ctx, unit, s.box(546, 220, 0, 0).x, s.box(0, 220, 0, 0).y, s.box(0, 0, 250, 0).w, 14);
+    if (unit.onPaper || unit.interactive || !unit.text.trim() || unit === sign || unit === name) continue;
+    if (previewY > previewBottom) {
+      hide(unit);
+      continue;
     }
+    ink(unit, unit.text.includes("已选") ? "#1F6F64" : "#46363A");
+    previewY = write(ctx, unit, s.box(558, 0, 0, 0).x, previewY, s.box(0, 0, 120, 0).w, 13) + 4 * s.sy;
   }
   return { hero: null, skipMasks: true, chrome };
 }
@@ -672,10 +744,13 @@ function labelExamHits(ctx: PhoneContext): void {
 
 function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
+  for (const unit of ctx.units) {
+    if (unit.text.trim() === "?") hide(unit);
+  }
   const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回村子") || unit.text.startsWith("返回")));
   if (back) place(back, s.box(68, 28, Math.max(100, textWidth(ctx, back.text, 16) + 28), 44), 16);
   chrome.push({ frame: "panel_parchment", box: s.box(56, 16, 360, 260) });
-  chrome.push({ frame: "panel_parchment", box: s.box(428, 16, 220, 260) });
+  chrome.push({ frame: "panel_parchment", box: s.box(428, 16, 360, 260) });
   const bar = ["上一章", "下一章", "去学堂", "再战", "小战斗", "期中挑战", "期末大挑战"];
   let x = s.box(64, 0, 0, 0).x;
   const y = s.box(0, 312, 0, 0).y;
@@ -684,14 +759,10 @@ function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   for (const label of bar) {
     const unit = ctx.units.find((item) => item.interactive && item.text === label);
     if (!unit) continue;
-    const width = label === "期中挑战" || label === "期末大挑战" ? s.box(0, 0, 148, 0).w : s.box(0, 0, 108, 0).w;
-    place(unit, { x, y, w: width, h }, 16);
-    for (const image of ctx.images) {
-      const frame = frameOf(image);
-      if ((label === "期中挑战" && frame.includes("exam_mid")) || (label === "期末大挑战" && frame.includes("exam_final"))) {
-        placeImage(image, { x, y, w: width, h });
-      }
-    }
+    const exam = label === "期中挑战" || label === "期末大挑战";
+    const width = exam ? s.box(0, 0, 148, 0).w : s.box(0, 0, 108, 0).w;
+    place(unit, { x, y, w: width, h }, 16, exam);
+    if (exam) chrome.push({ frame: "btn_primary_normal", box: { x: unit.x, y: unit.y, w: unit.w, h: unit.h } });
     x += width + 8 * s.sx;
   }
   let extraX = s.box(430, 0, 0, 0).x;
@@ -702,15 +773,29 @@ function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     place(unit, { x: extraX, y: extraY, w: width, h: s.box(0, 0, 0, 44).h }, 14);
     extraX += width + 8 * s.sx;
   }
-  const words = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text));
-  let wordY = s.box(0, 56, 0, 0).y;
+  const words = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.node.name !== "stage:gloss" && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text));
+  const glosses = ctx.units.filter((unit) => unit.node.name === "stage:gloss");
+  const usedGloss = new Set<PhoneUnit>();
+  let wordY = s.box(0, 28, 0, 0).y;
+  const wordLimit = s.box(0, 250, 0, 0).y;
   for (const word of words) {
+    if (wordY > wordLimit) {
+      hide(word);
+      continue;
+    }
     ink(word);
-    place(word, { x: s.box(444, 0, 0, 0).x, y: wordY, w: s.box(0, 0, 180, 0).w, h: s.box(0, 0, 0, 20).h }, 14);
+    place(word, { x: s.box(444, 0, 0, 0).x, y: wordY, w: s.box(0, 0, 120, 0).w, h: s.box(0, 0, 0, 20).h }, 14);
+    const gloss = glosses.find((item) => !usedGloss.has(item) && String(item.node.data.get("en") || "") === word.text.toLowerCase());
+    if (gloss) {
+      usedGloss.add(gloss);
+      ink(gloss, "#46363A");
+      place(gloss, { x: s.box(570, 0, 0, 0).x, y: wordY, w: s.box(0, 0, 190, 0).w, h: s.box(0, 0, 0, 20).h }, 14);
+    }
     wordY += s.box(0, 0, 0, 22).h;
   }
+  for (const gloss of glosses) if (!usedGloss.has(gloss)) hide(gloss);
   let yText = s.box(0, 78, 0, 0).y;
-  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim()).sort((a, b) => a.designY - b.designY)) {
+  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim() && item.node.name !== "stage:gloss" && item.text.trim() !== "?").sort((a, b) => a.designY - b.designY)) {
     ink(unit, unit.text.includes("已通过") || unit.text.includes("已学") ? "#1F6F64" : "#3B2A20");
     yText = write(ctx, unit, s.box(76, 0, 0, 0).x, yText, s.box(0, 0, 320, 0).w, unit.text.length <= 8 ? 16 : 14) + 4 * s.sy;
   }
@@ -720,43 +805,63 @@ function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
 function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   const actions = ["攻击", "格挡", "治疗"];
+  const skillish = (text: string) => /★|基础招式|盾击|战吼|坚守|旋风斩/.test(text);
   const prompt = ctx.units.find((unit) => !unit.interactive && (unit.text.includes("意思") || unit.text.includes("？") || unit.text.includes("?") || unit.text.includes("怎么说")));
-  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && !actions.includes(unit.text) && !unit.text.startsWith("返回") && !unit.text.startsWith("回"));
+  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && !actions.includes(unit.text) && !skillish(unit.text) && !unit.text.startsWith("返回") && !unit.text.startsWith("回"));
   if (prompt && options.length) {
     chrome.push({ frame: "panel_parchment", box: s.box(56, 228, 732, 126) });
     ink(prompt);
     place(prompt, s.box(80, 240, 680, 28), 18);
-    options.slice(0, 4).forEach((option, index) => place(option, s.box(76 + index * 176, 278, 160, 48), 16));
+    options.slice(0, 4).forEach((option, index) => {
+      const box = s.box(76 + index * 176, 278, 160, 48);
+      place(option, box, 16, true);
+      chrome.push({ frame: "option_normal", box });
+    });
   }
   const actionUnits = actions.map((label) => ctx.units.find((unit) => unit.interactive && unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
   if (!prompt && actionUnits.length) {
-    actionUnits.forEach((unit, index) => place(unit, s.box(220 + index * 140, 300, 128, 48), 18));
+    actionUnits.forEach((unit, index) => {
+      const box = s.box(220 + index * 140, 300, 128, 48);
+      place(unit, box, 18, true);
+      chrome.push({ frame: index === 0 ? "btn_primary_normal" : "btn_secondary_normal", box });
+    });
   }
   const leave = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回") || unit.text.includes("再试") || unit.text.includes("结局")));
   if (leave) place(leave, s.box(56, 16, Math.max(100, textWidth(ctx, leave.text, 16) + 24), 44), 16);
   const hud = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.text.trim());
-  let y = s.box(0, 20, 0, 0).y;
+  let leftY = s.box(0, 20, 0, 0).y;
+  let rightY = leftY;
   for (const unit of hud.sort((a, b) => a.designY - b.designY)) {
+    const top = unit.designY < 160 && unit.text.length <= 22 && !/效果|基础|★|答对/.test(unit.text);
+    if (!top) {
+      hide(unit);
+      continue;
+    }
     ink(unit);
-    const boxW = unit.text.length < 8 ? 160 : 420;
-    write(ctx, unit, s.box(unit.text.length < 8 ? 620 : 80, 0, 0, 0).x, y, s.box(0, 0, boxW, 0).w, 14);
-    y += s.box(0, 0, 0, 22).h;
+    if (unit.designX > 700) rightY = write(ctx, unit, s.box(620, 0, 0, 0).x, rightY, s.box(0, 0, 180, 0).w, 14);
+    else leftY = write(ctx, unit, s.box(72, 0, 0, 0).x, leftY, s.box(0, 0, 240, 0).w, 14);
   }
   const skills = ctx.units.filter((unit) => unit.interactive && !unit.onPaper && unit.text.trim());
-  skills.forEach((unit, index) => place(unit, s.box(360 + index * 72, 156, 64, 52), 14));
+  skills.slice(0, 3).forEach((unit, index) => place(unit, s.box(300 + index * 72, 148, 64, 52), 12));
+  for (const unit of skills.slice(3)) hide(unit);
   for (const image of ctx.images) {
     const key = `${textureOf(image)} ${frameOf(image)}`;
-    if (/monster|boss|enemy|pawn|spirit/i.test(key)) placeImage(image, s.box(620, 90, 140, 120));
+    if (/monster|enemy|pawn|spirit/i.test(key) && !/card_frame_|skill_/.test(key)) placeImage(image, s.box(640, 64, 140, 140));
   }
-  const foot = s.box(180, 210, 0, 0);
-  return { hero: placeHero(ctx, foot.x, foot.y, 140 * s.sy), skipMasks: true, chrome };
+  const foot = s.box(160, 200, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 130 * s.sy), skipMasks: true, chrome };
 }
 
 function layoutResults(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
-  chrome.push({ frame: "panel_parchment", box: s.box(180, 72, 500, 220) });
+  const board = s.box(56, 72, 732, 228);
+  chrome.push({ frame: "panel_parchment", box: board });
   const cont = ctx.units.find((unit) => unit.interactive && (unit.text === "继续" || unit.text.startsWith("回") || unit.text.includes("结局")));
-  if (cont) place(cont, s.box(628, 308, 160, 48), 18);
+  if (cont) {
+    const box = s.box(628, 308, 160, 48);
+    place(cont, box, 18, true);
+    chrome.push({ frame: "btn_primary_normal", box });
+  }
   const banner = ctx.units.find((unit) => unit.text.includes("胜利") || unit.text.includes("再试"));
   if (banner) {
     chrome.push({ frame: "panel_wood", box: s.box(300, 18, 244, 44) });
@@ -764,98 +869,156 @@ function layoutResults(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     place(banner, s.box(312, 24, 220, 32), 22);
   }
   const pending = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.text.trim()).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const used = new Set<PhoneUnit>();
   const pairs: Array<[PhoneUnit, PhoneUnit]> = [];
-  const rest: PhoneUnit[] = [];
-  for (let index = 0; index < pending.length; index += 1) {
-    const en = pending[index];
-    const zh = pending[index + 1];
-    if (zh && /^[A-Za-z][A-Za-z' -]*$/.test(en.text) && /[\u4e00-\u9fff]/.test(zh.text) && en.text.length <= 18 && zh.text.length <= 8) {
-      pairs.push([en, zh]);
-      index += 1;
-    } else rest.push(en);
+  for (const en of pending) {
+    if (!/^[A-Za-z][A-Za-z' -]*$/.test(en.text) || en.text.length > 18) continue;
+    let best: PhoneUnit | null = null;
+    let bestD = 70;
+    for (const zh of pending) {
+      if (zh === en || used.has(zh)) continue;
+      if (!/[\u4e00-\u9fff]/.test(zh.text) || zh.text.length > 12) continue;
+      if (/胜利|再试|继续|经验|获得|外观|升级|技能|卡牌|穿上|答对|一共|本场/.test(zh.text)) continue;
+      const distance = Math.hypot(zh.designX - en.designX, zh.designY - en.designY);
+      if (distance < bestD) {
+        bestD = distance;
+        best = zh;
+      }
+    }
+    if (!best) continue;
+    used.add(en);
+    used.add(best);
+    pairs.push([en, best]);
   }
-  let y = s.box(0, 96, 0, 0).y;
+  pairs.sort((a, b) => a[0].designY - b[0].designY || a[0].designX - b[0].designX);
+  const rest = pending.filter((unit) => !used.has(unit));
+  let wordY = board.y + 12 * s.sy;
   const rowH = s.box(0, 0, 0, 18).h;
+  const leftX = board.x + 16 * s.sx;
+  const wordLimit = board.y + board.h - 16;
+  for (const unit of rest) {
+    if (!/答对|一共|本场/.test(unit.text)) continue;
+    if (wordY > wordLimit) {
+      hide(unit);
+      continue;
+    }
+    ink(unit);
+    wordY = write(ctx, unit, leftX, wordY, 200 * s.sx, 14) + 2 * s.sy;
+  }
   for (const [en, zh] of pairs) {
+    if (wordY > wordLimit) {
+      hide(en);
+      hide(zh);
+      continue;
+    }
     ink(en);
     ink(zh, "#46363A");
-    place(en, { x: s.box(204, 0, 0, 0).x, y, w: s.box(0, 0, 110, 0).w, h: rowH }, 15);
-    place(zh, { x: s.box(320, 0, 0, 0).x, y, w: s.box(0, 0, 90, 0).w, h: rowH }, 15);
-    y += rowH + 2 * s.sy;
+    place(en, { x: leftX, y: wordY, w: 100 * s.sx, h: rowH }, 15);
+    place(zh, { x: leftX + 108 * s.sx, y: wordY, w: 100 * s.sx, h: rowH }, 15);
+    wordY += rowH + 2 * s.sy;
   }
-  let leftY = s.box(0, 96, 0, 0).y;
-  let rightY = leftY;
-  const limit = s.box(0, 292, 0, 0).y;
-  rest.forEach((unit, index) => {
-    const cursor = index % 2 === 0 ? leftY : rightY;
-    if (cursor > limit) {
+  const columns = { mid: board.x + 228 * s.sx, right: board.x + 530 * s.sx };
+  const widths = { mid: 280 * s.sx, right: 190 * s.sx };
+  const cursor = { mid: board.y + 12 * s.sy, right: board.y + 12 * s.sy };
+  for (const unit of rest) {
+    if (/答对|一共|本场/.test(unit.text)) continue;
+    const side = /新技能|^坚守$|^旋风斩$|^战吼$|^★\d/.test(unit.text) && !/到|升级|经验|外观|卡牌|穿上/.test(unit.text) ? "right" : "mid";
+    if (cursor[side] > wordLimit) {
       hide(unit);
-      return;
+      continue;
     }
     ink(unit, unit.text.includes("升级") || unit.text.startsWith("+") ? "#1F6F64" : "#3B2A20");
-    const next = write(ctx, unit, s.box(index % 2 === 0 ? 430 : 620, 0, 0, 0).x, cursor, s.box(0, 0, 150, 0).w, 14) + 2 * s.sy;
-    if (next > ctx.view.h - 4) {
-      hide(unit);
-      return;
-    }
-    if (index % 2 === 0) leftY = next;
-    else rightY = next;
-  });
-  const foot = s.box(110, 300, 0, 0);
-  return { hero: placeHero(ctx, foot.x, foot.y, 150 * s.sy), skipMasks: true, chrome };
+    cursor[side] = write(ctx, unit, columns[side], cursor[side], widths[side], 13) + 3 * s.sy;
+  }
+  const foot = s.box(36, 360, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 80 * s.sy), skipMasks: true, chrome };
+}
+
+function bossArt(image: PhoneImage): boolean {
+  return /boss_exam|exam:boss/i.test(`${textureOf(image)} ${frameOf(image)} ${image.node?.name ?? ""}`);
+}
+
+function bossBody(image: PhoneImage): boolean {
+  if (!bossArt(image)) return false;
+  if (image.node?.name === "exam:boss") return true;
+  const name = `${textureOf(image)} ${frameOf(image)}`;
+  if (/badge|glow|fx|cloak|cover|crown|compass|shadow/i.test(name)) return false;
+  return /body/i.test(frameOf(image));
+}
+
+function placeBoss(ctx: PhoneContext, box: Box): void {
+  const bodies = ctx.images.filter(bossBody);
+  const portrait = bodies.find((image) => image.node?.name !== "exam:boss") ?? bodies[0];
+  if (portrait) placeImage(portrait, box);
+  for (const image of ctx.images) {
+    if (!bossArt(image) || image === portrait) continue;
+    image.x = 0;
+    image.y = 0;
+    image.w = 0;
+    image.h = 0;
+    image.placed = true;
+  }
 }
 
 function layoutExam(ctx: PhoneContext, chrome: PhoneChrome[], intro: PhoneUnit | null): PhoneLayout {
   const s = scaler(ctx.view);
   if (intro) {
     chrome.push({ frame: "panel_parchment", box: s.box(100, 85, 480, 140) });
-    const start = s.box(250, 292, 180, 48);
-    place(intro, start, 18);
+    const start = s.box(250, 292, 180, 52);
+    place(intro, start, 18, true);
     chrome.push({ frame: "btn_primary_normal", box: start });
-    const title = ctx.units.find((unit) => unit.text.includes("期中") || unit.text.includes("期末"));
+    const title = ctx.units.find((unit) => unit !== intro && (unit.text.includes("期中") || unit.text.includes("期末")));
     if (title) {
       ink(title);
       place(title, s.box(140, 100, 400, 28), 20);
     }
-    const body = ctx.units.find((unit) => unit.text.includes("准备好了") || unit.text.includes("最近学过"));
+    const body = ctx.units.find((unit) => /准备好了|最近学过|这次练习/.test(unit.text));
     if (body) {
       ink(body, "#46363A");
       write(ctx, body, s.box(130, 136, 0, 0).x, s.box(0, 136, 0, 0).y, s.box(0, 0, 420, 0).w, 14);
     }
-    for (const image of ctx.images) {
-      const key = `${textureOf(image)} ${frameOf(image)}`;
-      if (/boss|exam/i.test(key) && !key.includes("bg_")) placeImage(image, s.box(600, 40, 160, 200));
-    }
+    placeBoss(ctx, s.box(600, 36, 170, 220));
     return { hero: placeHero(ctx, s.box(180, 220, 0, 0).x, s.box(0, 220, 0, 0).y, 130 * s.sy), skipMasks: true, chrome };
   }
-  chrome.push({ frame: "panel_parchment", box: s.box(56, 16, 280, 36) });
-  chrome.push({ frame: "panel_parchment", box: s.box(604, 16, 128, 32) });
+  for (const unit of ctx.units) {
+    if (!unit.interactive && /准备好了|最近学过|这次练习/.test(unit.text)) hide(unit);
+  }
+  chrome.push({ frame: "panel_parchment", box: s.box(604, 16, 184, 32) });
   const right = ctx.units.find((unit) => unit.text === "期中挑战" || unit.text === "期末大挑战");
   if (right) {
     ink(right);
-    place(right, s.box(604, 16, 128, 32), 14);
+    place(right, s.box(604, 16, 184, 32), 14, true);
   }
   const prompt = ctx.units.find((unit) => !unit.interactive && (unit.text.includes("意思") || unit.text.includes("？") || unit.text.includes("怎么说") || unit.text.includes("?")));
-  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && unit.text !== "攻击");
+  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && unit.text !== "攻击" && !/返回|回地图|休息/.test(unit.text));
   if (prompt) {
     chrome.push({ frame: "panel_parchment", box: s.box(56, 228, 732, 126) });
     ink(prompt);
     place(prompt, s.box(80, 240, 680, 28), 18);
-    options.slice(0, 4).forEach((option, index) => place(option, s.box(76 + index * 176, 278, 160, 48), 16));
+    options.slice(0, 4).forEach((option, index) => {
+      const box = s.box(76 + index * 176, 278, 160, 48);
+      place(option, box, 16, true);
+      chrome.push({ frame: "option_normal", box });
+    });
   }
   const attack = ctx.units.find((unit) => unit.interactive && unit.text === "攻击");
-  if (attack && !prompt) place(attack, s.box(332, 300, 160, 48), 18);
+  if (attack && !prompt) {
+    const box = s.box(332, 300, 160, 48);
+    place(attack, box, 18, true);
+    chrome.push({ frame: "btn_primary_normal", box });
+  }
+  let hudY = s.box(0, 22, 0, 0).y;
   for (const unit of ctx.units) {
-    if (!unit.onPaper && !unit.interactive && unit.text.trim()) {
-      ink(unit);
-      write(ctx, unit, s.box(72, 22, 0, 0).x, s.box(0, 22, 0, 0).y, s.box(0, 0, 240, 0).w, 14);
+    if (unit.onPaper || unit.interactive || !unit.text.trim()) continue;
+    if (unit.text.length > 22 || unit.designY > 180) {
+      hide(unit);
+      continue;
     }
+    ink(unit);
+    hudY = write(ctx, unit, s.box(72, 0, 0, 0).x, hudY, s.box(0, 0, 240, 0).w, 14);
   }
-  for (const image of ctx.images) {
-    const key = `${textureOf(image)} ${frameOf(image)}`;
-    if (/boss|exam/i.test(key) && !key.includes("bg_")) placeImage(image, s.box(600, 70, 160, 140));
-  }
-  return { hero: placeHero(ctx, s.box(170, 200, 0, 0).x, s.box(0, 200, 0, 0).y, 130 * s.sy), skipMasks: true, chrome };
+  placeBoss(ctx, s.box(620, 48, 160, 170));
+  return { hero: placeHero(ctx, s.box(150, 190, 0, 0).x, s.box(0, 190, 0, 0).y, 120 * s.sy), skipMasks: true, chrome };
 }
 
 function layoutGeneric(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
@@ -888,9 +1051,32 @@ function quietDim(ctx: PhoneContext): void {
   }
 }
 
+function bindButtonLabels(ctx: PhoneContext): void {
+  if (ctx.key !== "exam-battle") return;
+  const labels = ctx.units.filter((unit) => !unit.interactive && unit.node.type === "text" && unit.text.trim().length > 0 && unit.text.length <= 24);
+  for (const unit of ctx.units) {
+    if (!unit.interactive || unit.text.trim()) continue;
+    if (unit.node.type !== "rectangle" && unit.node.type !== "zone") continue;
+    if (unit.design.w >= 900 || unit.design.h >= 200) continue;
+    const host = unit.design;
+    const label = labels.find((item) => {
+      if (!item.text.trim() || /什么|意思|怎么说|准备好了|最近学过|这次练习/.test(item.text)) return false;
+      const cx = item.design.x + item.design.w / 2;
+      const cy = item.design.y + item.design.h / 2;
+      return cx >= host.x - 4 && cx <= host.x + host.w + 4 && cy >= host.y - 4 && cy <= host.y + host.h + 4;
+    });
+    if (!label) continue;
+    unit.text = label.text;
+    unit.lines = [label.text];
+    label.text = "";
+    label.lines = [];
+  }
+}
+
 export function composeV2(ctx: PhoneContext): PhoneLayout {
   keepSceneArt(ctx);
   quietDim(ctx);
+  bindButtonLabels(ctx);
   labelExamHits(ctx);
   const chrome: PhoneChrome[] = [];
   const intro = ctx.key === "exam-battle" ? claimIntro(ctx) : null;

@@ -23,6 +23,8 @@ export interface PhoneUnit {
   onPaper?: boolean;
   /** Where the visible label sits inside the control. */
   label?: "center" | "sign";
+  /** Skip the control's own face so phone chrome is the visible button. */
+  suppressFace?: boolean;
   designX: number;
   designY: number;
   design: { x: number; y: number; w: number; h: number };

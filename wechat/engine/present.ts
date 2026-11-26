@@ -1,3 +1,5 @@
+import { CATALOG_WORDS } from "../../src/domain/catalog";
+import { getSave } from "../../src/game/session";
 import type { GameNode } from "./node";
 import type { TextStyle } from "./text";
 
@@ -75,11 +77,6 @@ function presentTitle(scene: PadScene): void {
   sub.name = "brand-sub";
 }
 
-function masked(value: string): string {
-  const filled = Math.min(4, value.length);
-  return `${"●".repeat(filled)}${"○".repeat(Math.max(0, 4 - filled))}`;
-}
-
 function presentGuide(scene: PadScene): void {
   const form = pinNode("pin-form");
   if (!form?.classList?.contains("open")) return;
@@ -98,7 +95,8 @@ function presentGuide(scene: PadScene): void {
     return node;
   };
   const titleNode = label("pin:title", titleText, 200);
-  const firstNode = label("pin:first", masked(""), 236);
+  const firstNode = label("pin:first", "", 236);
+  const slots = [0, 1, 2, 3].map((index) => label(`pin:slot:${index}`, "○", 236));
   const errorNode = label("pin:error", error?.textContent || "", 296);
   label("pin:hint", "4 位数字。不会显示明文。", 330);
   const refresh = () => {
@@ -106,7 +104,8 @@ function presentGuide(scene: PadScene): void {
     const again = confirm?.value || "";
     const current = focus === "again" ? again : pin;
     titleNode.setText(focus === "again" ? "再输入一次" : title?.textContent || titleText);
-    firstNode.setText(masked(current));
+    firstNode.setText("");
+    slots.forEach((slot, index) => slot.setText(index < current.length ? "●" : "○"));
     errorNode.setText(error?.textContent || "");
   };
   refresh();
@@ -131,6 +130,18 @@ function presentGuide(scene: PadScene): void {
       refresh();
     });
   }
+}
+
+function shownText(scene: PadScene, text: string): boolean {
+  let found = false;
+  const walk = (node: GameNode) => {
+    if (found || node.visible === false) return;
+    if (node.type === "text" && String((node as { text?: string }).text ?? "") === text) found = true;
+    const list = (node as { list?: GameNode[] }).list;
+    if (list) for (const child of list) walk(child);
+  };
+  for (const node of scene.children.list) walk(node);
+  return found;
 }
 
 function sceneTexts(scene: PadScene): string[] {
@@ -161,19 +172,82 @@ function wrapDraw(scene: PadScene, after: () => void): void {
   raw.draw = wrapped;
 }
 
+interface LearnLive {
+  picking?: boolean;
+  phase?: string;
+  batchIds?: string[];
+  question?: unknown;
+  draw?: () => void;
+  showStudy?: () => void;
+  startMeaning?: () => void;
+  startSpelling?: () => void;
+}
+
+function stepLearn(scene: LearnLive, delta: number): void {
+  const cards = getSave()?.wordCards ?? {};
+  const ids = (scene.batchIds ?? []).filter((id) => !cards[id]);
+  if (ids.length < 2) return;
+  const next = ids[(delta + ids.length) % ids.length];
+  const rest = ids.filter((id) => id !== next);
+  const learned = (scene.batchIds ?? []).filter((id) => cards[id]);
+  scene.batchIds = [next, ...rest, ...learned];
+  scene.phase = "study";
+  scene.question = null;
+  scene.draw?.();
+}
+
 function presentLearn(scene: PadScene): void {
   const add = () => {
-    dropNamed(scene, "learn:study");
-    const node = scene.add.text(0, 0, "学一学", { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "16px", color: "#3B2A20" });
-    node.name = "learn:study";
+    for (const name of ["learn:study", "learn:prev", "learn:next", "learn:confirm", "learn:spell"]) dropNamed(scene, name);
+    const live = scene as PadScene & LearnLive;
+    if (live.picking || live.phase !== "study") return;
+    const style = { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "16px", color: "#3B2A20" };
+    const button = (name: string, text: string, onPress: () => void) => {
+      const node = scene.add.text(0, 0, text, style);
+      node.name = name;
+      node.setInteractive();
+      node.on("pointerup", onPress);
+    };
+    button("learn:study", "学一学", () => live.showStudy?.());
+    button("learn:prev", "上一个", () => stepLearn(live, -1));
+    button("learn:next", "下一个", () => stepLearn(live, 1));
+    if (!shownText(scene, "确认")) button("learn:confirm", "确认", () => live.startMeaning?.());
+    if (!shownText(scene, "拼一拼") && !shownText(scene, "键盘拼写")) button("learn:spell", "拼一拼", () => live.startSpelling?.());
   };
   wrapDraw(scene, add);
   add();
 }
 
+function wideZone(scene: PadScene): GameNode | null {
+  let found: GameNode | null = null;
+  const walk = (node: GameNode) => {
+    if (!found && node.type === "zone" && node.width >= 900) found = node;
+    const list = (node as { list?: GameNode[] }).list;
+    if (list) for (const child of list) walk(child);
+  };
+  for (const node of scene.children.list) walk(node);
+  return found;
+}
+
+function bossPortrait(scene: PadScene): { key: string; frame: string } | null {
+  const host = scene as PadScene & {
+    exam?: { kind?: string; grade?: string } | null;
+    textures?: { exists: (key: string) => boolean; get: (key: string) => { getFrameNames: () => string[] } };
+  };
+  const grade = String(host.exam?.grade ?? "G3").replace(/\D/g, "") || "3";
+  const kind = host.exam?.kind === "final" ? "final" : "midterm";
+  const key = `boss_exam_${kind}_g${grade}_w_idle`;
+  if (!host.textures?.exists(key)) return null;
+  const frame = host.textures.get(key).getFrameNames().find((name) => name.includes("body") && name.includes("idle") && !/glow|badge|fx/.test(name));
+  return frame ? { key, frame } : null;
+}
+
 function presentExam(scene: PadScene): void {
   const texts = sceneTexts(scene);
-  if (texts.some((item) => item === "攻击" || item.includes("意思"))) return;
+  if (texts.some((item) => item === "攻击" || item.includes("意思") || item.includes("怎么说"))) {
+    dropNamed(scene, "exam:body");
+    return;
+  }
   if (!texts.some((item) => item.includes("期中") || item.includes("期末"))) return;
   dropNamed(scene, "exam:body");
   const body = scene.add.text(0, 0, "这次练习会用到最近学过的单词，看看哪些已经记住，哪些还要再练。准备好了就可以开始。", {
@@ -182,6 +256,48 @@ function presentExam(scene: PadScene): void {
     color: "#46363A",
   });
   body.name = "exam:body";
+  const portrait = bossPortrait(scene);
+  if (portrait && scene.add.image && !scene.children.list.some((node) => node.name === "exam:boss")) {
+    const image = scene.add.image(980, 360, portrait.key, portrait.frame);
+    image.name = "exam:boss";
+    image.setDisplaySize?.(220, 320);
+  }
+  wideZone(scene)?.on("pointerup", () => {
+    const live = scene as PadScene & { introOpen?: boolean; act?: () => void };
+    if (live.introOpen) return;
+    live.act?.();
+  });
+}
+
+function glossFor(english: string): string {
+  return CATALOG_WORDS.find((word) => word.english.toLowerCase() === english.toLowerCase())?.chinese ?? "";
+}
+
+function presentStages(scene: PadScene): void {
+  const add = () => {
+    for (const node of [...scene.children.list]) if (node.name === "stage:gloss") node.destroy();
+    const walk = (node: GameNode) => {
+      if (node.type === "text") {
+        const text = String((node as { text?: string }).text ?? "");
+        if (/^[A-Za-z][A-Za-z' -]+$/.test(text) && text.length <= 18) {
+          const gloss = glossFor(text);
+          if (gloss) {
+            const nodeGloss = scene.add.text(0, 0, gloss, { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "14px", color: "#46363A" });
+            nodeGloss.name = "stage:gloss";
+            nodeGloss.data.set("en", text.toLowerCase());
+          }
+        }
+      }
+      const list = (node as { list?: GameNode[] }).list;
+      if (list) for (const child of list) walk(child);
+    };
+    for (const node of scene.children.list) {
+      if (node.name === "stage:gloss") continue;
+      walk(node);
+    }
+  };
+  wrapDraw(scene, add);
+  add();
 }
 
 function presentCreate(scene: PadScene): void {
@@ -238,8 +354,10 @@ function ensureAtlas(scene: PadScene, key: string, image: string, data: string):
 
 export function presentWechat(scene: PadScene): void {
   ensureAtlas(scene, "atlas_ui_core", "assets/warm/atlas/atlas_ui_core.png", "assets/warm/atlas/atlas_ui_core.json");
+  ensureAtlas(scene, "atlas_battle", "assets/warm/atlas/atlas_battle.png", "assets/warm/atlas/atlas_battle.json");
   if (scene.key === "title") presentTitle(scene);
   if (scene.key === "learn") presentLearn(scene);
+  if (scene.key === "stages") presentStages(scene);
   if (scene.key === "exam-battle") presentExam(scene);
   if (scene.key === "create") presentCreate(scene);
   if (scene.key === "battle-results") presentResults(scene);

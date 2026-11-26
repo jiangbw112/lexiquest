@@ -27,6 +27,8 @@ export interface PaintBox {
   onPaper?: boolean;
   node: GameNode;
   lines?: string[];
+  /** Center the glyph inside the box. Used for labels that share the control's box. */
+  align?: "center";
   polygon?: Array<{ x: number; y: number }>;
   masks?: MaskShape[][];
 }
@@ -249,6 +251,7 @@ interface Unit {
   lines: string[];
   onPaper?: boolean;
   label?: "center" | "sign";
+  suppressFace?: boolean;
   designX: number;
   designY: number;
 }
@@ -1505,6 +1508,7 @@ const PHONE_SLICE: Record<string, { left: number; right: number; top: number; bo
   panel_parchment: { left: 40, right: 40, top: 40, bottom: 40 },
   panel_wood: { left: 48, right: 48, top: 48, bottom: 48 },
   input_normal: { left: 40, right: 40, top: 40, bottom: 40 },
+  option_normal: { left: 36, right: 36, top: 24, bottom: 24 },
 };
 
 function phoneDestInsets(source: { left: number; right: number; top: number; bottom: number }, box: { w: number; h: number }): { left: number; right: number; top: number; bottom: number } {
@@ -1525,7 +1529,7 @@ function emitPhoneChrome(scene: { children: { list: GameNode[] } }, images: Draw
   if (!textures) return;
   const keys = ["atlas_ui_core", "atlas_ui_pages", "atlas_battle", "atlas_parent"];
   for (const piece of chrome) {
-    const names = piece.frame === "btn_action_teal_normal" ? ["btn_action_teal_normal", "btn_primary_normal"] : [piece.frame];
+    const names = [piece.frame];
     let image = "";
     let packed = "";
     let rect: FrameRect | null = null;
@@ -1671,7 +1675,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     items.push({
       kind: unit.node.type,
       text: unit.text,
-      fontPx: unit.node.type === "text" || ((unit.node.type === "rectangle" || unit.node.type === "zone") && unit.lines.length > 0) ? unit.fontPx : 0,
+      fontPx: unit.node.type === "text" || unit.label === "center" || ((unit.node.type === "rectangle" || unit.node.type === "zone") && unit.lines.length > 0) ? unit.fontPx : 0,
+      align: unit.label === "center" ? "center" : undefined,
       x: unit.x,
       y: unit.y,
       w: unit.w,
@@ -1710,7 +1715,9 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         pushImage(images, child, image.frame ?? "", dest, null);
         continue;
       }
+      if (phoneButton && unit.suppressFace && child.type === "nineslice") continue;
       if (child.type === "text") {
+        if (unit.label === "center") continue;
         if (phoneButton && phoneLabelDrawn) continue;
         if (phoneButton) phoneLabelDrawn = true;
         const style = styleOf(child);
@@ -1740,6 +1747,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         });
         continue;
       }
+      if (phoneButton && unit.suppressFace && (child.type === "image" || child.type === "sprite" || child.type === "nineslice")) continue;
       if (child.type === "image" || child.type === "sprite") {
         const image = child as GameNode & { frame?: string };
         pushImage(images, child, image.frame ?? "", dest, null);
@@ -1927,16 +1935,18 @@ function glyphSpec(node: GameNode, lines: string[], fontPx: number): GlyphSpec {
   };
 }
 
-function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number): void {
+function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number, align: "left" | "center" = "left"): void {
   const texture = glyphTexture(glyphSpec(node, lines, fontPx));
   if (texture && ctx.drawImage) {
-    if (texture.w <= boxW + 0.5 && texture.h <= boxH + 0.5) ctx.drawImage(texture.canvas, x, y);
-    else {
-      const fit = Math.min(boxW / texture.w, boxH / texture.h);
-      const dw = Math.max(1, texture.w * fit);
-      const dh = Math.max(1, texture.h * fit);
+    const fit = Math.min(1, boxW / Math.max(1, texture.w), boxH / Math.max(1, texture.h));
+    const dw = Math.max(1, texture.w * fit);
+    const dh = Math.max(1, texture.h * fit);
+    if (align === "center") {
       ctx.drawImage(texture.canvas, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
+      return;
     }
+    if (texture.w <= boxW + 0.5 && texture.h <= boxH + 0.5) ctx.drawImage(texture.canvas, x, y);
+    else ctx.drawImage(texture.canvas, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
     return;
   }
   noteGlyphFallback();
@@ -1945,7 +1955,9 @@ function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: 
   ctx.textAlign = "left";
   ctx.fillStyle = style.color || "#17352a";
   ctx.font = `${style.fontStyle ? `${style.fontStyle} ` : ""}${fontPx}px ${style.fontFamily || "sans-serif"}`;
-  lines.forEach((line, index) => ctx.fillText(line, x, y + index * fontPx));
+  const textH = fontPx * Math.max(1, lines.length);
+  const drawY = align === "center" ? y + Math.max(0, (boxH - textH) / 2) : y;
+  lines.forEach((line, index) => ctx.fillText(line, x, drawY + index * fontPx));
 }
 
 function drawLocal(ctx: PaintContext, node: GameNode): void {
@@ -2124,7 +2136,7 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.text && item.fontPx > 0) {
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
+      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left");
     }
   }
 }

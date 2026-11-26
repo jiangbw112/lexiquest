@@ -38,7 +38,7 @@ async function main() {
         <canvas id="c"></canvas>
         <form id="spell-form"><input id="spell-input"></form>
         <form id="name-form"><input id="hero-name"><p id="name-error"></p></form>
-        <form id="pin-form"></form>
+        <form id="pin-form"><p id="pin-title">先设一个家长密码</p><input id="pin-input" value=""><input id="pin-confirm" value=""><p id="pin-error"></p><span id="pin-confirm-label"></span></form>
       </body>`);
       return;
     }
@@ -169,6 +169,16 @@ async function main() {
           for (const child of node.list || []) walk(child);
         };
         for (const node of scene.children.list) walk(node);
+        // Phone chrome can use an atlas that no scene node names. The WeChat
+        // client decodes every packed image; this replay has to do the same
+        // for atlases already loaded, or a button face is skipped and only
+        // the cream label is drawn.
+        if (scene.textures) {
+          for (const key of ["atlas_ui_core", "atlas_ui_pages", "atlas_battle", "atlas_parent", "atlas_wardrobe"]) {
+            const tex = scene.textures.get(key);
+            if (tex && tex.image && !tex.missing) urls.add(tex.image);
+          }
+        }
         for (const url of urls) {
           if (bitmaps[url] || !packed[url]) continue;
           const image = new Image();
@@ -223,11 +233,31 @@ async function main() {
       else if (hit.w < 44 || hit.h < 44) problem(`village ${name} small ${hit.w}x${hit.h}`);
     }
 
+    await press("衣柜");
+    const wardrobe = await paint("w8-v02-wardrobe-844x390.png");
+    const worn = wardrobe.texts.find((item) => item.text === "穿着");
+    if (!worn) problem("wardrobe missing 穿着");
+    else if (worn.h < 32 || worn.y < 16) problem(`穿着 is outside its chip y=${worn.y} ${worn.w}x${worn.h}`);
+    else {
+      const face = await page.evaluate((box) => Array.from(window.__close.ctx.getImageData(Math.round(box.x + box.w / 2), Math.round(box.y + box.h / 2), 1, 1).data), worn);
+      log(`穿着 face rgb=${face[0]},${face[1]},${face[2]}`);
+      if (face[0] > 180 && face[1] > 180) problem(`穿着 has no button face rgb=${face[0]},${face[1]},${face[2]}`);
+    }
+    if ((await page.evaluate(() => window.__close.runtime.active().key)) !== "overworld") await press("返回");
+
     await press("技能");
     const skills = await paint("w8-v02-skills-844x390.png");
     const hint = skills.texts.find((item) => item.text.includes("卡组分开存"));
     const slash = skills.texts.find((item) => item.text.includes("旋风斩") || item.text.includes("词灵推远"));
     const job = skills.hits.find((item) => item.text === "换职业");
+    const badges = skills.hits.filter((item) => item.text === "已装备" || item.text === "未装备");
+    log(`skill badges ${badges.map((item) => `${item.text}@${item.x},${item.y}`).join(" | ") || "none"}`);
+    if (badges.some((item) => item.text === "已装备")) {
+      await press("已装备");
+      const off = await paint("w8-v02-skills-unequipped-844x390.png");
+      if (!off.hits.some((item) => item.text === "未装备") && !off.texts.some((item) => item.text === "未装备")) problem("unequipped skill has no 未装备 badge");
+      await press("未装备");
+    }
     if (!hint) problem("skills hint missing");
     if (!job) problem("换职业 is not a button");
     if (hint && slash && hint.y < slash.y + slash.h + 16) problem(`skills hint still follows 旋风斩 y=${hint.y} slash=${slash.y}+${slash.h}`);
@@ -254,7 +284,13 @@ async function main() {
       });
       log(`learn confirm -> ${JSON.stringify(afterLearn)}`);
       if (afterLearn.key !== "learn" || afterLearn.picking !== false) problem(`确认 did not leave the picker ${JSON.stringify(afterLearn)}`);
-      await paint("w8-v02-learn-study-844x390.png");
+      const study = await paint("w8-v02-learn-study-844x390.png");
+      for (const label of ["学一学", "听一听", "选意思", "拼一拼", "上一个", "下一个", "确认"]) {
+        const seen = study.hits.some((item) => item.text === label) || study.texts.some((item) => item.text === label);
+        if (!seen) problem(`study missing ${label}`);
+      }
+      const studyTab = study.hits.find((item) => item.text === "学一学") || study.texts.find((item) => item.text === "学一学");
+      if (studyTab && (studyTab.y < 40 || studyTab.h < 32)) problem(`学一学 clipped y=${studyTab.y} h=${studyTab.h}`);
     }
     if ((await page.evaluate(() => window.__close.runtime.active().key)) !== "overworld") await press("返回");
     if ((await page.evaluate(() => window.__close.runtime.active().key)) !== "overworld") {
@@ -269,6 +305,7 @@ async function main() {
     if (!prev) problem("上一章 is not a visible control");
     else if (prev.w < 44 || prev.h < 44) problem(`上一章 small ${prev.w}x${prev.h}`);
     else if (prev.on) problem("上一章 is enabled on the first chapter");
+    if (stages.texts.some((item) => item.text.trim() === "?")) problem("stages still shows ?");
     log(`stages chapter ${firstChapter}`);
     await press("下一章");
     const nextChapter = await paint("w8-v02-stages-next-844x390.png");
@@ -357,7 +394,13 @@ async function main() {
       log(`battle chain ${played.notes.join(" || ")}`);
       if (played.key !== "battle-results") problem(`battle-results not entered, scene=${played.key}`);
       else {
-        await paint("w8-v02-battle-results-844x390.png");
+        const results = await paint("w8-v02-battle-results-844x390.png");
+        const latin = results.texts.filter((item) => /^[A-Za-z][A-Za-z' -]+$/.test(item.text) && item.text.length <= 18);
+        for (const word of latin) {
+          const near = results.texts.filter((item) => /[\u4e00-\u9fff]/.test(item.text) && Math.abs(item.y - word.y) <= 8 && item.x > word.x);
+          log(`result ${word.text} -> ${near.map((item) => item.text).join(",") || "no gloss"}`);
+          if (!near.length) problem(`result ${word.text} has no gloss on its row`);
+        }
         let closed = await press("继续");
         if (!closed.ok) closed = await press("回地图");
         if (!closed.ok) closed = await press("看结局");
@@ -413,17 +456,25 @@ async function main() {
     else {
       await press("期中挑战");
       let exam = await paint("w8-v02-exam-intro-844x390.png");
-      if (exam.key === "exam-battle" && !exam.hits.some((item) => item.text === "攻击" || item.text === "回地图")) {
+      const start = exam.hits.find((item) => item.text === "开始答题");
+      if (start && (start.h < 44 || start.y < 16)) problem(`开始答题 sits on the button edge y=${start.y} h=${start.h}`);
+      if (exam.key === "exam-battle" && start) {
         await press("开始答题");
         exam = await paint("w8-v02-exam-battle-844x390.png");
       }
-      if (exam.hits.some((item) => item.text === "攻击")) {
+      const hasStem = (shot) => shot.texts.some((item) => /意思|怎么说|？|\?/.test(item.text));
+      if (!hasStem(exam) && exam.hits.some((item) => item.text === "攻击")) {
         await press("攻击");
-        const asked = await paint("w8-v02-exam-question-844x390.png");
-        exam = asked;
+        exam = await paint("w8-v02-exam-battle-844x390.png");
       }
-      const joined = exam.texts.map((item) => item.text).join(" ");
-      if (exam.key !== "exam-battle") problem(`exam-battle not entered, scene=${exam.key} texts=${joined}`);
+      const asked = await paint("w8-v02-exam-question-844x390.png");
+      const choices = asked.hits.filter((item) => item.text && !/攻击|期中|期末|返回|回地图|休息|暂停/.test(item.text));
+      log(`exam-question stem=${hasStem(asked)} choices=${choices.map((item) => item.text).join("|") || "none"}`);
+      if (!hasStem(asked)) problem("exam question has no stem");
+      if (choices.length < 2) problem(`exam question has ${choices.length} choices`);
+      if (asked.texts.some((item) => /最近学过|准备好了/.test(item.text))) problem("exam question still shows the intro sentence");
+      const joined = asked.texts.map((item) => item.text).join(" ");
+      if (asked.key !== "exam-battle") problem(`exam-battle not entered, scene=${asked.key} texts=${joined}`);
       else if (/EXAM_|失败|锁|没有可用题目/.test(joined)) problem(`exam-battle notice: ${joined}`);
     }
 
@@ -442,6 +493,10 @@ async function main() {
       await press("选好了");
       const created = await paint("w8-v02-create-844x390.png");
       if (created.key !== "create") problem(`create not entered, scene=${created.key}`);
+      const sign = created.texts.find((item) => item.text.includes("选一个职业"));
+      if (!sign) problem("create missing 选一个职业");
+      else if (sign.y > 70) problem(`选一个职业 fell to y=${sign.y}`);
+      if (!created.hits.some((item) => item.text === "出发")) problem("create missing 出发");
     }
 
     await page.evaluate(() => window.__close.runtime.start("overworld"));
@@ -458,7 +513,22 @@ async function main() {
       if (note.x + note.w + 8 > keyLeft) problem("guide note overlaps the keypad");
       if (keyRight < 844 * 0.72) problem(`guide keypad leaves the right empty ${keyRight}`);
       if (!okKey || okKey.w < 52 || okKey.h < 44) problem("确认 is truncated or small");
+      if (okKey) {
+        const sample = await page.evaluate((box) => {
+          const pixel = window.__close.ctx.getImageData(Math.round(box.x + box.w / 2), Math.round(box.y + box.h / 2), 1, 1).data;
+          return [pixel[0], pixel[1], pixel[2]];
+        }, okKey);
+        log(`确认 face rgb=${sample.join(",")}`);
+        if (sample[0] > 180 && sample[1] > 140 && sample[2] < 130) problem(`确认 is gold rgb=${sample.join(",")}`);
+      }
     }
+    for (const digit of ["1", "2", "3", "4"]) await press(digit);
+    await press("确认");
+    const again = await paint("w8-v02-guide-reenter-844x390.png");
+    if (!again.texts.some((item) => item.text.startsWith("再输入一次"))) problem(`reenter title missing: ${again.texts.map((item) => item.text).join(" / ")}`);
+    const slots = again.texts.filter((item) => item.text === "●" || item.text === "○");
+    log(`reenter slots ${slots.map((item) => `${item.text}@${item.x},${item.y} ${item.w}x${item.h}`).join(" | ") || "none"}`);
+    if (slots.length < 4) problem(`reenter has ${slots.length} pin slots`);
 
     log(`saved ${saved.join(" ")}`);
     if (problems.length) throw new Error(problems.join("\n"));
