@@ -4,7 +4,7 @@
  * 为什么：微信小屏是横屏手机，不是缩小的桌面。快捷键文案在这里不成立。
  */
 
-import type { ViewBox } from "./coords";
+import { screenFontPx, type ViewBox } from "./coords";
 import type { GameNode } from "./node";
 
 export interface PhoneUnit {
@@ -82,6 +82,14 @@ export function phoneLayoutOf(scene: object): PhoneLayout | null {
 
 export function wechatCopy(text: string): string {
   if (text === "数据只保存在这台电脑") return "数据保存在当前设备";
+  if (text.includes("这一台电脑")) return text.replaceAll("这一台电脑", "这台设备");
+  if (text.includes("这台电脑")) return text.replaceAll("这台电脑", "这台设备");
+  if (text.includes("把电脑交给")) return text.replaceAll("把电脑交给", "把设备交给");
+  if (text.includes("电脑会读出")) return text.replaceAll("电脑会读出", "设备会读出");
+  if (text.includes("键盘 3、4、5、6")) return "";
+  if (text.startsWith("Enter 出发")) return text.replace(/^Enter 出发。/, "");
+  if (text.includes("或按 Enter")) return text.replaceAll("或按 Enter", "").replace(/\s{2,}/g, " ").trim();
+  if (text.includes("键盘 1")) return "";
   if (text === "新的冒险 N") return "新的冒险";
   if (text.endsWith(" Enter")) return text.slice(0, -" Enter".length);
   if (text.endsWith(" Esc")) return text.slice(0, -" Esc".length);
@@ -152,15 +160,31 @@ function textWidth(text: string, fontPx: number, measure: PhoneContext["measure"
   return Math.max(fontPx, width);
 }
 
-function buttonWidth(label: string, measure: PhoneContext["measure"], fontPx: number): number {
-  return Math.max(44, Math.ceil(textWidth(label, fontPx, measure, "", "WenQuanYi Micro Hei, sans-serif") + 32));
+function labelStyle(unit: PhoneUnit): { fontPx: number; weight: string; family: string; stroke: number } {
+  const list = (unit.node as GameNode & { list?: GameNode[] }).list ?? [];
+  const text = list.find((child) => child.type === "text") as (GameNode & { style?: { fontSize?: string; fontStyle?: string; fontFamily?: string; strokeThickness?: number } }) | undefined;
+  const style = text?.style ?? {};
+  const design = Number.parseFloat(String(style.fontSize ?? "22")) || 22;
+  return {
+    fontPx: screenFontPx(design),
+    weight: style.fontStyle || "",
+    family: style.fontFamily || '"Noto Sans SC", "WenQuanYi Micro Hei", "PingFang SC", sans-serif',
+    stroke: Number(style.strokeThickness) || 0,
+  };
+}
+
+function buttonWidth(unit: PhoneUnit, measure: PhoneContext["measure"]): number {
+  const style = labelStyle(unit);
+  const label = unit.text.trim() || "按钮";
+  const width = textWidth(label, style.fontPx, measure, style.weight, style.family) + style.stroke + 36;
+  return Math.max(44, Math.ceil(width));
 }
 
 function flowButtons(buttons: PhoneUnit[], x: number, y: number, maxW: number, measure: PhoneContext["measure"], fontPx: number): number {
   let cursor = x;
   let rowY = y;
   for (const button of buttons) {
-    const width = Math.min(maxW, buttonWidth(button.text || "按钮", measure, fontPx));
+    const width = Math.min(maxW, buttonWidth(button, measure));
     if (cursor > x && cursor + width > x + maxW) {
       cursor = x;
       rowY += 44 + 8;
@@ -292,7 +316,7 @@ function composeTitle(ctx: PhoneContext): PhoneLayout {
   const tag = ctx.units.find((unit) => unit.text.includes("认识单词"));
   const rank = (text: string) => (text.includes("继续") || text.includes("开始") ? 0 : text.includes("新的冒险") ? 1 : text.includes("换角色") ? 2 : 3);
   const buttons = ctx.units.filter((unit) => unit.interactive).sort((a, b) => rank(a.text) - rank(b.text) || a.designX - b.designX);
-  const widths = buttons.map((button) => buttonWidth(button.text, ctx.measure, 20));
+  const widths = buttons.map((button) => buttonWidth(button, ctx.measure));
   let rows = 1;
   let used = 0;
   for (const width of widths) {
@@ -361,7 +385,7 @@ function composeGuide(ctx: PhoneContext): PhoneLayout {
   const pinKeys = ctx.units.filter((unit) => String(unit.node.name || "").startsWith("pin:") && unit.interactive);
   let y = safe.y;
   if (back) {
-    back.w = Math.min(safe.w, buttonWidth(back.text || "返回", ctx.measure, 18));
+    back.w = Math.min(safe.w, buttonWidth(back, ctx.measure));
     back.h = 44;
     back.x = safe.x;
     back.y = y;
@@ -502,7 +526,7 @@ function composeWardrobe(ctx: PhoneContext): PhoneLayout {
   const leftW = mirror ? Math.max(160, mirror.x - safe.x - 12) : safe.w;
   let y = safe.y;
   if (back) {
-    back.w = Math.min(160, buttonWidth(back.text || "返回", ctx.measure, 18));
+    back.w = Math.min(160, buttonWidth(back, ctx.measure));
     back.h = 44;
     back.x = safe.x;
     back.y = y;
@@ -602,11 +626,146 @@ function parkLeftovers(ctx: PhoneContext, layout: PhoneLayout): PhoneLayout {
   return layout;
 }
 
+const PHONE_KEYS = new Set([
+  "title",
+  "guide",
+  "wardrobe",
+  "skills",
+  "ending",
+  "battle",
+  "exam-battle",
+  "stages",
+  "review",
+  "collection",
+  "duel",
+  "overworld",
+  "learn",
+  "profiles",
+  "grades",
+  "create",
+  "battle-results",
+]);
+
+export function usesPhone(key: string): boolean {
+  return PHONE_KEYS.has(key);
+}
+
+function buttonBlockHeight(buttons: PhoneUnit[], maxW: number, measure: PhoneContext["measure"]): number {
+  let rows = 1;
+  let used = 0;
+  for (const button of buttons) {
+    const width = Math.min(maxW, buttonWidth(button, measure));
+    if (used > 0 && used + width > maxW) {
+      rows += 1;
+      used = 0;
+    }
+    used += width + 8;
+  }
+  return buttons.length ? rows * 44 + (rows - 1) * 8 : 0;
+}
+
+function hideLooseArt(ctx: PhoneContext): void {
+  for (const image of ctx.images) {
+    const node = image.node as (GameNode & { texture?: string; frame?: string }) | undefined;
+    if (!node || isBackdrop(node)) continue;
+    const frame = node.frame ?? "";
+    if (frame === "panel_parchment" || frame === "panel_wood") continue;
+    image.w = 0;
+    image.h = 0;
+  }
+}
+
+function composeRest(ctx: PhoneContext): PhoneLayout {
+  dropDesktopFrames(ctx);
+  hideLooseArt(ctx);
+  const safe = safeOf(ctx.view);
+  const backLike = /^(返回|回村子|回地图|取消)/;
+  const backs = ctx.units.filter((unit) => unit.interactive && backLike.test(unit.text));
+  const back = backs[0];
+  for (const unit of ctx.units) {
+    const blank = unit.interactive ? !unit.text.trim() : unit.text.trim() === "?";
+    if (!blank) continue;
+    unit.x = 8;
+    unit.y = 8;
+    unit.w = 0;
+    unit.h = 0;
+    unit.onPaper = true;
+  }
+  const actions = ctx.units.filter((unit) => unit.interactive && unit !== back && unit.text.trim().length > 0).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim().length > 0 && unit.text.trim() !== "?").sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  let y = safe.y;
+  if (back) {
+    back.w = Math.min(safe.w, buttonWidth(back, ctx.measure));
+    back.h = 44;
+    back.x = safe.x;
+    back.y = y;
+    back.onPaper = true;
+  }
+  const heading = texts.find((unit) => unit.text.length > 0 && unit.text.length <= 12 && !unit.text.includes("。"));
+  if (heading) {
+    heading.fontPx = 22;
+    ctx.fitText(heading, safe.w - (back ? back.w + 8 : 0));
+    heading.x = back ? back.x + back.w + 8 : safe.x;
+    heading.y = y + Math.max(0, (44 - heading.h) / 2);
+    heading.onPaper = true;
+  }
+  if (back || heading) y += 44 + 8;
+  const blockH = buttonBlockHeight(actions, safe.w, ctx.measure);
+  const buttonTop = safe.y + safe.h - blockH;
+  if (actions.length) flowButtons(actions, safe.x, buttonTop, safe.w, ctx.measure, 20);
+  const body = texts.filter((unit) => unit !== heading);
+  const area = { x: safe.x, y, w: safe.w, h: Math.max(16, buttonTop - 8 - y) };
+  const fitColumn = (columns: number): boolean => {
+    const gap = 8;
+    const colW = (area.w - gap * (columns - 1)) / columns;
+    const chunk = Math.ceil(body.length / columns);
+    const groups: PhoneUnit[][] = Array.from({ length: columns }, () => []);
+    body.forEach((unit, index) => groups[Math.min(columns - 1, Math.floor(index / chunk))].push(unit));
+    let ok = true;
+    groups.forEach((group, index) => {
+      let cursor = area.y;
+      const x = area.x + index * (colW + gap);
+      for (const unit of group) {
+        const next = placeSentences(unit, x, cursor, colW, ctx, unit.text.length <= 12 ? 16 : 14);
+        if (next - 8 > area.y + area.h + 0.5) ok = false;
+        cursor = next;
+      }
+    });
+    return ok;
+  };
+  if (body.length && area.h >= 16) {
+    if (!fitColumn(1) && area.w >= 360) fitColumn(2);
+    const top = Math.min(...body.map((unit) => unit.y));
+    const bottom = Math.max(...body.map((unit) => unit.y + unit.h));
+    const left = Math.min(...body.map((unit) => unit.x));
+    const right = Math.max(...body.map((unit) => unit.x + unit.w));
+    ctx.fills.push({ x: left - 12, y: top - 8, w: Math.max(48, right - left + 24), h: Math.max(24, bottom - top + 16), color: 0xfff4dc, role: "sheet" });
+  }
+  for (const button of [back, ...actions].filter((unit): unit is PhoneUnit => Boolean(unit))) {
+    ctx.fills.push({ x: button.x, y: button.y, w: button.w, h: button.h, color: 0xf0d7a2, role: "sheet" });
+  }
+  const heroNode = findHero(ctx.scene);
+  let hero: PhoneHero | null = null;
+  if (heroNode) {
+    const at = worldPoint(heroNode);
+    const room = Math.max(0, buttonTop - y - 16);
+    const desired = Math.min(150, room);
+    if (desired >= 72) {
+      const scale = desired / (512 * (heroNode.scaleX || 0.5));
+      const footX = safe.x + safe.w * 0.72;
+      const footY = buttonTop - 8 - desired * 0.125;
+      hero = { scale, ox: footX - scale * at.x, oy: footY - scale * at.y };
+    }
+  }
+  return { hero, skipMasks: true };
+}
+
 export function composePhone(ctx: PhoneContext): PhoneLayout | null {
   let layout: PhoneLayout | null = null;
   if (ctx.key === "title") layout = composeTitle(ctx);
   else if (ctx.key === "guide") layout = composeGuide(ctx);
   else if (ctx.key === "wardrobe") layout = composeWardrobe(ctx);
+  else if (usesPhone(ctx.key)) layout = composeRest(ctx);
   if (!layout) return null;
   return parkLeftovers(ctx, layout);
 }

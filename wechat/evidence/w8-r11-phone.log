@@ -11,8 +11,5 @@ shot w8-r11-guide-unlocked-1280x800.png overflow=0 left=237,221,190,255 right=23
 shot w8-r11-guide-unlocked-844x390.png overflow=0 left=237,221,190,255 right=238,223,191,255 outside=[]
 shot w8-r11-wardrobe-1280x800.png overflow=0 left=149,110,82,255 right=155,123,95,255 outside=[]
 shot w8-r11-wardrobe-844x390.png overflow=0 left=149,110,82,255 right=154,123,96,255 outside=[]
-wardrobe texts [["衣柜",104,25,52,26],["花环戴在帽外。战士只藏羽饰。",28,68,112,32],["村子只见花环。",28,108,112,16],["已有装备",28,132,72,18],["整",40,186,16,16],["旅行短衣",76,170,72,18],["就是职业原本的衣服",76,196,126,14],["穿着",521,186,32,16],["称号。一次只戴一个。",28,234,112,32],["还没有称号。",28,274,96,16],["返回",42,28,40,20]]
+wardrobe texts [["衣柜",112,25,52,26],["花环戴在帽外。战士只藏羽饰。",28,68,112,32],["村子只见花环。",28,108,112,16],["已有装备",28,132,72,18],["整",40,186,16,16],["旅行短衣",76,170,72,18],["就是职业原本的衣服",76,196,126,14],["穿着",521,186,32,16],["称号。一次只戴一个。",28,234,112,32],["还没有称号。",28,274,96,16],["返回",46,28,40,20]]
 phone r11 three pages done. Chrome adapter, not WeChat, not a phone.
-
-before, rejected 844 from 898fe28: evidence/w8-r10-title-844x390.png evidence/w8-r10-guide-setup-844x390.png evidence/w8-r10-wardrobe-844x390.png
-viewport 1280x800 and 844x390. Chrome adapter paintFrame, not WeChat DevTools, not a phone.

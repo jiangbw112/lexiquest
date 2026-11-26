@@ -1,5 +1,5 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
-import { composePhone, coverBox, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, type PhoneUnit } from "./phone";
+import { composePhone, coverBox, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, usesPhone, type PhoneUnit } from "./phone";
 import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
 import { framePlacementOf, frameRectOf, type FrameRect } from "./scene";
@@ -1477,8 +1477,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
-    const phoneKey = sceneKeyOf(scene);
-    const covered = (phoneKey === "title" || phoneKey === "guide" || phoneKey === "wardrobe") && isBackdrop(node) ? coverBox(view) : null;
+    const covered = usesPhone(sceneKeyOf(scene)) && isBackdrop(node) ? coverBox(view) : null;
     const dest = covered ?? { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
     const frame = node.type === "nineslice" ? String((node as GameNode & { frame?: string }).frame ?? "") : "";
     const kind = isPaperFrame(frame) ? "paper" : plateKind(dest, view);
@@ -1486,7 +1485,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     emitArt(images, fills, node, dest);
   }
 
-  const liftMaskText = sceneKeyOf(scene) === "wardrobe";
+  const liftMaskText = usesPhone(sceneKeyOf(scene));
   for (const node of visible) {
     if (paintedByTree(node) && !(liftMaskText && node.type === "text")) continue;
     const root = outermostHit(node);
@@ -1503,9 +1502,10 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const lines = text ? wrapText(text, fontPx, maxLine, measure, weight, family) : [];
     const lineWidth = (line: string) => (measure ? measure(line, fontPx, weight, family) : estimateWidth(line, fontPx));
     const measured = lines.reduce((max, line) => Math.max(max, lineWidth(line)), 0);
-    const nestedText = owner.type !== "text"
-      ? visible.filter((child) => child.type === "text" && outermostHit(child) === owner).map((child) => String((child as GameNode & { text?: string }).text ?? "")).join("")
-      : "";
+    const nestedBits = owner.type !== "text"
+      ? visible.filter((child) => child.type === "text" && outermostHit(child) === owner).map((child) => String((child as GameNode & { text?: string }).text ?? "")).filter((bit) => bit.length > 0)
+      : [];
+    const nestedText = nestedBits.join(nestedBits.length > 1 ? " " : "");
     const nestedFont = 16;
     const nestedWidth = nestedText
       ? (measure ? measure(nestedText, nestedFont, "700", "sans-serif") : estimateWidth(nestedText, nestedFont))
@@ -1545,6 +1545,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
 
   const items: PaintBox[] = [];
   for (const unit of units) {
+    if (unit.w < 1 || unit.h < 1) continue;
     items.push({
       kind: unit.node.type,
       text: unit.text,
@@ -1560,6 +1561,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       onPaper: unit.onPaper,
     });
     if (!unit.interactive) continue;
+    const phoneButton = scene ? Boolean(phoneLayoutOf(scene)) : false;
+    let phoneLabelDrawn = false;
     const design = unit.design;
     for (const child of visible) {
       if (outermostHit(child) !== unit.node || child === unit.node) continue;
@@ -1568,15 +1571,22 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       const ry = design.h > 0 ? (childBox.y - design.y) / design.h : 0;
       const rw = design.w > 0 ? childBox.w / design.w : 1;
       const rh = design.h > 0 ? childBox.h / design.h : 1;
-      const dest = {
-        x: unit.x + rx * unit.w,
-        y: unit.y + ry * unit.h,
-        w: Math.max(1, rw * unit.w),
-        h: Math.max(1, rh * unit.h),
-      };
+      // Phone buttons are sized in viewport pixels. Mapping a world sprite
+      // through the old design box paints it outside the hit and onto the next control.
+      const dest = phoneButton
+        ? { x: unit.x, y: unit.y, w: Math.max(1, unit.w), h: Math.max(1, unit.h) }
+        : {
+            x: unit.x + rx * unit.w,
+            y: unit.y + ry * unit.h,
+            w: Math.max(1, rw * unit.w),
+            h: Math.max(1, rh * unit.h),
+          };
+      if (phoneButton && (child.type === "image" || child.type === "sprite")) continue;
       if (child.type === "text") {
+        if (phoneButton && phoneLabelDrawn) continue;
+        if (phoneButton) phoneLabelDrawn = true;
         const style = styleOf(child);
-        const text = String((child as GameNode & { text?: string }).text ?? "");
+        const text = phoneButton ? unit.text : String((child as GameNode & { text?: string }).text ?? "");
         const weight = style.fontStyle ?? "";
         const family = style.fontFamily ?? "sans-serif";
         let fontPx = screenFontPx(authoredFont(child));
@@ -1791,7 +1801,12 @@ function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: 
   const texture = glyphTexture(glyphSpec(node, lines, fontPx));
   if (texture && ctx.drawImage) {
     if (texture.w <= boxW + 0.5 && texture.h <= boxH + 0.5) ctx.drawImage(texture.canvas, x, y);
-    else ctx.drawImage(texture.canvas, x, y, boxW, boxH);
+    else {
+      const fit = Math.min(boxW / texture.w, boxH / texture.h);
+      const dw = Math.max(1, texture.w * fit);
+      const dh = Math.max(1, texture.h * fit);
+      ctx.drawImage(texture.canvas, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
+    }
     return;
   }
   noteGlyphFallback();
