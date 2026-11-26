@@ -44,7 +44,7 @@ def compress_one(job):
     if after >= before:
         os.remove(dest)
         return {"keep": "png", "before": before, "after": before, "identical": True, "codec": "png-kept"}
-        return {"keep": "webp", "before": before, "after": after, "identical": False, "codec": "webp-q35-m4"}
+    return {"keep": "webp", "before": before, "after": after, "identical": False, "codec": "webp-q35-m4"}
 
 
 def main():
