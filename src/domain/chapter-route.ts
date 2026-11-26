@@ -6,7 +6,7 @@ import {
   isChapterUnlocked,
   type PlayChapter,
 } from "./chapter-plan";
-import { FOREST_CHAPTER, FOREST_TITLE, forestStudyWordIds, gradeForestStudyWordIds, stageWordIds, type ForestStage } from "./stages";
+import { FOREST_CHAPTER, FOREST_TITLE, forestStudyWordIds, gradeForestStudyWordIds, type ForestStage } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 import { uiLabel } from "./ui-label";
 
@@ -169,45 +169,34 @@ export function learnGradeOptions(save: SaveData): GradeBand[] {
 }
 
 /**
- * Parent-allowed grades only. Forest is not a grade chip.
- * The first chapter is that grade's forest lesson. The grade chapters follow, and battle unlock is not consulted.
+ * Parent-allowed grades only. Forest is not a grade chip and not a lesson.
+ * Grade chapters follow file order. Battle unlock is not consulted.
  */
 export function legalLearnChapters(save: SaveData, grade: LearnGrade): PlayChapter[] {
   if (academyGradeChoices(save).length === 0) return [];
   if (grade === "mixed") return [];
   if (!academyGradeChoices(save).includes(grade)) return [];
-  return [academyForestChapter(grade), ...gradeChapters(grade)];
+  return gradeChapters(grade);
 }
 
 /**
  * Academy lesson for this forest stage.
- * Prefer a chapter that still holds this stage's unlearned words.
- * Otherwise prefer a chapter that still holds an unlearned boss-list word.
- * A chapter whose cards are already finished is not used while another still has words.
+ * Prefer a grade chapter that still holds this stage's unlearned words.
+ * Otherwise prefer a grade chapter that still holds an unlearned boss-list word.
  */
 export function academyLessonForStage(save: SaveData, stage: ForestStage): LearnDraft | null {
-  const chapters = academyGradeChoices(save).map((grade) => academyForestChapter(grade));
+  const chapters = academyGradeChoices(save).flatMap((grade) => legalLearnChapters(save, grade));
   if (chapters.length === 0) return null;
-  const counted = stageWordIds(save, stage);
-  const missingStage = counted.filter((id) => !save.wordCards[id]);
-  const bossMissing = new Set(forestStudyWordIds(save.selectedGrades).filter((id) => !save.wordCards[id]));
-  const stillOpen = (chapter: PlayChapter) => chapter.wordIds.some((id) => !save.wordCards[id]);
-  const holdsAll = (chapter: PlayChapter, ids: readonly string[]) =>
-    ids.length > 0 && ids.every((id) => chapter.wordIds.includes(id));
-  const open = chapters.filter(stillOpen);
-  const queue = missingStage.length > 0 ? missingStage : counted;
-  const chosen = open.find((chapter) => holdsAll(chapter, missingStage))
-    ?? open.find((chapter) => chapter.wordIds.some((id) => bossMissing.has(id)))
-    ?? open.find((chapter) => missingStage.some((id) => chapter.wordIds.includes(id)))
-    ?? open[0]
-    ?? chapters.find((chapter) => holdsAll(chapter, queue))
-    ?? chapters.find((chapter) => queue.some((id) => chapter.wordIds.includes(id)))
-    ?? chapters[0];
+  const missingStage = stage.new_words.filter((id) => !save.wordCards[id]);
+  const bossMissing = forestStudyWordIds(save.selectedGrades).filter((id) => !save.wordCards[id]);
+  const queue = missingStage.length > 0 ? missingStage : stage.new_words;
+  const holds = (ids: readonly string[]) => chapters.find((chapter) => ids.some((id) => chapter.wordIds.includes(id)));
+  const chosen = holds(queue) ?? holds(bossMissing) ?? chapters[0];
   if (!chosen || chosen.grade === "mixed") return null;
   return { grade: chosen.grade, chapterId: chosen.id };
 }
 
-/** Points the academy at the forest lesson for this stage. Battle fields, cards, and rewards stay. */
+/** Points the academy at the grade chapter for this stage. Battle fields, cards, and rewards stay. */
 export function openAcademyForStage(save: SaveData, stage: ForestStage): SaveData {
   const lesson = academyLessonForStage(save, stage);
   if (!lesson || lesson.grade === "mixed" || !lesson.chapterId) return save;
@@ -250,12 +239,11 @@ export function initialLearnDraft(save: SaveData): LearnDraft {
     return { grade: selection.grade, chapterId: selection.chapterId };
   }
   const options = academyGradeChoices(save);
-  if (selection?.grade === "mixed") {
-    const grade = options.find((item) => legalLearnChapters(save, item).some((chapter) => chapter.id === FOREST_CHAPTER.chapter_id))
-      ?? options[0]
-      ?? "G3";
-    const forest = legalLearnChapters(save, grade).find((chapter) => chapter.id === FOREST_CHAPTER.chapter_id);
-    return { grade, chapterId: forest?.id ?? null };
+  if (selection?.grade === "mixed" || selection?.chapterId === FOREST_CHAPTER.chapter_id) {
+    const grade = selection.grade !== "mixed" && options.includes(selection.grade)
+      ? selection.grade
+      : options[0] ?? "G3";
+    return { grade, chapterId: null };
   }
   if (selection && options.includes(selection.grade)) {
     return { grade: selection.grade, chapterId: null };
@@ -304,21 +292,20 @@ export function chooseBattleSpot(input: SpotInput): BattleSpot | null {
 }
 
 function spotForGrade(save: SaveData, grade: GradeBand): BattleSpot | null {
-  const forest = forestPlayChapter();
-  const forestOpen = isChapterUnlocked(save, forest);
   return chooseBattleSpot({
     chapters: gradeChapters(grade),
     savedChapterId: save.battleChapterByGrade?.[grade],
     unlocked: (chapter) => isChapterUnlocked(save, chapter),
     cleared: (chapter) => isChapterCleared(save, chapter),
-    forest: forestOpen ? forest : null,
+    forest: null,
   });
 }
 
 /**
  * Re-enter the map on the last battle grade that the parent still allows.
  * An invalid grade asks for an allowed grade and does not pick one.
- * No battle grade yet stays on the forest instead of jumping to a newly checked grade.
+ * No battle grade yet asks when several grades are open, and otherwise opens that grade's first legal chapter.
+ * A stored forest chapter is not a destination.
  */
 export function battleReturn(save: SaveData): BattleReturn {
   const grades = learnGradeOptions(save);
@@ -326,9 +313,10 @@ export function battleReturn(save: SaveData): BattleReturn {
   const grade = save.battleGrade;
   if (grade && !grades.includes(grade)) return { kind: "pick-grade", grades };
   if (!grade) {
-    const forest = forestPlayChapter();
-    if (!isChapterUnlocked(save, forest)) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
-    return { kind: "ready", grade: null, spot: { chapter: forest, review: false, step: "forest" } };
+    if (grades.length !== 1) return { kind: "pick-grade", grades };
+    const only = spotForGrade(save, grades[0]!);
+    if (!only) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
+    return { kind: "ready", grade: grades[0], spot: only };
   }
   const spot = spotForGrade(save, grade);
   if (!spot) return { kind: "blocked", reason: "no-chapter", message: BATTLE_NONE };
@@ -355,19 +343,18 @@ export function commitExamReturn(save: SaveData, grade: GradeBand, chapterId: st
 
 /** Explicit entry of a legal open chapter. Preview and paging must not call this. */
 export function commitBattleEntry(save: SaveData, chapter: PlayChapter): SaveData {
+  if (chapter.id === FOREST_CHAPTER.chapter_id || chapter.grade === "mixed") return save;
   if (!isChapterUnlocked(save, chapter)) return save;
-  const grade = chapter.grade === "mixed" ? null : chapter.grade;
+  const grade = chapter.grade;
   const sameChapter = save.currentChapterId === chapter.id;
-  const sameGrade = grade === null || save.battleGrade === grade;
-  const sameAnchor = grade === null || save.battleChapterByGrade?.[grade] === chapter.id;
+  const sameGrade = save.battleGrade === grade;
+  const sameAnchor = save.battleChapterByGrade?.[grade] === chapter.id;
   if (sameChapter && sameGrade && sameAnchor) return save;
   return {
     ...save,
     currentChapterId: chapter.id,
-    battleGrade: grade ?? save.battleGrade,
-    battleChapterByGrade: grade
-      ? { ...save.battleChapterByGrade, [grade]: chapter.id }
-      : save.battleChapterByGrade,
+    battleGrade: grade,
+    battleChapterByGrade: { ...save.battleChapterByGrade, [grade]: chapter.id },
   };
 }
 

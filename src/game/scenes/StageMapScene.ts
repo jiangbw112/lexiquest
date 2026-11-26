@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { formatMeaning, wordById } from "../../domain/catalog";
 import { mapResultsFramesReady, mapStarCenter } from "../../domain/battle-results";
 import { chapterBackdrop, type ChapterBackdrop } from "../../domain/chapter-scenes";
-import { findPlayChapter, isChapterUnlocked, mapCounts, playStatuses, starKey, visibleChapters } from "../../domain/chapter-plan";
+import { findPlayChapter, independentForestId, isChapterUnlocked, mapCounts, playStatuses, starKey, visibleChapters } from "../../domain/chapter-plan";
 import {
   BATTLE_NONE,
   BATTLE_PICK_GRADE,
@@ -61,7 +61,7 @@ export class StageMapScene extends Phaser.Scene {
   private chapterMapToken = 0;
   private mapLoadFailedKey = "";
   /** Map preview V. It lives on this visit and is not written to the save. */
-  private viewChapterId = "forest_adventure";
+  private viewChapterId = "pep_g3_01";
   private anchorChapterId = "";
   private landedReview = false;
   private pickingGrade = false;
@@ -74,7 +74,7 @@ export class StageMapScene extends Phaser.Scene {
     this.mapLoadFailedKey = "";
     this.chapterMapToken += 1;
     this.placeFromSave();
-    if (typeof data.chapterId === "string" && data.chapterId.length > 0) {
+    if (typeof data.chapterId === "string" && data.chapterId.length > 0 && !independentForestId(data.chapterId)) {
       this.viewChapterId = data.chapterId;
       this.anchorChapterId = data.chapterId;
       this.landedReview = false;
@@ -94,7 +94,8 @@ export class StageMapScene extends Phaser.Scene {
       this.landedReview = entry.spot.review;
       return;
     }
-    this.viewChapterId = "forest_adventure";
+    const fallback = save ? visibleChapters(save.selectedGrades)[0]?.id : undefined;
+    this.viewChapterId = fallback ?? "pep_g3_01";
     this.anchorChapterId = "";
     this.landedReview = false;
   }

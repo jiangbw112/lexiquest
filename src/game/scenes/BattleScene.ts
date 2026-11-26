@@ -25,7 +25,7 @@ import { battleControlOpen, skillCardFace, skillCardInput, skillSlotIndexForKey 
 import { showSpellingHint, spellingInstruction } from "../spelling-form";
 import { badgeTone, isDue } from "../../domain/review";
 import { orderReviewWords } from "../../domain/skill-cast";
-import { battleWordIds, findPlayChapter, isChapterUnlocked, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
+import { battleWordIds, findPlayChapter, independentForestId, isChapterUnlocked, playStatuses, stageCombatFor, unlockedWordIds } from "../../domain/chapter-plan";
 import { commitBattleEntry } from "../../domain/chapter-route";
 import { chapterBossId, isChapterBossId } from "../../domain/chapter-bosses";
 import { chapterBackdrop, chapterMinion, type ChapterBackdrop, type ChapterMinion } from "../../domain/chapter-scenes";
@@ -165,9 +165,9 @@ export class BattleScene extends Phaser.Scene {
   private enemyHpTween?: Phaser.Tweens.Tween;
   private pendingResults: ReturnType<typeof buildResultsView> | null = null;
   private resultsArmed = false;
-  private battleChapterId = "forest_adventure";
-  private battleBackdrop: ChapterBackdrop = chapterBackdrop("forest_adventure");
-  private battleMinion: ChapterMinion = chapterMinion("forest_adventure");
+  private battleChapterId = "pep_g3_01";
+  private battleBackdrop: ChapterBackdrop = chapterBackdrop("pep_g3_01");
+  private battleMinion: ChapterMinion = chapterMinion("pep_g3_01");
   private battleBackdropQueued = false;
   private battleBackdropFailed = false;
   private battleBackdropToken = 0;
@@ -179,10 +179,11 @@ export class BattleScene extends Phaser.Scene {
   init(data: BattleLaunch = {}): void {
     this.launch = data ?? {};
     const save = getSave();
-    const chapter = save ? findPlayChapter(save, data.chapterId) : null;
+    const requestedForest = independentForestId(data.chapterId);
+    const chapter = !requestedForest && save ? findPlayChapter(save, data.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (data.stageId ?? 0));
     this.bossFight = stage?.type === "boss";
-    const chapterId = chapter?.id ?? "forest_adventure";
+    const chapterId = chapter?.id ?? "pep_g3_01";
     this.battleChapterId = chapterId;
     this.battleBackdrop = chapterBackdrop(chapterId);
     this.battleMinion = chapterMinion(chapterId);
@@ -208,6 +209,10 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     registerProjectileAnims(this);
+    if (independentForestId(this.launch.chapterId)) {
+      this.scene.start("stages");
+      return;
+    }
     const save = getSave();
     const chapter = save ? findPlayChapter(save, this.launch.chapterId) : null;
     const stage = chapter?.stages.find((item) => item.id === (this.launch.stageId ?? 0));
