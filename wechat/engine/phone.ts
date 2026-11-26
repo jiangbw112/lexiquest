@@ -41,6 +41,8 @@ export interface PhoneImage {
   h: number;
   node?: GameNode;
   placed?: boolean;
+  /** Screen clip when a reward icon slides in a scrolling column. */
+  clip?: { x: number; y: number; w: number; h: number };
 }
 
 export interface PhoneChrome {

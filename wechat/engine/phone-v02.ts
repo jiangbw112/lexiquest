@@ -940,6 +940,9 @@ interface ResultsHost {
   __resultsWordScroll?: number;
   __resultsWordMax?: number;
   __resultsWordClip?: Box;
+  __resultsRewardScroll?: number;
+  __resultsRewardMax?: number;
+  __resultsRewardClip?: Box;
 }
 
 const FONT_TITLE = '"ZCOOL KuaiLe", "Noto Sans SC", sans-serif';
@@ -1209,21 +1212,48 @@ function layoutVictory(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     });
   }
 
+  // 原来：五行 36px 奖励把行距压到大约 2px，才能塞进右栏。
+  // 现在：多于一行时行距固定 8px。放不下就在羊皮纸里滚动，裁切和左侧单词列一样。
+  // 为什么：2px 读不清。不能画出板外，也不能盖住继续、无字印章和胶囊。
   const icon = 36 * s.sy;
+  const gap = rows.length <= 1 ? 0 : 8 * s.sy;
   const iconTop = 110 * s.sy;
-  const free = 292 * s.sy - iconTop - rows.length * icon;
-  const gap = rows.length <= 1 ? 0 : Math.min(8 * s.sy, Math.max(2 * s.sy, free / (rows.length - 1)));
+  const column: Box = {
+    x: 380 * s.sx,
+    y: iconTop,
+    w: Math.max(1, (772 - 380) * s.sx),
+    h: Math.max(1, 292 * s.sy - iconTop),
+  };
+  const content = rows.length * icon + Math.max(0, rows.length - 1) * gap;
+  const rewardMax = Math.max(0, content - column.h);
+  const rewardScroll = Math.max(0, Math.min(rewardMax, host.__resultsRewardScroll || 0));
+  host.__resultsRewardScroll = rewardScroll;
+  host.__resultsRewardMax = rewardMax;
+  host.__resultsRewardClip = rewardMax > 0 ? column : undefined;
+  const scrolling = rewardMax > 0;
+  const hitsColumn = (top: number, height: number) => top + height > column.y + 0.5 && top < column.y + column.h - 0.5;
+  const fitsColumn = (top: number, height: number) => top >= column.y - 0.5 && top + height <= column.y + column.h + 0.5;
   rows.forEach((row, index) => {
-    const y = iconTop + index * (icon + gap);
+    const y = iconTop + index * (icon + gap) - rewardScroll;
     const iconBox = { x: 396 * s.sx, y, w: icon, h: icon };
-    floatAt(row.image, iconBox);
+    const font = 15 * s.sy;
+    const textY = y + (icon - font) / 2;
+    const iconHits = !scrolling || hitsColumn(y, icon);
+    // 整字才画，和左侧单词列一样。半截「+20」会读成别的字。
+    const textFits = !scrolling || fitsColumn(textY, font);
+    if (!iconHits && !textFits) return;
+    if (row.image && iconHits) {
+      if (scrolling) row.image.clip = column;
+      floatAt(row.image, iconBox);
+    }
+    if (!textFits) return;
     const label = claim();
     if (!label) return;
-    const font = 15 * s.sy;
     label.text = row.label;
     const textW = Math.min(300 * s.sx, widthOf(row.label, font, "700", FONT_BODY));
-    place(label, { x: iconBox.x + iconBox.w + 8 * s.sx, y: y + (icon - font) / 2, w: textW + 2, h: font }, font);
+    place(label, { x: iconBox.x + iconBox.w + 8 * s.sx, y: textY, w: textW + 2, h: font }, font);
     face(label, FONT_BODY, TEAL, "700");
+    if (scrolling) label.clip = column;
   });
 
   floatAt(take((image) => textureOf(image) === "results_ico_stamp"), s.box(744, 80, 28, 28));

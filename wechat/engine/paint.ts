@@ -53,6 +53,8 @@ export interface DrawImageOp {
   flipX: boolean;
   tint: number;
   node?: GameNode;
+  /** Screen clip. Set for a reward icon that slides inside the victory column. */
+  clip?: { x: number; y: number; w: number; h: number };
 }
 
 export interface FramePlan {
@@ -1933,6 +1935,16 @@ function paintImage(ctx: PaintContext, op: DrawImageOp): void {
   const bitmap = bitmapFor(op.url);
   if (!bitmap || !ctx.drawImage || !ctx.save || !ctx.restore || !ctx.translate) return;
   ctx.save();
+  const clip = op.clip;
+  if (clip && clip.w > 0 && clip.h > 0 && ctx.beginPath && ctx.moveTo && ctx.lineTo && ctx.closePath && ctx.clip) {
+    ctx.beginPath();
+    ctx.moveTo(clip.x, clip.y);
+    ctx.lineTo(clip.x + clip.w, clip.y);
+    ctx.lineTo(clip.x + clip.w, clip.y + clip.h);
+    ctx.lineTo(clip.x, clip.y + clip.h);
+    ctx.closePath();
+    ctx.clip();
+  }
   if (typeof ctx.globalAlpha === "number" || "globalAlpha" in ctx) ctx.globalAlpha = op.alpha;
   const cx = op.x + op.w / 2;
   const cy = op.y + op.h / 2;

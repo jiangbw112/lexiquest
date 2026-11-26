@@ -93,26 +93,41 @@ function attach(canvas, view) {
     wordScroll(phase, x, y, dy) {
       const scene = runtime.active();
       if (!scene || scene.key !== "battle-results") return false;
+      const columns = [
+        ["__resultsWordDrag", "__resultsWordMoved", "__resultsWordScroll", "__resultsWordMax", "__resultsWordClip"],
+        ["__resultsRewardDrag", "__resultsRewardMoved", "__resultsRewardScroll", "__resultsRewardMax", "__resultsRewardClip"],
+      ];
+      const inside = (clip, max) => Boolean(clip && max > 0 && x >= clip.x && x < clip.x + clip.w && y >= clip.y && y < clip.y + clip.h);
       if (phase === "start") {
-        const clip = scene.__resultsWordClip;
-        const max = scene.__resultsWordMax || 0;
-        scene.__resultsWordDrag = Boolean(clip && max > 0 && x >= clip.x && x < clip.x + clip.w && y >= clip.y && y < clip.y + clip.h);
-        scene.__resultsWordMoved = false;
+        for (const [drag, moved, , maxKey, clipKey] of columns) {
+          scene[drag] = inside(scene[clipKey], scene[maxKey] || 0);
+          scene[moved] = false;
+        }
         return false;
       }
       if (phase === "move") {
-        if (!scene.__resultsWordDrag) return false;
-        const max = scene.__resultsWordMax || 0;
-        const prev = scene.__resultsWordScroll || 0;
-        const next = Math.max(0, Math.min(max, prev - dy));
-        if (next === prev) return scene.__resultsWordMoved === true;
-        scene.__resultsWordScroll = next;
-        scene.__resultsWordMoved = true;
-        return true;
+        let movedAny = false;
+        for (const [drag, moved, scrollKey, maxKey] of columns) {
+          if (!scene[drag]) continue;
+          const max = scene[maxKey] || 0;
+          const prev = scene[scrollKey] || 0;
+          const next = Math.max(0, Math.min(max, prev - dy));
+          if (next === prev) {
+            if (scene[moved] === true) movedAny = true;
+            continue;
+          }
+          scene[scrollKey] = next;
+          scene[moved] = true;
+          movedAny = true;
+        }
+        return movedAny;
       }
-      const moved = scene.__resultsWordMoved === true;
-      scene.__resultsWordDrag = false;
-      scene.__resultsWordMoved = false;
+      let moved = false;
+      for (const [drag, movedKey] of columns) {
+        if (scene[movedKey] === true) moved = true;
+        scene[drag] = false;
+        scene[movedKey] = false;
+      }
       return moved;
     },
     stop() {
