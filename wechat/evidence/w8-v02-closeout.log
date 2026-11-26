@@ -1,0 +1,91 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone. viewport 844x390. boot title
+press 继续学习 -> 继续学习 (title -> overworld, on=true)
+w8-v02-overworld-844x390.png scene=overworld overflow=0 phase=- edge=123,160,86,255 | 167,148,128,255 | 120,157,81,255
+  texts 三年级 · 森林冒险：已学 0/16 个词 / 今天没有到期复习，学 3 个新词也算完成今日目标。已完成 0 / 3  ·  累计完成 0 天 / 学堂 / 对战 / 词卡册 / 复习桌 / 技能 / 衣柜 / 同机练习 / 给家长 / 换角色
+  hits 学堂@168,78 112x104 | 对战@372,28 112x104 | 词卡册@96,168 112x104 | 复习桌@640,156 112x104 | 技能@150,248 112x104 | 衣柜@372,258 112x104 | 同机练习@560,236 112x104 | 给家长@598,72 112x104 | 换角色@608,16 120x44
+press 技能 -> 技能 (overworld -> skills, on=true)
+w8-v02-skills-844x390.png scene=skills overflow=0 phase=- edge=149,110,82,255 | 255,244,220,255 | 154,123,96,255
+  texts 技能卡 / 技能卡不绑定单词。最多带 3 张。空位会补上基础招式。基础招式更弱，不花能量。答错时，效果只有答对的一半。 / 盾击 / ★1 / 撞上去，并挡住下一次一些伤害。 / 已装备 / 战吼 / 大喊一声，打出更重的一击。 / 坚守 / 举起盾，接下词灵的冲撞。 / 旋风斩 / 转一圈，把词灵推远。 / 返回 / 换职业 / 词卡、等级和进度都不会变。每个职业的卡组分开存。
+  hits 已装备@256,94 88x44 | 返回@56,16 100x44 | 换职业@628,312 140x48
+press 返回 -> 返回 (skills -> overworld, on=true)
+press 学堂 -> 学堂 (overworld -> learn, on=true)
+w8-v02-learn-844x390.png scene=learn overflow=0 phase=study edge=183,197,181,255 | 204,217,195,255 | 183,197,181,255
+  texts 返回 / 学堂 / 请选章 / 三年级 / 三年级 · 请选章 / 森林冒险 三年级词 0/8 · 共用 0/8 / 朋友与家人 0/28 / 动物好朋友 0/28 / 花园调色盘 0/28 / 彩虹数数 0/28 / 认识新朋友 0/28 / 爱学习的我 0/28 / 好吃又健康 0/28 / 玩具与数字 0/24 / 确认 / 取消
+  hits 返回@56,16 100x44 | 三年级@56,72 108x44 | 森林冒险 三年级词 0/8 · 共用 0/8@172,72 264x44 | 朋友与家人 0/28@444,72 148x44 | 动物好朋友 0/28@600,72 148x44 | 花园调色盘 0/28@56,124 148x44 | 彩虹数数 0/28@212,124 132x44 | 认识新朋友 0/28@351,124 148x44 | 爱学习的我 0/28@507,124 148x44 | 好吃又健康 0/28@56,176 148x44 | 玩具与数字 0/24@212,176 148x44 | 确认*@604,308 180x48 | 取消@480,308 112x48
+press 森林冒险 三年级词 0/8 · 共用 0/8 -> 森林冒险 三年级词 0/8 · 共用 0/8 (learn -> learn, on=true)
+w8-v02-learn-ready-844x390.png scene=learn overflow=0 phase=study edge=183,197,181,255 | 204,217,195,255 | 183,197,181,255
+  texts 返回 / 学堂 / 请选章 / 三年级 / 三年级 · 森林冒险 / 森林冒险 三年级词 0/8 · 共用 0/8 / 朋友与家人 0/28 / 动物好朋友 0/28 / 花园调色盘 0/28 / 彩虹数数 0/28 / 认识新朋友 0/28 / 爱学习的我 0/28 / 好吃又健康 0/28 / 玩具与数字 0/24 / 确认 / 取消
+  hits 返回@56,16 100x44 | 三年级@56,72 108x44 | 森林冒险 三年级词 0/8 · 共用 0/8@172,72 264x44 | 朋友与家人 0/28@444,72 148x44 | 动物好朋友 0/28@600,72 148x44 | 花园调色盘 0/28@56,124 148x44 | 彩虹数数 0/28@212,124 132x44 | 认识新朋友 0/28@351,124 148x44 | 爱学习的我 0/28@507,124 148x44 | 好吃又健康 0/28@56,176 148x44 | 玩具与数字 0/24@212,176 148x44 | 确认@604,308 180x48 | 取消@480,308 112x48
+press 确认 -> 确认 (learn -> learn, on=true)
+learn confirm -> {"key":"learn","phase":"study","picking":false}
+w8-v02-learn-study-844x390.png scene=learn overflow=0 phase=study edge=183,197,181,255 | 255,244,220,255 | 183,197,181,255
+  texts 返回 / 学堂 · 三年级 · 森林冒险 / 换一章 / 0/16 / 今日 0/5 / tree / n. / 树 / 名词 · 三年级 · 要会拼 / 本章还可学 16 词 / 听一听 / 选意思 / 拼一拼 / 学一学
+  hits 返回@56,16 100x44 | 换一章@28,330 96x44 | 听一听@284,68 108x44 | 选意思@400,68 108x44 | 拼一拼@516,68 108x44
+press 返回 -> 返回 (learn -> overworld, on=true)
+press 对战 -> 对战 (overworld -> stages, on=true)
+w8-v02-stages-844x390.png scene=stages overflow=0 phase=- edge=49,40,34,255 | 203,194,124,255 | 67,89,79,255
+  texts 森林冒险 / 上一章 / 第 1 / 9 章 / 下一章 / 三年级 · 森林冒险：已学 0/16 个词 / 还有 16 个没在学堂学过  战斗 0/5 关通过  熟练 0/28  到期 0 / 林缘小径 / 进行中 / 本关已学 0/5 个词 / 小战斗 0 胜 / 这一关还有 5 个新词可以去学堂学 / ? / ? / ? / ? / ? / ? / 去学堂 / 小战斗 / 回村子
+  hits 上一章*@64,312 108x48 | 下一章@180,312 108x48 | 去学堂@296,312 108x48 | 小战斗@412,312 108x48 | 回村子@68,28 100x44
+stages chapter 1
+press 下一章 -> 下一章 (stages -> stages, on=true)
+w8-v02-stages-next-844x390.png scene=stages overflow=0 phase=- edge=128,159,92,255 | 190,198,136,255 | 32,106,93,255
+  texts 朋友与家人 / 上一章 / 第 2 / 9 章 / 下一章 / 三年级 · 朋友与家人：已学 0/28 个词 / 还有 28 个没在学堂学过。对战里要先打完上一章。  战斗 0/5 关通过 / 握手小路 / 未开启 / 本关已学 0/6 个词 / ? / ? / ? / ? / ? / ? / 通过上一章后开启 / 未开启 / 返回进度章 / 回村子
+  hits 上一章@64,312 108x48 | 下一章@180,312 108x48 | 未开启*@430,248 96x44 | 返回进度章@68,28 108x44 | 回村子@534,248 96x44
+stages after 下一章 2
+press 上一章 -> 上一章 (stages -> stages, on=true)
+w8-v02-stages-prev-844x390.png scene=stages overflow=0 phase=- edge=49,40,34,255 | 203,194,124,255 | 67,89,79,255
+  texts 森林冒险 / 上一章 / 第 1 / 9 章 / 下一章 / 三年级 · 森林冒险：已学 0/16 个词 / 还有 16 个没在学堂学过  战斗 0/5 关通过  熟练 0/28  到期 0 / 林缘小径 / 进行中 / 本关已学 0/5 个词 / 小战斗 0 胜 / 这一关还有 5 个新词可以去学堂学 / ? / ? / ? / ? / ? / ? / 去学堂 / 小战斗 / 回村子
+  hits 上一章*@64,312 108x48 | 下一章@180,312 108x48 | 去学堂@296,312 108x48 | 小战斗@412,312 108x48 | 回村子@68,28 100x44
+stages after 上一章 1
+press 下一章 -> 下一章 (stages -> stages, on=true)
+press 上一章 -> 上一章 (stages -> stages, on=true)
+press 小战斗 -> 小战斗 (stages -> battle, on=true)
+w8-v02-battle-844x390.png scene=battle overflow=0 phase=- edge=162,202,191,255 | 171,205,193,255 | 160,202,193,255
+  texts 学习者 / 林缘小径 / 可以攻击、格挡、治疗，或打出一张技能卡。技能卡会从这一章的词里抽题。 / 盾击 ★1 / 基础招式 / 基础招式 / 攻击 / 格挡 / 治疗
+  hits 盾击 ★1@360,156 64x52 | 基础招式@432,156 64x52 | 基础招式@504,156 64x52 | 攻击@220,300 128x48 | 格挡@360,300 128x48 | 治疗@500,300 128x48
+press 攻击 -> 攻击 (battle -> battle, on=true)
+w8-v02-battle-question-844x390.png scene=battle overflow=0 phase=- edge=162,202,191,255 | 171,205,193,255 | 160,202,193,255
+  texts 学习者 / 林缘小径 / 攻击之前先答题：答对是完整效果，答错只有减弱的基础效果。 / 盾击 / ★1 / 4 / 基础招式 / 5 / 基础招式 / 6 / 「n. 太阳」用英语怎么说？ / red / sun / fish
+  hits red@76,278 160x48 | sun@252,278 160x48 | fish@428,278 160x48
+battle chain question hp=40/42 q=meaning || choose hp=32/37 q=- || choose hp=32/37 q=- || choose hp=32/37 q=- || question hp=32/37 q=meaning || choose hp=24/32 q=- || choose hp=24/32 q=- || choose hp=24/32 q=- || question hp=24/32 q=meaning || choose hp=16/27 q=- || choose hp=16/27 q=- || choose hp=16/27 q=- || question hp=16/27 q=meaning || choose hp=8/22 q=- || choose hp=8/22 q=- || choose hp=8/22 q=- || question hp=8/22 q=meaning || won hp=0/22 q=- || after-arm:battle-results
+w8-v02-battle-results-844x390.png scene=battle-results overflow=0 phase=- edge=31,102,87,255 | 255,244,220,255 | 50,60,52,255
+  texts 胜利！ / 太棒了！ / 答对 5 题 / 一共 5 题 / 本场单词 / sun / 太阳 / red / 红色的 / discover / 发现 / map / 地图 / path / 小路 / 这一关还有 5 个新词可以去学堂学 / 经验 / +经验 / 卡牌升级 / 盾击 / ★1 到 ★2 / 升级了！ / ★2 / 获得物品 / 新外观 · 林间斗篷 / 已经穿上啦，可以去衣柜看看 / 新技能卡 / 坚守 / 继续
+  hits 继续@628,308 160x48
+press 继续 -> 继续 (battle-results -> stages, on=true)
+exam words learned 56 cards via learnWord on 2026-01-15, then the map button
+exam save marked (chapterProgress pep_g3_01 and pep_g3_02 cleared, then the map button)
+exam scan 0 forest_adventure atlas=true frames=- hits=上一章 / 下一章 / 去学堂 / 小战斗 / 回村子 fail=
+press 下一章 -> 下一章 (stages -> stages, on=true)
+exam scan 1 pep_g3_01 atlas=true frames=- hits=上一章 / 下一章 /  /  /  /  /  /  / 去学堂 / 再战 / 回村子 fail=
+press 下一章 -> 下一章 (stages -> stages, on=true)
+exam scan 2 pep_g3_02 atlas=true frames=map_node_exam_midterm_ready hits=上一章 / 下一章 / 期中挑战 /  /  /  /  /  /  / 去学堂 / 再战 / 回村子 fail=
+w8-v02-stages-exam-844x390.png scene=stages overflow=0 phase=- edge=62,106,53,255 | 189,197,135,255 | 127,162,89,255
+  texts 动物好朋友 / 上一章 / 第 3 / 9 章 / 下一章 / 三年级 · 动物好朋友：已学 28/28 个词 / 这一章打完啦，真棒！  战斗 5/5 关通过  熟练 0/28  到期 28 / 外婆家门口 / 已通过 / 本关已学 6/6 个词 / 小战斗 1 胜 / grandmother / grandpa / have / me / mother / mum / 去学堂 / 再战 / 回村子
+  hits 上一章@64,312 108x48 | 下一章@180,312 108x48 | 期中挑战@528,312 148x48 | @28,278 76x44 | @112,278 76x44 | @196,278 76x44 | @280,278 76x44 | @364,278 76x44 | @448,278 76x44 | 去学堂@296,312 108x48 | 再战@412,312 108x48 | 回村子@68,28 100x44
+press 期中挑战 -> 期中挑战 (stages -> exam-battle, on=true)
+w8-v02-exam-intro-844x390.png scene=exam-battle overflow=0 phase=- edge=156,118,87,255 | 255,244,220,255 | 232,217,191,255
+  texts 三年级上 · 期中挑战 / 这次练习会用到最近学过的单词，看看哪些已经记住，哪些还要再练。准备好了就可以开始。
+  hits 开始答题@250,292 180x48
+press 开始答题 -> 开始答题 (exam-battle -> exam-battle, on=true)
+w8-v02-exam-battle-844x390.png scene=exam-battle overflow=0 phase=- edge=156,118,87,255 | 156,118,87,255 | 232,217,191,255
+  texts 这次练习会用到最近学过的单词，看看哪些已经记住，哪些还要再练。准备好了就可以开始。 / 期中挑战 / 攻击
+  hits @28,330 76x44
+press 重新开始 -> 重新开始 (title -> grades, on=true)
+w8-v02-grades-844x390.png scene=grades overflow=0 phase=- edge=35,73,58,255 | 227,214,173,255 | 35,68,59,255
+  texts 先选年级 / 先选年级。三到六年级可以多选。选好以后再起名字。 / 三年级 / 四年级 / 五年级 / 六年级 / 至少选一个年级 / 选好了，去起名字 / 返回
+  hits 三年级@150,140 120x52 | 四年级@282,140 120x52 | 五年级@414,140 120x52 | 六年级@546,140 120x52 | 选好了，去起名字*@250,248 240x52 | 返回@56,18 100x44
+press 三年级 -> 三年级 (grades -> grades, on=true)
+w8-v02-grades-ready-844x390.png scene=grades overflow=0 phase=- edge=35,73,58,255 | 227,214,173,255 | 35,68,59,255
+  texts 先选年级 / 先选年级。三到六年级可以多选。选好以后再起名字。 / 三年级 / 四年级 / 五年级 / 六年级 / 已选 三年级。 / 选好了，去起名字 / 返回
+  hits 三年级@150,140 120x52 | 四年级@282,140 120x52 | 五年级@414,140 120x52 | 六年级@546,140 120x52 | 选好了，去起名字@250,248 240x52 | 返回@56,18 100x44
+press 选好了 -> 选好了，去起名字 (grades -> create, on=true)
+w8-v02-create-844x390.png scene=create overflow=0 phase=- edge=149,110,82,255 | 254,243,218,255 | 154,123,96,255
+  texts 战士 / 冲到前面，边打边挡。 / 攻击和格挡更强 / 起始卡 盾击 / 法师 / 技能更亮，要记得攒能量。 / 技能伤害更高 / 起始卡 火花 / 游侠 / 脚步轻快，能量来得快。 / 答对能量多，每场能换一次牌 / 起始卡 瞄准 / 治愈师 / 会照顾同伴，也能照顾自己。 / 治疗更强 / 起始卡 光愈 / 藏起来的职业 / 打败期末大 Boss 后解锁 / 探险家 / 先看清前面的路，再出手。 / 能先看到下一题考什么 / 起始卡 探路杖 / 选一个职业 / 点一张职业卡片。名字写在页面的名字栏里。 / 已选年级：三年级 / 年级可以稍后在给家长里改。 / 重选年级 / 学习者 / 出发
+  hits @56,64 150x112 | @214,64 150x112 | @372,64 150x112 | @56,184 150x112 | @214,184 150x112 | @372,184 150x112 | 重选年级@684,312 112x48 | 出发@546,312 130x48
+press 给家长 -> 给家长 (overworld -> guide, on=true)
+w8-v02-guide-setup-844x390.png scene=guide overflow=0 phase=- edge=238,223,191,255 | 255,244,220,255 | 238,223,191,255
+  texts 给家长 / 改年级和改每日目标前要先输入家长密码。这是为了避免孩子不小心改掉。清掉小程序数据后要重新设置。这不是安全登录。 / 取消 / 先设一个家长密码 / ○○○○ / 4 位数字。不会显示明文。 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 清除 / 0 / 确认
+  hits 取消@176,300 100x44 | 1@484,70 48x48 | 2@540,70 48x48 | 3@596,70 48x48 | 4@484,126 48x48 | 5@540,126 48x48 | 6@596,126 48x48 | 7@484,182 48x48 | 8@540,182 48x48 | 9@596,182 48x48 | 清除@452,238 80x48 | 0@540,238 48x48 | 确认@596,238 80x48
+guide noteRight=414 keyLeft=452 keyRight=676 确认=80x48
+saved w8-v02-overworld-844x390.png w8-v02-skills-844x390.png w8-v02-learn-844x390.png w8-v02-learn-ready-844x390.png w8-v02-learn-study-844x390.png w8-v02-stages-844x390.png w8-v02-stages-next-844x390.png w8-v02-stages-prev-844x390.png w8-v02-battle-844x390.png w8-v02-battle-question-844x390.png w8-v02-battle-results-844x390.png w8-v02-stages-exam-844x390.png w8-v02-exam-intro-844x390.png w8-v02-exam-battle-844x390.png w8-v02-grades-844x390.png w8-v02-grades-ready-844x390.png w8-v02-create-844x390.png w8-v02-guide-setup-844x390.png
+closeout r13 done. Chrome adapter paintFrame replay, not WeChat, not a phone.

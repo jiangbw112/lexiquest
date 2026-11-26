@@ -214,8 +214,8 @@ async function main() {
     log(`runtime Chrome canvas, not WeChat DevTools, not a phone. viewport 844x390. boot ${booted}`);
     if (booted !== "title") problem(`title did not boot: ${booted}`);
 
-    await press("继续冒险");
-    const village = await paint("w8-r13-overworld-844x390.png");
+    await press("继续学习");
+    const village = await paint("w8-v02-overworld-844x390.png");
     const villageNames = ["换角色", "学堂", "对战", "给家长", "词卡册", "复习桌", "同机练习", "技能", "衣柜"];
     for (const name of villageNames) {
       const hit = village.hits.find((item) => item.text === name);
@@ -224,7 +224,7 @@ async function main() {
     }
 
     await press("技能");
-    const skills = await paint("w8-r13-skills-844x390.png");
+    const skills = await paint("w8-v02-skills-844x390.png");
     const hint = skills.texts.find((item) => item.text.includes("卡组分开存"));
     const slash = skills.texts.find((item) => item.text.includes("旋风斩") || item.text.includes("词灵推远"));
     const job = skills.hits.find((item) => item.text === "换职业");
@@ -235,7 +235,7 @@ async function main() {
     await press("返回");
 
     await press("学堂");
-    const learn = await paint("w8-r13-learn-844x390.png");
+    const learn = await paint("w8-v02-learn-844x390.png");
     const confirm = learn.hits.find((item) => item.text === "确认");
     if (!confirm) problem("确认 is not a visible control");
     else if (confirm.on) problem("确认 is enabled before a chapter is chosen");
@@ -243,7 +243,7 @@ async function main() {
     const chapterHit = learn.hits.find((item) => item.text.includes("森林") || item.text.includes("朋友"));
     if (!chapterHit) problem("no chapter button on the academy");
     else await press(chapterHit.text);
-    const learnReady = await paint("w8-r13-learn-ready-844x390.png");
+    const learnReady = await paint("w8-v02-learn-ready-844x390.png");
     const confirmOn = learnReady.hits.find((item) => item.text === "确认");
     if (!confirmOn || !confirmOn.on) problem("确认 stayed disabled after a chapter click");
     else {
@@ -254,7 +254,7 @@ async function main() {
       });
       log(`learn confirm -> ${JSON.stringify(afterLearn)}`);
       if (afterLearn.key !== "learn" || afterLearn.picking !== false) problem(`确认 did not leave the picker ${JSON.stringify(afterLearn)}`);
-      await paint("w8-r13-learn-study-844x390.png");
+      await paint("w8-v02-learn-study-844x390.png");
     }
     if ((await page.evaluate(() => window.__close.runtime.active().key)) !== "overworld") await press("返回");
     if ((await page.evaluate(() => window.__close.runtime.active().key)) !== "overworld") {
@@ -263,7 +263,7 @@ async function main() {
     }
 
     await press("对战");
-    const stages = await paint("w8-r13-stages-844x390.png");
+    const stages = await paint("w8-v02-stages-844x390.png");
     const prev = stages.hits.find((item) => item.text === "上一章");
     const firstChapter = chapterOf(stages);
     if (!prev) problem("上一章 is not a visible control");
@@ -271,14 +271,14 @@ async function main() {
     else if (prev.on) problem("上一章 is enabled on the first chapter");
     log(`stages chapter ${firstChapter}`);
     await press("下一章");
-    const nextChapter = await paint("w8-r13-stages-next-844x390.png");
+    const nextChapter = await paint("w8-v02-stages-next-844x390.png");
     const second = chapterOf(nextChapter);
     const prevOn = nextChapter.hits.find((item) => item.text === "上一章");
     log(`stages after 下一章 ${second}`);
     if (second == null || firstChapter == null || second <= firstChapter) problem(`下一章 did not advance ${firstChapter} -> ${second}`);
     if (!prevOn || !prevOn.on) problem("上一章 stayed disabled after 下一章");
     await press("上一章");
-    const backChapter = await paint("w8-r13-stages-prev-844x390.png");
+    const backChapter = await paint("w8-v02-stages-prev-844x390.png");
     const third = chapterOf(backChapter);
     log(`stages after 上一章 ${third}`);
     if (third !== firstChapter) problem(`上一章 did not return ${second} -> ${third}, expected ${firstChapter}`);
@@ -288,7 +288,11 @@ async function main() {
     const fight = await press("小战斗");
     if (!fight.ok || fight.key !== "battle") problem(`小战斗 did not open battle (${fight.key})`);
     else {
-      const battle = await paint("w8-r13-battle-844x390.png");
+      const battle = await paint("w8-v02-battle-844x390.png");
+      if (battle.hits.some((item) => item.text === "攻击") && !battle.texts.some((item) => item.text.includes("意思") || item.text.includes("？"))) {
+        await press("攻击");
+        await paint("w8-v02-battle-question-844x390.png");
+      }
       const attack = battle.hits.find((item) => item.text === "攻击");
       if (!attack) problem("battle has no 攻击 button");
       else if (/^\d/.test(attack.text)) problem(`battle shortcut ${attack.text}`);
@@ -353,7 +357,7 @@ async function main() {
       log(`battle chain ${played.notes.join(" || ")}`);
       if (played.key !== "battle-results") problem(`battle-results not entered, scene=${played.key}`);
       else {
-        await paint("w8-r13-battle-results-844x390.png");
+        await paint("w8-v02-battle-results-844x390.png");
         let closed = await press("继续");
         if (!closed.ok) closed = await press("回地图");
         if (!closed.ok) closed = await press("看结局");
@@ -399,7 +403,7 @@ async function main() {
       });
       log(`exam scan ${step} ${peek.chapter} atlas=${peek.atlas} frames=${peek.frames.join(",") || "-"} hits=${peek.hits.join(" / ")} fail=${(peek.failures || []).join(" ; ")}`);
       if (peek.hits.some((item) => item.includes("期中挑战")) || peek.frames.length) {
-        examShot = await paint("w8-r13-stages-exam-844x390.png");
+        examShot = await paint("w8-v02-stages-exam-844x390.png");
         break;
       }
       const advanced = await press("下一章");
@@ -408,19 +412,14 @@ async function main() {
     if (!examShot || !examShot.hits.some((item) => item.text.includes("期中挑战"))) problem("期中挑战 never became a map button");
     else {
       await press("期中挑战");
-      let exam = await paint("w8-r13-exam-intro-844x390.png");
+      let exam = await paint("w8-v02-exam-intro-844x390.png");
       if (exam.key === "exam-battle" && !exam.hits.some((item) => item.text === "攻击" || item.text === "回地图")) {
-        await page.evaluate(() => {
-          const { game, runtime } = window.__close;
-          const scene = runtime.active();
-          game.pressFrame(scene, { w: 844, h: 390 }, 420, 180);
-          if (scene.update) scene.update(0, 40);
-        });
-        exam = await paint("w8-r13-exam-battle-844x390.png");
+        await press("开始答题");
+        exam = await paint("w8-v02-exam-battle-844x390.png");
       }
       if (exam.hits.some((item) => item.text === "攻击")) {
         await press("攻击");
-        const asked = await paint("w8-r13-exam-question-844x390.png");
+        const asked = await paint("w8-v02-exam-question-844x390.png");
         exam = asked;
       }
       const joined = exam.texts.map((item) => item.text).join(" ");
@@ -429,36 +428,36 @@ async function main() {
     }
 
     await page.evaluate(() => window.__close.runtime.start("title"));
-    await press("新的冒险");
-    const grades = await paint("w8-r13-grades-844x390.png");
+    await press("重新开始");
+    const grades = await paint("w8-v02-grades-844x390.png");
     const proceed = grades.hits.find((item) => item.text.includes("选好了"));
     if (!proceed) problem("选好了，去起名字 is not a visible control");
     else if (proceed.on) problem("grade proceed is enabled before a grade is chosen");
     else if (proceed.w < 44 || proceed.h < 44) problem(`grade proceed small ${proceed.w}x${proceed.h}`);
     await press("三年级");
-    const gradesReady = await paint("w8-r13-grades-ready-844x390.png");
+    const gradesReady = await paint("w8-v02-grades-ready-844x390.png");
     const proceedOn = gradesReady.hits.find((item) => item.text.includes("选好了"));
     if (!proceedOn || !proceedOn.on) problem("选好了 stayed disabled after 三年级");
     else {
       await press("选好了");
-      const created = await paint("w8-r13-create-844x390.png");
+      const created = await paint("w8-v02-create-844x390.png");
       if (created.key !== "create") problem(`create not entered, scene=${created.key}`);
     }
 
     await page.evaluate(() => window.__close.runtime.start("overworld"));
     await press("给家长");
-    const guide = await paint("w8-r13-guide-setup-844x390.png");
+    const guide = await paint("w8-v02-guide-setup-844x390.png");
     const note = guide.texts.find((item) => item.text.includes("不是安全登录"));
-    const keys = guide.hits.filter((item) => /^[0-9]$/.test(item.text) || ["退格", "再输", "确定"].includes(item.text));
-    const again = keys.find((item) => item.text === "再输");
+    const keys = guide.hits.filter((item) => /^[0-9]$/.test(item.text) || item.text === "清除" || item.text === "确认");
+    const okKey = keys.find((item) => item.text === "确认");
     if (!note || keys.length < 10) problem("guide note or keypad missing");
     else {
       const keyLeft = Math.min(...keys.map((item) => item.x));
       const keyRight = Math.max(...keys.map((item) => item.x + item.w));
-      log(`guide noteRight=${note.x + note.w} keyLeft=${keyLeft} keyRight=${keyRight} 再输=${again && again.w}x${again && again.h}`);
+      log(`guide noteRight=${note.x + note.w} keyLeft=${keyLeft} keyRight=${keyRight} 确认=${okKey && okKey.w}x${okKey && okKey.h}`);
       if (note.x + note.w + 8 > keyLeft) problem("guide note overlaps the keypad");
       if (keyRight < 844 * 0.72) problem(`guide keypad leaves the right empty ${keyRight}`);
-      if (!again || again.w < 52 || again.h < 44) problem("再输 is truncated or small");
+      if (!okKey || okKey.w < 52 || okKey.h < 44) problem("确认 is truncated or small");
     }
 
     log(`saved ${saved.join(" ")}`);
@@ -467,12 +466,12 @@ async function main() {
   } finally {
     await browser.close();
     server.close();
-    fs.writeFileSync(path.join(evidence, "w8-r13-closeout.log"), `${lines.join("\n")}\n`);
+    fs.writeFileSync(path.join(evidence, "w8-v02-closeout.log"), `${lines.join("\n")}\n`);
   }
 }
 
 main().catch((error) => {
   console.error(error);
-  fs.writeFileSync(path.join(__dirname, "..", "evidence", "w8-r13-closeout.log"), `${lines.join("\n")}\n${error && error.stack || error}\n`);
+  fs.writeFileSync(path.join(__dirname, "..", "evidence", "w8-v02-closeout.log"), `${lines.join("\n")}\n${error && error.stack || error}\n`);
   process.exit(1);
 });

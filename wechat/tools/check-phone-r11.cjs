@@ -226,19 +226,19 @@ async function main() {
     const title = await show("title");
     assert.strictEqual(title.key, "title");
     assert.deepStrictEqual(title.missing, []);
-    for (const [w, h, name] of [[1280, 800, "w8-r11-title-1280x800.png"], [844, 390, "w8-r11-title-844x390.png"]]) {
+    for (const [w, h, name] of [[1280, 800, "w8-v02-title-1280x800.png"], [844, 390, "w8-v02-title-844x390.png"]]) {
       const shot = await paint(name, w, h);
       const labels = shot.texts.map((item) => item.text);
       assert.ok(labels.includes("词境练习家"), labels.join("|"));
       assert.ok(labels.includes("LexiQuest"));
       assert.ok(labels.some((item) => item.includes("认识单词")));
-      assert.ok(labels.includes("继续冒险") || labels.includes("开始冒险"));
-      assert.ok(labels.includes("新的冒险"));
+      assert.ok(labels.includes("继续学习"), labels.join("|"));
+      assert.ok(labels.includes("重新开始"), labels.join("|"));
       assert.ok(labels.includes("换角色"));
       assert.ok(!labels.some((item) => /Enter|Esc|\sN$/.test(item)), labels.join("|"));
       const brand = shot.texts.find((item) => item.text === "词境练习家");
       const tag = shot.texts.find((item) => item.text.includes("认识单词"));
-      const buttons = shot.hits.filter((item) => ["继续冒险", "开始冒险", "新的冒险", "换角色"].includes(item.text));
+      const buttons = shot.hits.filter((item) => ["继续学习", "重新开始", "换角色"].includes(item.text));
       assert.ok(tag.y > brand.y + brand.h - 1);
       assert.ok(buttons.every((item) => item.y > tag.y + tag.h - 1));
       assert.ok(buttons.every((item) => item.w >= 44 && item.h >= 44 && inside(item, w, h)));
@@ -248,28 +248,33 @@ async function main() {
     }
 
     await show("guide");
-    for (const [w, h, name] of [[1280, 800, "w8-r11-guide-setup-1280x800.png"], [844, 390, "w8-r11-guide-setup-844x390.png"]]) {
+    for (const [w, h, name] of [[1280, 800, "w8-v02-guide-setup-1280x800.png"], [844, 390, "w8-v02-guide-setup-844x390.png"]]) {
       const shot = await paint(name, w, h);
-      const again = shot.hits.find((item) => item.text === "再输" || item.text === "pin:再输");
-      assert.ok(again, shot.hits.map((item) => item.text).join("|"));
-      assert.ok(again.w >= 52 && again.h >= 44 && inside(again, w, h), JSON.stringify(again));
+      const okKey = shot.hits.find((item) => item.text === "确认");
+      const clearKey = shot.hits.find((item) => item.text === "清除");
+      assert.ok(okKey, shot.hits.map((item) => item.text).join("|"));
+      assert.ok(clearKey, shot.hits.map((item) => item.text).join("|"));
+      assert.ok(okKey.w >= 52 && okKey.h >= 44 && inside(okKey, w, h), JSON.stringify(okKey));
+      assert.ok(clearKey.w >= 52 && clearKey.h >= 44 && inside(clearKey, w, h), JSON.stringify(clearKey));
       const note = shot.texts.find((item) => item.text.includes("不是安全登录"));
-      const keys = shot.hits.filter((item) => String(item.text).startsWith("pin:") || /^[0-9]$/.test(item.text) || ["退格", "再输", "确定"].includes(item.text));
+      const keys = shot.hits.filter((item) => /^[0-9]$/.test(item.text) || item.text === "清除" || item.text === "确认");
       const keyLeft = Math.min(...keys.map((item) => item.x));
       const keyRight = Math.max(...keys.map((item) => item.x + item.w));
       assert.ok(note && note.x + note.w + 8 <= keyLeft, `note still covers the keypad ${note && note.x + note.w} ${keyLeft}`);
       assert.ok(keyRight > w * 0.72, `keypad leaves the right side empty ${keyRight}`);
       assert.ok(!dark(shot.left) && !dark(shot.right));
-      assert.ok(shot.texts.some((item) => item.text.includes("再输入一次") || item.text.includes("再输")));
+      assert.ok(!shot.texts.some((item) => /\d{4}/.test(item.text) && item.text.includes("2580")));
     }
 
     for (const digit of ["2", "5", "8", "0"]) {
       const pressed = await press(digit, 844, 390);
       assert.strictEqual(pressed.ok, true, JSON.stringify(pressed));
     }
-    await paint("w8-r11-guide-filled-844x390.png", 844, 390);
-    await paint("w8-r11-guide-filled-1280x800.png", 1280, 800);
-    assert.strictEqual((await press("再输", 844, 390)).ok, true);
+    await paint("w8-v02-guide-filled-844x390.png", 844, 390);
+    await paint("w8-v02-guide-filled-1280x800.png", 1280, 800);
+    assert.strictEqual((await press("确认", 844, 390)).ok, true);
+    const reenter = await paint("w8-v02-guide-reenter-844x390.png", 844, 390);
+    assert.ok(reenter.texts.some((item) => item.text.includes("再输入一次")), reenter.texts.map((item) => item.text).join("|"));
     for (const digit of ["2", "5", "8", "0"]) assert.strictEqual((await press(digit, 844, 390)).ok, true);
     const ready = await page.evaluate(() => ({
       pin: document.getElementById("pin-input").value,
@@ -278,13 +283,13 @@ async function main() {
     log(`fields ${JSON.stringify(ready)}`);
     assert.strictEqual(ready.pin, "2580");
     assert.strictEqual(ready.again, "2580");
-    assert.strictEqual((await press("确定", 844, 390)).ok, true);
+    assert.strictEqual((await press("确认", 844, 390)).ok, true);
     const unlocked = await page.waitForFunction(() => window.__phone.collect(window.__phone.runtime.active()).some((item) => item.includes("学习进度")), null, { timeout: 15000 }).then(() => true).catch(() => false);
     assert.strictEqual(unlocked, true, "pin setup did not unlock");
     const stored = await page.evaluate(() => localStorage.getItem("lexiquest.parent-pin.v1"));
     assert.ok(stored && stored.length > 0);
     log(`stored ${stored.length}`);
-    for (const [w, h, name] of [[1280, 800, "w8-r11-guide-unlocked-1280x800.png"], [844, 390, "w8-r11-guide-unlocked-844x390.png"]]) {
+    for (const [w, h, name] of [[1280, 800, "w8-v02-guide-unlocked-1280x800.png"], [844, 390, "w8-v02-guide-unlocked-844x390.png"]]) {
       const shot = await paint(name, w, h);
       const labels = shot.texts.map((item) => item.text).join("\n");
       assert.ok(!labels.includes("这台电脑"), labels);
@@ -295,7 +300,7 @@ async function main() {
 
     const wardrobe = await show("wardrobe");
     assert.strictEqual(wardrobe.key, "wardrobe");
-    for (const [w, h, name] of [[1280, 800, "w8-r11-wardrobe-1280x800.png"], [844, 390, "w8-r11-wardrobe-844x390.png"]]) {
+    for (const [w, h, name] of [[1280, 800, "w8-v02-wardrobe-1280x800.png"], [844, 390, "w8-v02-wardrobe-844x390.png"]]) {
       const shot = await paint(name, w, h);
       const by = (text) => shot.texts.find((item) => item.text === text || item.text.includes(text));
       const heading = by("衣柜");
@@ -305,7 +310,7 @@ async function main() {
       const worn = by("穿着");
       const title = by("称号");
       assert.ok(heading && wreath && owned && card && worn && title);
-      assert.ok(heading.y < wreath.y && wreath.y < owned.y && owned.y < card.y && card.y < title.y, JSON.stringify(shot.texts.map((item) => [item.text, item.y])));
+      assert.ok(heading.y < owned.y && owned.y < wreath.y && wreath.y < card.y && card.y < title.y, JSON.stringify(shot.texts.map((item) => [item.text, item.y])));
       const back = shot.hits.find((item) => item.text === "返回");
       assert.ok(back && back.h >= 44 && inside(back, w, h));
       assert.ok(!shot.texts.some((item) => item.text.includes("Esc") || item.text.includes("Enter")));
@@ -320,13 +325,13 @@ async function main() {
     await browser.close();
     server.close();
     fs.mkdirSync(evidence, { recursive: true });
-    fs.writeFileSync(path.join(evidence, "w8-r11-phone.log"), `${lines.join("\n")}\n`);
+    fs.writeFileSync(path.join(evidence, "w8-v02-phone.log"), `${lines.join("\n")}\n`);
   }
 }
 
 main().catch((error) => {
   console.error(error);
   fs.mkdirSync(path.join(__dirname, "..", "evidence"), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, "..", "evidence", "w8-r11-phone.log"), `${lines.join("\n")}\n${error && error.stack || error}\n`);
+  fs.writeFileSync(path.join(__dirname, "..", "evidence", "w8-v02-phone.log"), `${lines.join("\n")}\n${error && error.stack || error}\n`);
   process.exit(1);
 });

@@ -6,6 +6,7 @@
 
 import { screenFontPx, type ViewBox } from "./coords";
 import type { GameNode } from "./node";
+import { composeV2 } from "./phone-v02";
 
 export interface PhoneUnit {
   node: GameNode;
@@ -20,6 +21,8 @@ export interface PhoneUnit {
   h: number;
   lines: string[];
   onPaper?: boolean;
+  /** Where the visible label sits inside the control. */
+  label?: "center" | "sign";
   designX: number;
   designY: number;
   design: { x: number; y: number; w: number; h: number };
@@ -31,6 +34,12 @@ export interface PhoneImage {
   w: number;
   h: number;
   node?: GameNode;
+  placed?: boolean;
+}
+
+export interface PhoneChrome {
+  frame: string;
+  box: { x: number; y: number; w: number; h: number };
 }
 
 export interface PhonePlate {
@@ -68,6 +77,9 @@ export interface PhoneHero {
 export interface PhoneLayout {
   hero: PhoneHero | null;
   skipMasks: boolean;
+  chrome?: PhoneChrome[];
+  /** Drawn after chrome when the bitmap is loaded. The plaque already contains its letters. */
+  logo?: { x: number; y: number; w: number; h: number };
 }
 
 const cameras = new WeakMap<object, PhoneLayout>();
@@ -98,9 +110,17 @@ export function wechatCopy(text: string): string {
   const role = text.match(/^[1-6] (战士|法师|游侠|治愈师|探险家|发明家)$/);
   if (role) return role[1];
   if (text.includes("按 1 到 6")) return "点一张职业卡片。名字写在页面的名字栏里。";
-  if (text === "新的冒险 N") return "新的冒险";
-  if (text.endsWith(" Enter")) return text.slice(0, -" Enter".length);
-  if (text.endsWith(" Esc")) return text.slice(0, -" Esc".length);
+  if (text.endsWith(" Enter")) text = text.slice(0, -" Enter".length);
+  if (text.endsWith(" Esc")) text = text.slice(0, -" Esc".length);
+  if (text.endsWith(" N")) text = text.slice(0, -" N".length);
+  if (text.includes("新的冒险从选年级")) return text.replace("新的冒险从选年级开始", "先选年级");
+  if (text === "新的冒险") return "重新开始";
+  if (text === "开始冒险") return "继续学习";
+  if (text.includes("继续冒险")) return text.replaceAll("继续冒险", "继续学习");
+  if (text === "键盘拼写") return "拼一拼";
+  if (text === "期中守护者" || text === "期中练习") return "期中挑战";
+  if (/^第\s*\d+\s*段$/.test(text)) return "";
+  if (/阶段\s*\d+\s*\/\s*\d+/.test(text)) return text.replace(/阶段\s*\d+\s*\/\s*\d+/, "").trim();
   return text;
 }
 
@@ -132,11 +152,26 @@ export function isBackdrop(node: GameNode): boolean {
   return node.type === "image" && node.displaySized;
 }
 
-export function coverBox(view: ViewBox): { x: number; y: number; w: number; h: number } {
+export function coverFocusFor(key: string): { x: number; y: number } {
+  if (key === "overworld") return { x: 0.48, y: 0.58 };
+  if (key === "title") return { x: 0.5, y: 0.48 };
+  if (key === "stages") return { x: 0.42, y: 0.55 };
+  if (key === "guide") return { x: 0.5, y: 0.45 };
+  if (key === "battle-results") return { x: 0.55, y: 0.5 };
+  return { x: 0.5, y: 0.5 };
+}
+
+export function coverBox(view: ViewBox, focus = { x: 0.5, y: 0.5 }): { x: number; y: number; w: number; h: number } {
   const scale = Math.max(view.w / 1280, view.h / 800);
   const w = 1280 * scale;
   const h = 800 * scale;
-  return { x: (view.w - w) / 2, y: (view.h - h) / 2, w, h };
+  let x = view.w / 2 - focus.x * w;
+  let y = view.h / 2 - focus.y * h;
+  if (x > 0) x = 0;
+  if (y > 0) y = 0;
+  if (x + w < view.w) x = view.w - w;
+  if (y + h < view.h) y = view.h - h;
+  return { x, y, w, h };
 }
 
 interface Safe {
@@ -916,12 +951,6 @@ function composeRest(ctx: PhoneContext): PhoneLayout {
 }
 
 export function composePhone(ctx: PhoneContext): PhoneLayout | null {
-  let layout: PhoneLayout | null = null;
-  if (ctx.key === "title") layout = composeTitle(ctx);
-  else if (ctx.key === "guide") layout = composeGuide(ctx);
-  else if (ctx.key === "wardrobe") layout = composeWardrobe(ctx);
-  else if (ctx.key === "create") layout = composeCreate(ctx);
-  else if (usesPhone(ctx.key)) layout = composeRest(ctx);
-  if (!layout) return null;
-  return parkLeftovers(ctx, layout);
+  if (!usesPhone(ctx.key)) return null;
+  return parkLeftovers(ctx, composeV2(ctx));
 }

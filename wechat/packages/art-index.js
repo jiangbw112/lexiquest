@@ -14,6 +14,7 @@ module.exports = {
   "assets/warm/backgrounds/bg_room_2x.webp": "packages/art-world/backgrounds__bg_room_2x.webp",
   "assets/warm/atlas/atlas_wardrobe.png": "packages/art-ui/atlas__atlas_wardrobe.webp",
   "assets/warm/logo/logo_title_2x.webp": "packages/art-world/logo__logo_title_2x.webp",
+  "assets/warm/logo/logo_lexiquest_v02.png": "packages/art-ui/logo_lexiquest_v02.png",
   "assets/warm/backgrounds/bg_learn_blur_2x.webp": "packages/art-world/backgrounds__bg_learn_blur_2x.webp",
   "assets/warm/backgrounds/bg_parent_paper_2x.webp": "packages/art-world/backgrounds__bg_parent_paper_2x.webp",
   "assets/warm/atlas/atlas_parent.png": "packages/art-world/atlas__atlas_parent.webp",

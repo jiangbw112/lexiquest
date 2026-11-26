@@ -1,0 +1,16 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone
+shot w8-v02-title-1280x800.png overflow=0 left=34,74,51,255 right=35,68,59,255 outside=[]
+shot w8-v02-title-844x390.png overflow=0 left=72,119,57,255 right=35,68,59,255 outside=[]
+shot w8-v02-guide-setup-1280x800.png overflow=0 left=237,221,190,255 right=238,223,191,255 outside=[]
+shot w8-v02-guide-setup-844x390.png overflow=0 left=238,223,191,255 right=238,223,191,255 outside=[]
+shot w8-v02-guide-filled-844x390.png overflow=0 left=238,223,191,255 right=238,223,191,255 outside=[]
+shot w8-v02-guide-filled-1280x800.png overflow=0 left=237,221,190,255 right=238,223,191,255 outside=[]
+shot w8-v02-guide-reenter-844x390.png overflow=0 left=238,223,191,255 right=238,223,191,255 outside=[]
+fields {"pin":"2580","again":"2580"}
+stored 172
+shot w8-v02-guide-unlocked-1280x800.png overflow=0 left=237,221,190,255 right=238,223,191,255 outside=[]
+shot w8-v02-guide-unlocked-844x390.png overflow=0 left=238,223,191,255 right=238,223,191,255 outside=[]
+shot w8-v02-wardrobe-1280x800.png overflow=0 left=149,110,82,255 right=155,123,95,255 outside=[]
+shot w8-v02-wardrobe-844x390.png overflow=0 left=149,110,82,255 right=154,123,96,255 outside=[]
+wardrobe texts [["衣柜",168,20,120,36],["花环戴在帽外。战士只藏羽饰。",80,120,196,14],["村子只见花环。",80,140,98,14],["已有装备",80,98,64,16],["整",152,160,24,16],["旅行短衣",80,160,64,16],["就是职业原本的衣服",80,182,126,14],["穿着",364,194,88,44],["称号。一次只戴一个。",80,222,160,16],["还没有称号。",80,244,84,14],["返回",90,32,32,16]]
+phone r11 three pages done. Chrome adapter, not WeChat, not a phone.

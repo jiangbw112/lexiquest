@@ -1,0 +1,926 @@
+/**
+ * 原来：横屏把按钮收成一排米色方块，村子建筑和羊皮纸都不在画面上。
+ * 现在：按已审的 v0.2 844×390 逻辑像素排标题、村子、家长密码、衣柜、学堂、年级、建角色、技能、关卡、战斗、结算和考试。
+ * 为什么：这是 Bowen 2026-11-26 审过的横屏稿。坐标是建议，安全区不是实机测量。九宫格仍用仓库里的 @2x 切线，不改契约。
+ */
+
+import type { GameNode } from "./node";
+import type { PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhoneUnit } from "./phone";
+
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+function scaler(view: { w: number; h: number }) {
+  const sx = view.w / 844;
+  const sy = view.h / 390;
+  return {
+    sx,
+    sy,
+    box(x: number, y: number, w: number, h: number): Box {
+      return { x: x * sx, y: y * sy, w: Math.max(1, w * sx), h: Math.max(1, h * sy) };
+    },
+  };
+}
+
+function place(unit: PhoneUnit, box: Box, font: number): void {
+  unit.x = box.x;
+  unit.y = box.y;
+  unit.w = box.w;
+  unit.h = box.h;
+  unit.fontPx = font;
+  unit.onPaper = true;
+  if (unit.text.trim()) unit.lines = [unit.text];
+  const list = (unit.node as GameNode & { list?: GameNode[] }).list;
+  const text = list?.find((child) => child.type === "text") as (GameNode & { style?: { fontSize?: string } }) | undefined;
+  if (text?.style && font > 0) text.style.fontSize = `${font}px`;
+}
+
+function write(ctx: PhoneContext, unit: PhoneUnit, x: number, y: number, maxW: number, font: number): number {
+  unit.fontPx = font;
+  ctx.fitText(unit, Math.max(font, maxW));
+  unit.x = x;
+  unit.y = y;
+  unit.onPaper = true;
+  return y + unit.h;
+}
+
+function hide(unit: PhoneUnit): void {
+  unit.x = 0;
+  unit.y = 0;
+  unit.w = 0;
+  unit.h = 0;
+  unit.fontPx = 0;
+  unit.lines = [];
+  unit.onPaper = true;
+}
+
+function ink(unit: PhoneUnit, color = "#3B2A20"): void {
+  const node = unit.node as GameNode & { style?: { color?: string } };
+  if (node.style) node.style.color = color;
+}
+
+function find(units: PhoneUnit[], text: string): PhoneUnit | undefined {
+  return units.find((unit) => unit.text === text) ?? units.find((unit) => unit.text.includes(text));
+}
+
+function textWidth(ctx: PhoneContext, text: string, font: number): number {
+  if (ctx.measure) return ctx.measure(text, font, "700", "sans-serif");
+  let width = 0;
+  for (const char of text) width += char.charCodeAt(0) > 255 ? font : font * 0.56;
+  return width;
+}
+
+function worldPoint(node: GameNode): { x: number; y: number } {
+  let x = node.x;
+  let y = node.y;
+  let parent = node.parent;
+  while (parent) {
+    x += parent.x;
+    y += parent.y;
+    parent = parent.parent;
+  }
+  return { x, y };
+}
+
+function findActor(scene: PhoneContext["scene"]): GameNode | null {
+  let found: GameNode | null = null;
+  const visit = (node: GameNode) => {
+    const key = (node as GameNode & { texture?: string }).texture ?? "";
+    if (!found && key.startsWith("cls:") && node.parent) found = node.parent;
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (list) for (const child of list) visit(child);
+  };
+  for (const node of scene.children.list) visit(node);
+  return found;
+}
+
+function placeHero(ctx: PhoneContext, footX: number, footY: number, desired: number): PhoneHero | null {
+  const heroNode = findActor(ctx.scene);
+  if (!heroNode) return null;
+  const at = worldPoint(heroNode);
+  const parentScale = Math.abs(heroNode.scaleX || 0.5) || 0.5;
+  const scale = desired / (512 * parentScale);
+  return { scale, ox: footX - scale * at.x, oy: footY - scale * at.y };
+}
+
+function frameOf(image: PhoneImage): string {
+  return String((image.node as GameNode & { frame?: string }).frame ?? "");
+}
+
+function textureOf(image: PhoneImage): string {
+  return String((image.node as GameNode & { texture?: string }).texture ?? "");
+}
+
+function keepSceneArt(ctx: PhoneContext): void {
+  for (const image of ctx.images) {
+    const key = textureOf(image);
+    const frame = frameOf(image);
+    if (key === "logo_title") {
+      image.w = 0;
+      image.h = 0;
+      image.placed = true;
+      continue;
+    }
+    if (key.startsWith("bg_") || image.w >= ctx.view.w * 0.9) {
+      image.placed = true;
+      continue;
+    }
+    if (frame === "panel_parchment" || frame === "panel_wood" || frame === "dialog" || frame === "dialog_shadow" || frame === "list_row" || frame.startsWith("list_row")) {
+      image.w = 0;
+      image.h = 0;
+      image.placed = true;
+    }
+  }
+}
+
+function dropUnplaced(ctx: PhoneContext): void {
+  for (const image of ctx.images) {
+    if (image.placed) continue;
+    image.w = 0;
+    image.h = 0;
+  }
+}
+
+function placeImage(image: PhoneImage, box: Box): void {
+  image.x = box.x;
+  image.y = box.y;
+  image.w = box.w;
+  image.h = box.h;
+  image.placed = true;
+}
+
+function blankFullScreen(ctx: PhoneContext, except: PhoneUnit | null): void {
+  for (const unit of ctx.units) {
+    if (unit === except || unit.onPaper) continue;
+    if (!unit.interactive || unit.text.trim()) continue;
+    if (unit.design.w >= 900 || unit.design.h >= 600) hide(unit);
+  }
+}
+
+function layoutTitle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const brand = ctx.units.find((unit) => unit.text === "词境练习家");
+  const sub = ctx.units.find((unit) => unit.text === "LexiQuest");
+  const tag = ctx.units.find((unit) => unit.text.includes("认识单词"));
+  const cont = ctx.units.find((unit) => unit.interactive && unit.text.includes("继续"));
+  const again = ctx.units.find((unit) => unit.interactive && unit.text.includes("重新开始"));
+  const swap = ctx.units.find((unit) => unit.interactive && unit.text === "换角色");
+  if (brand) place(brand, s.box(318, 46, 300, 32), 0);
+  if (sub) place(sub, s.box(318, 82, 300, 20), 0);
+  if (tag) {
+    ink(tag);
+    place(tag, s.box(232, 136, 380, 28), 14);
+  }
+  if (cont) place(cont, s.box(222, 300, 168, 48), 17);
+  if (again) place(again, s.box(398, 300, 168, 48), 17);
+  if (swap) place(swap, s.box(574, 300, 140, 48), 17);
+  const plaque = s.box(318, 40, 300, 92);
+  for (const image of ctx.images) {
+    if (textureOf(image).includes("logo_lexiquest")) placeImage(image, plaque);
+  }
+  const foot = s.box(158, 336, 0, 0);
+  return {
+    hero: placeHero(ctx, foot.x, foot.y, 200 * s.sy),
+    skipMasks: true,
+    chrome,
+    logo: s.box(318, 40, 300, 92),
+  };
+}
+
+const VILLAGE: Array<[string, number, number]> = [
+  ["学堂", 168, 78],
+  ["对战", 372, 28],
+  ["给家长", 598, 72],
+  ["词卡册", 96, 168],
+  ["复习桌", 640, 156],
+  ["技能", 150, 248],
+  ["衣柜", 372, 258],
+  ["同机练习", 560, 236],
+];
+
+function layoutVillage(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const hud = s.box(56, 16, 300, 52);
+  chrome.push({ frame: "panel_parchment", box: hud });
+  const lines = ctx.units.filter((unit) => !unit.interactive && unit.text.trim()).sort((a, b) => a.designY - b.designY);
+  const grade = lines.find((unit) => unit.text.includes("年级") || unit.text.includes("已学"));
+  const goal = lines.find((unit) => unit.text.includes("今日") || unit.text.includes("已完成") || unit.text.includes("新词"));
+  let y = hud.y + 8 * s.sy;
+  if (grade) {
+    ink(grade, "#3B2A20");
+    y = write(ctx, grade, hud.x + 24 * s.sx, y, hud.w - 36 * s.sx, 14) + 2 * s.sy;
+  }
+  if (goal && goal !== grade) {
+    ink(goal, "#1F6F64");
+    write(ctx, goal, hud.x + 24 * s.sx, y, hud.w - 36 * s.sx, 14);
+  }
+  for (const line of lines) {
+    if (line !== grade && line !== goal) hide(line);
+  }
+  const swap = ctx.units.find((unit) => unit.interactive && unit.text === "换角色");
+  if (swap) place(swap, s.box(608, 16, 120, 44), 16);
+  for (const [label, x, y0] of VILLAGE) {
+    const unit = ctx.units.find((item) => item.interactive && item.text === label);
+    if (!unit) continue;
+    place(unit, s.box(x, y0, 112, 104), 16);
+    unit.label = "sign";
+  }
+  const foot = s.box(430, 214, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 86 * s.sy), skipMasks: true, chrome };
+}
+
+function layoutGuide(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const pins = ctx.units.filter((unit) => String(unit.node.name || "").startsWith("pin:"));
+  const unlocked = ctx.units.some((unit) => unit.text.includes("学习进度"));
+  const back = ctx.units.find((unit) => unit.interactive && (unit.text === "返回" || unit.text.startsWith("返回")));
+  if (!pins.length || unlocked) {
+    if (back) place(back, s.box(56, 16, 100, 44), 16);
+    const actions = ctx.units.filter((unit) => unit.interactive && unit !== back && unit.text.trim());
+    const rowH = s.box(0, 0, 0, 44).h;
+    const gap = 8 * s.sx;
+    const widths = actions.map((action) => Math.max(s.box(0, 0, 88, 0).w, Math.min(s.box(0, 0, 160, 0).w, textWidth(ctx, action.text, 16) + 28 * s.sx)));
+    const maxW = ctx.view.w - s.box(56, 0, 0, 0).x - 8;
+    let rows = 1;
+    let used = 0;
+    for (const width of widths) {
+      if (used > 0 && used + width > maxW) {
+        rows += 1;
+        used = 0;
+      }
+      used += width + gap;
+    }
+    const barH = rows * rowH + Math.max(0, rows - 1) * 8 * s.sy;
+    let x = s.box(56, 0, 0, 0).x;
+    let y = ctx.view.h - 8 - barH;
+    actions.forEach((action, index) => {
+      const width = widths[index] ?? s.box(0, 0, 100, 0).w;
+      if (x > s.box(56, 0, 0, 0).x && x + width > ctx.view.w - 8) {
+        x = s.box(56, 0, 0, 0).x;
+        y += rowH + 8 * s.sy;
+      }
+      place(action, { x, y, w: width, h: rowH }, 16);
+      x += width + gap;
+    });
+    const sheet = { x: s.box(56, 0, 0, 0).x, y: s.box(0, 68, 0, 0).y, w: s.box(0, 0, 732, 0).w, h: Math.max(rowH, y - s.box(0, 80, 0, 0).y) };
+    chrome.push({ frame: "panel_parchment", box: sheet });
+    let textY = sheet.y + 16 * s.sy;
+    const textLimit = y - 8;
+    for (const unit of ctx.units.filter((item) => !item.interactive && item.text.trim() && !item.onPaper).sort((a, b) => a.designY - b.designY)) {
+      if (textY + 14 > textLimit) break;
+      ink(unit);
+      const next = write(ctx, unit, sheet.x + 24 * s.sx, textY, sheet.w - 48 * s.sx, 14);
+      if (next > textLimit) {
+        hide(unit);
+        break;
+      }
+      textY = next + 4 * s.sy;
+    }
+    return { hero: null, skipMasks: true, chrome };
+  }
+  const panel = s.box(152, 27, 540, 336);
+  chrome.push({ frame: "panel_wood", box: panel });
+  chrome.push({ frame: "panel_parchment", box: s.box(164, 39, 516, 312) });
+  const title = pins.find((unit) => unit.node.name === "pin:title") ?? ctx.units.find((unit) => unit.text === "给家长");
+  const dots = pins.find((unit) => unit.node.name === "pin:first");
+  const hint = pins.find((unit) => unit.node.name === "pin:hint");
+  const error = pins.find((unit) => unit.node.name === "pin:error");
+  const again = pins.find((unit) => unit.node.name === "pin:again");
+  if (again && !again.text.trim()) hide(again);
+  let y = s.box(0, 46, 0, 0).y;
+  const sceneTitle = ctx.units.find((unit) => !unit.interactive && unit.text === "给家长");
+  if (sceneTitle) {
+    ink(sceneTitle);
+    y = write(ctx, sceneTitle, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 240, 0).w, 22) + 6 * s.sy;
+  }
+  if (title) {
+    ink(title);
+    y = write(ctx, title, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 250, 0).w, 14) + 8 * s.sy;
+  }
+  const field = s.box(176, 0, 200, 48);
+  field.y = y;
+  chrome.push({ frame: "input_normal", box: field });
+  if (dots) {
+    ink(dots);
+    place(dots, field, 18);
+  }
+  y = field.y + field.h + 8 * s.sy;
+  if (hint && hint.text.trim()) {
+    ink(hint, "#61402D");
+    y = write(ctx, hint, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 250, 0).w, 14) + 8 * s.sy;
+  }
+  if (error && error.text.trim()) {
+    ink(error, "#A9432B");
+    write(ctx, error, s.box(176, 0, 0, 0).x, y, s.box(0, 0, 250, 0).w, 14);
+  }
+  const note = ctx.units.find((unit) => !unit.interactive && unit.text.includes("不是安全登录"));
+  if (note) {
+    ink(note);
+    write(ctx, note, s.box(176, 0, 0, 0).x, s.box(0, 210, 0, 0).y, s.box(0, 0, 250, 0).w, 14);
+  }
+  if (back) {
+    if (back.text === "返回" || back.text.startsWith("返回")) {
+      back.text = "取消";
+      back.lines = ["取消"];
+    }
+    place(back, s.box(176, 300, 100, 44), 16);
+  }
+  const pad = s.box(452, 70, 224, 216);
+  const key = (text: string) => pins.find((unit) => unit.interactive && unit.text === text);
+  const digit = s.box(0, 0, 48, 48);
+  const gap = 8 * s.sx;
+  const rowW = digit.w * 3 + gap * 2;
+  const originX = pad.x + (pad.w - rowW) / 2;
+  for (let n = 1; n <= 9; n += 1) {
+    const unit = key(String(n));
+    if (!unit) continue;
+    const col = (n - 1) % 3;
+    const row = Math.floor((n - 1) / 3);
+    place(unit, { x: originX + col * (digit.w + gap), y: pad.y + row * (digit.h + 8 * s.sy), w: digit.w, h: digit.h }, 20);
+    chrome.push({ frame: "btn_secondary_normal", box: { x: unit.x, y: unit.y, w: unit.w, h: unit.h } });
+  }
+  const bottomY = pad.y + 3 * (digit.h + 8 * s.sy);
+  const wide = s.box(0, 0, 80, 48);
+  const zero = key("0");
+  const clear = key("清除");
+  const ok = key("确认");
+  if (clear) {
+    place(clear, { x: pad.x, y: bottomY, w: wide.w, h: digit.h }, 16);
+    chrome.push({ frame: "btn_secondary_normal", box: { x: clear.x, y: clear.y, w: clear.w, h: clear.h } });
+  }
+  if (zero) {
+    place(zero, { x: pad.x + (pad.w - digit.w) / 2, y: bottomY, w: digit.w, h: digit.h }, 20);
+    chrome.push({ frame: "btn_secondary_normal", box: { x: zero.x, y: zero.y, w: zero.w, h: zero.h } });
+  }
+  if (ok) {
+    place(ok, { x: pad.x + pad.w - wide.w, y: bottomY, w: wide.w, h: digit.h }, 16);
+    chrome.push({ frame: "btn_primary_normal", box: { x: ok.x, y: ok.y, w: ok.w, h: ok.h } });
+  }
+  for (const unit of pins) if (!unit.onPaper) hide(unit);
+  for (const unit of ctx.units) {
+    if (!unit.onPaper && !unit.interactive && unit.text.trim()) hide(unit);
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function layoutWardrobe(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && unit.text.startsWith("返回"));
+  const title = ctx.units.find((unit) => unit.text === "衣柜");
+  if (back) place(back, s.box(56, 18, 100, 44), 16);
+  if (title) {
+    ink(title);
+    place(title, s.box(168, 20, 120, 36), 22);
+  }
+  chrome.push({ frame: "panel_wood", box: s.box(152, 16, 140, 44) });
+  const sheet = s.box(56, 70, 420, 280);
+  chrome.push({ frame: "panel_parchment", box: sheet });
+  const order = ["已有装备", "花环", "旅行短衣", "就是职业", "穿着", "称号", "一次只戴", "还没有称号"];
+  const body = ctx.units.filter((unit) => !unit.interactive && unit.text.trim() && unit !== title).sort((a, b) => {
+    const ai = order.findIndex((item) => a.text.includes(item));
+    const bi = order.findIndex((item) => b.text.includes(item));
+    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+  });
+  let y = sheet.y + 28 * s.sy;
+  for (const unit of body) {
+    if (unit.text.length <= 1) continue;
+    ink(unit);
+    const font = unit.text === "旅行短衣" || unit.text === "已有装备" || unit.text.startsWith("称号") ? 16 : 14;
+    y = write(ctx, unit, sheet.x + 24 * s.sx, y, sheet.w - 120 * s.sx, font) + 6 * s.sy;
+  }
+  const outfit = body.find((unit) => unit.text === "旅行短衣");
+  const mark = body.find((unit) => unit.text.length === 1);
+  if (outfit && mark) {
+    ink(mark, "#61402D");
+    place(mark, { x: outfit.x + outfit.w + 8 * s.sx, y: outfit.y, w: 24 * s.sx, h: Math.max(outfit.h, 16 * s.sy) }, 14);
+  }
+  const worn = body.find((unit) => unit.text === "穿着");
+  if (worn) {
+    const chip = { x: sheet.x + sheet.w - 112 * s.sx, y: worn.y - 8 * s.sy, w: 88 * s.sx, h: 44 * s.sy };
+    chrome.push({ frame: "btn_secondary_normal", box: chip });
+    ink(worn);
+    place(worn, chip, 14);
+  }
+  for (const image of ctx.images) {
+    const frame = frameOf(image);
+    if (frame.includes("wardrobe_arch") || frame.includes("arch")) placeImage(image, s.box(590, 48, 200, 300));
+    else if (frame.includes("wardrobe_stage") || frame.includes("stage")) placeImage(image, s.box(600, 250, 180, 48));
+  }
+  const foot = s.box(690, 300, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 170 * s.sy), skipMasks: true, chrome };
+}
+
+function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && unit.text.startsWith("返回"));
+  const job = ctx.units.find((unit) => unit.interactive && unit.text === "换职业");
+  const title = ctx.units.find((unit) => unit.text === "技能卡" || unit.text.startsWith("技能卡"));
+  const rule = ctx.units.find((unit) => unit.text.includes("最多带"));
+  const hint = ctx.units.find((unit) => unit.text.includes("卡组分开存"));
+  if (back) place(back, s.box(56, 16, 100, 44), 16);
+  if (title) {
+    ink(title);
+    place(title, s.box(168, 18, 140, 36), 20);
+  }
+  chrome.push({ frame: "panel_wood", box: s.box(160, 14, 150, 44) });
+  if (rule) {
+    ink(rule, "#46363A");
+    write(ctx, rule, s.box(320, 24, 0, 0).x, s.box(0, 22, 0, 0).y, s.box(0, 0, 460, 0).w, 14);
+  }
+  const toggles = ctx.units.filter((unit) => unit.interactive && (unit.text === "卸下" || unit.text === "装备" || unit.text === "已装备" || unit.text === "未装备"));
+  const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim() && unit !== title && unit !== rule && unit !== hint).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const used = new Set<PhoneUnit>();
+  const names = ["盾击", "战吼", "坚守", "旋风斩"].map((label) => texts.find((unit) => unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
+  names.forEach((name, index) => {
+    used.add(name);
+    const desc = texts.find((unit) => !used.has(unit) && !unit.text.startsWith("★") && unit.text.length > 4 && unit.designY >= name.designY - 8 && unit.designY <= name.designY + 90);
+    if (desc) used.add(desc);
+    const star = texts.find((unit) => !used.has(unit) && unit.text.startsWith("★") && Math.abs(unit.designY - name.designY) < 48);
+    if (star) used.add(star);
+    const col = index % 2;
+    const line = Math.floor(index / 2);
+    const card = s.box(56 + col * 310, 72 + line * 96, 300, 88);
+    chrome.push({ frame: "panel_parchment", box: card });
+    ink(name);
+    place(name, { x: card.x + 64 * s.sx, y: card.y + 12 * s.sy, w: card.w * 0.45, h: 20 * s.sy }, 16);
+    if (star) {
+      ink(star, "#61402D");
+      place(star, { x: name.x + name.w * 0.55, y: name.y, w: 48 * s.sx, h: 20 * s.sy }, 14);
+    }
+    if (desc) {
+      ink(desc, "#46363A");
+      write(ctx, desc, card.x + 64 * s.sx, card.y + 36 * s.sy, card.w - 150 * s.sx, 14);
+    }
+    const toggle = toggles.find((unit) => Math.abs(unit.designY - name.designY) < 90);
+    if (toggle) {
+      toggle.text = toggle.text === "装备" || toggle.text === "未装备" ? "未装备" : "已装备";
+      toggle.lines = [toggle.text];
+      ink(toggle, toggle.text === "未装备" ? "#46363A" : "#FFF4DC");
+      const badge = { x: card.x + card.w - 100 * s.sx, y: card.y + 22 * s.sy, w: 88 * s.sx, h: 44 * s.sy };
+      place(toggle, badge, 14);
+      chrome.push({ frame: toggle.text === "未装备" ? "btn_secondary_normal" : "btn_action_teal_normal", box: badge });
+    }
+  });
+  for (const unit of texts) if (!used.has(unit)) hide(unit);
+  if (hint) {
+    ink(hint, "#46363A");
+    write(ctx, hint, s.box(68, 280, 0, 0).x, s.box(0, 276, 0, 0).y, s.box(0, 0, 400, 0).w, 14);
+  }
+  if (job) place(job, s.box(628, 312, 140, 48), 17);
+  const icons = ctx.images.filter((image) => textureOf(image).includes("skill") || frameOf(image).includes("skill"));
+  icons.forEach((image, index) => {
+    const col = index % 2;
+    const line = Math.floor(index / 2);
+    placeImage(image, s.box(68 + col * 310, 86 + line * 96, 48, 48));
+  });
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("返回") || unit.text.startsWith("回村子") || unit.text.includes("换一章")));
+  const confirm = ctx.units.find((unit) => unit.interactive && unit.text === "确认");
+  const cancel = ctx.units.find((unit) => unit.interactive && unit.text === "取消");
+  const study = ctx.units.find((unit) => unit.text === "学一学" || unit.node.name === "learn:study");
+  const modes = ["听一听", "选意思", "拼一拼"].map((label) => ctx.units.find((unit) => unit.interactive && unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
+  if (study && !modes.length) hide(study);
+  if (back) place(back, s.box(56, 16, Math.max(100, textWidth(ctx, back.text, 16) + 36), 44), 16);
+  const heading = ctx.units.find((unit) => !unit.interactive && (unit.text.startsWith("学堂") || unit.text === "请选章"));
+  if (heading) {
+    ink(heading);
+    place(heading, s.box(176, 20, 280, 32), 20);
+  }
+  chrome.push({ frame: "panel_wood", box: s.box(164, 14, 140, 44) });
+  if (modes.length) {
+    const tabs = [study, ...modes].filter((unit): unit is PhoneUnit => Boolean(unit));
+    tabs.forEach((tab, index) => {
+      const box = s.box(168 + index * 116, 68, 108, 44);
+      place(tab, box, 16);
+      ink(tab);
+      chrome.push({ frame: index === 0 ? "panel_parchment" : "btn_secondary_normal", box });
+    });
+    const card = s.box(56, 122, 520, 200);
+    chrome.push({ frame: "panel_parchment", box: card });
+    const latin = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text) && unit.text.length < 24);
+    const word = latin.sort((a, b) => a.text.length - b.text.length)[0];
+    const gloss = ctx.units.find((unit) => !unit.onPaper && !unit.interactive && /^[\u4e00-\u9fff·]{1,6}$/.test(unit.text));
+    if (word) {
+      ink(word);
+      place(word, s.box(200, 150, 280, 40), 32);
+    }
+    if (gloss) {
+      ink(gloss, "#1F6F64");
+      place(gloss, s.box(200, 196, 280, 32), 28);
+    }
+    let y = s.box(0, 240, 0, 0).y;
+    for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim())) {
+      ink(unit, "#46363A");
+      y = write(ctx, unit, s.box(200, 0, 0, 0).x, y, s.box(0, 0, 340, 0).w, 14) + 4 * s.sy;
+    }
+    if (confirm) place(confirm, s.box(604, 300, 180, 48), 18);
+    return { hero: null, skipMasks: true, chrome };
+  }
+  if (confirm) place(confirm, s.box(604, 308, 180, 48), 18);
+  if (cancel) place(cancel, s.box(480, 308, 112, 48), 16);
+  const region = s.box(56, 72, 732, 220);
+  let x = region.x;
+  let y = region.y;
+  const buttons = ctx.units.filter((unit) => unit.interactive && !unit.onPaper && unit.text.trim());
+  for (const button of buttons) {
+    const width = Math.max(s.box(0, 0, 108, 0).w, Math.min(region.w, textWidth(ctx, button.text, 16) + 32 * s.sx));
+    if (x > region.x && x + width > region.x + region.w) {
+      x = region.x;
+      y += s.box(0, 0, 0, 52).h;
+    }
+    place(button, { x, y, w: width, h: s.box(0, 0, 0, 44).h }, 16);
+    x += width + 8 * s.sx;
+  }
+  let noteY = y + s.box(0, 0, 0, 52).h;
+  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim())) {
+    ink(unit);
+    noteY = write(ctx, unit, region.x, noteY, region.w, 14) + 4 * s.sy;
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function layoutGrades(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && unit.text === "返回");
+  const go = ctx.units.find((unit) => unit.interactive && unit.text.includes("选好了"));
+  const title = ctx.units.find((unit) => unit.text.includes("先选年级") || unit.text.includes("选年级"));
+  if (back && back !== go) place(back, s.box(56, 18, 100, 44), 16);
+  if (title) {
+    ink(title);
+    place(title, s.box(168, 18, 180, 32), 20);
+  }
+  chrome.push({ frame: "panel_wood", box: s.box(160, 14, 180, 44) });
+  const grades = ["三年级", "四年级", "五年级", "六年级"].map((label) => ctx.units.find((unit) => unit.interactive && unit.text === label));
+  grades.forEach((chip, index) => {
+    if (!chip) return;
+    place(chip, s.box(150 + index * 132, 140, 120, 52), 18);
+  });
+  if (go) place(go, s.box(250, 248, 240, 52), 16);
+  const back2 = ctx.units.find((unit) => unit.interactive && unit.text === "返回" && unit !== back);
+  if (back2) place(back2, s.box(506, 248, 120, 52), 16);
+  else if (back && go && back.y < 80) {
+    /* top back already placed */
+  }
+  let y = s.box(0, 78, 0, 0).y;
+  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim()).sort((a, b) => a.designY - b.designY)) {
+    ink(unit, unit.text.includes("已选") ? "#1F6F64" : "#46363A");
+    const width = textWidth(ctx, unit.text, 14);
+    unit.fontPx = 14;
+    ctx.fitText(unit, Math.min(s.box(0, 0, 520, 0).w, Math.max(width, 40)));
+    unit.x = (ctx.view.w - unit.w) / 2;
+    unit.y = unit.text.includes("已选") ? s.box(0, 320, 0, 0).y : y;
+    unit.onPaper = true;
+    if (!unit.text.includes("已选")) y += unit.h + 6 * s.sy;
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  for (const node of walk(ctx.scene)) {
+    const key = (node as GameNode & { texture?: string }).texture ?? "";
+    if (key.startsWith("cls:")) node.visible = false;
+  }
+  const back = ctx.units.find((unit) => unit.interactive && unit.text.startsWith("返回"));
+  const sign = ctx.units.find((unit) => unit.text.includes("选一个职业"));
+  const retry = ctx.units.find((unit) => unit.interactive && unit.text.includes("重选年级"));
+  const go = ctx.units.find((unit) => unit.interactive && (unit.text === "出发" || unit.node.name === "name:go"));
+  const name = ctx.units.find((unit) => unit.node.name === "name:field" || unit.text === "给角色起个名字");
+  if (back) place(back, s.box(56, 14, 100, 44), 16);
+  if (sign) {
+    ink(sign);
+    place(sign, s.box(164, 16, 170, 32), 16);
+  }
+  chrome.push({ frame: "panel_wood", box: s.box(156, 14, 186, 40) });
+  const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const owned = new Set<PhoneUnit>();
+  cards.forEach((card, index) => {
+    const col = index % 3;
+    const row = Math.floor(index / 3);
+    const box = s.box(56 + col * 158, 64 + row * 120, 150, 112);
+    place(card, box, 0);
+    chrome.push({ frame: "panel_parchment", box });
+    const texts = ctx.units.filter((unit) => {
+      if (unit.interactive || !unit.text.trim() || owned.has(unit)) return false;
+      const cx = unit.design.x + unit.design.w / 2;
+      const cy = unit.design.y + unit.design.h / 2;
+      return cx >= card.design.x - 8 && cx <= card.design.x + card.design.w + 8 && cy >= card.design.y - 12 && cy <= card.design.y + card.design.h + 12;
+    }).sort((a, b) => a.designY - b.designY);
+    texts.forEach((text, line) => {
+      owned.add(text);
+      ink(text, line === 0 ? "#3B2A20" : "#46363A");
+      const font = line === 0 ? 15 : 11;
+      place(text, { x: box.x + 8 * s.sx, y: box.y + (36 + line * 16) * s.sy, w: box.w - 16 * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
+    });
+  });
+  const preview = s.box(546, 64, 250, 160);
+  chrome.push({ frame: "panel_parchment", box: preview });
+  const chosen = ctx.units.find((unit) => !unit.onPaper && unit.text.includes("已选年级"));
+  if (chosen) {
+    ink(chosen, "#46363A");
+    write(ctx, chosen, s.box(340, 28, 0, 0).x, s.box(0, 24, 0, 0).y, s.box(0, 0, 220, 0).w, 14);
+  }
+  if (name) {
+    ink(name, name.text === "给角色起个名字" ? "#766758" : "#3B2A20");
+    const field = s.box(546, 248, 250, 48);
+    chrome.push({ frame: "input_normal", box: field });
+    place(name, field, 15);
+  }
+  if (go) place(go, s.box(546, 312, 130, 48), 18);
+  if (retry) place(retry, s.box(684, 312, 112, 48), 15);
+  for (const unit of ctx.units) {
+    if (!unit.onPaper && !unit.interactive && unit.text.trim()) {
+      ink(unit, "#46363A");
+      write(ctx, unit, s.box(546, 220, 0, 0).x, s.box(0, 220, 0, 0).y, s.box(0, 0, 250, 0).w, 14);
+    }
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function walk(scene: PhoneContext["scene"]): GameNode[] {
+  const out: GameNode[] = [];
+  const visit = (node: GameNode) => {
+    out.push(node);
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (list) for (const child of list) visit(child);
+  };
+  for (const node of scene.children.list) visit(node);
+  return out;
+}
+
+function labelExamHits(ctx: PhoneContext): void {
+  for (const unit of ctx.units) {
+    if (!unit.interactive || unit.text.trim()) continue;
+    const frame = String((unit.node as GameNode & { frame?: string }).frame ?? "");
+    if (frame.includes("exam_mid")) {
+      unit.text = "期中挑战";
+      unit.lines = ["期中挑战"];
+    } else if (frame.includes("exam_final")) {
+      unit.text = "期末大挑战";
+      unit.lines = ["期末大挑战"];
+    } else if (unit.node.type === "image" || unit.node.type === "sprite") hide(unit);
+  }
+}
+
+function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回村子") || unit.text.startsWith("返回")));
+  if (back) place(back, s.box(68, 28, Math.max(100, textWidth(ctx, back.text, 16) + 28), 44), 16);
+  chrome.push({ frame: "panel_parchment", box: s.box(56, 16, 360, 260) });
+  chrome.push({ frame: "panel_parchment", box: s.box(428, 16, 220, 260) });
+  const bar = ["上一章", "下一章", "去学堂", "再战", "小战斗", "期中挑战", "期末大挑战"];
+  let x = s.box(64, 0, 0, 0).x;
+  const y = s.box(0, 312, 0, 0).y;
+  const h = s.box(0, 0, 0, 48).h;
+  chrome.push({ frame: "panel_wood", box: s.box(56, 300, 732, 64) });
+  for (const label of bar) {
+    const unit = ctx.units.find((item) => item.interactive && item.text === label);
+    if (!unit) continue;
+    const width = label === "期中挑战" || label === "期末大挑战" ? s.box(0, 0, 148, 0).w : s.box(0, 0, 108, 0).w;
+    place(unit, { x, y, w: width, h }, 16);
+    for (const image of ctx.images) {
+      const frame = frameOf(image);
+      if ((label === "期中挑战" && frame.includes("exam_mid")) || (label === "期末大挑战" && frame.includes("exam_final"))) {
+        placeImage(image, { x, y, w: width, h });
+      }
+    }
+    x += width + 8 * s.sx;
+  }
+  let extraX = s.box(430, 0, 0, 0).x;
+  const extraY = s.box(0, 248, 0, 0).y;
+  for (const unit of ctx.units.filter((item) => item.interactive && !item.onPaper && item.text.trim())) {
+    const width = Math.max(s.box(0, 0, 96, 0).w, Math.min(s.box(0, 0, 140, 0).w, textWidth(ctx, unit.text, 14) + 24 * s.sx));
+    if (extraX + width > ctx.view.w - 8) break;
+    place(unit, { x: extraX, y: extraY, w: width, h: s.box(0, 0, 0, 44).h }, 14);
+    extraX += width + 8 * s.sx;
+  }
+  const words = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text));
+  let wordY = s.box(0, 56, 0, 0).y;
+  for (const word of words) {
+    ink(word);
+    place(word, { x: s.box(444, 0, 0, 0).x, y: wordY, w: s.box(0, 0, 180, 0).w, h: s.box(0, 0, 0, 20).h }, 14);
+    wordY += s.box(0, 0, 0, 22).h;
+  }
+  let yText = s.box(0, 78, 0, 0).y;
+  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim()).sort((a, b) => a.designY - b.designY)) {
+    ink(unit, unit.text.includes("已通过") || unit.text.includes("已学") ? "#1F6F64" : "#3B2A20");
+    yText = write(ctx, unit, s.box(76, 0, 0, 0).x, yText, s.box(0, 0, 320, 0).w, unit.text.length <= 8 ? 16 : 14) + 4 * s.sy;
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function layoutBattle(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const actions = ["攻击", "格挡", "治疗"];
+  const prompt = ctx.units.find((unit) => !unit.interactive && (unit.text.includes("意思") || unit.text.includes("？") || unit.text.includes("?") || unit.text.includes("怎么说")));
+  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && !actions.includes(unit.text) && !unit.text.startsWith("返回") && !unit.text.startsWith("回"));
+  if (prompt && options.length) {
+    chrome.push({ frame: "panel_parchment", box: s.box(56, 228, 732, 126) });
+    ink(prompt);
+    place(prompt, s.box(80, 240, 680, 28), 18);
+    options.slice(0, 4).forEach((option, index) => place(option, s.box(76 + index * 176, 278, 160, 48), 16));
+  }
+  const actionUnits = actions.map((label) => ctx.units.find((unit) => unit.interactive && unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
+  if (!prompt && actionUnits.length) {
+    actionUnits.forEach((unit, index) => place(unit, s.box(220 + index * 140, 300, 128, 48), 18));
+  }
+  const leave = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回") || unit.text.includes("再试") || unit.text.includes("结局")));
+  if (leave) place(leave, s.box(56, 16, Math.max(100, textWidth(ctx, leave.text, 16) + 24), 44), 16);
+  const hud = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.text.trim());
+  let y = s.box(0, 20, 0, 0).y;
+  for (const unit of hud.sort((a, b) => a.designY - b.designY)) {
+    ink(unit);
+    const boxW = unit.text.length < 8 ? 160 : 420;
+    write(ctx, unit, s.box(unit.text.length < 8 ? 620 : 80, 0, 0, 0).x, y, s.box(0, 0, boxW, 0).w, 14);
+    y += s.box(0, 0, 0, 22).h;
+  }
+  const skills = ctx.units.filter((unit) => unit.interactive && !unit.onPaper && unit.text.trim());
+  skills.forEach((unit, index) => place(unit, s.box(360 + index * 72, 156, 64, 52), 14));
+  for (const image of ctx.images) {
+    const key = `${textureOf(image)} ${frameOf(image)}`;
+    if (/monster|boss|enemy|pawn|spirit/i.test(key)) placeImage(image, s.box(620, 90, 140, 120));
+  }
+  const foot = s.box(180, 210, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 140 * s.sy), skipMasks: true, chrome };
+}
+
+function layoutResults(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  chrome.push({ frame: "panel_parchment", box: s.box(180, 72, 500, 220) });
+  const cont = ctx.units.find((unit) => unit.interactive && (unit.text === "继续" || unit.text.startsWith("回") || unit.text.includes("结局")));
+  if (cont) place(cont, s.box(628, 308, 160, 48), 18);
+  const banner = ctx.units.find((unit) => unit.text.includes("胜利") || unit.text.includes("再试"));
+  if (banner) {
+    chrome.push({ frame: "panel_wood", box: s.box(300, 18, 244, 44) });
+    ink(banner, "#FFF4DC");
+    place(banner, s.box(312, 24, 220, 32), 22);
+  }
+  const pending = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && unit.text.trim()).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const pairs: Array<[PhoneUnit, PhoneUnit]> = [];
+  const rest: PhoneUnit[] = [];
+  for (let index = 0; index < pending.length; index += 1) {
+    const en = pending[index];
+    const zh = pending[index + 1];
+    if (zh && /^[A-Za-z][A-Za-z' -]*$/.test(en.text) && /[\u4e00-\u9fff]/.test(zh.text) && en.text.length <= 18 && zh.text.length <= 8) {
+      pairs.push([en, zh]);
+      index += 1;
+    } else rest.push(en);
+  }
+  let y = s.box(0, 96, 0, 0).y;
+  const rowH = s.box(0, 0, 0, 18).h;
+  for (const [en, zh] of pairs) {
+    ink(en);
+    ink(zh, "#46363A");
+    place(en, { x: s.box(204, 0, 0, 0).x, y, w: s.box(0, 0, 110, 0).w, h: rowH }, 15);
+    place(zh, { x: s.box(320, 0, 0, 0).x, y, w: s.box(0, 0, 90, 0).w, h: rowH }, 15);
+    y += rowH + 2 * s.sy;
+  }
+  let leftY = s.box(0, 96, 0, 0).y;
+  let rightY = leftY;
+  const limit = s.box(0, 292, 0, 0).y;
+  rest.forEach((unit, index) => {
+    const cursor = index % 2 === 0 ? leftY : rightY;
+    if (cursor > limit) {
+      hide(unit);
+      return;
+    }
+    ink(unit, unit.text.includes("升级") || unit.text.startsWith("+") ? "#1F6F64" : "#3B2A20");
+    const next = write(ctx, unit, s.box(index % 2 === 0 ? 430 : 620, 0, 0, 0).x, cursor, s.box(0, 0, 150, 0).w, 14) + 2 * s.sy;
+    if (next > ctx.view.h - 4) {
+      hide(unit);
+      return;
+    }
+    if (index % 2 === 0) leftY = next;
+    else rightY = next;
+  });
+  const foot = s.box(110, 300, 0, 0);
+  return { hero: placeHero(ctx, foot.x, foot.y, 150 * s.sy), skipMasks: true, chrome };
+}
+
+function layoutExam(ctx: PhoneContext, chrome: PhoneChrome[], intro: PhoneUnit | null): PhoneLayout {
+  const s = scaler(ctx.view);
+  if (intro) {
+    chrome.push({ frame: "panel_parchment", box: s.box(100, 85, 480, 140) });
+    const start = s.box(250, 292, 180, 48);
+    place(intro, start, 18);
+    chrome.push({ frame: "btn_primary_normal", box: start });
+    const title = ctx.units.find((unit) => unit.text.includes("期中") || unit.text.includes("期末"));
+    if (title) {
+      ink(title);
+      place(title, s.box(140, 100, 400, 28), 20);
+    }
+    const body = ctx.units.find((unit) => unit.text.includes("准备好了") || unit.text.includes("最近学过"));
+    if (body) {
+      ink(body, "#46363A");
+      write(ctx, body, s.box(130, 136, 0, 0).x, s.box(0, 136, 0, 0).y, s.box(0, 0, 420, 0).w, 14);
+    }
+    for (const image of ctx.images) {
+      const key = `${textureOf(image)} ${frameOf(image)}`;
+      if (/boss|exam/i.test(key) && !key.includes("bg_")) placeImage(image, s.box(600, 40, 160, 200));
+    }
+    return { hero: placeHero(ctx, s.box(180, 220, 0, 0).x, s.box(0, 220, 0, 0).y, 130 * s.sy), skipMasks: true, chrome };
+  }
+  chrome.push({ frame: "panel_parchment", box: s.box(56, 16, 280, 36) });
+  chrome.push({ frame: "panel_parchment", box: s.box(604, 16, 128, 32) });
+  const right = ctx.units.find((unit) => unit.text === "期中挑战" || unit.text === "期末大挑战");
+  if (right) {
+    ink(right);
+    place(right, s.box(604, 16, 128, 32), 14);
+  }
+  const prompt = ctx.units.find((unit) => !unit.interactive && (unit.text.includes("意思") || unit.text.includes("？") || unit.text.includes("怎么说") || unit.text.includes("?")));
+  const options = ctx.units.filter((unit) => unit.interactive && unit.text.trim() && unit.text !== "攻击");
+  if (prompt) {
+    chrome.push({ frame: "panel_parchment", box: s.box(56, 228, 732, 126) });
+    ink(prompt);
+    place(prompt, s.box(80, 240, 680, 28), 18);
+    options.slice(0, 4).forEach((option, index) => place(option, s.box(76 + index * 176, 278, 160, 48), 16));
+  }
+  const attack = ctx.units.find((unit) => unit.interactive && unit.text === "攻击");
+  if (attack && !prompt) place(attack, s.box(332, 300, 160, 48), 18);
+  for (const unit of ctx.units) {
+    if (!unit.onPaper && !unit.interactive && unit.text.trim()) {
+      ink(unit);
+      write(ctx, unit, s.box(72, 22, 0, 0).x, s.box(0, 22, 0, 0).y, s.box(0, 0, 240, 0).w, 14);
+    }
+  }
+  for (const image of ctx.images) {
+    const key = `${textureOf(image)} ${frameOf(image)}`;
+    if (/boss|exam/i.test(key) && !key.includes("bg_")) placeImage(image, s.box(600, 70, 160, 140));
+  }
+  return { hero: placeHero(ctx, s.box(170, 200, 0, 0).x, s.box(0, 200, 0, 0).y, 130 * s.sy), skipMasks: true, chrome };
+}
+
+function layoutGeneric(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const s = scaler(ctx.view);
+  const back = ctx.units.find((unit) => unit.interactive && /^(返回|回村子|回地图|取消)/.test(unit.text));
+  if (back) place(back, s.box(56, 16, Math.max(100, textWidth(ctx, back.text, 16) + 28), 44), 16);
+  chrome.push({ frame: "panel_parchment", box: s.box(56, 68, 732, 220) });
+  let y = s.box(0, 92, 0, 0).y;
+  for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim()).sort((a, b) => a.designY - b.designY)) {
+    ink(unit);
+    y = write(ctx, unit, s.box(80, 0, 0, 0).x, y, s.box(0, 0, 680, 0).w, 14) + 6 * s.sy;
+  }
+  let x = s.box(56, 0, 0, 0).x;
+  const by = s.box(0, 308, 0, 0).y;
+  for (const unit of ctx.units.filter((item) => item.interactive && !item.onPaper && item.text.trim())) {
+    const width = Math.max(s.box(0, 0, 100, 0).w, Math.min(s.box(0, 0, 220, 0).w, textWidth(ctx, unit.text, 16) + 32 * s.sx));
+    place(unit, { x, y: by, w: width, h: s.box(0, 0, 0, 48).h }, 16);
+    x += width + 8 * s.sx;
+  }
+  return { hero: null, skipMasks: true, chrome };
+}
+
+function quietDim(ctx: PhoneContext): void {
+  if (ctx.key !== "battle-results") return;
+  for (const fill of ctx.fills) {
+    if (fill.w >= ctx.view.w * 0.9 && fill.h >= ctx.view.h * 0.9) {
+      fill.w = 0;
+      fill.h = 0;
+    }
+  }
+}
+
+export function composeV2(ctx: PhoneContext): PhoneLayout {
+  keepSceneArt(ctx);
+  quietDim(ctx);
+  labelExamHits(ctx);
+  const chrome: PhoneChrome[] = [];
+  const intro = ctx.key === "exam-battle" ? claimIntro(ctx) : null;
+  blankFullScreen(ctx, intro);
+  let layout: PhoneLayout;
+  if (ctx.key === "title") layout = layoutTitle(ctx, chrome);
+  else if (ctx.key === "overworld") layout = layoutVillage(ctx, chrome);
+  else if (ctx.key === "guide") layout = layoutGuide(ctx, chrome);
+  else if (ctx.key === "wardrobe") layout = layoutWardrobe(ctx, chrome);
+  else if (ctx.key === "skills") layout = layoutSkills(ctx, chrome);
+  else if (ctx.key === "learn") layout = layoutLearn(ctx, chrome);
+  else if (ctx.key === "grades") layout = layoutGrades(ctx, chrome);
+  else if (ctx.key === "create") layout = layoutCreate(ctx, chrome);
+  else if (ctx.key === "stages") layout = layoutStages(ctx, chrome);
+  else if (ctx.key === "battle") layout = layoutBattle(ctx, chrome);
+  else if (ctx.key === "battle-results") layout = layoutResults(ctx, chrome);
+  else if (ctx.key === "exam-battle") layout = layoutExam(ctx, chrome, intro);
+  else layout = layoutGeneric(ctx, chrome);
+  for (const unit of ctx.units) {
+    if (!unit.onPaper && !unit.interactive) hide(unit);
+  }
+  dropUnplaced(ctx);
+  return layout;
+}
+
+function claimIntro(ctx: PhoneContext): PhoneUnit | null {
+  if (ctx.units.some((unit) => unit.text === "攻击")) return null;
+  const zone = ctx.units.find((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 900);
+  if (!zone) return null;
+  zone.text = "开始答题";
+  zone.lines = ["开始答题"];
+  return zone;
+}

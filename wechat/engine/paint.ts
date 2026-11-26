@@ -1,5 +1,5 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
-import { composePhone, coverBox, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, usesPhone, type PhoneUnit } from "./phone";
+import { composePhone, coverBox, coverFocusFor, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, usesPhone, type PhoneChrome, type PhoneUnit } from "./phone";
 import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
 import { framePlacementOf, frameRectOf, type FrameRect } from "./scene";
@@ -248,6 +248,7 @@ interface Unit {
   h: number;
   lines: string[];
   onPaper?: boolean;
+  label?: "center" | "sign";
   designX: number;
   designY: number;
 }
@@ -1168,15 +1169,16 @@ function pushImage(images: DrawImageOp[], node: GameNode, frame: string, dest: {
   });
 }
 
-function sliceDest(width: number, height: number, insets: { left: number; right: number; top: number; bottom: number }, frame: FrameRect): Array<{ sx: number; sy: number; sw: number; sh: number; dx: number; dy: number; dw: number; dh: number }> {
-  const left = Math.min(insets.left, frame.w / 2, width / 2);
-  const right = Math.min(insets.right, frame.w / 2, width / 2);
-  const top = Math.min(insets.top, frame.h / 2, height / 2);
-  const bottom = Math.min(insets.bottom, frame.h / 2, height / 2);
-  const srcLeft = Math.min(insets.left, frame.w / 2);
-  const srcRight = Math.min(insets.right, frame.w / 2);
-  const srcTop = Math.min(insets.top, frame.h / 2);
-  const srcBottom = Math.min(insets.bottom, frame.h / 2);
+function sliceDest(width: number, height: number, insets: { left: number; right: number; top: number; bottom: number }, frame: FrameRect, source?: { left: number; right: number; top: number; bottom: number }): Array<{ sx: number; sy: number; sw: number; sh: number; dx: number; dy: number; dw: number; dh: number }> {
+  const srcInsets = source ?? insets;
+  const left = Math.min(insets.left, width / 2);
+  const right = Math.min(insets.right, width / 2);
+  const top = Math.min(insets.top, height / 2);
+  const bottom = Math.min(insets.bottom, height / 2);
+  const srcLeft = Math.min(srcInsets.left, frame.w / 2);
+  const srcRight = Math.min(srcInsets.right, frame.w / 2);
+  const srcTop = Math.min(srcInsets.top, frame.h / 2);
+  const srcBottom = Math.min(srcInsets.bottom, frame.h / 2);
   const cols = [0, left, width - right];
   const rows = [0, top, height - bottom];
   const widths = [left, Math.max(0, width - left - right), right];
@@ -1496,6 +1498,75 @@ function collectTreeHits(scene: { children: { list: GameNode[] } }, view: ViewBo
   return hits;
 }
 
+const PHONE_SLICE: Record<string, { left: number; right: number; top: number; bottom: number }> = {
+  btn_primary_normal: { left: 32, right: 32, top: 30, bottom: 40 },
+  btn_secondary_normal: { left: 32, right: 32, top: 30, bottom: 40 },
+  btn_action_teal_normal: { left: 32, right: 32, top: 30, bottom: 40 },
+  panel_parchment: { left: 40, right: 40, top: 40, bottom: 40 },
+  panel_wood: { left: 48, right: 48, top: 48, bottom: 48 },
+  input_normal: { left: 40, right: 40, top: 40, bottom: 40 },
+};
+
+function phoneDestInsets(source: { left: number; right: number; top: number; bottom: number }, box: { w: number; h: number }): { left: number; right: number; top: number; bottom: number } {
+  const square = box.w > 0 && box.h > 0 && box.w / box.h > 0.85 && box.w / box.h < 1.15;
+  if (square) return { left: 3, right: 3, top: 3, bottom: 3 };
+  const capX = Math.max(4, box.w * 0.18);
+  const capY = Math.max(4, box.h * 0.22);
+  return {
+    left: Math.min(source.left / 2, capX),
+    right: Math.min(source.right / 2, capX),
+    top: Math.min(source.top / 2, capY),
+    bottom: Math.min(source.bottom / 2, capY),
+  };
+}
+
+function emitPhoneChrome(scene: { children: { list: GameNode[] } }, images: DrawImageOp[], chrome: PhoneChrome[]): void {
+  const textures = (scene as { textures?: { get: (key: string) => { image: string; packed: string; missing: boolean; frameRect: (frame: string) => FrameRect | null } } }).textures;
+  if (!textures) return;
+  const keys = ["atlas_ui_core", "atlas_ui_pages", "atlas_battle", "atlas_parent"];
+  for (const piece of chrome) {
+    const names = piece.frame === "btn_action_teal_normal" ? ["btn_action_teal_normal", "btn_primary_normal"] : [piece.frame];
+    let image = "";
+    let packed = "";
+    let rect: FrameRect | null = null;
+    let used = piece.frame;
+    for (const name of names) {
+      for (const key of keys) {
+        const texture = textures.get(key);
+        if (!texture || texture.missing) continue;
+        const found = texture.frameRect(name);
+        if (!found) continue;
+        image = texture.image;
+        packed = texture.packed;
+        rect = found;
+        used = name;
+        break;
+      }
+      if (rect) break;
+    }
+    if (!rect) continue;
+    const source = PHONE_SLICE[used] ?? { left: 32, right: 32, top: 30, bottom: 40 };
+    for (const part of sliceDest(piece.box.w, piece.box.h, phoneDestInsets(source, piece.box), rect, source)) {
+      images.push({
+        url: image,
+        packed,
+        sx: part.sx,
+        sy: part.sy,
+        sw: part.sw,
+        sh: part.sh,
+        x: piece.box.x + part.dx,
+        y: piece.box.y + part.dy,
+        w: part.dw,
+        h: part.dh,
+        alpha: 1,
+        rotation: 0,
+        flipX: false,
+        tint: 0xffffff,
+      });
+    }
+  }
+}
+
 export function layoutFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, measure?: MeasureText, options?: LayoutOptions): FramePlan {
   if (scene) rewriteSceneCopy(scene);
   const flat: GameNode[] = [];
@@ -1515,7 +1586,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
     const phoneKey = sceneKeyOf(scene);
-    const covered = usesPhone(phoneKey) && isBackdrop(node) ? coverBox(view) : null;
+    const covered = usesPhone(phoneKey) && isBackdrop(node) ? coverBox(view, coverFocusFor(phoneKey)) : null;
     const sceneCover = usesPhone(phoneKey) && phoneKey === "exam-battle" ? coverBox(view) : null;
     const sceneScale = sceneCover ? sceneCover.w / 1280 : 0;
     const trim = sceneCover && !covered ? spriteTrimBox(node) : null;
@@ -1591,6 +1662,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     })
     : null;
   if (scene) rememberPhone(scene, phone);
+  if (phone?.chrome?.length && scene) emitPhoneChrome(scene, images, phone.chrome);
   if (!phone) placeUnits(units, view, scene, plates, fills, measure, options);
 
   const items: PaintBox[] = [];
@@ -1631,7 +1703,13 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
             w: Math.max(1, rw * unit.w),
             h: Math.max(1, rh * unit.h),
           };
-      if (phoneButton && (child.type === "image" || child.type === "sprite")) continue;
+      if (phoneButton && (child.type === "image" || child.type === "sprite")) {
+        const frameName = String((child as GameNode & { frame?: string }).frame ?? "");
+        if (unit.label !== "sign" && !frameName.startsWith("village_bld_")) continue;
+        const image = child as GameNode & { frame?: string };
+        pushImage(images, child, image.frame ?? "", dest, null);
+        continue;
+      }
       if (child.type === "text") {
         if (phoneButton && phoneLabelDrawn) continue;
         if (phoneButton) phoneLabelDrawn = true;
@@ -1639,20 +1717,21 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         const text = phoneButton ? unit.text : String((child as GameNode & { text?: string }).text ?? "");
         const weight = style.fontStyle ?? "";
         const family = style.fontFamily ?? "sans-serif";
-        let fontPx = screenFontPx(authoredFont(child));
+        let fontPx = phoneButton ? Math.max(14, unit.fontPx || screenFontPx(authoredFont(child))) : screenFontPx(authoredFont(child));
         let width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
-        const limit = Math.max(12, unit.w - 12);
+        const limit = Math.max(12, unit.w - (unit.label === "sign" ? 8 : 12));
         while (fontPx > 14 && width > limit) {
           fontPx -= 1;
           width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
         }
         const textX = Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2);
+        const textY = unit.label === "sign" ? unit.y + unit.h * 0.72 : unit.y + Math.max(0, (unit.h - fontPx) / 2);
         items.push({
           kind: "text",
           text,
           fontPx,
           x: textX,
-          y: unit.y + Math.max(0, (unit.h - fontPx) / 2),
+          y: textY,
           w: Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)),
           h: fontPx,
           interactive: false,
@@ -1669,7 +1748,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         const texture = textureOf(child);
         const frame = texture?.frameRect(slice.frame ?? "") ?? null;
         if (frame && slice.insets) {
-          for (const part of sliceDest(dest.w, dest.h, slice.insets, frame)) {
+          const destInsets = phoneButton ? phoneDestInsets(slice.insets, dest) : slice.insets;
+          for (const part of sliceDest(dest.w, dest.h, destInsets, frame, slice.insets)) {
             images.push({
               url: texture?.image ?? "",
               packed: texture?.packed ?? "",
@@ -2033,6 +2113,7 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   const sheetCovers = (item: PaintBox) => plan.fills.some((fill) => fill.role === "sheet" && fill.w > 0 && fill.h > 0 && fill.x <= item.x + 2 && fill.y <= item.y + 2 && fill.x + fill.w >= item.x + item.w - 2 && fill.y + fill.h >= item.y + item.h - 2);
   for (const item of plan.items) {
     if (item.kind === "text") continue;
+    if (item.onPaper) continue;
     if (sheetCovers(item)) continue;
     if (item.kind === "rectangle" || (item.interactive && !plan.images.some((op) => op.x >= item.x && op.x < item.x + item.w && op.y >= item.y && op.y < item.y + item.h))) {
       const fill = (item.node as GameNode & { fillColor?: number }).fillColor;
