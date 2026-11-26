@@ -28,10 +28,11 @@ import { randomUuid, uuidV4FromBytes, weakRandomUuid } from "../platform/random"
 import { UI_BODY_PX, UI_GAP, UI_HIT, logicalBodySize, screenFontPx, screenToWorld, uiRect, worldScale, worldToScreen } from "../engine/coords";
 import { glyphStats, resetGlyphCache } from "../engine/glyph";
 import { layoutFrame, paintFrame, pressFrame } from "../engine/paint";
-import { createSave } from "../../src/domain/progress";
-import { findPlayChapter } from "../../src/domain/chapter-plan";
+import { learnWord, createSave } from "../../src/domain/progress";
+import { examById } from "../../src/domain/exams";
+import { findPlayChapter, gradeChapters } from "../../src/domain/chapter-plan";
 import { initialMapStageId, stageStatuses } from "../../src/domain/stages";
-import { bootSave, createProfile, getSave } from "../../src/game/session";
+import { bootSave, createProfile, getSave, mutate } from "../../src/game/session";
 import { shellCopy } from "../platform/host-copy";
 import { missingSpeech } from "../platform/speech";
 import { bindField } from "./install-host";
@@ -107,6 +108,30 @@ export function openPractice(now = Date.parse("2026-03-01T00:00:00Z")) {
   if (!live) throw new Error("profile was not selected");
   const chapter = findPlayChapter(live);
   return { save: live, chapterId: chapter.id, stageId: initialMapStageId(stageStatuses(live)) };
+}
+
+/** Learns an exam's chapter words on a past day so the exam has a real question pool. Does not start the exam. */
+export function markExamWordsLearned(examId: string, when = Date.parse("2026-01-15T00:00:00Z")) {
+  const exam = examById(examId);
+  const live = getSave();
+  if (!exam || !live) return live;
+  const ids = exam.chapters.flatMap((chapterId) => gradeChapters(exam.grade).find((item) => item.id === chapterId)?.wordIds ?? []);
+  let next = live;
+  for (const id of ids) next = learnWord(next, id, new Date(when));
+  mutate(() => next);
+  return getSave();
+}
+
+/** Marks real chapter-clear records so a later map click can open an exam. Does not start the exam scene. */
+export function markChaptersCleared(ids: readonly string[]) {
+  return mutate((save) => ({
+    ...save,
+    chapterCleared: true,
+    chapterProgress: {
+      ...save.chapterProgress,
+      ...Object.fromEntries(ids.map((id) => [id, { cleared: true, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1, "5": 1 } }])),
+    },
+  }));
 }
 
 export function bootFonts() {

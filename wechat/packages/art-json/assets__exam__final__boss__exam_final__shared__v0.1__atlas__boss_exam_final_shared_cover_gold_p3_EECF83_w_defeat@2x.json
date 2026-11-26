@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 597,
+    "h": 405
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 92,
+    "y": 190,
+    "w": 597,
+    "h": 405
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_01": {
+   "frame": {
+    "x": 601,
+    "y": 2,
+    "w": 597,
+    "h": 387
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 89,
+    "y": 208,
+    "w": 597,
+    "h": 387
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_02": {
+   "frame": {
+    "x": 1200,
+    "y": 2,
+    "w": 597,
+    "h": 366
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 229,
+    "w": 597,
+    "h": 366
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_03": {
+   "frame": {
+    "x": 2,
+    "y": 409,
+    "w": 597,
+    "h": 349
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 246,
+    "w": 597,
+    "h": 349
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_04": {
+   "frame": {
+    "x": 601,
+    "y": 409,
+    "w": 597,
+    "h": 334
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 261,
+    "w": 597,
+    "h": 334
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat_05": {
+   "frame": {
+    "x": 1200,
+    "y": 409,
+    "w": 597,
+    "h": 326
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 86,
+    "y": 269,
+    "w": 597,
+    "h": 326
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_cover_gold_p3_EECF83_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1800,
+   "h": 760
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

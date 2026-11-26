@@ -22,6 +22,7 @@ export interface PhoneUnit {
   onPaper?: boolean;
   designX: number;
   designY: number;
+  design: { x: number; y: number; w: number; h: number };
 }
 
 export interface PhoneImage {
@@ -90,6 +91,13 @@ export function wechatCopy(text: string): string {
   if (text.startsWith("Enter 出发")) return text.replace(/^Enter 出发。/, "");
   if (text.includes("或按 Enter")) return text.replaceAll("或按 Enter", "").replace(/\s{2,}/g, " ").trim();
   if (text.includes("键盘 1")) return "";
+  const place = text.match(/^(学堂|对战|词卡册|复习桌|技能|衣柜|同机练习|给家长) \d$/);
+  if (place) return place[1];
+  const action = text.match(/^\d (攻击|格挡|治疗)$/);
+  if (action) return action[1];
+  const role = text.match(/^[1-6] (战士|法师|游侠|治愈师|探险家|发明家)$/);
+  if (role) return role[1];
+  if (text.includes("按 1 到 6")) return "点一张职业卡片。名字写在页面的名字栏里。";
   if (text === "新的冒险 N") return "新的冒险";
   if (text.endsWith(" Enter")) return text.slice(0, -" Enter".length);
   if (text.endsWith(" Esc")) return text.slice(0, -" Esc".length);
@@ -114,7 +122,14 @@ export function rewriteSceneCopy(scene: { children: { list: GameNode[] } }): voi
 
 export function isBackdrop(node: GameNode): boolean {
   const key = (node as GameNode & { texture?: string }).texture ?? "";
-  return key.startsWith("bg_");
+  if (key.startsWith("bg_")) return true;
+  // 原来：章节地图和全屏遮罩的贴图名不是 bg_，横屏把它们缩进窗口，右侧露出黑边。
+  // 现在：铺满 1280×800 的图和矩形也按封面铺满视口。
+  // 为什么：它们就是这一页的场景底，不是按钮上的小图。
+  const full = node.width >= 1200 && node.height >= 700;
+  if (!full) return false;
+  if (node.type === "rectangle") return true;
+  return node.type === "image" && node.displaySized;
 }
 
 export function coverBox(view: ViewBox): { x: number; y: number; w: number; h: number } {
@@ -401,30 +416,15 @@ function composeGuide(ctx: PhoneContext): PhoneLayout {
   }
   y += 44 + 8;
   if (!unlocked) {
+    const colGap = 16;
+    const leftW = Math.max(160, Math.floor((safe.w - colGap) * 0.46));
+    const rightX = safe.x + leftW + colGap;
+    const rightW = Math.max(160, safe.w - leftW - colGap);
     const note = ctx.units.find((unit) => !String(unit.node.name || "").startsWith("pin:") && (unit.text.includes("不是安全登录") || unit.text.includes("家长密码")));
     if (note && note !== title) {
-      const sentences = note.text.split(/(?<=。)/).map((part) => part.trim()).filter(Boolean);
-      note.fontPx = 16;
-      note.lines = [];
-      let width = 0;
-      for (const sentence of sentences) {
-        if (textWidth(sentence, 16, ctx.measure) <= safe.w) {
-          note.lines.push(sentence);
-          width = Math.max(width, textWidth(sentence, 16, ctx.measure));
-        } else {
-          note.lines.push(...wrapFallback(sentence, 16, safe.w, ctx.measure));
-          width = safe.w;
-        }
-      }
-      note.w = Math.max(16, width);
-      note.h = note.lines.length * 16;
-      note.x = safe.x;
-      note.y = y;
-      note.onPaper = true;
-      ctx.fills.push({ x: note.x - 12, y: note.y - 8, w: Math.min(safe.w, note.w + 24), h: note.h + 16, color: 0xfff4dc, role: "sheet" });
-      y = note.y + note.h + 8;
+      const bottom = placeSentences(note, safe.x, y, leftW, ctx, 16);
+      ctx.fills.push({ x: note.x - 12, y: note.y - 8, w: leftW + 16, h: bottom - note.y + 8, color: 0xfff4dc, role: "sheet" });
     }
-    const labelBottom = stackTexts(pinLabels, safe.x, y, safe.w, ctx.fitText, 16);
     const keyRank = (text: string) => {
       if (/^[1-9]$/.test(text)) return Number(text);
       if (text === "0") return 10;
@@ -434,21 +434,41 @@ function composeGuide(ctx: PhoneContext): PhoneLayout {
       return 30;
     };
     pinKeys.sort((a, b) => keyRank(a.text) - keyRank(b.text));
-    const keyFont = 16;
-    const keyW = Math.max(52, ...pinKeys.map((key) => Math.ceil(textWidth(key.text, keyFont, ctx.measure) + 20)));
-    const cols = Math.max(1, Math.min(pinKeys.length, Math.floor((safe.w + 8) / (keyW + 8))));
-    const rowW = cols * keyW + Math.max(0, cols - 1) * 8;
-    const keyX = safe.x + Math.max(0, (safe.w - rowW) / 2);
-    const keyY = Math.max(labelBottom, safe.y + safe.h - (Math.ceil(pinKeys.length / cols) * 44 + Math.max(0, Math.ceil(pinKeys.length / cols) - 1) * 8));
+    let cols = Math.max(1, Math.min(pinKeys.length, Math.floor((rightW + 8) / (52 + 8))));
+    let keyW = Math.floor((rightW - (cols - 1) * 8) / cols);
+    while (cols > 1 && keyW < 52) {
+      cols -= 1;
+      keyW = Math.floor((rightW - (cols - 1) * 8) / cols);
+    }
+    keyW = Math.max(44, keyW);
+    const rows = Math.max(1, Math.ceil(pinKeys.length / cols));
+    const keysH = rows * 44 + (rows - 1) * 8;
+    const labelTop = y;
+    const labelBottom = stackTexts(pinLabels, rightX, labelTop, rightW, ctx.fitText, 16);
+    const keyY = Math.min(labelBottom, safe.y + safe.h - keysH);
+    if (keyY < labelBottom) {
+      let cursor = keyY - 8;
+      for (let index = pinLabels.length - 1; index >= 0; index -= 1) {
+        const label = pinLabels[index];
+        cursor -= label.h;
+        label.y = cursor;
+        cursor -= 8;
+      }
+    }
     pinKeys.forEach((key, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
       key.w = keyW;
       key.h = 44;
-      key.x = keyX + col * (keyW + 8);
+      key.x = rightX + col * (keyW + 8);
       key.y = keyY + row * (44 + 8);
       key.onPaper = true;
     });
+    if (pinLabels.length) {
+      const top = Math.min(...pinLabels.map((label) => label.y));
+      const bottom = Math.max(...pinLabels.map((label) => label.y + label.h));
+      ctx.fills.push({ x: rightX - 8, y: top - 8, w: rightW + 8, h: bottom - top + 16, color: 0xfff4dc, role: "sheet" });
+    }
     return { hero: null, skipMasks: false };
   }
   const actionBottom = flowButtons(buttons, safe.x, y, safe.w, ctx.measure, 16);
@@ -675,24 +695,136 @@ function hideLooseArt(ctx: PhoneContext): void {
   }
 }
 
-function composeRest(ctx: PhoneContext): PhoneLayout {
+function composeCreate(ctx: PhoneContext): PhoneLayout {
   dropDesktopFrames(ctx);
   hideLooseArt(ctx);
+  for (const fill of ctx.fills) {
+    if (fill.node && isBackdrop(fill.node)) continue;
+    fill.w = 0;
+    fill.h = 0;
+  }
   const safe = safeOf(ctx.view);
+  const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 160 && unit.design.h >= 160);
+  const owned = new Set<PhoneUnit>();
+  const groups = cards.map((card) => {
+    const box = card.design;
+    const texts = ctx.units.filter((unit) => {
+      if (unit.interactive || !unit.text.trim() || owned.has(unit)) return false;
+      const text = unit.design;
+      const cx = text.x + text.w / 2;
+      const cy = text.y + text.h / 2;
+      return cx >= box.x - 8 && cx <= box.x + box.w + 8 && cy >= box.y - 8 && cy <= box.y + 96;
+    }).sort((a, b) => a.designY - b.designY);
+    for (const text of texts) owned.add(text);
+    return { card, texts };
+  }).sort((a, b) => a.card.designX - b.card.designX);
+  const columns = groups.length > 3 ? 3 : Math.max(1, groups.length);
+  const gap = 8;
+  const colW = (safe.w - gap * (columns - 1)) / columns;
+  let y = safe.y;
+  for (let index = 0; index < groups.length; index += columns) {
+    const row = groups.slice(index, index + columns);
+    let rowH = 44;
+    for (const [col, group] of row.entries()) {
+      const x = safe.x + col * (colW + gap);
+      let textY = y + 8;
+      for (const text of group.texts) {
+        textY = placeSentences(text, x + 8, textY, colW - 16, ctx, text.text.length <= 8 ? 16 : 14);
+      }
+      const height = Math.max(44, textY - y + 8);
+      group.card.x = x;
+      group.card.y = y;
+      group.card.w = colW;
+      group.card.h = height;
+      group.card.onPaper = true;
+      rowH = Math.max(rowH, height);
+    }
+    for (const group of row) {
+      group.card.h = rowH;
+      ctx.fills.push({ x: group.card.x, y: group.card.y, w: group.card.w, h: rowH, color: group.card.node.inputEnabled ? 0xfff4dc : 0xe4d3b0, role: "sheet" });
+    }
+    y += rowH + gap;
+  }
+  const notes = ctx.units.filter((unit) => !unit.interactive && unit.text.trim() && !owned.has(unit));
+  let noteY = y;
+  for (const note of notes) noteY = placeSentences(note, safe.x, noteY, safe.w * 0.62, ctx, 16);
+  if (notes.length) {
+    const top = Math.min(...notes.map((unit) => unit.y));
+    const bottom = Math.max(...notes.map((unit) => unit.y + unit.h));
+    const right = Math.max(...notes.map((unit) => unit.x + unit.w));
+    ctx.fills.push({ x: safe.x - 8, y: top - 8, w: Math.max(48, right - safe.x + 16), h: Math.max(24, bottom - top + 16), color: 0xfff4dc, role: "sheet" });
+  }
+  const actions = ctx.units.filter((unit) => unit.interactive && unit.text.trim());
+  const noteTop = notes.length ? Math.min(...notes.map((unit) => unit.y)) : y;
+  if (actions.length) flowButtons(actions, safe.x + safe.w * 0.66, noteTop, safe.w * 0.34, ctx.measure, 16);
+  for (const button of actions) {
+    ctx.fills.push({ x: button.x, y: button.y, w: button.w, h: button.h, color: button.node.inputEnabled ? 0xf0d7a2 : 0xe4d3b0, role: "sheet" });
+  }
+  return { hero: null, skipMasks: true };
+}
+
+function inkOnCream(unit: PhoneUnit): void {
+  const node = unit.node as GameNode & { style?: { color?: string } };
+  const color = node.style?.color ?? "";
+  const hex = color.replace("#", "");
+  if (hex.length < 6 || !node.style) return;
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+  if (red > 210 && green > 210 && blue > 180) node.style.color = "#17352a";
+}
+
+function composeRest(ctx: PhoneContext): PhoneLayout {
+  dropDesktopFrames(ctx);
+  if (ctx.key !== "exam-battle") hideLooseArt(ctx);
+  const safe = safeOf(ctx.view);
+  for (const unit of ctx.units) {
+    if (!unit.interactive || unit.text.trim() || unit.node.type !== "rectangle") continue;
+    if (unit.design.w >= 1000 || unit.design.h >= 600) continue;
+    const box = unit.design;
+    const label = ctx.units.find((other) => {
+      if (other === unit || other.interactive || !other.text.trim()) return false;
+      const text = other.design;
+      const cx = text.x + text.w / 2;
+      const cy = text.y + text.h / 2;
+      return cx >= box.x && cx <= box.x + box.w && cy >= box.y && cy <= box.y + box.h;
+    });
+    if (!label) continue;
+    unit.text = label.text;
+    unit.fontPx = 16;
+    unit.lines = [label.text];
+    label.text = "";
+    label.lines = [];
+  }
   const backLike = /^(返回|回村子|回地图|取消)/;
   const backs = ctx.units.filter((unit) => unit.interactive && backLike.test(unit.text));
   const back = backs[0];
   for (const unit of ctx.units) {
     const blank = unit.interactive ? !unit.text.trim() : unit.text.trim() === "?";
     if (!blank) continue;
+    if (unit.interactive && unit.node.type === "zone" && unit.design.w >= 1000) {
+      unit.x = 4;
+      unit.y = 4;
+      unit.w = ctx.view.w - 8;
+      unit.h = ctx.view.h - 8;
+      unit.onPaper = true;
+      continue;
+    }
     unit.x = 8;
     unit.y = 8;
     unit.w = 0;
     unit.h = 0;
     unit.onPaper = true;
   }
+  for (const unit of ctx.units) {
+    if (!unit.interactive || unit.text.trim()) continue;
+    const frame = String((unit.node as GameNode & { frame?: string }).frame ?? "");
+    if (frame.includes("exam_mid")) unit.text = "期中挑战";
+    else if (frame.includes("exam_final")) unit.text = "期末大挑战";
+  }
   const actions = ctx.units.filter((unit) => unit.interactive && unit !== back && unit.text.trim().length > 0).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
   const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim().length > 0 && unit.text.trim() !== "?").sort((a, b) => a.designY - b.designY || a.designX - b.designX);
+  const asides = texts.filter((unit) => unit.text.includes("卡组分开存"));
   let y = safe.y;
   if (back) {
     back.w = Math.min(safe.w, buttonWidth(back, ctx.measure));
@@ -701,7 +833,9 @@ function composeRest(ctx: PhoneContext): PhoneLayout {
     back.y = y;
     back.onPaper = true;
   }
-  const heading = texts.find((unit) => unit.text.length > 0 && unit.text.length <= 12 && !unit.text.includes("。"));
+  const reading = texts.filter((unit) => !asides.includes(unit));
+  if (ctx.key === "battle-results") for (const unit of reading) inkOnCream(unit);
+  const heading = reading.find((unit) => unit.text.length > 0 && unit.text.length <= 12 && !unit.text.includes("。"));
   if (heading) {
     heading.fontPx = 22;
     ctx.fitText(heading, safe.w - (back ? back.w + 8 : 0));
@@ -710,10 +844,24 @@ function composeRest(ctx: PhoneContext): PhoneLayout {
     heading.onPaper = true;
   }
   if (back || heading) y += 44 + 8;
-  const blockH = buttonBlockHeight(actions, safe.w, ctx.measure);
+  let asideH = 0;
+  for (const aside of asides) {
+    aside.fontPx = 14;
+    ctx.fitText(aside, safe.w);
+    asideH += aside.h + 8;
+  }
+  const blockH = buttonBlockHeight(actions, safe.w, ctx.measure) + asideH;
   const buttonTop = safe.y + safe.h - blockH;
-  if (actions.length) flowButtons(actions, safe.x, buttonTop, safe.w, ctx.measure, 20);
-  const body = texts.filter((unit) => unit !== heading);
+  let asideY = buttonTop;
+  for (const aside of asides) {
+    aside.x = safe.x;
+    aside.y = asideY;
+    aside.onPaper = true;
+    ctx.fills.push({ x: aside.x - 8, y: aside.y - 4, w: Math.min(safe.w, aside.w + 16), h: aside.h + 8, color: 0xe4efe4, role: "sheet" });
+    asideY += aside.h + 8;
+  }
+  if (actions.length) flowButtons(actions, safe.x, asideY, safe.w, ctx.measure, 20);
+  const body = reading.filter((unit) => unit !== heading);
   const area = { x: safe.x, y, w: safe.w, h: Math.max(16, buttonTop - 8 - y) };
   const fitColumn = (columns: number): boolean => {
     const gap = 8;
@@ -734,15 +882,22 @@ function composeRest(ctx: PhoneContext): PhoneLayout {
     return ok;
   };
   if (body.length && area.h >= 16) {
-    if (!fitColumn(1) && area.w >= 360) fitColumn(2);
-    const top = Math.min(...body.map((unit) => unit.y));
+    const wide = ctx.key === "battle-results" ? 3 : 2;
+    if (!fitColumn(ctx.key === "battle-results" ? 3 : 1) && area.w >= 360) fitColumn(wide);
+    const top = Math.min(...body.map((unit) => unit.y), heading && ctx.key === "battle-results" ? heading.y : Number.POSITIVE_INFINITY);
     const bottom = Math.max(...body.map((unit) => unit.y + unit.h));
     const left = Math.min(...body.map((unit) => unit.x));
     const right = Math.max(...body.map((unit) => unit.x + unit.w));
-    ctx.fills.push({ x: left - 12, y: top - 8, w: Math.max(48, right - left + 24), h: Math.max(24, bottom - top + 16), color: 0xfff4dc, role: "sheet" });
+    const sheetRight = ctx.key === "battle-results" ? safe.x + safe.w + 12 : right + 12;
+    if (ctx.key !== "exam-battle") ctx.fills.push({ x: left - 12, y: top - 8, w: Math.max(48, sheetRight - (left - 12)), h: Math.max(24, bottom - top + 16), color: 0xfff4dc, role: "sheet" });
   }
   for (const button of [back, ...actions].filter((unit): unit is PhoneUnit => Boolean(unit))) {
-    ctx.fills.push({ x: button.x, y: button.y, w: button.w, h: button.h, color: 0xf0d7a2, role: "sheet" });
+    const enabled = button.node.inputEnabled;
+    ctx.fills.push({ x: button.x, y: button.y, w: button.w, h: button.h, color: enabled ? 0xf0d7a2 : 0xe4d3b0, role: "sheet" });
+  }
+  if (ctx.key === "battle-results" && actions.length) {
+    const bottom = Math.max(...actions.map((button) => button.y + button.h), ...texts.map((unit) => unit.y + unit.h));
+    ctx.fills.unshift({ x: safe.x, y: safe.y, w: safe.w, h: Math.max(44, bottom - safe.y), color: 0xfff4dc, role: "sheet" });
   }
   const heroNode = findHero(ctx.scene);
   let hero: PhoneHero | null = null;
@@ -765,6 +920,7 @@ export function composePhone(ctx: PhoneContext): PhoneLayout | null {
   if (ctx.key === "title") layout = composeTitle(ctx);
   else if (ctx.key === "guide") layout = composeGuide(ctx);
   else if (ctx.key === "wardrobe") layout = composeWardrobe(ctx);
+  else if (ctx.key === "create") layout = composeCreate(ctx);
   else if (usesPhone(ctx.key)) layout = composeRest(ctx);
   if (!layout) return null;
   return parkLeftovers(ctx, layout);

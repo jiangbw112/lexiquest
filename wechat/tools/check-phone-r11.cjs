@@ -254,10 +254,11 @@ async function main() {
       assert.ok(again, shot.hits.map((item) => item.text).join("|"));
       assert.ok(again.w >= 52 && again.h >= 44 && inside(again, w, h), JSON.stringify(again));
       const note = shot.texts.find((item) => item.text.includes("不是安全登录"));
-      assert.ok(note && note.y + note.h <= again.y, "keys overlap the note");
       const keys = shot.hits.filter((item) => String(item.text).startsWith("pin:") || /^[0-9]$/.test(item.text) || ["退格", "再输", "确定"].includes(item.text));
-      const span = Math.max(...keys.map((item) => item.x + item.w)) - Math.min(...keys.map((item) => item.x));
-      assert.ok(span > w * 0.55, `keypad still a narrow column ${span}`);
+      const keyLeft = Math.min(...keys.map((item) => item.x));
+      const keyRight = Math.max(...keys.map((item) => item.x + item.w));
+      assert.ok(note && note.x + note.w + 8 <= keyLeft, `note still covers the keypad ${note && note.x + note.w} ${keyLeft}`);
+      assert.ok(keyRight > w * 0.72, `keypad leaves the right side empty ${keyRight}`);
       assert.ok(!dark(shot.left) && !dark(shot.right));
       assert.ok(shot.texts.some((item) => item.text.includes("再输入一次") || item.text.includes("再输")));
     }

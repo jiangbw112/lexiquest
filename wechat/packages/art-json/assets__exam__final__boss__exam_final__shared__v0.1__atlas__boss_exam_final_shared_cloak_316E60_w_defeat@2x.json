@@ -1,0 +1,161 @@
+{
+ "frames": {
+  "boss_exam_final_shared_cloak_316E60_w_defeat_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 649,
+    "h": 456
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 66,
+    "y": 218,
+    "w": 649,
+    "h": 456
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cloak_316E60_w_defeat_01": {
+   "frame": {
+    "x": 653,
+    "y": 2,
+    "w": 649,
+    "h": 438
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 63,
+    "y": 236,
+    "w": 649,
+    "h": 438
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cloak_316E60_w_defeat_02": {
+   "frame": {
+    "x": 1304,
+    "y": 2,
+    "w": 649,
+    "h": 417
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 60,
+    "y": 257,
+    "w": 649,
+    "h": 417
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cloak_316E60_w_defeat_03": {
+   "frame": {
+    "x": 2,
+    "y": 460,
+    "w": 649,
+    "h": 400
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 60,
+    "y": 274,
+    "w": 649,
+    "h": 400
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cloak_316E60_w_defeat_04": {
+   "frame": {
+    "x": 653,
+    "y": 460,
+    "w": 649,
+    "h": 385
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 60,
+    "y": 289,
+    "w": 649,
+    "h": 385
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cloak_316E60_w_defeat_05": {
+   "frame": {
+    "x": 1304,
+    "y": 460,
+    "w": 649,
+    "h": 377
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 60,
+    "y": 297,
+    "w": 649,
+    "h": 377
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_cloak_316E60_w_defeat@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1956,
+   "h": 864
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

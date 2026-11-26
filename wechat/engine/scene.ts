@@ -123,15 +123,15 @@ class Loader extends Emitter {
     // 为什么：同步 emit("complete") 会让关卡地图在图集没就绪时把调用栈撑满。
     if (this.attempted.has(key) || this.scene.textures.exists(key)) return this;
     this.attempted.add(key);
-    this.queue.push({ kind: "atlas", key, urls: [image, data] });
+    this.queue.push({ kind: "atlas", key, urls: [bareAsset(image), bareAsset(data)] });
     return this;
   }
   image(key: string, url: string): this {
-    this.queue.push({ kind: "image", key, urls: [url] });
+    this.queue.push({ kind: "image", key, urls: [bareAsset(url)] });
     return this;
   }
   json(key: string, url: string): this {
-    this.queue.push({ kind: "json", key, urls: [url] });
+    this.queue.push({ kind: "json", key, urls: [bareAsset(url)] });
     return this;
   }
   start(): void {
@@ -165,6 +165,10 @@ class Loader extends Emitter {
   constructor(private readonly scene: RuntimeScene) {
     super();
   }
+}
+
+function bareAsset(url: string): string {
+  return url.replace(/^\/+/, "");
 }
 
 function packedPath(url: string): string {

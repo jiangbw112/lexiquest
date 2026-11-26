@@ -1,0 +1,473 @@
+{
+ "frames": {
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_idle_00": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 146,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_idle_01": {
+   "frame": {
+    "x": 121,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 329,
+    "y": 142,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_idle_02": {
+   "frame": {
+    "x": 240,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 140,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_idle_03": {
+   "frame": {
+    "x": 359,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 323,
+    "y": 143,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_00": {
+   "frame": {
+    "x": 478,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 324,
+    "y": 153,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_01": {
+   "frame": {
+    "x": 597,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 322,
+    "y": 160,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_02": {
+   "frame": {
+    "x": 716,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 328,
+    "y": 138,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_03": {
+   "frame": {
+    "x": 835,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 330,
+    "y": 131,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_04": {
+   "frame": {
+    "x": 954,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 329,
+    "y": 138,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_attack_05": {
+   "frame": {
+    "x": 1073,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 327,
+    "y": 146,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_hit_00": {
+   "frame": {
+    "x": 1192,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 336,
+    "y": 160,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_hit_01": {
+   "frame": {
+    "x": 1311,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 340,
+    "y": 167,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_hit_02": {
+   "frame": {
+    "x": 1430,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 331,
+    "y": 153,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_00": {
+   "frame": {
+    "x": 1549,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 332,
+    "y": 156,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_01": {
+   "frame": {
+    "x": 1668,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 329,
+    "y": 174,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_02": {
+   "frame": {
+    "x": 1787,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 195,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_03": {
+   "frame": {
+    "x": 1906,
+    "y": 2,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 212,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_04": {
+   "frame": {
+    "x": 2,
+    "y": 95,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 227,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_crown_enhanced_EAC670_w_defeat_05": {
+   "frame": {
+    "x": 121,
+    "y": 95,
+    "w": 117,
+    "h": 91
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 326,
+    "y": 235,
+    "w": 117,
+    "h": 91
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_crown_enhanced_EAC670_w@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 2028,
+   "h": 188
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

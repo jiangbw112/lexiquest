@@ -1,0 +1,89 @@
+{
+ "frames": {
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_hit_00": {
+   "frame": {
+    "x": 601,
+    "y": 2,
+    "w": 597,
+    "h": 401
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 96,
+    "y": 194,
+    "w": 597,
+    "h": 401
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_hit_01": {
+   "frame": {
+    "x": 1200,
+    "y": 2,
+    "w": 597,
+    "h": 394
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 100,
+    "y": 201,
+    "w": 597,
+    "h": 394
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  },
+  "boss_exam_final_shared_cover_gold_p3_EBC873_w_hit_02": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 597,
+    "h": 408
+   },
+   "rotated": false,
+   "trimmed": true,
+   "spriteSourceSize": {
+    "x": 91,
+    "y": 187,
+    "w": 597,
+    "h": 408
+   },
+   "sourceSize": {
+    "w": 768,
+    "h": 768
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.875
+   }
+  }
+ },
+ "meta": {
+  "app": "LexiQuest exam_final_formal_v1 tools/pack.py (code-drawn)",
+  "version": "formal-v1",
+  "image": "boss_exam_final_shared_cover_gold_p3_EBC873_w_hit@2x.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1800,
+   "h": 412
+  },
+  "scale": "2",
+  "premultipliedAlpha": false,
+  "status": "exam_final_formal_v1 · 学期试炼守护者 G3–G6 正式稿 · 绘本暖光 · code-drawn (Pillow/NumPy, no AI)"
+ }
+}

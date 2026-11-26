@@ -114,6 +114,26 @@ function designBox(node: GameNode): { x: number; y: number; w: number; h: number
   return displayBox({ ...node, x: at.x, y: at.y } as GameNode);
 }
 
+/** Sprites that never call setDisplaySize stay 1×1. Their picture is the atlas trim at the foot pivot. */
+function spriteTrimBox(node: GameNode): { x: number; y: number; w: number; h: number } | null {
+  if (node.displaySized || (node.type !== "sprite" && node.type !== "image")) return null;
+  const scene = node.scene as { textures?: { get: (key: string) => { data: unknown; missing: boolean } } } | null;
+  const key = (node as GameNode & { texture?: string }).texture ?? "";
+  const data = key && scene?.textures ? scene.textures.get(key) : null;
+  const frameName = (node as GameNode & { frame?: string }).frame ?? "";
+  const placed = data && !data.missing ? framePlacementOf(data.data, frameName) : null;
+  if (!placed || placed.trimW < 8 || placed.trimH < 8) return null;
+  const at = worldOf(node);
+  const sx = node.scaleX || 1;
+  const sy = node.scaleY || 1;
+  return {
+    x: at.x + (-node.originX * placed.sourceW + placed.trimX) * sx,
+    y: at.y + (-node.originY * placed.sourceH + placed.trimY) * sy,
+    w: placed.trimW * sx,
+    h: placed.trimH * sy,
+  };
+}
+
 function flatten(nodes: GameNode[], out: GameNode[]): void {
   for (const node of nodes) {
     if (!node.visible) continue;
@@ -150,6 +170,23 @@ function outermostHit(node: GameNode): GameNode | null {
     current = current.parent;
   }
   return root;
+}
+
+function buttonShell(node: GameNode): boolean {
+  const list = childList(node);
+  if (!list) return false;
+  const hasSlice = list.some((child) => child.type === "nineslice" && child.visible);
+  const labels = list.filter((child) => child.type === "text" && String((child as GameNode & { text?: string }).text ?? "").trim().length > 0);
+  return hasSlice && labels.length > 0 && labels.length <= 2;
+}
+
+function buttonShellOwner(node: GameNode): GameNode | null {
+  let current: GameNode | null = node;
+  while (current) {
+    if (buttonShell(current)) return current;
+    current = current.parent;
+  }
+  return null;
 }
 
 function estimateWidth(text: string, fontPx: number): number {
@@ -1473,12 +1510,23 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
 
   for (const node of visible) {
     if (paintedByTree(node)) continue;
-    if (outermostHit(node)) continue;
+    if (outermostHit(node) || buttonShellOwner(node)) continue;
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
-    const covered = usesPhone(sceneKeyOf(scene)) && isBackdrop(node) ? coverBox(view) : null;
-    const dest = covered ?? { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) };
+    const phoneKey = sceneKeyOf(scene);
+    const covered = usesPhone(phoneKey) && isBackdrop(node) ? coverBox(view) : null;
+    const sceneCover = usesPhone(phoneKey) && phoneKey === "exam-battle" ? coverBox(view) : null;
+    const sceneScale = sceneCover ? sceneCover.w / 1280 : 0;
+    const trim = sceneCover && !covered ? spriteTrimBox(node) : null;
+    const dest = covered ?? (sceneCover
+      ? {
+          x: sceneCover.x + (trim ? trim.x : box.x) * sceneScale,
+          y: sceneCover.y + (trim ? trim.y : box.y) * sceneScale,
+          w: Math.max(1, (trim ? trim.w : box.w) * sceneScale),
+          h: Math.max(1, (trim ? trim.h : box.h) * sceneScale),
+        }
+      : { x: screen.x, y: screen.y, w: Math.max(1, box.w * scale), h: Math.max(1, box.h * scale) });
     const frame = node.type === "nineslice" ? String((node as GameNode & { frame?: string }).frame ?? "") : "";
     const kind = isPaperFrame(frame) ? "paper" : plateKind(dest, view);
     plates.push({ box: dest, kind, frame });
@@ -1488,7 +1536,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
   const liftMaskText = usesPhone(sceneKeyOf(scene));
   for (const node of visible) {
     if (paintedByTree(node) && !(liftMaskText && node.type === "text")) continue;
-    const root = outermostHit(node);
+    const root = outermostHit(node) ?? buttonShellOwner(node);
     const owner = root ?? (node.type === "text" ? node : null);
     if (!owner || used.has(owner)) continue;
     used.add(owner);
@@ -1503,9 +1551,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const lineWidth = (line: string) => (measure ? measure(line, fontPx, weight, family) : estimateWidth(line, fontPx));
     const measured = lines.reduce((max, line) => Math.max(max, lineWidth(line)), 0);
     const nestedBits = owner.type !== "text"
-      ? visible.filter((child) => child.type === "text" && outermostHit(child) === owner).map((child) => String((child as GameNode & { text?: string }).text ?? "")).filter((bit) => bit.length > 0)
+      ? visible.filter((child) => child.type === "text" && (outermostHit(child) === owner || buttonShellOwner(child) === owner)).map((child) => String((child as GameNode & { text?: string }).text ?? "")).filter((bit) => bit.length > 0)
       : [];
-    const nestedText = nestedBits.join(nestedBits.length > 1 ? " " : "");
+    const labeled = nestedBits.filter((bit) => !/^\d$/.test(bit));
+    const chosenBits = labeled.length ? labeled : nestedBits;
+    const nestedText = chosenBits.join(chosenBits.length > 1 ? " " : "");
     const nestedFont = 16;
     const nestedWidth = nestedText
       ? (measure ? measure(nestedText, nestedFont, "700", "sans-serif") : estimateWidth(nestedText, nestedFont))
@@ -1516,14 +1566,14 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       fontPx: owner.type === "text" ? fontPx : nestedText ? nestedFont : 0,
       weight,
       family,
-      interactive: owner.inputEnabled,
+      interactive: owner.inputEnabled || buttonShell(owner),
       design,
       designX: design.x,
       designY: design.y,
       x: 0,
       y: 0,
-      w: owner.inputEnabled ? Math.min(144, Math.max(UI_HIT, Math.min(design.w || UI_HIT, 144), Math.min(nestedWidth + 16, 144))) : Math.max(1, measured || fontPx),
-      h: owner.inputEnabled ? UI_HIT : Math.max(fontPx, fontPx * Math.max(1, lines.length)),
+      w: owner.inputEnabled || buttonShell(owner) ? Math.min(144, Math.max(UI_HIT, Math.min(design.w || UI_HIT, 144), Math.min(nestedWidth + 16, 144))) : Math.max(1, measured || fontPx),
+      h: owner.inputEnabled || buttonShell(owner) ? UI_HIT : Math.max(fontPx, fontPx * Math.max(1, lines.length)),
       lines: owner.type === "text" ? lines : nestedText ? [nestedText] : [],
     });
   }
@@ -1549,7 +1599,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     items.push({
       kind: unit.node.type,
       text: unit.text,
-      fontPx: unit.node.type === "text" ? unit.fontPx : 0,
+      fontPx: unit.node.type === "text" || ((unit.node.type === "rectangle" || unit.node.type === "zone") && unit.lines.length > 0) ? unit.fontPx : 0,
       x: unit.x,
       y: unit.y,
       w: unit.w,
@@ -1565,7 +1615,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     let phoneLabelDrawn = false;
     const design = unit.design;
     for (const child of visible) {
-      if (outermostHit(child) !== unit.node || child === unit.node) continue;
+      if ((outermostHit(child) ?? buttonShellOwner(child)) !== unit.node || child === unit.node) continue;
       const childBox = designBox(child);
       const rx = design.w > 0 ? (childBox.x - design.x) / design.w : 0;
       const ry = design.h > 0 ? (childBox.y - design.y) / design.h : 0;
@@ -1980,16 +2030,20 @@ function paintMaskedTrees(scene: { children: { list: GameNode[] } }, ctx: PaintC
 }
 
 function paintItems(ctx: PaintContext, plan: FramePlan): void {
+  const sheetCovers = (item: PaintBox) => plan.fills.some((fill) => fill.role === "sheet" && fill.w > 0 && fill.h > 0 && fill.x <= item.x + 2 && fill.y <= item.y + 2 && fill.x + fill.w >= item.x + item.w - 2 && fill.y + fill.h >= item.y + item.h - 2);
   for (const item of plan.items) {
-    if (item.kind === "text" && item.text) {
-      const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
-      continue;
-    }
+    if (item.kind === "text") continue;
+    if (sheetCovers(item)) continue;
     if (item.kind === "rectangle" || (item.interactive && !plan.images.some((op) => op.x >= item.x && op.x < item.x + item.w && op.y >= item.y && op.y < item.y + item.h))) {
       const fill = (item.node as GameNode & { fillColor?: number }).fillColor;
       ctx.fillStyle = hex(typeof fill === "number" ? fill : 0xc9a06a);
       ctx.fillRect(item.x, item.y, item.w, item.h);
+    }
+  }
+  for (const item of plan.items) {
+    if (item.text && item.fontPx > 0) {
+      const lines = item.lines && item.lines.length ? item.lines : [item.text];
+      paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h);
     }
   }
 }
