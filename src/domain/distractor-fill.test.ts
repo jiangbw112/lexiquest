@@ -13,15 +13,11 @@ import { starterSkillId } from "./skills";
 import type { SaveData } from "./types";
 
 const GRADES = ["G3", "G4", "G5", "G6"] as const;
-/** Question pools for every chapter under every grade selection. Forest order follows forestStudyWordIds. */
-const POOL_HASH = "90728f833774d99baa31732d0a648ca35f8fb6d1196cfdd9e3eaa15ba5e7b08e";
+/** Question pools for every grade chapter under every grade selection. */
+const POOL_HASH = "9bc8471845681f3b81fe9edaea57697d5250044bab92146c34883cd66aa5a550";
 /** Exam meaning choices for a full card pool after the near-synonym blocks. */
-const EXAM_CHOICE_HASH = "8b3eca1f93a7241dd6c0092be675b868672b533e99cdedd648f493d15a4a1408";
+const EXAM_CHOICE_HASH = "243b27bbea5b0f82f0c772c02085d5703abd9bf31396609e7baee283a310b013";
 const EXCLUSION_SHA = "516cc9da9ac457e400b71530ec77174179e13ad643311dfa84423e866c7fb311";
-const FOREST_G3_POOL = [
-  "tree", "bird", "fish", "sun", "map", "big", "red", "flower",
-  "bridge", "brave", "path", "treasure", "journey", "discover", "adventure", "protect",
-];
 
 function combos(): string[][] {
   const out: string[][] = [];
@@ -100,32 +96,30 @@ describe("short choice fill", () => {
     expect(wordById(later)?.grade).toBe("G5");
     const chapterOnly = wordsOf(["bridge", "treasure", "protect", about]);
     const fromChapter = quizForWord("bridge", 1, "zh-to-en", chapterOnly);
-    expect(fromChapter.choices.map((choice) => choice.id).sort()).toEqual(["bridge", "protect", "treasure"]);
+    expect(fromChapter.choices.map((choice) => choice.id).sort()).toEqual(["arm", "bridge"]);
     const oneChapterWord = wordsOf(["bridge", "treasure", about, later]);
     const mixed = quizForWord("bridge", 4, "zh-to-en", oneChapterWord);
-    expect(mixed.choices.map((choice) => choice.id)).toContain("treasure");
     expect(mixed.choices).toHaveLength(MEANING_CHOICE_COUNT);
-    const outsider = mixed.choices.map((choice) => choice.id).filter((id) => id !== "bridge" && id !== "treasure");
-    expect(outsider).toHaveLength(1);
-    expect([about, later]).toContain(outsider[0]);
+    expect(mixed.choices.map((choice) => choice.id).sort()).toEqual([about, "bridge", later].sort());
+    expect(mixed.choices.map((choice) => choice.id)).not.toContain("treasure");
   });
 
-  it("gives forest grade-3 bridge, path, and brave three unique choices", () => {
+  it("gives the first grade-3 chapter three unique choices from its own words", () => {
     const save = fresh(["G3"]);
-    expect(battleWordIds(save)).toEqual(FOREST_G3_POOL);
+    const first = gradeChapters("G3")[0]!;
+    const later = gradeChapters("G3")[1]!;
+    expect(battleWordIds(save)).toEqual(first.wordIds);
     const pool = wordsOf(unlockedWordIds(save));
-    expect(pool.map((word) => word.id)).toEqual(FOREST_G3_POOL);
-    for (const id of ["bridge", "path", "brave"] as const) {
+    expect(pool.map((word) => word.id)).toEqual(first.wordIds);
+    for (const id of first.wordIds.slice(0, 3)) {
       for (const direction of ["zh-to-en", "en-to-zh", "listen-to-zh"] as const) {
         const quiz = quizForWord(id, 1, direction, pool);
         assertChoice(quiz);
-        expect(quiz.choices.every((choice) => FOREST_G3_POOL.includes(choice.id))).toBe(true);
+        expect(quiz.choices.every((choice) => first.wordIds.includes(choice.id))).toBe(true);
       }
     }
-    const path = quizForWord("path", 1, "zh-to-en", pool);
-    expect(path.choices.map((choice) => choice.id)).toContain("brave");
-    const bridge = quizForWord("bridge", 1, "zh-to-en", pool);
-    expect(bridge.choices.map((choice) => choice.id).filter((id) => wordById(id)?.grade === "G4")).toEqual(["bridge"]);
+    const quiz = quizForWord(first.wordIds[0]!, 1, "zh-to-en", pool);
+    expect(quiz.choices.map((choice) => choice.id).filter((id) => later.wordIds.includes(id))).toEqual([]);
   });
 
   it("does not learn a distractor or open a card when the child picks it", () => {
@@ -157,9 +151,9 @@ describe("short choice fill", () => {
       state = answerQuestion(state, wrong!.id);
       expect(state.learnedIds).toEqual(["tree"]);
       expect(state.answers.at(-1)).toMatchObject({ wordId: asked, correct: false });
-      if (asked === "bridge" || asked === "path" || asked === "brave") seen.add(asked);
+      seen.add(asked);
     }
-    expect([...seen].sort()).toEqual(["brave", "bridge", "path"]);
+    expect(seen.size).toBe(3);
   });
 
   it("keeps every chapter question full for all 15 grade selections", () => {
@@ -189,7 +183,7 @@ describe("short choice fill", () => {
       }
     }
     expect(problems).toEqual([]);
-    expect(questions).toBe(7024);
+    expect(questions).toBe(6968);
     expect(pools.digest("hex")).toBe(POOL_HASH);
   }, 20000);
 
@@ -211,7 +205,7 @@ describe("short choice fill", () => {
         }
       }
     }
-    expect(examQuestions).toBe(2526);
+    expect(examQuestions).toBe(2604);
     expect(hash.digest("hex")).toBe(EXAM_CHOICE_HASH);
     const next = wordById("next");
     expect(next).toBeTruthy();

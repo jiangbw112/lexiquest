@@ -30,7 +30,8 @@ describe("one clear check", () => {
     const won = { ...save, stageWins: { "1": 1, "2": 1, "3": 1, "4": 1 } };
     expect(isCleared(won, { kind: "stage", chapterId: FOREST_CHAPTER_ID, stage })).toBe(true);
     expect(isCleared(won, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })).toBe(false);
-    expect(isChapterUnlocked(won, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(won, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(won, gradeChapters("G3")[1]!)).toBe(false);
     expect(graduationBossReady(won)).toBe(false);
     const examId = finalExamIds()[0]!;
     expect(isCleared(won, { kind: "exam", examId })).toBe(false);
@@ -47,6 +48,7 @@ describe("one clear check", () => {
     const forest = { ...won, chapterCleared: true };
     expect(isCleared(forest, { kind: "chapter", chapterId: FOREST_CHAPTER_ID })).toBe(true);
     expect(isChapterUnlocked(forest, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(forest, gradeChapters("G3")[1]!)).toBe(false);
     expect(graduationBossReady(forest)).toBe(false);
 
     const chapters = allGradeChapters();

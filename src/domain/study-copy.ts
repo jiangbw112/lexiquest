@@ -1,5 +1,5 @@
 import { GRADE_BANDS, isChapterExtra, normalizeGrades, wordById } from "./catalog";
-import { activeChapter, forestPlayChapter, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
+import { activeChapter, isChapterCleared, isChapterUnlocked, type PlayChapter } from "./chapter-plan";
 import { FOREST_CHAPTER, forestStudyWordIds, gradeForestStudyWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
@@ -72,9 +72,8 @@ function studyEncouragement(save: SaveData, chapter: PlayChapter, ids: readonly 
   return line;
 }
 
-/** Forest until that boss is beaten, then the chapter the save is standing in. */
+/** The grade chapter the save can stand in. The independent forest chapter is not a village destination. */
 export function villageStudyChapter(save: SaveData): PlayChapter {
-  if (!isChapterCleared(save, forestPlayChapter())) return forestPlayChapter();
   return activeChapter(save);
 }
 
@@ -202,5 +201,5 @@ export function otherGradeForestLine(here: GradeBand, groups: readonly GradePrac
   });
   const first = groups[0];
   const next = first ? gradeLabel(first.grade) : "";
-  return `${gradeLabel(here)}的词学完了。还差${bits.join("。还差")}。去${next}的森林冒险。`;
+  return `${gradeLabel(here)}的词学完了。还差${bits.join("。还差")}。去${next}学。`;
 }

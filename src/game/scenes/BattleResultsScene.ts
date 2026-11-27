@@ -31,6 +31,7 @@ import { uiLabel } from "../../domain/ui-label";
 import { queueChapterCosmetics } from "../art/chapter-cosmetics";
 import { ClassSideSprite } from "../art/class-sprite";
 import { queueClassSide, queueClassWreath, savedClassId } from "../art/class-load";
+import { independentForestId } from "../../domain/chapter-plan";
 import { restPromptDue } from "../play-timer";
 import { probeNote } from "../probe";
 import { getSave } from "../session";
@@ -952,7 +953,12 @@ export class BattleResultsScene extends Phaser.Scene {
       this.scene.start("stages", { fromBattleEnd: true, retryStageId: this.view.stageId });
       return;
     }
-    this.scene.start("battle", { stageId: this.view.stageId });
+    const chapterId = getSave()?.currentChapterId;
+    if (independentForestId(chapterId)) {
+      this.scene.start("stages");
+      return;
+    }
+    this.scene.start("battle", { stageId: this.view.stageId, chapterId });
   }
 
   private toMap(retry: boolean): void {

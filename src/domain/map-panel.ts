@@ -1,4 +1,5 @@
 import { MAP_PRACTICE_NOTE } from "./battle-results";
+import { legalLearnChapters } from "./chapter-route";
 import { wordById } from "./catalog";
 import { cardProgress, learnedWordsLine } from "./learn-progress";
 import { deviceTimeZone, localDayKey } from "./local-day";
@@ -231,6 +232,9 @@ function bossGateFaces(
   }
   const groups = gradePracticeEntries(save, missing);
   const first = groups[0];
+  const lesson = first
+    ? legalLearnChapters(save, first.grade).find((chapter) => first.wordIds.some((id) => chapter.wordIds.includes(id)))
+    : undefined;
   return {
     lines: clipMissingWords(groups.map((group) => group.line), 48),
     entries: first
@@ -241,7 +245,7 @@ function bossGateFaces(
           tone: "secondary" as const,
           grade: first.grade,
           wordIds: first.wordIds,
-          chapterId: scope.id,
+          chapterId: lesson?.id,
         }]
       : [],
   };

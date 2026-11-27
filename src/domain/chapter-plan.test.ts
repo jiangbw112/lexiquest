@@ -29,7 +29,7 @@ import { chapterWordIds } from "./stages";
 import type { GradeBand, SaveData } from "./types";
 
 /** chapters_v0.2.json. pep_g3_07 boss is 营养餐盘守护者; its theme note no longer says Old toys. */
-const CHAPTERS_SHA256 = "c5e571388aba8b5d8ba71b691cedd87e4acee15ea3ba219217af46d58d18f06c";
+const CHAPTERS_SHA256 = "ea65235c604c44ac22c2c0844196b9a944574b8de5a74d9c6ce4e03502b8fa3e";
 const GLOSS_SHA256 = "29d9c690d11324ed2b0e10b213c0653826309d05f853ee162d5088204c48ba79";
 
 const START = new Date("2026-03-01T02:00:00Z");
@@ -232,9 +232,10 @@ describe("grade chapters", () => {
     const seen = new Set<string>();
     for (const grade of GRADES) {
       const ids = gradeChapters(grade).flatMap((chapter) => chapter.wordIds);
-      expect(new Set(ids)).toEqual(new Set(remainder[grade]));
-      expect(ids).toHaveLength(remainder[grade].length);
-      expect(new Set(ids)).toEqual(new Set(continuationWordIds(grade)));
+      const kept = ids.filter((id) => !forest.has(id));
+      expect(new Set(kept)).toEqual(new Set(remainder[grade]));
+      expect(kept).toHaveLength(remainder[grade].length);
+      expect(new Set(kept)).toEqual(new Set(continuationWordIds(grade)));
       for (const chapter of gradeChapters(grade)) {
         expect(chapter.stages).toHaveLength(5);
         expect(chapter.stages[4]?.type).toBe("boss");
@@ -242,9 +243,8 @@ describe("grade chapters", () => {
       }
       for (const id of ids) {
         expect(seen.has(id)).toBe(false);
-        expect(forest.has(id)).toBe(false);
-        expect(extras.has(id)).toBe(false);
         expect(wordById(id)?.grade).toBe(grade);
+        if (extras.has(id)) expect(forest.has(id)).toBe(true);
         seen.add(id);
       }
     }
@@ -254,21 +254,21 @@ describe("grade chapters", () => {
       G5: 251,
       G6: 161,
     });
-    expect(seen.size).toBe(843);
+    expect(seen.size).toBe(871);
     expect(GRADES.map((grade) => gradeChapters(grade).length)).toEqual([8, 8, 9, 6]);
     const sizes = (id: string) => gradeChapters(id.slice(4, 6) === "g3" ? "G3" : id.slice(4, 6) === "g4" ? "G4" : id.slice(4, 6) === "g5" ? "G5" : "G6")
       .find((chapter) => chapter.id === id)!;
-    expect(sizes("pep_g3_08").wordIds).toHaveLength(24);
-    expect(sizes("pep_g3_08").stages.map((stage) => stage.new_words.length)).toEqual([5, 5, 5, 5, 4]);
+    expect(sizes("pep_g3_08").wordIds).toHaveLength(25);
+    expect(sizes("pep_g3_08").stages.map((stage) => stage.new_words.length)).toEqual([6, 5, 5, 5, 4]);
     expect(sizes("pep_g4_08").wordIds).toHaveLength(15);
     expect(sizes("pep_g4_08").stages.map((stage) => stage.new_words.length)).toEqual([3, 3, 3, 3, 3]);
-    expect(sizes("pep_g5_09").wordIds).toHaveLength(27);
-    expect(sizes("pep_g5_09").stages.map((stage) => stage.new_words.length)).toEqual([6, 6, 6, 6, 3]);
-    expect(sizes("pep_g6_06").wordIds).toHaveLength(21);
-    expect(sizes("pep_g6_06").stages.map((stage) => stage.new_words.length)).toEqual([5, 4, 4, 4, 4]);
+    expect(sizes("pep_g5_09").wordIds).toHaveLength(28);
+    expect(sizes("pep_g5_09").stages.map((stage) => stage.new_words.length)).toEqual([7, 6, 6, 6, 3]);
+    expect(sizes("pep_g6_06").wordIds).toHaveLength(22);
+    expect(sizes("pep_g6_06").stages.map((stage) => stage.new_words.length)).toEqual([6, 4, 4, 4, 4]);
     const friends = gradeChapters("G3")[0]!;
     expect(friends).toMatchObject({ id: "pep_g3_01", name: "朋友与家人", bossName: "全家福守护者" });
-    expect(friends.stages[0]?.new_words).toEqual(["arm", "can", "ear", "eye", "friend", "good"]);
+    expect(friends.stages[0]?.new_words).toEqual(["arm", "can", "ear", "eye", "friend", "good", "big"]);
     const places = gradeChapters("G6")[0]!;
     expect(places.id).toBe("pep_g6_01");
     const early = new Set(places.stages.slice(0, 3).flatMap((stage) => stage.new_words));
@@ -360,39 +360,44 @@ describe("grade chapters", () => {
 
   it("orders selected grades from G3 to G6 and opens the next chapter after a boss", () => {
     const mixed = visibleChapters(["G6", "G3"]);
-    expect(mixed[0]?.id).toBe("forest_adventure");
-    expect(mixed[1]?.grade).toBe("G3");
+    expect(mixed.some((chapter) => chapter.id === "forest_adventure")).toBe(false);
+    expect(mixed[0]?.grade).toBe("G3");
     expect(mixed.some((chapter) => chapter.grade === "G4")).toBe(false);
     expect(mixed.filter((chapter) => chapter.grade === "G6")).toHaveLength(gradeChapters("G6").length);
     const fresh = newSave(["G3", "G5"]);
     const list = visibleChapters(fresh.selectedGrades);
+    expect(list[0]?.id).toBe(gradeChapters("G3")[0]!.id);
     expect(isChapterUnlocked(fresh, list[0]!)).toBe(true);
     expect(isChapterUnlocked(fresh, list[1]!)).toBe(false);
     const beaten = { ...fresh, chapterCleared: true };
-    expect(isChapterUnlocked(beaten, list[1]!)).toBe(true);
+    expect(isChapterUnlocked(beaten, list[1]!)).toBe(false);
     expect(list[1]?.grade).toBe("G3");
-    expect(isChapterUnlocked(beaten, list[2]!)).toBe(false);
     const only5 = visibleChapters(["G5"]);
-    const old = { ...newSave(["G5"]), chapterCleared: true };
-    expect(only5[1]?.grade).toBe("G5");
-    expect(isChapterUnlocked(old, only5[1]!)).toBe(true);
-    expect(activeChapter(fresh).id).toBe("forest_adventure");
-    expect(activeChapter({ ...fresh, currentChapterId: "missing" }).id).toBe("forest_adventure");
+    const old = { ...newSave(["G5"]), chapterCleared: false };
+    expect(only5[0]?.grade).toBe("G5");
+    expect(isChapterUnlocked(old, only5[0]!)).toBe(true);
+    expect(isChapterUnlocked(old, only5[1]!)).toBe(false);
+    expect(activeChapter(fresh).id).toBe(gradeChapters("G3")[0]!.id);
+    expect(activeChapter({ ...fresh, currentChapterId: "missing" }).id).toBe(gradeChapters("G3")[0]!.id);
+    expect(activeChapter({ ...fresh, currentChapterId: "forest_adventure" }).id).toBe(gradeChapters("G3")[0]!.id);
   });
 
   it("draws distractors from unlocked words of the same grade", () => {
     const save = newSave(["G3", "G4"]);
+    const first = gradeChapters("G4")[0]!;
+    const next = gradeChapters("G4")[1]!;
     const pool = unlockedWordIds(save).map((id) => wordById(id)).filter((word) => word?.grade === "G4");
-    expect(pool.map((word) => word!.id).sort()).toEqual(["bridge", "rain", "run", "weather"]);
-    const quiz = quizForWord("run", 1, "zh-to-en", unlockedWordIds(save).map((id) => wordById(id)!));
+    expect(pool.map((word) => word!.id).sort()).toEqual([...first.wordIds].sort());
+    const target = first.wordIds[0]!;
+    const quiz = quizForWord(target, 1, "zh-to-en", unlockedWordIds(save).map((id) => wordById(id)!));
     expect(quiz.choices).toHaveLength(3);
-    expect(quiz.choices.map((choice) => choice.id)).toContain("run");
+    expect(quiz.choices.map((choice) => choice.id)).toContain(target);
     expect(quiz.choices.every((choice) => wordById(choice.id)?.grade === "G4")).toBe(true);
-    const later = gradeChapters("G4")[0]!;
-    expect(battleWordIds(save)).not.toContain(later.wordIds[0]);
-    const standing = { ...save, currentChapterId: later.id, chapterCleared: true };
-    expect(battleWordIds(standing)).toEqual(later.wordIds);
-    expect(battleWordIds(standing)).not.toContain("run");
+    expect(battleWordIds(save)).toEqual(gradeChapters("G3")[0]!.wordIds);
+    expect(battleWordIds(save)).not.toContain(target);
+    const standing = { ...save, currentChapterId: first.id, chapterCleared: true };
+    expect(battleWordIds(standing)).toEqual(first.wordIds);
+    expect(battleWordIds(standing)).not.toContain(next.wordIds[0]);
   });
 
   it("loads a 4cd2956 save that has not cleared the forest", () => {
@@ -408,8 +413,9 @@ describe("grade chapters", () => {
     expect(loaded?.equippedOutfitId).toBe("traveler");
     expect(loaded?.chapterProgress).toEqual({});
     expect(loaded?.currentChapterId).toBeUndefined();
-    expect(loaded && activeChapter(loaded).id).toBe("forest_adventure");
-    expect(loaded && isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(false);
+    expect(loaded && activeChapter(loaded).id).toBe(gradeChapters("G3")[0]!.id);
+    expect(loaded && isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(true);
+    expect(loaded && isChapterUnlocked(loaded, gradeChapters("G3")[1]!)).toBe(false);
   });
 
   it("keeps a cleared-forest continuation save and counts those words in their own chapters", () => {
@@ -501,11 +507,12 @@ describe("grade chapters", () => {
     expect(isChapterUnlocked(added, g3[0]!)).toBe(true);
     expect(isChapterUnlocked(added, g3[1]!)).toBe(false);
     const beforeForest = newSave(["G3", "G5"]);
-    for (const chapter of visibleChapters(beforeForest.selectedGrades).slice(1)) {
-      expect(isChapterUnlocked(beforeForest, chapter)).toBe(false);
+    for (const chapter of visibleChapters(beforeForest.selectedGrades)) {
+      const opener = gradeChapters(chapter.grade as GradeBand)[0];
+      expect(isChapterUnlocked(beforeForest, chapter)).toBe(chapter.id === opener?.id);
     }
     const only = newSave(["G5"]);
-    expect(isChapterUnlocked(only, first)).toBe(false);
+    expect(isChapterUnlocked(only, first)).toBe(true);
     expect(isChapterUnlocked(only, second)).toBe(false);
     const forestDone = { ...only, chapterCleared: true };
     expect(isChapterUnlocked(forestDone, first)).toBe(true);

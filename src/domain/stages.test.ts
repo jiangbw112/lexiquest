@@ -133,7 +133,8 @@ describe("forest chapter", () => {
     expect(stageStatuses(loaded)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
     expect(bossReady(loaded)).toBe(false);
     expect(loaded.chapterCleared).toBe(false);
-    expect(isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(loaded, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(loaded, gradeChapters("G3")[1]!)).toBe(false);
     expect(loaded.clearRewardClaimed).toBe(false);
     expect(loaded.unlockedTitleIds).not.toContain("title_forest_trekker");
     expect(loaded.titles).toEqual(again.titles);
@@ -148,7 +149,8 @@ describe("forest chapter", () => {
     expect(explorationCleared(four)).toBe(true);
     expect(bossReady(four)).toBe(false);
     expect(stageStatuses(four)[4]).toBe("locked");
-    expect(isChapterUnlocked(four, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(four, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(four, gradeChapters("G3")[1]!)).toBe(false);
     const claimed = applyChapterRewards(
       { ...loaded, chapterCleared: true, clearRewardClaimed: false },
       0,
@@ -178,7 +180,8 @@ describe("forest chapter", () => {
     expect(isClassUnlocked("inventor", replay)).toBe(false);
     expect(inventorEarnedByClear(replay)).toBe(false);
     expect(graduationBossReady(replay)).toBe(false);
-    expect(isChapterUnlocked(replay, gradeChapters("G3")[0]!)).toBe(false);
+    expect(isChapterUnlocked(replay, gradeChapters("G3")[0]!)).toBe(true);
+    expect(isChapterUnlocked(replay, gradeChapters("G3")[1]!)).toBe(false);
     expect(replayAgain.unlockedTitleIds).toEqual(replay.unlockedTitleIds);
     expect(replayAgain.unlockedCosmeticIds).toEqual(replay.unlockedCosmeticIds);
     expect(replayAgain.rewardQueue).toEqual(replay.rewardQueue);
@@ -250,8 +253,9 @@ describe("forest chapter", () => {
     expect(stageStatuses(onlySecond)[0]).toBe("open");
     expect(stageStatuses(onlySecond)[2]).toBe("locked");
     expect(explorationCleared(onlySecond)).toBe(false);
-    expect(questLine(grade5)).toContain("五年级 · 森林冒险：已学 0/14 个词");
-    expect(questLine(grade5)).toContain("还有 14 个没在学堂学过");
+    expect(questLine(grade5)).toContain("五年级 · 不一样的朋友：已学 0/30 个词");
+    expect(questLine(grade5)).toContain("还有 30 个没在学堂学过");
+    expect(questLine(grade5)).not.toContain("森林冒险");
     expect(questLine(grade5)).not.toContain("0/0");
     const wonFirst = { ...grade5, stageWins: { "1": 1 } as Record<string, number> };
     expect(stageCleared(wonFirst, first)).toBe(true);
@@ -272,7 +276,9 @@ describe("forest chapter", () => {
     expect(questLine(grade6)).not.toContain("0/0");
     const wonSixthFirst = { ...grade6, stageWins: { "1": 1 } };
     expect(stageStatuses(wonSixthFirst)).toEqual(["cleared", "open", "locked", "locked", "locked"]);
-    expect(questLine(wonSixthFirst)).toContain("六年级 · 森林冒险：已学 0/11 个词");
+    const sixthName = gradeChapters("G6")[0]!.name;
+    expect(questLine(wonSixthFirst)).toContain(`六年级 · ${sixthName}：已学 0/32 个词`);
+    expect(questLine(wonSixthFirst)).not.toContain("森林冒险");
     expect(questLine(wonSixthFirst)).not.toContain("0/0");
     const wonBoth = { ...grade6, stageWins: { "1": 1, "2": 1 } };
     expect(stageStatuses(wonBoth)[2]).toBe("open");
@@ -372,8 +378,8 @@ describe("forest chapter", () => {
     expect(lost.stageWins).toEqual(save.stageWins);
     expect(lost.battlesLost).toBe(1);
     expect(bossReady(lost)).toBe(true);
-    expect(questLine(lost)).toContain("森林冒险：已学 28/28 个词");
-    expect(questLine(lost)).toContain("本章全学会了，真棒！");
+    expect(questLine(lost)).toContain("朋友与家人：已学 1/29 个词");
+    expect(questLine(lost)).not.toContain("森林冒险");
     const retry = startBattle({
       encounterId: "canopy",
       classId: "warrior",
@@ -457,12 +463,15 @@ describe("forest chapter", () => {
 
   it("asks a later official word only in the chapter that contains it", () => {
     const grade3 = newSave(["G3"]);
+    const first = gradeChapters("G3")[0]!;
     const allowed = battleWordIds(grade3);
-    expect(allowed).toContain("tree");
+    const standingWord = first.wordIds[0]!;
+    expect(allowed).toEqual(first.wordIds);
+    expect(allowed).not.toContain("tree");
     expect(allowed).not.toContain("about");
     expect(allowed).not.toContain("explore");
-    expect(skillQuestionPool([], ["tree"], { allowedIds: allowed })).toEqual(["tree"]);
-    expect(skillQuestionPool([], ["tree", "about"], { allowedIds: allowed })).toEqual(["tree"]);
+    expect(skillQuestionPool([], [standingWord], { allowedIds: allowed })).toEqual([standingWord]);
+    expect(skillQuestionPool([], [standingWord, "about"], { allowedIds: allowed })).toEqual([standingWord]);
     const next = gradeChapters("G3").find((chapter) => chapter.wordIds.includes("about"));
     expect(next).toBeTruthy();
     const standing = { ...grade3, currentChapterId: next!.id, chapterCleared: true };
@@ -472,9 +481,10 @@ describe("forest chapter", () => {
     expect(skillQuestionPool([], ["about"], { allowedIds: chapterAllowed })).toEqual(["about"]);
     expect(skillQuestionPool([], ["tree"], { allowedIds: chapterAllowed })).toEqual([]);
     const allGrades = battleWordIds(newSave());
+    expect(allGrades).toEqual(gradeChapters("G3")[0]!.wordIds);
     expect(allGrades).not.toContain("about");
-    expect(allGrades).toContain("explore");
-    expect(allGrades).toContain("tree");
+    expect(allGrades).not.toContain("explore");
+    expect(allGrades).not.toContain("tree");
   });
 
   it("selects the next open stage after stage 1 is cleared", () => {
