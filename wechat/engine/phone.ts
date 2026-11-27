@@ -48,6 +48,11 @@ export interface PhoneImage {
 export interface PhoneChrome {
   frame: string;
   box: { x: number; y: number; w: number; h: number };
+  /**
+   * Use the @2x slice insets at half scale and do not cap them to 22% of a short box.
+   * The village chapter board and the map sheets are built this way: wood 48, parchment 40.
+   */
+  sourceHalf?: boolean;
 }
 
 export interface PhonePlate {
@@ -100,6 +105,9 @@ export interface PhoneCaption {
   h: number;
   color: string;
   font: number;
+  /** When set, the caption does not inherit the donor text node's family or weight. */
+  family?: string;
+  weight?: string;
 }
 
 export interface PhonePortrait {

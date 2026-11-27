@@ -32,6 +32,9 @@ export interface PaintBox {
   align?: "center";
   /** Overrides the donor node's ink. Used for badges that do not have their own text node. */
   ink?: string;
+  /** Overrides the donor node's family and weight. Used when one sentence is painted as two runs. */
+  fontFamily?: string;
+  fontStyle?: string;
   /** Keeps a scrolling column inside its parchment. */
   clip?: { x: number; y: number; w: number; h: number };
   polygon?: Array<{ x: number; y: number }>;
@@ -74,7 +77,17 @@ export interface FramePlan {
   measured: boolean;
 }
 
-export type MeasureText = (text: string, fontPx: number, weight: string, family: string) => number;
+export interface InkBox {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+export type MeasureText = ((text: string, fontPx: number, weight: string, family: string) => number) & {
+  /** Ink edges relative to a top-left draw. Absent when the canvas has no bounding-box metrics. */
+  ink?: (text: string, fontPx: number, weight: string, family: string) => InkBox | null;
+};
 
 interface PaintContext {
   fillStyle: string;
@@ -1561,7 +1574,15 @@ function emitPhoneChrome(scene: { children: { list: GameNode[] } }, images: Draw
     }
     if (!rect) continue;
     const source = PHONE_SLICE[used] ?? { left: 32, right: 32, top: 30, bottom: 40 };
-    for (const part of sliceDest(piece.box.w, piece.box.h, phoneDestInsets(source, piece.box), rect, source)) {
+    const destInsets = piece.sourceHalf
+      ? {
+          left: Math.min(source.left / 2, piece.box.w / 2),
+          right: Math.min(source.right / 2, piece.box.w / 2),
+          top: Math.min(source.top / 2, piece.box.h / 2),
+          bottom: Math.min(source.bottom / 2, piece.box.h / 2),
+        }
+      : phoneDestInsets(source, piece.box);
+    for (const part of sliceDest(piece.box.w, piece.box.h, destInsets, rect, source)) {
       images.push({
         url: image,
         packed,
@@ -1769,16 +1790,24 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
           fontPx -= 1;
           width = measure ? measure(text, fontPx, weight, family) : estimateWidth(text, fontPx);
         }
-        const textX = Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2);
-        const textY = unit.label === "sign" ? unit.y + unit.h * (unit.signFrac ?? 0.72) : unit.y + Math.max(0, (unit.h - fontPx) / 2);
+        const ink = unit.label === "sign" ? measure?.ink?.(text, fontPx, weight, family) : null;
+        // Cream nameplate center on the 272×256 building, in the placed box. Ink, not advance width.
+        const plateX = unit.x + unit.w * 0.5;
+        const plateY = unit.y + unit.h * (227 / 256);
+        const textX = unit.label === "sign"
+          ? plateX - (ink ? (ink.left + ink.right) / 2 : width / 2)
+          : Math.max(unit.x + 4, unit.x + (unit.w - Math.min(width, unit.w - 8)) / 2);
+        const textY = unit.label === "sign"
+          ? plateY - (ink ? (ink.top + ink.bottom) / 2 : fontPx / 2)
+          : unit.y + Math.max(0, (unit.h - fontPx) / 2);
         items.push({
           kind: "text",
           text,
           fontPx,
           x: textX,
           y: textY,
-          w: Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)),
-          h: fontPx,
+          w: unit.label === "sign" ? Math.max(1, width + 2) : Math.min(width, Math.max(1, unit.x + unit.w - 4 - textX)),
+          h: unit.label === "sign" ? fontPx + 2 : fontPx,
           interactive: false,
           nested: true,
           node: child,
@@ -1837,6 +1866,8 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
         node: donor,
         lines: [caption.text],
         ink: caption.color,
+        fontFamily: caption.family,
+        fontStyle: caption.weight,
       });
     }
   }
@@ -2013,8 +2044,10 @@ function glyphSpec(node: GameNode, lines: string[], fontPx: number): GlyphSpec {
   };
 }
 
-function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number, align: "left" | "center" = "left", ink?: string): void {
+function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: number, x: number, y: number, boxW: number, boxH: number, align: "left" | "center" = "left", ink?: string, face?: { family?: string; weight?: string }): void {
   const spec = glyphSpec(node, lines, fontPx);
+  if (face?.family) spec.fontFamily = face.family;
+  if (face && face.weight !== undefined) spec.fontStyle = face.weight;
   if (ink) {
     spec.color = ink;
     spec.stroke = "";
@@ -2035,10 +2068,12 @@ function paintGlyph(ctx: PaintContext, node: GameNode, lines: string[], fontPx: 
   }
   noteGlyphFallback();
   const style = styleOf(node);
+  const family = face?.family || style.fontFamily || "sans-serif";
+  const weight = face && face.weight !== undefined ? face.weight : style.fontStyle || "";
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
   ctx.fillStyle = ink || style.color || "#17352a";
-  ctx.font = `${style.fontStyle ? `${style.fontStyle} ` : ""}${fontPx}px ${style.fontFamily || "sans-serif"}`;
+  ctx.font = `${weight ? `${weight} ` : ""}${fontPx}px ${family}`;
   const textH = fontPx * Math.max(1, lines.length);
   const drawY = align === "center" ? y + Math.max(0, (boxH - textH) / 2) : y;
   lines.forEach((line, index) => ctx.fillText(line, x, drawY + index * fontPx));
@@ -2221,7 +2256,7 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.text && item.fontPx > 0) {
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      const draw = () => paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink);
+      const draw = () => paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink, { family: item.fontFamily, weight: item.fontStyle });
       const clip = item.clip;
       if (clip && clip.w > 0 && clip.h > 0 && ctx.save && ctx.restore && ctx.beginPath && ctx.moveTo && ctx.lineTo && ctx.closePath && ctx.clip) {
         ctx.save();
@@ -2239,12 +2274,40 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   }
 }
 
+function inkBoxOf(ctx: PaintContext, text: string, fontPx: number, weight: string, family: string): InkBox | null {
+  if (!ctx.measureText) return null;
+  const previousFont = ctx.font;
+  const previousBaseline = ctx.textBaseline;
+  const previousAlign = ctx.textAlign;
+  ctx.font = `${weight ? `${weight} ` : ""}${fontPx}px ${family || "sans-serif"}`;
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  const metrics = ctx.measureText(text) as {
+    actualBoundingBoxLeft?: number;
+    actualBoundingBoxRight?: number;
+    actualBoundingBoxAscent?: number;
+    actualBoundingBoxDescent?: number;
+  };
+  ctx.font = previousFont;
+  ctx.textBaseline = previousBaseline;
+  ctx.textAlign = previousAlign;
+  if (typeof metrics.actualBoundingBoxRight !== "number" || typeof metrics.actualBoundingBoxAscent !== "number" || typeof metrics.actualBoundingBoxDescent !== "number") return null;
+  return {
+    left: typeof metrics.actualBoundingBoxLeft === "number" ? -metrics.actualBoundingBoxLeft : 0,
+    right: metrics.actualBoundingBoxRight,
+    top: -metrics.actualBoundingBoxAscent,
+    bottom: metrics.actualBoundingBoxDescent,
+  };
+}
+
 export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx: PaintContext | null, view: ViewBox, measure?: MeasureText): FramePlan {
-  const used = ctx?.measureText
-    ? (text: string, fontPx: number, weight: string, family: string) => {
+  const used: MeasureText | undefined = ctx?.measureText
+    ? Object.assign((text: string, fontPx: number, weight: string, family: string) => {
         ctx.font = `${weight ? `${weight} ` : ""}${fontPx}px ${family || "sans-serif"}`;
         return ctx.measureText?.(text).width ?? estimateWidth(text, fontPx);
-      }
+      }, {
+        ink: (text: string, fontPx: number, weight: string, family: string) => inkBoxOf(ctx, text, fontPx, weight, family),
+      })
     : measure;
   const plan = layoutFrame(scene, view, used);
   if (!ctx) return plan;

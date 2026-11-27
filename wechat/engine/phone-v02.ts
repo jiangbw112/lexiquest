@@ -212,40 +212,104 @@ const VILLAGE: Array<[string, number, number]> = [
   ["同机练习", 560, 236],
 ];
 
+const HUD_INK = "#3B2A20";
+const HUD_TEAL = "#1F6F64";
+const HUD_MUTED = "#46363A";
+const HUD_BODY = '"Noto Sans SC", "WenQuanYi Micro Hei", "PingFang SC", sans-serif';
+const HUD_TITLE = '"ZCOOL KuaiLe", "Noto Sans SC", sans-serif';
+
+function pushSheet(chrome: PhoneChrome[], box: Box, padX: number, padY: number): void {
+  chrome.push({ frame: "panel_wood", box, sourceHalf: true });
+  chrome.push({
+    frame: "panel_parchment",
+    box: { x: box.x + padX, y: box.y + padY, w: Math.max(1, box.w - padX * 2), h: Math.max(1, box.h - padY * 2) },
+    sourceHalf: true,
+  });
+}
+
+function castLine(unit: PhoneUnit, text: string, family: string, size: number, weight: string, color: string): void {
+  unit.text = text;
+  unit.lines = [text];
+  unit.fontPx = size;
+  unit.weight = weight;
+  unit.family = family;
+  face(unit, family, color, weight);
+  const node = unit.node as GameNode & { style?: { fontSize?: string } };
+  if (node.style) node.style.fontSize = `${size}px`;
+}
+
+function pinLine(ctx: PhoneContext, unit: PhoneUnit, x: number, originY: number, size: number): void {
+  const sample = unit.lines[0] || unit.text;
+  const width = ctx.measure ? ctx.measure(sample, size, unit.weight, unit.family) : textWidth(ctx, sample, size);
+  unit.x = x;
+  unit.y = originY - size / 2;
+  unit.w = Math.max(size, Math.ceil(width) + 2);
+  unit.h = size + 2;
+  unit.onPaper = true;
+}
+
+function captionLine(ctx: PhoneContext, text: string, x: number, originY: number, size: number, color: string, family: string, weight: string): PhoneCaption {
+  const width = ctx.measure ? ctx.measure(text, size, weight, family) : textWidth(ctx, text, size);
+  return {
+    text,
+    x,
+    y: originY - size / 2,
+    w: Math.max(size, Math.ceil(width)),
+    h: size,
+    color,
+    font: size,
+    family,
+    weight,
+  };
+}
+
+/** The live goal sentence keeps every character. 「今日目标」 starts the teal run when it is not already the first clause. */
+function splitGoal(text: string): { status: string; goal: string } {
+  const at = text.indexOf("今日目标");
+  if (at > 0) return { status: text.slice(0, at).trim(), goal: text.slice(at).trim() };
+  return { status: "", goal: text.trim() };
+}
+
 function layoutVillage(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
-  const hud = s.box(56, 16, 300, 52);
-  chrome.push({ frame: "panel_parchment", box: hud });
+  const padX = 8 * s.sx;
+  const padY = 8 * s.sy;
+  // 三行官方句子写在同一块木框羊皮纸上。牌面盖住学堂屋顶尖，名称牌仍在牌下。
+  pushSheet(chrome, s.box(56, 16, 308, 84), padX, padY);
   const lines = ctx.units.filter((unit) => !unit.interactive && unit.text.trim()).sort((a, b) => a.designY - b.designY);
-  const grade = lines.find((unit) => unit.text.includes("年级") || unit.text.includes("已学"));
-  const goal = lines.find((unit) => unit.text.includes("今日") || unit.text.includes("已完成") || unit.text.includes("新词"));
-  let y = hud.y + 8 * s.sy;
-  if (grade) {
-    ink(grade, "#3B2A20");
-    y = write(ctx, grade, hud.x + 24 * s.sx, y, hud.w - 36 * s.sx, 14) + 2 * s.sy;
+  const title = lines.find((unit) => unit.text.includes("·") && /已学\s*\d+\//.test(unit.text));
+  const goal = lines.find((unit) => unit !== title && (unit.text.includes("累计完成") || unit.text.includes("今日目标") || unit.text.includes("也算完成")));
+  const captions: PhoneCaption[] = [];
+  const textX = s.box(80, 0, 0, 0).x;
+  if (title) {
+    castLine(title, title.text, HUD_BODY, 15, "600", HUD_INK);
+    pinLine(ctx, title, textX, s.box(0, 37, 0, 0).y, 15);
   }
-  if (goal && goal !== grade) {
-    ink(goal, "#1F6F64");
-    write(ctx, goal, hud.x + 24 * s.sx, y, hud.w - 36 * s.sx, 14);
+  if (goal) {
+    const parts = splitGoal(goal.text);
+    if (parts.status) {
+      castLine(goal, parts.status, HUD_BODY, 14, "500", HUD_INK);
+      pinLine(ctx, goal, textX, s.box(0, 55, 0, 0).y, 14);
+      captions.push(captionLine(ctx, parts.goal, textX, s.box(0, 73, 0, 0).y, 14, HUD_TEAL, HUD_BODY, "600"));
+    } else {
+      castLine(goal, parts.goal, HUD_BODY, 14, "600", HUD_TEAL);
+      pinLine(ctx, goal, textX, s.box(0, 55, 0, 0).y, 14);
+    }
   }
   for (const line of lines) {
-    if (line !== grade && line !== goal) hide(line);
+    if (line !== title && line !== goal) hide(line);
   }
   const swap = ctx.units.find((unit) => unit.interactive && unit.text === "换角色");
-  if (swap) place(swap, s.box(608, 16, 120, 44), 16);
+  if (swap) place(swap, s.box(592, 16, 140, 48), 17);
   for (const [label, x, y0] of VILLAGE) {
     const unit = ctx.units.find((item) => item.interactive && item.text === label);
     if (!unit) continue;
-    place(unit, s.box(x, y0, 112, 104), 16);
+    place(unit, s.box(x, y0, 112, 104), 14);
     unit.label = "sign";
-    // 学堂的门比别的房子宽，字落在深色门上就读不清。只把这一块放到奶油招牌里。
-    if (label === "学堂") {
-      unit.fontPx = 15;
-      unit.signFrac = 0.815;
-    }
+    face(unit, HUD_TITLE, HUD_INK, "");
   }
   const foot = s.box(430, 214, 0, 0);
-  return { hero: placeHero(ctx, foot.x, foot.y, 86 * s.sy), skipMasks: true, chrome };
+  return { hero: placeHero(ctx, foot.x, foot.y, 86 * s.sy), skipMasks: true, chrome, captions };
 }
 
 function layoutGuide(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
@@ -755,7 +819,138 @@ function labelExamHits(ctx: PhoneContext): void {
   }
 }
 
+function splitBanner(text: string): { unit: string; learned: string } {
+  const at = text.indexOf("：");
+  if (at > 0 && text.slice(at + 1).includes("已学")) return { unit: text.slice(0, at).trim(), learned: text.slice(at + 1).trim() };
+  return { unit: text.trim(), learned: "" };
+}
+
+function statClauses(text: string): { lead: string; stats: string } {
+  const parts = text.split(/\s{2,}/).map((part) => part.trim()).filter(Boolean);
+  const leadIndex = parts.findIndex((part) => /学堂|真棒|学过|学完/.test(part));
+  if (leadIndex < 0) return { lead: "", stats: parts.join("  ·  ") };
+  const lead = parts[leadIndex] ?? "";
+  const stats = parts.filter((_, index) => index !== leadIndex).join("  ·  ");
+  return { lead, stats };
+}
+
 function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
+  const banner = ctx.units.find((unit) => !unit.interactive && unit.text.includes("·") && /已学\s*\d+\//.test(unit.text));
+  if (!banner) return layoutStagesLoose(ctx, chrome);
+  return layoutStagesHud(ctx, chrome, banner);
+}
+
+function layoutStagesHud(ctx: PhoneContext, chrome: PhoneChrome[], banner: PhoneUnit): PhoneLayout {
+  const s = scaler(ctx.view);
+  const padX = 8 * s.sx;
+  const padY = 8 * s.sy;
+  pushSheet(chrome, s.box(56, 16, 360, 276), padX, padY);
+  pushSheet(chrome, s.box(428, 16, 360, 276), padX, padY);
+  chrome.push({ frame: "panel_wood", box: s.box(56, 300, 732, 64), sourceHalf: true });
+  const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回村子") || unit.text.startsWith("返回")));
+  if (back) place(back, s.box(72, 28, 120, 48), 16);
+  const bar: Array<[string, number, number]> = [
+    ["上一章", 64, 154],
+    ["下一章", 226, 154],
+    ["去学堂", 388, 170],
+    ["小战斗", 566, 214],
+    ["再战", 566, 214],
+  ];
+  const placedBar = new Set<PhoneUnit>();
+  for (const [label, x, width] of bar) {
+    const unit = ctx.units.find((item) => item.interactive && item.text === label && !placedBar.has(item));
+    if (!unit) continue;
+    placedBar.add(unit);
+    place(unit, s.box(x, 308, width, 48), 16);
+  }
+  const texts = ctx.units.filter((unit) => !unit.interactive && unit.text.trim());
+  const duplicate = texts.find((unit) => unit !== banner && banner.text.includes(`· ${unit.text}：`));
+  if (duplicate) hide(duplicate);
+  for (const unit of texts) {
+    if (unit.text.trim() === "?") hide(unit);
+  }
+  const captions: PhoneCaption[] = [];
+  const textX = s.box(80, 0, 0, 0).x;
+  const parts = splitBanner(banner.text);
+  castLine(banner, parts.unit, HUD_BODY, 15, "600", HUD_INK);
+  pinLine(ctx, banner, textX, s.box(0, 92, 0, 0).y, 15);
+  if (parts.learned) captions.push(captionLine(ctx, parts.learned, textX, s.box(0, 114, 0, 0).y, 14, HUD_TEAL, HUD_BODY, "600"));
+  const detail = texts.find((unit) => unit !== banner && !unit.onPaper && (unit.text.includes("熟练") || unit.text.includes("关通过") || unit.text.includes("没在学堂") || unit.text.includes("真棒")));
+  let cursor = 136;
+  if (detail) {
+    const stats = statClauses(detail.text);
+    if (stats.lead) {
+      castLine(detail, stats.lead, HUD_BODY, 14, "500", HUD_INK);
+      pinLine(ctx, detail, textX, s.box(0, cursor, 0, 0).y, 14);
+      cursor += 20;
+    }
+    if (stats.stats) {
+      if (!stats.lead) {
+        castLine(detail, stats.stats, HUD_BODY, 14, "500", HUD_MUTED);
+        pinLine(ctx, detail, textX, s.box(0, cursor, 0, 0).y, 14);
+      } else captions.push(captionLine(ctx, stats.stats, textX, s.box(0, cursor, 0, 0).y, 14, HUD_MUTED, HUD_BODY, "500"));
+      cursor += 24;
+    }
+  }
+  const index = texts.find((unit) => !unit.onPaper && /第\s*\d+\s*\/\s*\d+\s*章/.test(unit.text));
+  if (index) {
+    castLine(index, index.text, HUD_BODY, 14, "500", HUD_MUTED);
+    pinLine(ctx, index, textX, s.box(0, cursor, 0, 0).y, 14);
+    cursor += 22;
+  }
+  const stageName = texts.find((unit) => !unit.onPaper && unit !== duplicate && unit.family.includes("ZCOOL") && unit.text.length <= 12);
+  if (stageName && stageName !== index && stageName !== detail && stageName !== banner) {
+    castLine(stageName, stageName.text, HUD_TITLE, 18, "", HUD_INK);
+    pinLine(ctx, stageName, textX, s.box(0, cursor, 0, 0).y, 18);
+    const stageWidth = ctx.measure ? ctx.measure(stageName.text, 18, "", HUD_TITLE) : textWidth(ctx, stageName.text, 18);
+    const status = texts.find((unit) => !unit.onPaper && /^(进行中|未开启|可挑战|已通过|已学完)$/.test(unit.text));
+    if (status) {
+      castLine(status, status.text, HUD_BODY, 14, "600", HUD_TEAL);
+      pinLine(ctx, status, textX + stageWidth + 12 * s.sx, s.box(0, cursor, 0, 0).y, 14);
+    }
+    cursor += 24;
+  }
+  const learned = texts.find((unit) => !unit.onPaper && /^(本关|本章)已学/.test(unit.text));
+  if (learned) {
+    castLine(learned, learned.text, HUD_BODY, 14, "600", HUD_TEAL);
+    pinLine(ctx, learned, textX, s.box(0, cursor, 0, 0).y, 14);
+    cursor += 20;
+  }
+  const wins = texts.find((unit) => !unit.onPaper && unit.text.includes("小战斗") && unit.text.includes("胜"));
+  if (wins) {
+    castLine(wins, wins.text, HUD_BODY, 14, "500", HUD_INK);
+    pinLine(ctx, wins, textX, s.box(0, cursor, 0, 0).y, 14);
+    cursor += 20;
+  }
+  const hint = texts.find((unit) => !unit.onPaper && (unit.text.includes("可以去学堂") || unit.text.includes("没有要学的新词") || (unit.text.includes("赢") && unit.text.includes("小战斗"))));
+  if (hint && hint !== wins) {
+    castLine(hint, hint.text, HUD_BODY, 14, "500", HUD_MUTED);
+    pinLine(ctx, hint, textX, s.box(0, cursor, 0, 0).y, 14);
+  }
+  let extraY = s.box(0, 36, 0, 0).y;
+  const extraX = s.box(452, 0, 0, 0).x;
+  const extraLimit = s.box(0, 268, 0, 0).y;
+  for (const unit of texts) {
+    if (unit.onPaper || !unit.text.trim() || unit.text.trim() === "?") continue;
+    if (extraY > extraLimit) {
+      hide(unit);
+      continue;
+    }
+    ink(unit, HUD_INK);
+    extraY = write(ctx, unit, extraX, extraY, s.box(0, 0, 300, 0).w, 14) + 6 * s.sy;
+  }
+  let examX = s.box(444, 0, 0, 0).x;
+  const examY = s.box(0, 220, 0, 0).y;
+  for (const unit of ctx.units) {
+    if (!unit.interactive || unit.onPaper || !unit.text.trim() || unit.text.trim() === "?") continue;
+    const width = s.box(0, 0, 160, 0).w;
+    place(unit, { x: examX, y: examY, w: width, h: s.box(0, 0, 0, 48).h }, 16);
+    examX += width + 8 * s.sx;
+  }
+  return { hero: null, skipMasks: true, chrome, captions };
+}
+
+function layoutStagesLoose(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   for (const unit of ctx.units) {
     if (unit.text.trim() === "?") hide(unit);
