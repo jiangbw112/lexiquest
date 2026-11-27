@@ -1,3 +1,4 @@
+import { wordsForResults } from "../../src/domain/battle-results";
 import { CATALOG_WORDS } from "../../src/domain/catalog";
 import { PORTRAIT_ATLAS, portraitFrame } from "../../src/game/art/class-atlas";
 import { queueClassPortraits, savedClassId } from "../../src/game/art/class-load";
@@ -390,22 +391,175 @@ function pinResultIcon(scene: PadScene, key: string, url: string, size: number):
   picture.name = key;
 }
 
+interface LossWordRow {
+  en: string;
+  zh: string;
+  ok: boolean;
+}
+
+interface ExamFailHost extends PadScene {
+  state?: { phase?: string; playerHp?: number; answers?: { wordId: string; correct: boolean; kind: string }[] };
+  examId?: string;
+  __failShare?: boolean;
+  __lossPage?: { correct: number; words: LossWordRow[] };
+  scene?: { start: (key: string, data?: unknown) => void };
+  textures?: { exists: (key: string) => boolean };
+  load?: { atlas: (key: string, image: string, data: string) => void; start: () => void; totalToLoad: number };
+}
+
+function nodeText(node: GameNode): string {
+  return String((node as GameNode & { text?: string }).text ?? "");
+}
+
+function walkNodes(nodes: GameNode[], visit: (node: GameNode) => void): void {
+  for (const node of nodes) {
+    visit(node);
+    const list = (node as GameNode & { list?: GameNode[] }).list;
+    if (list) walkNodes(list, visit);
+  }
+}
+
+/** Battle plate, slightly cooled. The source webp is not edited. */
+function pinLossBackdrop(scene: PadScene): void {
+  if (!ensureImage(scene, "bg_home_battle", "assets/chapter/scenes/home/bg_battle.webp") || !scene.add.image) return;
+  if (scene.children.list.some((node) => (node as { texture?: string }).texture === "bg_home_battle")) return;
+  const picture = scene.add.image(640, 400, "bg_home_battle") as GameNode & { setDisplaySize?: (w: number, h: number) => void; setTint?: (tint: number) => void };
+  picture.setDisplaySize?.(1280, 800);
+  picture.setTint?.(0xe4f0f3);
+  const list = scene.children.list;
+  const index = list.indexOf(picture);
+  if (index > 0) {
+    list.splice(index, 1);
+    list.unshift(picture);
+  }
+}
+
+function pinLossMarks(scene: PadScene, checks: number): void {
+  pinResultIcon(scene, "results_ico_score", "assets/warm/results/ico_score.png", 36);
+  pinResultIcon(scene, "results_ico_heart", "assets/warm/results/ico_heart.png", 36);
+  if (!scene.add.image) return;
+  const host = scene as PadScene & { textures?: { exists: (key: string) => boolean } };
+  const ready = Boolean(host.textures?.exists("results_ico_word_check")) || ensureImage(scene, "results_ico_word_check", "assets/warm/results/ico_word_check.png");
+  if (!ready) return;
+  const have = scene.children.list.filter((node) => (node as { texture?: string }).texture === "results_ico_word_check").length;
+  for (let index = have; index < checks; index += 1) {
+    const picture = scene.add.image(0, 0, "results_ico_word_check");
+    picture.setDisplaySize?.(16, 16);
+    picture.name = "results_ico_word_check";
+  }
+}
+
+function pinLossBanner(scene: PadScene): void {
+  const host = scene as PadScene & { textures?: { exists: (key: string) => boolean } };
+  ensureAtlas(scene, "atlas_results", "assets/warm/atlas/atlas_results.png", "assets/warm/atlas/atlas_results.json");
+  if (!scene.add.image || !host.textures?.exists("atlas_results")) return;
+  if (scene.children.list.some((node) => (node as { frame?: string }).frame === "result_banner")) return;
+  let nested = false;
+  walkNodes(scene.children.list, (node) => {
+    if ((node as { frame?: string }).frame === "result_banner") nested = true;
+  });
+  if (nested) return;
+  const banner = scene.add.image(380, 14, "atlas_results", "result_banner") as GameNode & { setOrigin?: (x: number, y?: number) => void; setDisplaySize?: (w: number, h: number) => void; setTint?: (tint: number) => void };
+  banner.setOrigin?.(0, 0);
+  banner.setDisplaySize?.(520, 82);
+  banner.setTint?.(0xb6d9e2);
+}
+
+function hideAtlasMarks(scene: PadScene): void {
+  walkNodes(scene.children.list, (node) => {
+    const frame = String((node as GameNode & { frame?: string }).frame ?? "");
+    if (frame === "icon_heart" || frame === "icon_check") node.visible = false;
+  });
+}
+
+/**
+ * 原来：考试没通过只铺一块绿底，写「休息一下」。
+ * 现在：同一张失败结算。题数和词表读这一场的答题，不再另做一页。
+ * 为什么：Bowen 定过考试未通过先共用失败页。再试一次重新开这场考试，回地图仍是原来的按钮。
+ */
+export function prepareExamFailShare(scene: PadScene): void {
+  if (scene.key !== "exam-battle") return;
+  const host = scene as ExamFailHost;
+  if (host.__failShare) return;
+  const state = host.state;
+  if (!state) return;
+  const lost = state.phase === "lost" || (typeof state.playerHp === "number" && state.playerHp <= 0 && state.phase !== "won" && state.phase !== "choose" && state.phase !== "question");
+  if (!lost) return;
+  const texts: string[] = [];
+  walkNodes(scene.children.list, (node) => {
+    if (node.type === "text") texts.push(nodeText(node));
+  });
+  if (texts.includes("继续")) return;
+  if (!texts.includes("休息一下")) return;
+  if (!texts.some((text) => text.includes("回地图"))) return;
+  const built = wordsForResults(state.answers ?? []);
+  host.__lossPage = {
+    correct: built.correct,
+    words: built.words.map((word) => ({ en: word.english, zh: word.gloss, ok: word.correct })),
+  };
+  host.__failShare = true;
+  walkNodes(scene.children.list, (node) => {
+    if (node.type === "rectangle" && node.width >= 1000 && node.height >= 600) node.visible = false;
+    if (node.type === "text" && nodeText(node) === "休息一下") {
+      const labeled = node as GameNode & { setText?: (value: string) => void; text?: string };
+      if (labeled.setText) labeled.setText("差一点点！");
+      else labeled.text = "差一点点！";
+    }
+  });
+  pinLossBackdrop(scene);
+  pinLossBanner(scene);
+  const checks = host.__lossPage.words.filter((word) => word.ok).length;
+  pinLossMarks(scene, checks);
+  hideAtlasMarks(scene);
+  const addText = (value: string) => {
+    scene.add.text(24, 24, value, { fontFamily: '"Noto Sans SC", sans-serif', fontSize: "16px", color: "#3B2A20" });
+  };
+  addText("答对");
+  addText(String(built.correct));
+  addText("题");
+  if (host.__lossPage.words.length) addText("本场单词");
+  for (const word of host.__lossPage.words) {
+    addText(word.en);
+    if (word.zh) addText(word.zh);
+    if (!word.ok) addText("下次再见");
+  }
+  addText("打输了不会丢东西，放心再来！");
+  const richer = scene as ExamFailHost & { add: PadScene["add"] & { rectangle?: (x: number, y: number, width: number, height: number, fill?: number) => GameNode } };
+  const rect = richer.add.rectangle?.(720, 744, 240, 56, 0xf4e2b8);
+  if (rect) {
+    rect.setInteractive();
+    rect.on("pointerup", () => host.scene?.start("exam-battle", { examId: host.examId ?? "" }));
+    const label = scene.add.text(720, 744, "再试一次", { fontFamily: '"Noto Sans SC", sans-serif', fontSize: "22px", color: "#3B2A20" });
+    label.setOrigin(0.5);
+  }
+}
+
 function presentResults(scene: PadScene): void {
-  if (ensureImage(scene, "bg_ending", "assets/warm/backgrounds/bg_ending_2x.webp") && scene.add.image) {
-    if (!scene.children.list.some((node) => (node as { texture?: string }).texture === "bg_ending")) {
-      const picture = scene.add.image(640, 400, "bg_ending");
-      picture.setDisplaySize?.(1280, 800);
-      const list = scene.children.list;
-      const index = list.indexOf(picture);
-      if (index > 0) {
-        list.splice(index, 1);
-        list.unshift(picture);
+  const view = (scene as PadScene & { view?: { won?: boolean; words?: { correct?: boolean }[] } }).view;
+  const won = view?.won !== false;
+  if (won) {
+    if (ensureImage(scene, "bg_ending", "assets/warm/backgrounds/bg_ending_2x.webp") && scene.add.image) {
+      if (!scene.children.list.some((node) => (node as { texture?: string }).texture === "bg_ending")) {
+        const picture = scene.add.image(640, 400, "bg_ending");
+        picture.setDisplaySize?.(1280, 800);
+        const list = scene.children.list;
+        const index = list.indexOf(picture);
+        if (index > 0) {
+          list.splice(index, 1);
+          list.unshift(picture);
+        }
       }
     }
+    pinResultIcon(scene, "results_ico_score", "assets/warm/results/ico_score.png", 36);
+    pinResultIcon(scene, "results_ico_xp", "assets/warm/results/ico_xp.png", 36);
+    pinResultIcon(scene, "results_ico_stamp", "assets/warm/results/ico_stamp.png", 28);
+    return;
   }
-  pinResultIcon(scene, "results_ico_score", "assets/warm/results/ico_score.png", 36);
-  pinResultIcon(scene, "results_ico_xp", "assets/warm/results/ico_xp.png", 36);
-  pinResultIcon(scene, "results_ico_stamp", "assets/warm/results/ico_stamp.png", 28);
+  pinLossBackdrop(scene);
+  pinLossBanner(scene);
+  const checks = (view?.words ?? []).filter((word) => word.correct === true).length;
+  pinLossMarks(scene, checks);
+  hideAtlasMarks(scene);
 }
 
 function ensureAtlas(scene: PadScene, key: string, image: string, data: string): void {

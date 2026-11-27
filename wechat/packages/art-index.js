@@ -18,6 +18,8 @@ module.exports = {
   "assets/warm/results/ico_score.png": "packages/art-ui/ico_score.png",
   "assets/warm/results/ico_xp.png": "packages/art-ui/ico_xp.png",
   "assets/warm/results/ico_stamp.png": "packages/art-ui/ico_stamp.png",
+  "assets/warm/results/ico_heart.png": "packages/art-ui/ico_heart.png",
+  "assets/warm/results/ico_word_check.png": "packages/art-ui/ico_word_check.png",
   "assets/warm/backgrounds/bg_learn_blur_2x.webp": "packages/art-world/backgrounds__bg_learn_blur_2x.webp",
   "assets/warm/backgrounds/bg_parent_paper_2x.webp": "packages/art-world/backgrounds__bg_parent_paper_2x.webp",
   "assets/warm/atlas/atlas_parent.png": "packages/art-world/atlas__atlas_parent.webp",

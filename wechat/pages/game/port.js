@@ -103,7 +103,7 @@ function attach(canvas, view) {
     },
     wordScroll(phase, x, y, dy) {
       const scene = runtime.active();
-      if (!scene || scene.key !== "battle-results") return false;
+      if (!scene || (scene.key !== "battle-results" && !scene.__failShare)) return false;
       const columns = [
         ["__resultsWordDrag", "__resultsWordMoved", "__resultsWordScroll", "__resultsWordMax", "__resultsWordClip"],
         ["__resultsRewardDrag", "__resultsRewardMoved", "__resultsRewardScroll", "__resultsRewardMax", "__resultsRewardClip"],

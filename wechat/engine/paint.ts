@@ -1,5 +1,6 @@
 import { screenFontPx, screenToWorld, UI_GAP, UI_HIT, worldOffset, worldScale, worldToScreen, type ViewBox } from "./coords";
 import { composePhone, coverBox, coverFocusFor, isBackdrop, phoneLayoutOf, rememberPhone, rewriteSceneCopy, usesPhone, type PhoneChrome, type PhoneUnit } from "./phone";
+import { prepareExamFailShare } from "./present";
 import { glyphTexture, noteGlyphFallback, type GlyphSpec } from "./glyph";
 import { displayBox, type GameNode } from "./node";
 import { framePlacementOf, frameRectOf, type FrameRect } from "./scene";
@@ -1582,6 +1583,7 @@ function emitPhoneChrome(scene: { children: { list: GameNode[] } }, images: Draw
 }
 
 export function layoutFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, measure?: MeasureText, options?: LayoutOptions): FramePlan {
+  if (scene) prepareExamFailShare(scene as Parameters<typeof prepareExamFailShare>[0]);
   if (scene) rewriteSceneCopy(scene);
   const flat: GameNode[] = [];
   if (scene) flatten(scene.children.list, flat);
@@ -1600,7 +1602,9 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);
     const phoneKey = sceneKeyOf(scene);
-    const covered = usesPhone(phoneKey) && isBackdrop(node) ? coverBox(view, coverFocusFor(phoneKey)) : null;
+    const textureKey = String((node as GameNode & { texture?: string }).texture ?? "");
+    const focus = textureKey === "bg_home_battle" ? { x: 0.5, y: 0.45 } : coverFocusFor(phoneKey);
+    const covered = usesPhone(phoneKey) && isBackdrop(node) ? coverBox(view, focus) : null;
     const sceneCover = usesPhone(phoneKey) && phoneKey === "exam-battle" ? coverBox(view) : null;
     const sceneScale = sceneCover ? sceneCover.w / 1280 : 0;
     const trim = sceneCover && !covered ? spriteTrimBox(node) : null;
@@ -1955,7 +1959,15 @@ function paintImage(ctx: PaintContext, op: DrawImageOp): void {
   const sh = op.sh > 0 ? op.sh : bitmap.height ?? 0;
   if (sw > 0 && sh > 0) ctx.drawImage(bitmap, op.sx, op.sy, sw, sh, -op.w / 2, -op.h / 2, op.w, op.h);
   else ctx.drawImage(bitmap, -op.w / 2, -op.h / 2, op.w, op.h);
-  if (op.tint !== 0xffffff && ctx.globalCompositeOperation && sw > 0 && sh > 0) {
+  if (op.tint !== 0xffffff && ctx.globalCompositeOperation && sw > 0 && sh > 0 && op.w > 0 && op.h > 0) {
+    // 原来：destination-in 会把整张画布的透明通道换成这张图，横幅一染色，板和背景就没了。
+    // 现在：先把染色裁在这个精灵的矩形里。
+    // 为什么：Chrome 的 destination-in 不限在 drawImage 的目标矩形内。
+    if (ctx.beginPath && ctx.rect && ctx.clip) {
+      ctx.beginPath();
+      ctx.rect(-op.w / 2, -op.h / 2, op.w, op.h);
+      ctx.clip();
+    }
     ctx.globalCompositeOperation = "multiply";
     ctx.fillStyle = hex(op.tint);
     ctx.fillRect(-op.w / 2, -op.h / 2, op.w, op.h);
