@@ -207,7 +207,9 @@ export function isBackdrop(node: GameNode): boolean {
 export function coverFocusFor(key: string): { x: number; y: number } {
   if (key === "overworld") return { x: 0.48, y: 0.58 };
   if (key === "title") return { x: 0.5, y: 0.48 };
-  if (key === "stages") return { x: 0.42, y: 0.55 };
+  // Map page only. Village / overworld stays (0.48, 0.58). At 844 wide the cover width
+  // equals the view, so the x focus clamps; y 0.55 is the accepted crop.
+  if (key === "stages") return { x: 0.45, y: 0.55 };
   if (key === "guide") return { x: 0.5, y: 0.45 };
   if (key === "battle-results") return { x: 0.55, y: 0.5 };
   return { x: 0.5, y: 0.5 };

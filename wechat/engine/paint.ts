@@ -1525,6 +1525,7 @@ function collectTreeHits(scene: { children: { list: GameNode[] } }, view: ViewBo
 const PHONE_SLICE: Record<string, { left: number; right: number; top: number; bottom: number }> = {
   btn_primary_normal: { left: 32, right: 32, top: 30, bottom: 40 },
   btn_secondary_normal: { left: 32, right: 32, top: 30, bottom: 40 },
+  btn_secondary_pressed: { left: 32, right: 32, top: 30, bottom: 40 },
   btn_action_teal_normal: { left: 32, right: 32, top: 30, bottom: 40 },
   panel_parchment: { left: 40, right: 40, top: 40, bottom: 40 },
   panel_wood: { left: 48, right: 48, top: 48, bottom: 48 },
@@ -1618,7 +1619,14 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
 
   for (const node of visible) {
     if (paintedByTree(node)) continue;
-    if (outermostHit(node) || buttonShellOwner(node)) continue;
+    // Stage markers are interactive, so the hit skip used to drop the sprite.
+    // They stay in the image list. The map layout then sits them on this crop.
+    // Exam markers are not stage nodes and stay out of that list.
+    const artFrame = String((node as GameNode & { frame?: string }).frame ?? "");
+    const stageMarker = (node.type === "image" || node.type === "sprite")
+      && artFrame.startsWith("map_node_")
+      && !artFrame.includes("exam");
+    if ((outermostHit(node) || buttonShellOwner(node)) && !stageMarker) continue;
     if (node.type !== "image" && node.type !== "sprite" && node.type !== "nineslice" && node.type !== "rectangle") continue;
     const box = designBox(node);
     const screen = worldToScreen({ x: box.x, y: box.y }, view);

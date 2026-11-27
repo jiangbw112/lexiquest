@@ -329,9 +329,33 @@ function presentStages(scene: PadScene): void {
       if (node.name === "stage:gloss") continue;
       walk(node);
     }
+    pinMapDetail(scene);
   };
   wrapDraw(scene, add);
   add();
+}
+
+/**
+ * 原来：大地图第一眼把整章统计和本关句子堆在一起，没有单独的本章入口。
+ * 现在：横屏加一枚「本章详情」。点一下只翻转本页的展开标记，不改存档、不换场景。
+ * 为什么：方案甲把整章统计收进这一枚四字按钮。展开用同一枚的按下态，不另写「收起」。
+ */
+function pinMapDetail(scene: PadScene): void {
+  dropNamed(scene, "map:detail");
+  const host = scene as PadScene & { __mapChapterDetail?: boolean };
+  const button = scene.add.container(0, 0);
+  const label = scene.add.text(0, 0, "本章详情", {
+    fontFamily: '"ZCOOL KuaiLe", "Noto Sans SC", sans-serif',
+    fontSize: "16px",
+    color: "#3B2A20",
+  });
+  button.add(label);
+  button.setSize(136, 48);
+  button.setInteractive();
+  button.name = "map:detail";
+  button.on("pointerup", () => {
+    host.__mapChapterDetail = host.__mapChapterDetail !== true;
+  });
 }
 
 function presentCreate(scene: PadScene): void {

@@ -1154,15 +1154,78 @@ function layoutStages(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   return layoutStagesHud(ctx, chrome, banner);
 }
 
+/** Accepted crop slots for this 844 landscape map. Not a conversion of desktop NODE_AT. */
+const STAGE_NODE_SLOTS: Array<[number, number, number, number]> = [
+  [126, 226, 64, 64],
+  [204, 196, 64, 64],
+  [366, 86, 64, 64],
+  [458, 120, 64, 64],
+  [560, 148, 80, 80],
+];
+
+function stageNodeFrame(frame: string): boolean {
+  if (!frame.startsWith("map_node_") || frame.includes("exam")) return false;
+  return frame === "map_node_current" || frame === "map_node_locked" || frame === "map_node_cleared" || frame.startsWith("map_node_boss");
+}
+
+/** One line at the spec origin. A live line that is wider wraps inside the board and stays at least 14. */
+function seatLine(ctx: PhoneContext, unit: PhoneUnit, x: number, originY: number, size: number, maxW: number): void {
+  const sample = unit.lines[0] || unit.text;
+  const width = ctx.measure ? ctx.measure(sample, size, unit.weight, unit.family) : textWidth(ctx, sample, size);
+  if (width <= maxW + 0.5) {
+    pinLine(ctx, unit, x, originY, size);
+    return;
+  }
+  unit.fontPx = Math.max(14, size);
+  ctx.fitText(unit, Math.max(14, maxW));
+  unit.x = x;
+  unit.y = originY - size / 2;
+  unit.onPaper = true;
+}
+
+function placeStageNodes(ctx: PhoneContext, s: ReturnType<typeof scaler>, open: boolean): void {
+  const images = ctx.images.filter((image) => stageNodeFrame(frameOf(image)));
+  images.forEach((image, index) => {
+    const slot = STAGE_NODE_SLOTS[index];
+    if (!slot) return;
+    const box = s.box(slot[0], slot[1], slot[2], slot[3]);
+    placeImage(image, box);
+    const unit = ctx.units.find((item) => item.node === image.node);
+    if (!unit) return;
+    unit.x = box.x;
+    unit.y = box.y;
+    unit.w = box.w;
+    unit.h = box.h;
+    unit.onPaper = true;
+    unit.fontPx = 0;
+    unit.lines = [];
+    // Expanded board covers nodes 3 and 4. Their hits stay quiet so the board can be read.
+    if (open && (index === 2 || index === 3)) unit.interactive = false;
+  });
+}
+
+/**
+ * 原来：第一眼把整章统计和本关句子堆在 360×276 的左牌里，右边再空一块羊皮纸。
+ * 现在：第一眼只留这一关。整章统计在「本章详情」展开后的右牌上。空右牌收掉。
+ * 为什么：方案甲先看这一关。句子用存档里的原文和活数字，不改写，不把示例 3/7、7/7 写死。
+ */
 function layoutStagesHud(ctx: PhoneContext, chrome: PhoneChrome[], banner: PhoneUnit): PhoneLayout {
   const s = scaler(ctx.view);
   const padX = 8 * s.sx;
   const padY = 8 * s.sy;
-  pushSheet(chrome, s.box(56, 16, 360, 276), padX, padY);
-  pushSheet(chrome, s.box(428, 16, 360, 276), padX, padY);
+  const open = (ctx.scene as { __mapChapterDetail?: boolean }).__mapChapterDetail === true;
+  pushSheet(chrome, s.box(56, 16, 300, 170), padX, padY);
+  if (open) pushSheet(chrome, s.box(364, 16, 320, 176), padX, padY);
   chrome.push({ frame: "panel_wood", box: s.box(56, 300, 732, 64), sourceHalf: true });
   const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回村子") || unit.text.startsWith("返回")));
   if (back) place(back, s.box(72, 28, 120, 48), 16);
+  const detailButton = ctx.units.find((unit) => unit.interactive && unit.text === "本章详情");
+  if (detailButton) {
+    const box = s.box(200, 28, 136, 48);
+    face(detailButton, HUD_TITLE, HUD_INK, "");
+    place(detailButton, box, 16, true);
+    chrome.push({ frame: open ? "btn_secondary_pressed" : "btn_secondary_normal", box });
+  }
   const bar: Array<[string, number, number]> = [
     ["上一章", 64, 154],
     ["下一章", 226, 154],
@@ -1185,81 +1248,76 @@ function layoutStagesHud(ctx: PhoneContext, chrome: PhoneChrome[], banner: Phone
   }
   const captions: PhoneCaption[] = [];
   const textX = s.box(80, 0, 0, 0).x;
+  const glanceMax = s.box(0, 0, 260, 0).w;
   const parts = splitBanner(banner.text);
   castLine(banner, parts.unit, HUD_BODY, 15, "600", HUD_INK);
-  pinLine(ctx, banner, textX, s.box(0, 92, 0, 0).y, 15);
-  if (parts.learned) captions.push(captionLine(ctx, parts.learned, textX, s.box(0, 114, 0, 0).y, 14, HUD_TEAL, HUD_BODY, "600"));
+  seatLine(ctx, banner, textX, s.box(0, 92, 0, 0).y, 15, glanceMax);
   const detail = texts.find((unit) => unit !== banner && !unit.onPaper && (unit.text.includes("熟练") || unit.text.includes("关通过") || unit.text.includes("没在学堂") || unit.text.includes("真棒")));
-  let cursor = 136;
-  if (detail) {
-    const stats = statClauses(detail.text);
-    if (stats.lead) {
-      castLine(detail, stats.lead, HUD_BODY, 14, "500", HUD_INK);
-      pinLine(ctx, detail, textX, s.box(0, cursor, 0, 0).y, 14);
-      cursor += 20;
-    }
-    if (stats.stats) {
-      if (!stats.lead) {
-        castLine(detail, stats.stats, HUD_BODY, 14, "500", HUD_MUTED);
-        pinLine(ctx, detail, textX, s.box(0, cursor, 0, 0).y, 14);
-      } else captions.push(captionLine(ctx, stats.stats, textX, s.box(0, cursor, 0, 0).y, 14, HUD_MUTED, HUD_BODY, "500"));
-      cursor += 24;
-    }
-  }
   const index = texts.find((unit) => !unit.onPaper && /第\s*\d+\s*\/\s*\d+\s*章/.test(unit.text));
-  if (index) {
-    castLine(index, index.text, HUD_BODY, 14, "500", HUD_MUTED);
-    pinLine(ctx, index, textX, s.box(0, cursor, 0, 0).y, 14);
-    cursor += 22;
-  }
-  const stageName = texts.find((unit) => !unit.onPaper && unit !== duplicate && unit.family.includes("ZCOOL") && unit.text.length <= 12);
-  if (stageName && stageName !== index && stageName !== detail && stageName !== banner) {
+  const stageName = texts.find((unit) => !unit.onPaper && unit !== duplicate && unit !== detail && unit !== index && unit.family.includes("ZCOOL") && unit.text.length <= 12);
+  const status = texts.find((unit) => !unit.onPaper && unit !== stageName && /^(进行中|未开启|可挑战|已通过|已学完)$/.test(unit.text));
+  const learned = texts.find((unit) => !unit.onPaper && unit !== detail && /^(本关|本章)已学/.test(unit.text));
+  const wins = texts.find((unit) => !unit.onPaper && unit.text.includes("小战斗") && unit.text.includes("胜"));
+  const hint = texts.find((unit) => !unit.onPaper && unit !== wins && (unit.text.includes("可以去学堂") || unit.text.includes("没有要学的新词") || (unit.text.includes("赢") && unit.text.includes("小战斗"))));
+  if (stageName && stageName !== banner) {
     castLine(stageName, stageName.text, HUD_TITLE, 18, "", HUD_INK);
-    pinLine(ctx, stageName, textX, s.box(0, cursor, 0, 0).y, 18);
-    const stageWidth = ctx.measure ? ctx.measure(stageName.text, 18, "", HUD_TITLE) : textWidth(ctx, stageName.text, 18);
-    const status = texts.find((unit) => !unit.onPaper && /^(进行中|未开启|可挑战|已通过|已学完)$/.test(unit.text));
+    seatLine(ctx, stageName, textX, s.box(0, 114, 0, 0).y, 18, glanceMax);
     if (status) {
+      const stageWidth = ctx.measure ? ctx.measure(stageName.text, 18, "", HUD_TITLE) : textWidth(ctx, stageName.text, 18);
       castLine(status, status.text, HUD_BODY, 14, "600", HUD_TEAL);
-      pinLine(ctx, status, textX + stageWidth + 12 * s.sx, s.box(0, cursor, 0, 0).y, 14);
+      pinLine(ctx, status, textX + stageWidth + 12 * s.sx, s.box(0, 114, 0, 0).y, 14);
     }
-    cursor += 24;
+  } else if (status) {
+    castLine(status, status.text, HUD_BODY, 14, "600", HUD_TEAL);
+    pinLine(ctx, status, textX, s.box(0, 114, 0, 0).y, 14);
   }
-  const learned = texts.find((unit) => !unit.onPaper && /^(本关|本章)已学/.test(unit.text));
   if (learned) {
     castLine(learned, learned.text, HUD_BODY, 14, "600", HUD_TEAL);
-    pinLine(ctx, learned, textX, s.box(0, cursor, 0, 0).y, 14);
-    cursor += 20;
+    seatLine(ctx, learned, textX, s.box(0, 136, 0, 0).y, 14, glanceMax);
   }
-  const wins = texts.find((unit) => !unit.onPaper && unit.text.includes("小战斗") && unit.text.includes("胜"));
-  if (wins) {
-    castLine(wins, wins.text, HUD_BODY, 14, "500", HUD_INK);
-    pinLine(ctx, wins, textX, s.box(0, cursor, 0, 0).y, 14);
-    cursor += 20;
-  }
-  const hint = texts.find((unit) => !unit.onPaper && (unit.text.includes("可以去学堂") || unit.text.includes("没有要学的新词") || (unit.text.includes("赢") && unit.text.includes("小战斗"))));
-  if (hint && hint !== wins) {
+  if (hint) {
     castLine(hint, hint.text, HUD_BODY, 14, "500", HUD_MUTED);
-    pinLine(ctx, hint, textX, s.box(0, cursor, 0, 0).y, 14);
+    seatLine(ctx, hint, textX, s.box(0, 156, 0, 0).y, 14, glanceMax);
   }
-  let extraY = s.box(0, 36, 0, 0).y;
-  const extraX = s.box(452, 0, 0, 0).x;
-  const extraLimit = s.box(0, 268, 0, 0).y;
-  for (const unit of texts) {
-    if (unit.onPaper || !unit.text.trim() || unit.text.trim() === "?") continue;
-    if (extraY > extraLimit) {
-      hide(unit);
-      continue;
+  const detailX = s.box(388, 0, 0, 0).x;
+  const detailMax = s.box(0, 0, 280, 0).w;
+  if (open) {
+    if (parts.learned) captions.push(captionLine(ctx, parts.learned, detailX, s.box(0, 44, 0, 0).y, 14, HUD_TEAL, HUD_BODY, "600"));
+    if (detail) {
+      const stats = statClauses(detail.text);
+      if (stats.lead && stats.stats) {
+        castLine(detail, stats.lead, HUD_BODY, 14, "500", HUD_INK);
+        seatLine(ctx, detail, detailX, s.box(0, 66, 0, 0).y, 14, detailMax);
+        captions.push(captionLine(ctx, stats.stats, detailX, s.box(0, 88, 0, 0).y, 14, HUD_MUTED, HUD_BODY, "500"));
+      } else if (stats.lead) {
+        castLine(detail, stats.lead, HUD_BODY, 14, "500", HUD_INK);
+        seatLine(ctx, detail, detailX, s.box(0, 66, 0, 0).y, 14, detailMax);
+      } else if (stats.stats) {
+        castLine(detail, stats.stats, HUD_BODY, 14, "500", HUD_MUTED);
+        seatLine(ctx, detail, detailX, s.box(0, 88, 0, 0).y, 14, detailMax);
+      } else hide(detail);
     }
-    ink(unit, HUD_INK);
-    extraY = write(ctx, unit, extraX, extraY, s.box(0, 0, 300, 0).w, 14) + 6 * s.sy;
+    if (index) {
+      castLine(index, index.text, HUD_BODY, 14, "500", HUD_MUTED);
+      seatLine(ctx, index, detailX, s.box(0, 110, 0, 0).y, 14, detailMax);
+    }
+    if (wins) {
+      castLine(wins, wins.text, HUD_BODY, 14, "500", HUD_INK);
+      seatLine(ctx, wins, detailX, s.box(0, 132, 0, 0).y, 14, detailMax);
+    }
+  } else {
+    if (detail) hide(detail);
+    if (index) hide(index);
+    if (wins) hide(wins);
   }
-  let examX = s.box(444, 0, 0, 0).x;
-  const examY = s.box(0, 220, 0, 0).y;
+  placeStageNodes(ctx, s, open);
+  for (const unit of texts) {
+    if (unit.onPaper || !unit.text.trim()) continue;
+    hide(unit);
+  }
   for (const unit of ctx.units) {
-    if (!unit.interactive || unit.onPaper || !unit.text.trim() || unit.text.trim() === "?") continue;
-    const width = s.box(0, 0, 160, 0).w;
-    place(unit, { x: examX, y: examY, w: width, h: s.box(0, 0, 0, 48).h }, 16);
-    examX += width + 8 * s.sx;
+    if (!unit.interactive || unit.onPaper || !unit.text.trim()) continue;
+    hide(unit);
   }
   return { hero: null, skipMasks: true, chrome, captions };
 }
@@ -1267,7 +1325,7 @@ function layoutStagesHud(ctx: PhoneContext, chrome: PhoneChrome[], banner: Phone
 function layoutStagesLoose(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
   for (const unit of ctx.units) {
-    if (unit.text.trim() === "?") hide(unit);
+    if (unit.text.trim() === "?" || unit.text === "本章详情") hide(unit);
   }
   const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("回村子") || unit.text.startsWith("返回")));
   if (back) place(back, s.box(68, 28, Math.max(100, textWidth(ctx, back.text, 16) + 28), 44), 16);
