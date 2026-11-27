@@ -1,4 +1,8 @@
+/* 原来：页面只设了高度和背景。
+   现在：overflow: hidden。
+   为什么：横屏 letterbox 应停在一屏里，不额外出现纵向滚动。 */
 page {
   height: 100%;
   background: #143d2c;
+  overflow: hidden;
 }

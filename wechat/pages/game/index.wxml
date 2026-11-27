@@ -4,4 +4,14 @@
   class="stage"
   disable-scroll="{{true}}"
   bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
 ></canvas>
+<!--
+  原来：失败时脚本直接 return，页面上没有字。
+  现在：只有 canvas node / 2d context 缺失走 cover-view 原生文本。图集和音频失败仍画在 canvas 上。
+  为什么：没有 node 或 context 就不能 fillText。这行不是 canvas 绘制。
+  需要复核：规格要求失败都画在画布上，这一类做不到，只放一行诊断文本。
+-->
+<cover-view wx:if="{{canvasMissing}}" class="fallback">{{canvasMissingText}}</cover-view>
