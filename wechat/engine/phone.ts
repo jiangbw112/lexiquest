@@ -129,6 +129,8 @@ export interface PhoneLayout {
   captions?: PhoneCaption[];
   /** Scene images painted after the parchment, still under the glyphs. */
   floats?: PhoneImage[];
+  /** Teal selection rings drawn over parchment, under glyphs. No packed ring slice exists. */
+  rings?: Array<{ x: number; y: number; w: number; h: number }>;
 }
 
 const cameras = new WeakMap<object, PhoneLayout>();
@@ -158,7 +160,8 @@ export function wechatCopy(text: string): string {
   if (action) return action[1];
   const role = text.match(/^[1-6] (战士|法师|游侠|治愈师|探险家|发明家)$/);
   if (role) return role[1];
-  if (text.includes("按 1 到 6")) return "点一张职业卡片。名字写在页面的名字栏里。";
+  // 键盘提示不进横屏。引导句「点一张职业卡片…」会把「名」折到行尾，这一页不显示它。
+  if (text.includes("按 1 到 6")) return "";
   if (text.endsWith(" Enter")) text = text.slice(0, -" Enter".length);
   if (text.endsWith(" Esc")) text = text.slice(0, -" Esc".length);
   if (text.endsWith(" N")) text = text.slice(0, -" N".length);

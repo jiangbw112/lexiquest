@@ -84,6 +84,13 @@ function textWidth(ctx: PhoneContext, text: string, font: number): number {
   return width;
 }
 
+function inkWidth(ctx: PhoneContext, text: string, font: number, weight: string, family: string): number {
+  if (ctx.measure) return ctx.measure(text, font, weight, family);
+  let width = 0;
+  for (const char of text) width += char.charCodeAt(0) > 255 ? font : font * 0.56;
+  return width;
+}
+
 function worldPoint(node: GameNode): { x: number; y: number } {
   let x = node.x;
   let y = node.y;
@@ -593,67 +600,250 @@ function layoutSkills(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   return { hero: null, skipMasks: true, chrome, captions };
 }
 
+function chapterNameOf(title: string): string {
+  const parts = title.split("·").map((part) => part.trim()).filter(Boolean);
+  if (parts[0] === "学堂") parts.shift();
+  return parts.join(" · ");
+}
+
+/** Plaque is 250 wide, which already reserves 「三年级 · 朋友与家人的周末聚会」. A longer live name widens until x=596, then wraps at 16 inside a 64-tall plate. */
+function chapterPlate(ctx: PhoneContext, name: string): { w: number; h: number; lines: string[] } {
+  const maxW = 596 - 288;
+  const live = inkWidth(ctx, name, 16, "", FONT_TITLE);
+  let w = 250;
+  if (live > w - 36 + 0.5) w = Math.min(maxW, Math.ceil(live + 36));
+  const inner = Math.max(16, w - 36);
+  if (live <= inner + 0.5) return { w, h: 48, lines: [name] };
+  const parts = name.split(" · ");
+  if (parts.length < 2) return { w, h: 64, lines: [name] };
+  let left = parts[0] ?? name;
+  let index = 1;
+  const width = (value: string) => inkWidth(ctx, value, 16, "", FONT_TITLE);
+  while (index < parts.length) {
+    const next = `${left} · ${parts[index]}`;
+    if (width(next) > inner) break;
+    left = next;
+    index += 1;
+  }
+  const right = parts.slice(index).join(" · ");
+  if (!right) return { w, h: 48, lines: [left] };
+  return { w, h: 64, lines: [left, right] };
+}
+
+function phraseLines(ctx: PhoneContext, text: string, font: number, maxW: number, weight: string, family: string): string[] {
+  const width = (value: string) => inkWidth(ctx, value, font, weight, family);
+  if (width(text) <= maxW) return [text];
+  const parts = text.split(/(?<=[。！？，、；])/).map((part) => part.trim()).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const part of parts.length ? parts : [text]) {
+    const next = line ? `${line}${part}` : part;
+    if (line && width(next) > maxW) {
+      lines.push(line);
+      line = part;
+    } else line = next;
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [text];
+}
+
 function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
-  const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("返回") || unit.text.startsWith("回村子") || unit.text.includes("换一章")));
+  const back = ctx.units.find((unit) => unit.interactive && (unit.text.startsWith("返回") || unit.text.startsWith("回村子")) && !unit.text.includes("换一章"));
   const confirm = ctx.units.find((unit) => unit.interactive && unit.text === "确认");
   const cancel = ctx.units.find((unit) => unit.interactive && unit.text === "取消");
   const study = ctx.units.find((unit) => unit.text === "学一学" || unit.node.name === "learn:study");
   const modes = ["听一听", "选意思", "拼一拼"].map((label) => ctx.units.find((unit) => unit.interactive && unit.text === label)).filter((unit): unit is PhoneUnit => Boolean(unit));
   if (study && !modes.length) hide(study);
-  if (back) place(back, s.box(56, 16, Math.max(100, textWidth(ctx, back.text, 16) + 36), 44), 16);
-  const heading = ctx.units.find((unit) => !unit.interactive && (unit.text.startsWith("学堂") || unit.text === "请选章"));
-  if (heading) {
-    ink(heading);
-    place(heading, s.box(176, 20, 280, 32), 20);
+  const studying = modes.length > 0;
+  if (back) {
+    if (studying) {
+      const box = s.box(56, 16, 96, 48);
+      face(back, FONT_TITLE, INK, "");
+      place(back, box, 16, true);
+      chrome.push({ frame: "btn_secondary_normal", box });
+    } else place(back, s.box(56, 16, Math.max(100, textWidth(ctx, back.text, 16) + 36), 48), 16);
   }
-  chrome.push({ frame: "panel_wood", box: s.box(164, 14, 320, 44) });
-  if (modes.length) {
+  const heading = ctx.units.find((unit) => !unit.interactive && (unit.text.startsWith("学堂") || unit.text === "请选章"));
+  if (!studying) {
+    if (heading) {
+      ink(heading);
+      place(heading, s.box(176, 20, 280, 32), 20);
+    }
+    chrome.push({ frame: "panel_wood", box: s.box(164, 14, 320, 44) });
+  }
+  if (studying) {
+    const captions: PhoneCaption[] = [];
     const phase = String((ctx.scene as { phase?: string }).phase ?? "study");
     const selected = phase === "listen" ? "听一听" : phase === "quiz" ? "选意思" : phase === "spell" ? "拼一拼" : "学一学";
+    chrome.push({ frame: "panel_wood", box: s.box(160, 16, 120, 48) });
+    captions.push({
+      text: "学堂",
+      x: s.box(160, 0, 0, 0).x,
+      y: s.box(0, 16, 0, 0).y,
+      w: s.box(0, 0, 120, 0).w,
+      h: s.box(0, 0, 0, 48).h,
+      color: INK,
+      font: 20,
+      family: FONT_TITLE,
+      weight: "",
+    });
+    if (heading) {
+      const chapter = chapterNameOf(heading.text);
+      if (!chapter) hide(heading);
+      else {
+        const plate = chapterPlate(ctx, chapter);
+        const box = s.box(288, 16, plate.w, plate.h);
+        chrome.push({ frame: "panel_parchment", box });
+        face(heading, FONT_TITLE, INK, "");
+        heading.text = chapter;
+        heading.lines = plate.lines;
+        heading.fontPx = 16;
+        heading.label = "center";
+        heading.x = box.x;
+        heading.y = box.y;
+        heading.w = box.w;
+        heading.h = box.h;
+        heading.onPaper = true;
+        const styled = heading.node as GameNode & { style?: { fontSize?: string; lineSpacing?: number } };
+        if (styled.style) {
+          styled.style.fontSize = "16px";
+          styled.style.lineSpacing = plate.lines.length > 1 ? 4 : 0;
+        }
+      }
+    }
+    const remaining = ctx.units.find((unit) => !unit.interactive && unit.text.includes("本章还可学"));
+    const today = ctx.units.find((unit) => !unit.interactive && unit.text.startsWith("今日"));
+    const progress = ctx.units.find((unit) => !unit.interactive && /^\d+\/\d+$/.test(unit.text.trim()));
+    let chipX = 56;
+    if (remaining) {
+      const label = remaining.text.trim();
+      const width = Math.max(142, Math.ceil(inkWidth(ctx, label, 14, "600", FONT_BODY) + 36));
+      const box = s.box(chipX, 72, width, 38);
+      chrome.push({ frame: "panel_parchment", box });
+      face(remaining, FONT_BODY, TEAL, "600");
+      remaining.text = label;
+      remaining.lines = [label];
+      remaining.fontPx = 14;
+      remaining.x = box.x + 20 * s.sx;
+      remaining.y = box.y + (box.h - 16 * s.sy) / 2;
+      remaining.w = Math.max(14, box.w - 36 * s.sx);
+      remaining.h = 16 * s.sy;
+      remaining.onPaper = true;
+      chipX += width + 8;
+    }
+    const parkChip = (unit: PhoneUnit | undefined, label: string) => {
+      if (!unit || !label) return;
+      const width = Math.max(72, Math.ceil(inkWidth(ctx, label, 14, "500", FONT_BODY) + 32));
+      const box = s.box(chipX, 72, width, 38);
+      chrome.push({ frame: "panel_parchment", box });
+      face(unit, FONT_BODY, INK, "500");
+      unit.text = label;
+      unit.lines = [label];
+      unit.fontPx = 14;
+      unit.x = box.x + 16 * s.sx;
+      unit.y = box.y + (box.h - 16 * s.sy) / 2;
+      unit.w = Math.max(14, box.w - 32 * s.sx);
+      unit.h = 16 * s.sy;
+      unit.onPaper = true;
+      chipX += width + 8;
+    };
+    parkChip(progress, progress ? `本关 ${progress.text.trim()}` : "");
+    parkChip(today, today ? today.text.trim() : "");
     const tabs = [study, ...modes].filter((unit): unit is PhoneUnit => Boolean(unit));
     tabs.forEach((tab, index) => {
-      const box = s.box(56 + index * 116, 68, 108, 44);
+      const box = s.box(56 + index * 116, 112, 108, 44);
+      face(tab, FONT_TITLE, tab.text === selected ? INK : MUTED, "");
       place(tab, box, 16, true);
-      ink(tab, tab.text === selected ? "#3B2A20" : "#46363A");
       chrome.push({ frame: tab.text === selected ? "panel_parchment" : "btn_secondary_normal", box });
     });
-    const card = s.box(56, 122, 520, 200);
+    const card = s.box(56, 164, 520, 146);
     chrome.push({ frame: "panel_parchment", box: card });
-    const latin = ctx.units.filter((unit) => !unit.onPaper && !unit.interactive && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text) && unit.text.length < 24);
+    const mark = s.box(94, 201, 72, 72);
+    chrome.push({ frame: "panel_parchment", box: mark });
+    captions.push({ text: "Aa", x: mark.x, y: mark.y, w: mark.w, h: mark.h, color: MUTED, font: 22, family: FONT_LATIN, weight: "800" });
+    const held = new Set<PhoneUnit>([heading, remaining, today, progress].filter((unit): unit is PhoneUnit => Boolean(unit)));
+    const latin = ctx.units.filter((unit) => !unit.interactive && !held.has(unit) && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text) && unit.text.length < 24 && !/^(n\.|v\.|adj\.|adv\.|pron\.|prep\.|conj\.|num\.|interj\.|art\.|phr\.|modal v\.)$/.test(unit.text.trim()));
     const word = latin.sort((a, b) => a.text.length - b.text.length)[0];
-    const gloss = ctx.units.find((unit) => !unit.onPaper && !unit.interactive && /^[\u4e00-\u9fff·]{1,6}$/.test(unit.text));
-    if (word) {
-      ink(word);
-      place(word, s.box(80, 150, 280, 40), 32);
+    const pos = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && /^(n\.|v\.|adj\.|adv\.|pron\.|prep\.|conj\.|num\.|interj\.|art\.|phr\.|modal v\.)$/.test(unit.text.trim()));
+    const gloss = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && unit !== word && unit !== pos && /^[\u4e00-\u9fff]{1,8}$/.test(unit.text.trim()));
+    const meta = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && unit !== gloss && (unit.text.includes("·") || unit.text.includes("先认读") || unit.text.includes("要会拼")));
+    const pinWord = (unit: PhoneUnit, x: number, y: number, font: number, family: string, weight: string, color: string, maxW: number) => {
+      let size = font;
+      let width = inkWidth(ctx, unit.text, size, weight, family);
+      while (size > 14 && width > maxW) {
+        size -= 2;
+        width = inkWidth(ctx, unit.text, size, weight, family);
+      }
+      face(unit, family, color, weight);
+      unit.fontPx = size;
+      unit.lines = [unit.text];
+      unit.x = x;
+      unit.y = y;
+      unit.w = Math.max(size, Math.min(maxW, Math.ceil(width) + 2));
+      unit.h = size + 2;
+      unit.onPaper = true;
+      unit.label = undefined;
+    };
+    const textX = s.box(210, 0, 0, 0).x;
+    const textMax = s.box(0, 0, 340, 0).w;
+    if (word) pinWord(word, textX, s.box(0, 186, 0, 0).y, 36, FONT_LATIN, "800", INK, textMax);
+    if (gloss) pinWord(gloss, textX, s.box(0, 226, 0, 0).y, 28, FONT_TITLE, "", TEAL, textMax);
+    let pen = textX;
+    const rowY = s.box(0, 262, 0, 0).y;
+    if (pos) {
+      pinWord(pos, pen, rowY, 14, FONT_BODY, "500", MUTED, textMax);
+      pen += pos.w + 6 * s.sx;
+      captions.push({ text: "·", x: pen, y: rowY, w: 12 * s.sx, h: 16 * s.sy, color: MUTED, font: 14, family: FONT_BODY, weight: "500" });
+      pen += 16 * s.sx;
     }
-    if (gloss) {
-      ink(gloss, "#1F6F64");
-      place(gloss, s.box(80, 196, 280, 32), 28);
+    if (meta) pinWord(meta, pen, rowY, 14, FONT_BODY, "500", MUTED, Math.max(40, textX + textMax - pen));
+    const noted = new Set<PhoneUnit>([word, pos, gloss, meta].filter((unit): unit is PhoneUnit => Boolean(unit)));
+    let noteY = s.box(0, 280, 0, 0).y;
+    const noteLimit = s.box(0, 296, 0, 0).y;
+    for (const unit of ctx.units) {
+      if (unit.interactive || unit.onPaper || held.has(unit) || noted.has(unit) || !unit.text.trim()) continue;
+      if (unit.text.startsWith("学堂") || unit.text === "请选章") {
+        hide(unit);
+        continue;
+      }
+      const lines = phraseLines(ctx, unit.text, 14, textMax, "500", FONT_BODY);
+      const block = lines.length * 16 * s.sy;
+      if (noteY + block > noteLimit) {
+        hide(unit);
+        continue;
+      }
+      face(unit, FONT_BODY, MUTED, "500");
+      unit.lines = lines;
+      unit.fontPx = 14;
+      unit.x = textX;
+      unit.y = noteY;
+      unit.w = textMax;
+      unit.h = block;
+      unit.onPaper = true;
+      unit.label = undefined;
+      const styled = unit.node as GameNode & { style?: { lineSpacing?: number; fontSize?: string } };
+      if (styled.style) {
+        styled.style.fontSize = "14px";
+        styled.style.lineSpacing = 2;
+      }
+      noteY += block + 2 * s.sy;
     }
-    let y = s.box(0, 240, 0, 0).y;
-    for (const unit of ctx.units.filter((item) => !item.onPaper && !item.interactive && item.text.trim())) {
-      ink(unit, "#46363A");
-      y = write(ctx, unit, s.box(80, 0, 0, 0).x, y, s.box(0, 0, 460, 0).w, 14) + 4 * s.sy;
-    }
+    const column = (unit: PhoneUnit | undefined, x: number, y: number, w: number, h: number, frame: string, font: number) => {
+      if (!unit) return;
+      const box = s.box(x, y, w, h);
+      face(unit, FONT_TITLE, INK, "");
+      place(unit, box, font, true);
+      chrome.push({ frame, box });
+    };
     const prev = ctx.units.find((unit) => unit.text === "上一个" || unit.node.name === "learn:prev");
     const next = ctx.units.find((unit) => unit.text === "下一个" || unit.node.name === "learn:next");
-    if (prev) {
-      const box = s.box(604, 122, 180, 44);
-      place(prev, box, 16, true);
-      chrome.push({ frame: "btn_secondary_normal", box });
-    }
-    if (next) {
-      const box = s.box(604, 174, 180, 44);
-      place(next, box, 16, true);
-      chrome.push({ frame: "btn_secondary_normal", box });
-    }
-    if (confirm) {
-      const box = s.box(604, 300, 180, 52);
-      place(confirm, box, 18, true);
-      chrome.push({ frame: "btn_primary_normal", box });
-    }
-    return { hero: null, skipMasks: true, chrome };
+    const change = ctx.units.find((unit) => unit.interactive && unit.text.includes("换一章"));
+    column(prev, 604, 164, 180, 48, "btn_secondary_normal", 16);
+    column(next, 604, 220, 180, 48, "btn_secondary_normal", 16);
+    column(confirm, 604, 318, 180, 48, "btn_primary_normal", 18);
+    column(change, 56, 318, 120, 48, "btn_secondary_normal", 16);
+    return { hero: null, skipMasks: true, chrome, captions };
   }
   if (confirm) place(confirm, s.box(604, 308, 180, 48), 18);
   if (cancel) place(cancel, s.box(480, 308, 112, 48), 16);
@@ -714,8 +904,24 @@ function layoutGrades(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   return { hero: null, skipMasks: true, chrome };
 }
 
+const CARD_SHORT: Record<string, string> = {
+  战士: "攻击和格挡更强",
+  法师: "技能伤害更高",
+  游侠: "答对能量来得快",
+  治愈师: "治疗更强",
+  探险家: "能先看到下一题",
+};
+
+function lockLines(text: string): string[] {
+  if (text === "打败期末大 Boss 后解锁") return ["打败期末大 Boss", "后解锁"];
+  const at = text.lastIndexOf(" ");
+  if (at > 0) return [text.slice(0, at), text.slice(at + 1)];
+  return [text];
+}
+
 function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const s = scaler(ctx.view);
+  const captions: PhoneCaption[] = [];
   for (const node of walk(ctx.scene)) {
     const key = (node as GameNode & { texture?: string }).texture ?? "";
     if (key.startsWith("cls:") && !key.includes("portrait")) node.visible = false;
@@ -726,72 +932,180 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const go = ctx.units.find((unit) => unit.interactive && (unit.text === "出发" || unit.node.name === "name:go"));
   const name = ctx.units.find((unit) => unit.node.name === "name:field" || unit.text === "给角色起个名字");
   if (back) {
-    const box = s.box(56, 14, 100, 44);
-    ink(back, "#3B2A20");
+    const box = s.box(56, 16, 96, 48);
+    face(back, FONT_TITLE, INK, "");
     place(back, box, 16, true);
     chrome.push({ frame: "btn_secondary_normal", box });
   }
-  chrome.push({ frame: "panel_wood", box: s.box(156, 14, 186, 40) });
+  chrome.push({ frame: "panel_wood", box: s.box(160, 16, 170, 48) });
+  if (sign) {
+    face(sign, FONT_TITLE, INK, "");
+    place(sign, s.box(160, 16, 170, 48), 20, true);
+  }
   const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80 && unit.design.w < 400).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
   const sheets = walk(ctx.scene).filter((node) => /portrait/i.test(String((node as GameNode & { texture?: string }).texture ?? "")));
   let selectedX = cards[0]?.node.x ?? 0;
   for (const node of walk(ctx.scene)) {
     if (node.type === "rectangle" && Number(node.data.get("strokeWidth") || 0) >= 6) selectedX = node.x;
   }
-  const owned = new Set<PhoneUnit>();
-  cards.forEach((card, index) => {
+  const portraits: PhonePortrait[] = [];
+  const rings: Array<{ x: number; y: number; w: number; h: number }> = [];
+  let previewName = "";
+  let previewBlurb: PhoneUnit | undefined;
+  let previewTalent: PhoneUnit | undefined;
+  let previewStarter = "";
+  let previewSheet: GameNode | null = null;
+  const textsOn = (card: PhoneUnit) => ctx.units.filter((unit) => {
+    if (unit.interactive || !unit.text.trim() || unit === sign || unit === name) return false;
+    if (/选一个职业|已选年级|重选年级|给角色起个名字|给家长/.test(unit.text)) return false;
+    const cx = unit.design.x + unit.design.w / 2;
+    const cy = unit.design.y + unit.design.h / 2;
+    return cx >= card.design.x - 8 && cx <= card.design.x + card.design.w + 8 && cy >= card.design.y - 12 && cy <= card.design.y + card.design.h + 12;
+  });
+  const isLockedCard = (card: PhoneUnit) => textsOn(card).some((unit) => unit.text.includes("后解锁") || unit.text.includes("打败期末") || unit.text === "藏起来的职业");
+  // Accepted board: five open classes in order, locked class in the last cell (bottom right).
+  const ordered = [...cards.filter((card) => !isLockedCard(card)), ...cards.filter((card) => isLockedCard(card))];
+  ordered.forEach((card, index) => {
     const col = index % 3;
     const row = Math.floor(index / 3);
-    const box = s.box(56 + col * 158, 64 + row * 120, 150, 112);
+    const box = s.box(56 + col * 160, 72 + row * 136, 152, 128);
     place(card, box, 0);
     chrome.push({ frame: "panel_parchment", box });
-    const texts = ctx.units.filter((unit) => {
-      if (unit.interactive || !unit.text.trim() || owned.has(unit) || unit === sign || unit === name) return false;
-      if (/选一个职业|已选年级|重选年级|给角色起个名字/.test(unit.text)) return false;
-      const cx = unit.design.x + unit.design.w / 2;
-      const cy = unit.design.y + unit.design.h / 2;
-      return cx >= card.design.x - 8 && cx <= card.design.x + card.design.w + 8 && cy >= card.design.y - 12 && cy <= card.design.y + card.design.h + 12;
-    }).sort((a, b) => a.designY - b.designY);
-    texts.forEach((text, line) => {
-      owned.add(text);
-      ink(text, line === 0 ? "#3B2A20" : "#46363A");
-      const font = line === 0 ? 15 : 11;
-      place(text, { x: box.x + 8 * s.sx, y: box.y + (28 + line * 16) * s.sy, w: box.w - 16 * s.sx, h: (line === 0 ? 18 : 14) * s.sy }, font);
-    });
+    const texts = textsOn(card).sort((a, b) => a.designY - b.designY);
+    const starter = texts.find((unit) => unit.text.startsWith("起始卡"));
+    const blurb = texts.find((unit) => unit !== starter && /。/.test(unit.text));
+    const lock = texts.find((unit) => unit.text.includes("后解锁") || unit.text.includes("打败期末"));
+    const title = texts.find((unit) => unit !== starter && unit !== blurb && unit !== lock && (unit.text in CARD_SHORT || unit.text === "藏起来的职业" || unit.text.length <= 4));
+    const talent = texts.find((unit) => unit !== starter && unit !== blurb && unit !== lock && unit !== title);
+    const locked = Boolean(lock) || title?.text === "藏起来的职业";
+    const selected = Math.abs(card.node.x - selectedX) < 80;
+    if (title) {
+      face(title, FONT_TITLE, INK, "");
+      place(title, { x: box.x, y: box.y + (locked ? 56 : 64) * s.sy, w: box.w, h: 18 * s.sy }, 15, true);
+    }
+    if (locked && lock) {
+      const lines = lockLines(lock.text);
+      face(lock, FONT_BODY, MUTED, "500");
+      place(lock, { x: box.x + 8 * s.sx, y: box.y + 78 * s.sy, w: box.w - 16 * s.sx, h: 36 * s.sy }, 14, true);
+      lock.lines = lines;
+      const styled = lock.node as GameNode & { style?: { lineSpacing?: number } };
+      if (styled.style) styled.style.lineSpacing = 4;
+      captions.push({ text: "？", x: box.x, y: box.y + 12 * s.sy, w: box.w, h: 28 * s.sy, color: NOTE, font: 28, family: FONT_TITLE, weight: "" });
+      for (const extra of texts) if (extra !== title && extra !== lock) hide(extra);
+    } else {
+      const short = title ? CARD_SHORT[title.text] : undefined;
+      if (short) {
+        captions.push({ text: short, x: box.x, y: box.y + 84 * s.sy, w: box.w, h: 16 * s.sy, color: MUTED, font: 14, family: FONT_BODY, weight: "500" });
+      }
+      if (starter) {
+        face(starter, FONT_BODY, TEAL, "600");
+        place(starter, { x: box.x, y: box.y + 102 * s.sy, w: box.w, h: 16 * s.sy }, 14, true);
+      }
+      const sheet = sheets.find((node) => Math.abs(node.x - card.node.x) < 80 && !/locked/i.test(String((node as GameNode & { texture?: string }).texture ?? "")));
+      if (sheet) portraits.push({ node: sheet, box: { x: box.x + 44 * s.sx, y: box.y + 6 * s.sy, w: 64 * s.sx, h: 54 * s.sy } });
+      if (selected) {
+        rings.push(box);
+        previewName = title?.text ?? "";
+        previewBlurb = blurb;
+        previewTalent = talent;
+        previewStarter = starter?.text ?? "";
+        previewSheet = sheet ?? null;
+      } else {
+        if (blurb) hide(blurb);
+        if (talent) hide(talent);
+      }
+      for (const extra of texts) {
+        if (extra === title || extra === starter || extra === blurb || extra === talent) continue;
+        hide(extra);
+      }
+    }
   });
-  if (sign) {
-    ink(sign);
-    place(sign, s.box(164, 16, 170, 32), 16, true);
-  }
-  const preview = s.box(546, 64, 250, 160);
+  const preview = s.box(540, 16, 248, 204);
   chrome.push({ frame: "panel_parchment", box: preview });
-  const selectedSheet = sheets.find((node) => Math.abs(node.x - selectedX) < 40) ?? null;
-  // 说明占预览板左 120。立绘放在右边，不压说明，也不再画到顶栏和木牌上。
-  const portraits: PhonePortrait[] = selectedSheet ? [{ node: selectedSheet, box: s.box(692, 72, 96, 136) }] : [];
+  if (previewName) {
+    captions.push({ text: previewName, x: preview.x, y: preview.y + 14 * s.sy, w: preview.w, h: 22 * s.sy, color: INK, font: 18, family: FONT_TITLE, weight: "" });
+  }
+  if (previewSheet) portraits.push({ node: previewSheet, box: s.box(616, 46, 96, 102) });
+  const longLines = [previewBlurb, previewTalent].filter((unit): unit is PhoneUnit => Boolean(unit));
+  longLines.forEach((unit, index) => {
+    face(unit, FONT_BODY, INK, "500");
+    unit.lines = [unit.text];
+    unit.fontPx = 14;
+    unit.label = undefined;
+    unit.x = s.box(564, 0, 0, 0).x;
+    unit.y = s.box(0, 156 + index * 18, 0, 0).y;
+    unit.w = Math.max(14, Math.ceil(inkWidth(ctx, unit.text, 14, "500", FONT_BODY)) + 2);
+    unit.h = 16 * s.sy;
+    unit.onPaper = true;
+  });
+  if (previewStarter) {
+    const width = Math.max(14, Math.ceil(inkWidth(ctx, previewStarter, 14, "600", FONT_BODY)) + 2);
+    captions.push({
+      text: previewStarter,
+      x: s.box(564, 0, 0, 0).x,
+      y: s.box(0, 156 + longLines.length * 18, 0, 0).y,
+      w: width,
+      h: 16 * s.sy,
+      color: TEAL,
+      font: 14,
+      family: FONT_BODY,
+      weight: "600",
+    });
+  }
+  const grade = ctx.units.find((unit) => !unit.interactive && unit.text.includes("已选年级"));
+  const gradeNote = ctx.units.find((unit) => !unit.interactive && unit.text.includes("给家长"));
+  if (grade) {
+    grade.lines = [grade.text];
+    face(grade, FONT_BODY, TEAL, "500");
+    pinLine(ctx, grade, s.box(340, 0, 0, 0).x, s.box(0, 28, 0, 0).y, 14);
+  }
+  if (gradeNote) {
+    gradeNote.lines = [gradeNote.text];
+    face(gradeNote, FONT_BODY, MUTED, "500");
+    pinLine(ctx, gradeNote, s.box(340, 0, 0, 0).x, s.box(0, 50, 0, 0).y, 14);
+  }
+  captions.push({
+    text: "名字",
+    x: s.box(540, 0, 0, 0).x,
+    y: s.box(0, 224, 0, 0).y,
+    w: Math.ceil(inkWidth(ctx, "名字", 14, "600", FONT_BODY)) + 2,
+    h: 16 * s.sy,
+    color: INK,
+    font: 14,
+    family: FONT_BODY,
+    weight: "600",
+  });
   if (name) {
-    ink(name, name.text === "给角色起个名字" ? "#766758" : "#3B2A20");
-    const field = s.box(546, 248, 250, 48);
+    const field = s.box(540, 242, 248, 48);
     chrome.push({ frame: "input_normal", box: field });
-    place(name, field, 15);
+    const placeholder = name.text === "给角色起个名字";
+    face(name, FONT_BODY, placeholder ? "#766758" : INK, "500");
+    name.fontPx = 14;
+    name.lines = [name.text];
+    name.x = field.x + 16 * s.sx;
+    name.y = field.y + (field.h - 16 * s.sy) / 2;
+    name.w = Math.max(14, field.w - 28 * s.sx);
+    name.h = 16 * s.sy;
+    name.onPaper = true;
+    name.label = undefined;
   }
   if (go) {
-    const box = s.box(546, 312, 130, 48);
+    const box = s.box(540, 306, 118, 48);
+    face(go, FONT_TITLE, INK, "");
     place(go, box, 18, true);
     chrome.push({ frame: "btn_primary_normal", box });
   }
-  if (retry) place(retry, s.box(684, 312, 112, 48), 15);
-  let previewY = s.box(0, 78, 0, 0).y;
-  const previewBottom = s.box(0, 214, 0, 0).y;
-  for (const unit of ctx.units) {
-    if (unit.onPaper || unit.interactive || !unit.text.trim() || unit === sign || unit === name) continue;
-    if (previewY > previewBottom) {
-      hide(unit);
-      continue;
-    }
-    ink(unit, unit.text.includes("已选") ? "#1F6F64" : "#46363A");
-    previewY = write(ctx, unit, s.box(558, 0, 0, 0).x, previewY, s.box(0, 0, 120, 0).w, 13) + 4 * s.sy;
+  if (retry) {
+    const box = s.box(666, 306, 122, 48);
+    face(retry, FONT_TITLE, INK, "");
+    place(retry, box, 16, true);
+    chrome.push({ frame: "btn_secondary_normal", box });
   }
-  return { hero: null, skipMasks: true, chrome, portraits, skipSheets: sheets };
+  for (const unit of ctx.units) {
+    if (unit.onPaper || unit.interactive || !unit.text.trim()) continue;
+    hide(unit);
+  }
+  return { hero: null, skipMasks: true, chrome, captions, portraits, skipSheets: sheets, rings };
 }
 
 function walk(scene: PhoneContext["scene"]): GameNode[] {
@@ -1176,6 +1490,8 @@ function skillFrame(id: string): string {
 }
 
 function face(unit: PhoneUnit, family: string, color: string, weight = ""): void {
+  unit.family = family;
+  unit.weight = weight;
   const paint = (node: GameNode) => {
     const styled = node as GameNode & { style?: { fontFamily?: string; color?: string; fontStyle?: string } };
     if (!styled.style) styled.style = {};

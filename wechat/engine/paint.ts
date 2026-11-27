@@ -2333,8 +2333,38 @@ export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx
     ctx.fillStyle = hex(fill.color);
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
   }
+  if (scene) paintPhoneRings(scene, ctx);
   paintItems(ctx, plan);
   return plan;
+}
+
+/** Selected-class ring from the accepted create board. Inset 2, 3px, radius 12, over the parchment and under the glyphs. */
+function paintPhoneRings(scene: { children: { list: GameNode[] } }, ctx: PaintContext): void {
+  const rings = phoneLayoutOf(scene)?.rings;
+  if (!rings?.length || !ctx.beginPath || !ctx.stroke || !ctx.moveTo || !ctx.lineTo || !ctx.arc || !ctx.closePath) return;
+  for (const ring of rings) {
+    const inset = 2;
+    const radius = 12;
+    const x = ring.x + inset;
+    const y = ring.y + inset;
+    const w = Math.max(radius * 2, ring.w - inset * 2);
+    const h = Math.max(radius * 2, ring.h - inset * 2);
+    const r = Math.min(radius, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arc(x + w - r, y + r, r, -Math.PI / 2, 0);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+    ctx.lineTo(x + r, y + h);
+    ctx.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+    ctx.lineTo(x, y + r);
+    ctx.arc(x + r, y + r, r, Math.PI, (Math.PI * 3) / 2);
+    ctx.closePath();
+    ctx.strokeStyle = "#1F6F64";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
 }
 
 function containsHit(item: PaintBox, x: number, y: number): boolean {
