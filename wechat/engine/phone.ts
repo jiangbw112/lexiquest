@@ -53,6 +53,24 @@ export interface PhoneChrome {
    * The village chapter board and the map sheets are built this way: wood 48, parchment 40.
    */
   sourceHalf?: boolean;
+  /**
+   * "over" paints after the academy study marks, so a mode button sits on the light well.
+   * Other pages leave this unset and stay in the base chrome pass.
+   */
+  layer?: "over";
+}
+
+/** Academy study marks drawn on the book, under the picture-book buttons. */
+export interface PhoneMark {
+  kind: "well" | "rule" | "dot";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  radius?: number;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
 }
 
 export interface PhonePlate {
@@ -131,6 +149,10 @@ export interface PhoneLayout {
   floats?: PhoneImage[];
   /** Teal selection rings drawn over parchment, under glyphs. No packed ring slice exists. */
   rings?: Array<{ x: number; y: number; w: number; h: number }>;
+  /** Academy study well, wood rules, and the status dot. Empty on every other page. */
+  marks?: PhoneMark[];
+  /** Picture-book controls painted after marks. Set while laying out; not a second layout. */
+  faceChrome?: PhoneChrome[];
 }
 
 const cameras = new WeakMap<object, PhoneLayout>();
@@ -212,6 +234,8 @@ export function coverFocusFor(key: string): { x: number; y: number } {
   if (key === "stages") return { x: 0.45, y: 0.55 };
   if (key === "guide") return { x: 0.5, y: 0.45 };
   if (key === "battle-results") return { x: 0.55, y: 0.5 };
+  // Academy page only. Village / overworld stays (0.48, 0.58). Map stays (0.45, 0.55).
+  if (key === "learn") return { x: 0.5, y: 0.55 };
   return { x: 0.5, y: 0.5 };
 }
 

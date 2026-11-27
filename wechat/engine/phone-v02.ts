@@ -5,7 +5,7 @@
  */
 
 import type { GameNode } from "./node";
-import type { PhoneBar, PhoneCaption, PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhonePortrait, PhoneUnit } from "./phone";
+import type { PhoneBar, PhoneCaption, PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhoneMark, PhonePortrait, PhoneUnit } from "./phone";
 
 interface Box {
   x: number;
@@ -606,28 +606,33 @@ function chapterNameOf(title: string): string {
   return parts.join(" · ");
 }
 
-/** Plaque is 250 wide, which already reserves 「三年级 · 朋友与家人的周末聚会」. A longer live name widens until x=596, then wraps at 16 inside a 64-tall plate. */
-function chapterPlate(ctx: PhoneContext, name: string): { w: number; h: number; lines: string[] } {
-  const maxW = 596 - 288;
-  const live = inkWidth(ctx, name, 16, "", FONT_TITLE);
-  let w = 250;
-  if (live > w - 36 + 0.5) w = Math.min(maxW, Math.ceil(live + 36));
-  const inner = Math.max(16, w - 36);
-  if (live <= inner + 0.5) return { w, h: 48, lines: [name] };
-  const parts = name.split(" · ");
-  if (parts.length < 2) return { w, h: 64, lines: [name] };
-  let left = parts[0] ?? name;
-  let index = 1;
-  const width = (value: string) => inkWidth(ctx, value, 16, "", FONT_TITLE);
-  while (index < parts.length) {
-    const next = `${left} · ${parts[index]}`;
-    if (width(next) > inner) break;
-    left = next;
-    index += 1;
-  }
-  const right = parts.slice(index).join(" · ");
-  if (!right) return { w, h: 48, lines: [left] };
-  return { w, h: 64, lines: [left, right] };
+/**
+ * The book already ends at 732. A live chapter name uses the header slot first.
+ * If it still overflows, the header grows to 72 and the name wraps at 16. Never below 14.
+ */
+function chapterOnBook(ctx: PhoneContext, name: string, maxW: number): { font: number; lines: string[] } {
+  const width = (value: string, size: number) => inkWidth(ctx, value, size, "", FONT_TITLE);
+  const wrap = (size: number): string[] | null => {
+    if (width(name, size) <= maxW + 0.5) return [name];
+    const parts = name.split(" · ");
+    if (parts.length < 2) return null;
+    let left = parts[0] ?? name;
+    let index = 1;
+    while (index < parts.length) {
+      const next = `${left} · ${parts[index]}`;
+      if (width(next, size) > maxW) break;
+      left = next;
+      index += 1;
+    }
+    const right = parts.slice(index).join(" · ");
+    if (!right || width(left, size) > maxW + 0.5 || width(right, size) > maxW + 0.5) return null;
+    return [left, right];
+  };
+  const at16 = wrap(16);
+  if (at16) return { font: 16, lines: at16 };
+  const at14 = wrap(14);
+  if (at14) return { font: 14, lines: at14 };
+  return { font: 14, lines: [name] };
 }
 
 function phraseLines(ctx: PhoneContext, text: string, font: number, maxW: number, weight: string, family: string): string[] {
@@ -658,10 +663,10 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const studying = modes.length > 0;
   if (back) {
     if (studying) {
-      const box = s.box(56, 16, 96, 48);
+      const box = s.box(68, 24, 100, 48);
       face(back, FONT_TITLE, INK, "");
       place(back, box, 16, true);
-      chrome.push({ frame: "btn_secondary_normal", box });
+      chrome.push({ frame: "btn_secondary_normal", box, layer: "over" });
     } else place(back, s.box(56, 16, Math.max(100, textWidth(ctx, back.text, 16) + 36), 48), 16);
   }
   const heading = ctx.units.find((unit) => !unit.interactive && (unit.text.startsWith("学堂") || unit.text === "请选章"));
@@ -673,100 +678,175 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     chrome.push({ frame: "panel_wood", box: s.box(164, 14, 320, 44) });
   }
   if (studying) {
+    // One study book. Title, status, modes, the word, and the actions share this face.
+    // Nunito 800 and Noto 500/600 are requested here. Packed faces stay 400 and 700; nothing remaps those weights.
     const captions: PhoneCaption[] = [];
+    const marks: PhoneMark[] = [];
     const phase = String((ctx.scene as { phase?: string }).phase ?? "study");
     const selected = phase === "listen" ? "听一听" : phase === "quiz" ? "选意思" : phase === "spell" ? "拼一拼" : "学一学";
-    chrome.push({ frame: "panel_wood", box: s.box(160, 16, 120, 48) });
+    const book = s.box(56, 16, 676, 350);
+    chrome.push({ frame: "panel_wood", box: book, sourceHalf: true });
+    chrome.push({
+      frame: "panel_parchment",
+      box: {
+        x: book.x + 16 * s.sx,
+        y: book.y + 10 * s.sy,
+        w: Math.max(1, book.w - 32 * s.sx),
+        h: Math.max(1, book.h - 20 * s.sy),
+      },
+      sourceHalf: true,
+    });
+    const titleText = "学堂";
+    const titleW = inkWidth(ctx, titleText, 20, "", FONT_TITLE);
+    const titleX = s.box(202, 0, 0, 0).x;
+    const titleMid = s.box(0, 48, 0, 0).y;
     captions.push({
-      text: "学堂",
-      x: s.box(160, 0, 0, 0).x,
-      y: s.box(0, 16, 0, 0).y,
-      w: s.box(0, 0, 120, 0).w,
-      h: s.box(0, 0, 0, 48).h,
+      text: titleText,
+      x: titleX,
+      y: titleMid - 10 * s.sy,
+      w: Math.max(20 * s.sx, titleW),
+      h: 20 * s.sy,
       color: INK,
       font: 20,
       family: FONT_TITLE,
       weight: "",
     });
+    const ruleX = titleX + titleW + 14 * s.sx;
+    marks.push({ kind: "rule", x: ruleX, y: s.box(0, 32, 0, 0).y, w: Math.max(2, 2 * s.sx), h: 32 * s.sy, fill: WOOD });
     if (heading) {
       const chapter = chapterNameOf(heading.text);
       if (!chapter) hide(heading);
       else {
-        const plate = chapterPlate(ctx, chapter);
-        const box = s.box(288, 16, plate.w, plate.h);
-        chrome.push({ frame: "panel_parchment", box });
+        const textX = ruleX + 36 * s.sx;
+        const textMax = Math.max(16, s.box(716, 0, 0, 0).x - 16 * s.sx - textX);
+        const laid = chapterOnBook(ctx, chapter, textMax);
+        const lineH = laid.font * s.sy;
+        const gap = laid.lines.length > 1 ? 4 * s.sy : 0;
+        const blockH = laid.lines.length * lineH + Math.max(0, laid.lines.length - 1) * gap;
+        const bandTop = s.box(0, 16, 0, 0).y;
+        const bandH = (laid.lines.length > 1 ? 72 : 48) * s.sy;
+        const y = laid.lines.length > 1 ? bandTop + Math.max(0, (bandH - blockH) / 2) : titleMid - lineH / 2;
+        const widest = laid.lines.reduce((wide, line) => Math.max(wide, inkWidth(ctx, line, laid.font, "", FONT_TITLE)), 0);
         face(heading, FONT_TITLE, INK, "");
         heading.text = chapter;
-        heading.lines = plate.lines;
-        heading.fontPx = 16;
-        heading.label = "center";
-        heading.x = box.x;
-        heading.y = box.y;
-        heading.w = box.w;
-        heading.h = box.h;
+        heading.lines = laid.lines;
+        heading.fontPx = laid.font;
+        heading.label = undefined;
+        heading.x = textX;
+        heading.y = y;
+        heading.w = Math.max(lineH, Math.min(textMax, Math.ceil(widest) + 2));
+        heading.h = blockH;
         heading.onPaper = true;
         const styled = heading.node as GameNode & { style?: { fontSize?: string; lineSpacing?: number } };
         if (styled.style) {
-          styled.style.fontSize = "16px";
-          styled.style.lineSpacing = plate.lines.length > 1 ? 4 : 0;
+          styled.style.fontSize = `${laid.font}px`;
+          styled.style.lineSpacing = laid.lines.length > 1 ? 4 : 0;
         }
       }
     }
     const remaining = ctx.units.find((unit) => !unit.interactive && unit.text.includes("本章还可学"));
     const today = ctx.units.find((unit) => !unit.interactive && unit.text.startsWith("今日"));
     const progress = ctx.units.find((unit) => !unit.interactive && /^\d+\/\d+$/.test(unit.text.trim()));
-    let chipX = 56;
+    let afterChip = s.box(72, 0, 0, 0).x;
+    let chipMid = s.box(0, 99, 0, 0).y;
     if (remaining) {
       const label = remaining.text.trim();
       const width = Math.max(142, Math.ceil(inkWidth(ctx, label, 14, "600", FONT_BODY) + 36));
-      const box = s.box(chipX, 72, width, 38);
+      const box = s.box(72, 80, width, 38);
       chrome.push({ frame: "panel_parchment", box });
       face(remaining, FONT_BODY, TEAL, "600");
       remaining.text = label;
       remaining.lines = [label];
       remaining.fontPx = 14;
       remaining.x = box.x + 20 * s.sx;
-      remaining.y = box.y + (box.h - 16 * s.sy) / 2;
+      remaining.y = box.y + (box.h - 14 * s.sy) / 2;
       remaining.w = Math.max(14, box.w - 36 * s.sx);
-      remaining.h = 16 * s.sy;
+      remaining.h = 14 * s.sy;
       remaining.onPaper = true;
-      chipX += width + 8;
+      afterChip = box.x + box.w;
+      chipMid = box.y + box.h / 2;
     }
-    const parkChip = (unit: PhoneUnit | undefined, label: string) => {
-      if (!unit || !label) return;
-      const width = Math.max(72, Math.ceil(inkWidth(ctx, label, 14, "500", FONT_BODY) + 32));
-      const box = s.box(chipX, 72, width, 38);
-      chrome.push({ frame: "panel_parchment", box });
+    const inkStatus = (unit: PhoneUnit, label: string, x: number) => {
       face(unit, FONT_BODY, INK, "500");
       unit.text = label;
       unit.lines = [label];
       unit.fontPx = 14;
-      unit.x = box.x + 16 * s.sx;
-      unit.y = box.y + (box.h - 16 * s.sy) / 2;
-      unit.w = Math.max(14, box.w - 32 * s.sx);
-      unit.h = 16 * s.sy;
+      unit.x = x;
+      unit.y = chipMid - 7 * s.sy;
+      unit.w = Math.max(14, Math.ceil(inkWidth(ctx, label, 14, "500", FONT_BODY)) + 2);
+      unit.h = 14 * s.sy;
       unit.onPaper = true;
-      chipX += width + 8;
+      unit.label = undefined;
     };
-    parkChip(progress, progress ? `本关 ${progress.text.trim()}` : "");
-    parkChip(today, today ? today.text.trim() : "");
-    const tabs = [study, ...modes].filter((unit): unit is PhoneUnit => Boolean(unit));
-    tabs.forEach((tab, index) => {
-      const box = s.box(56 + index * 116, 112, 108, 44);
-      face(tab, FONT_TITLE, tab.text === selected ? INK : MUTED, "");
-      place(tab, box, 16, true);
-      chrome.push({ frame: tab.text === selected ? "panel_parchment" : "btn_secondary_normal", box });
+    let pen = afterChip + 20 * s.sx;
+    if (progress) {
+      inkStatus(progress, `本关 ${progress.text.trim()}`, pen);
+      pen += progress.w;
+    }
+    if (progress && today) {
+      const dot = 4 * Math.min(s.sx, s.sy);
+      marks.push({ kind: "dot", x: pen + 12 * s.sx + dot / 2, y: chipMid, w: dot, h: dot, fill: WOOD });
+      pen += 12 * s.sx + dot + 12 * s.sx;
+    } else if (today) pen += 8 * s.sx;
+    if (today) inkStatus(today, today.text.trim(), pen);
+    const well = s.box(72, 126, 440, 48);
+    marks.push({
+      kind: "well",
+      x: well.x,
+      y: well.y,
+      w: well.w,
+      h: well.h,
+      radius: 14 * Math.min(s.sx, s.sy),
+      fill: "#F6E6C4",
+      stroke: WOOD,
+      strokeWidth: Math.max(2, 2 * Math.min(s.sx, s.sy)),
     });
-    const card = s.box(56, 164, 520, 146);
-    chrome.push({ frame: "panel_parchment", box: card });
-    const mark = s.box(94, 201, 72, 72);
-    chrome.push({ frame: "panel_parchment", box: mark });
-    captions.push({ text: "Aa", x: mark.x, y: mark.y, w: mark.w, h: mark.h, color: MUTED, font: 22, family: FONT_LATIN, weight: "800" });
+    marks.push({
+      kind: "rule",
+      x: s.box(524, 0, 0, 0).x,
+      y: well.y,
+      w: Math.max(2, 2 * s.sx),
+      h: Math.max(2, s.box(0, 356, 0, 0).y - well.y),
+      fill: WOOD,
+    });
+    const modeSlots: Array<[string, number]> = [["学一学", 84], ["听一听", 188], ["选意思", 292], ["拼一拼", 396]];
+    const tabs = modeSlots.map(([label]) => ctx.units.find((unit) => unit.interactive && (unit.text === label || (label === "学一学" && unit.node.name === "learn:study")))).filter((unit): unit is PhoneUnit => Boolean(unit));
+    const seen = new Set<PhoneUnit>();
+    modeSlots.forEach(([label, x], index) => {
+      const tab = tabs.find((unit) => !seen.has(unit) && (unit.text === label || (label === "学一学" && unit.node.name === "learn:study")));
+      if (!tab) return;
+      seen.add(tab);
+      const box = s.box(x, 126, 104, 48);
+      face(tab, FONT_TITLE, INK, "");
+      place(tab, box, 16, true);
+      if (tab.text === selected || (selected === "学一学" && tab.node.name === "learn:study")) {
+        const bw = Math.max(44 * s.sx, box.w - 6 * s.sx);
+        const bh = 40 * s.sy;
+        chrome.push({
+          frame: "btn_primary_normal",
+          box: { x: box.x + (box.w - bw) / 2, y: box.y + (box.h - bh) / 2, w: bw, h: bh },
+          layer: "over",
+        });
+      } else if (index > 0) {
+        marks.push({
+          kind: "rule",
+          x: box.x,
+          y: box.y + 10 * s.sy,
+          w: Math.max(2, 2 * s.sx),
+          h: Math.max(2, box.h - 20 * s.sy),
+          fill: WOOD,
+        });
+      }
+    });
+    const aa = s.box(84, 196, 88, 88);
+    chrome.push({ frame: "panel_parchment", box: aa });
+    // The formal board draws a leaf on this card. That leaf is not a packed asset, so the card stays the parchment Aa placeholder.
+    captions.push({ text: "Aa", x: aa.x, y: aa.y, w: aa.w, h: aa.h, color: MUTED, font: 26, family: FONT_LATIN, weight: "800" });
     const held = new Set<PhoneUnit>([heading, remaining, today, progress].filter((unit): unit is PhoneUnit => Boolean(unit)));
     const latin = ctx.units.filter((unit) => !unit.interactive && !held.has(unit) && /^[A-Za-z][A-Za-z' -]*$/.test(unit.text) && unit.text.length < 24 && !/^(n\.|v\.|adj\.|adv\.|pron\.|prep\.|conj\.|num\.|interj\.|art\.|phr\.|modal v\.)$/.test(unit.text.trim()));
     const word = latin.sort((a, b) => a.text.length - b.text.length)[0];
     const pos = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && /^(n\.|v\.|adj\.|adv\.|pron\.|prep\.|conj\.|num\.|interj\.|art\.|phr\.|modal v\.)$/.test(unit.text.trim()));
-    const gloss = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && unit !== word && unit !== pos && /^[\u4e00-\u9fff]{1,8}$/.test(unit.text.trim()));
+    const gloss = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && unit !== word && unit !== pos && /^[\u4e00-\u9fff；，、（）()]{1,16}$/.test(unit.text.trim()));
     const meta = ctx.units.find((unit) => !unit.interactive && !held.has(unit) && unit !== gloss && (unit.text.includes("·") || unit.text.includes("先认读") || unit.text.includes("要会拼")));
     const pinWord = (unit: PhoneUnit, x: number, y: number, font: number, family: string, weight: string, color: string, maxW: number) => {
       let size = font;
@@ -785,29 +865,31 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       unit.onPaper = true;
       unit.label = undefined;
     };
-    const textX = s.box(210, 0, 0, 0).x;
-    const textMax = s.box(0, 0, 340, 0).w;
-    if (word) pinWord(word, textX, s.box(0, 186, 0, 0).y, 36, FONT_LATIN, "800", INK, textMax);
-    if (gloss) pinWord(gloss, textX, s.box(0, 226, 0, 0).y, 28, FONT_TITLE, "", TEAL, textMax);
-    let pen = textX;
-    const rowY = s.box(0, 262, 0, 0).y;
+    const wordX = s.box(220, 0, 0, 0).x;
+    const wordMax = Math.max(40, s.box(504, 0, 0, 0).x - wordX);
+    if (word) pinWord(word, wordX, s.box(0, 190, 0, 0).y, 52, FONT_LATIN, "800", INK, wordMax);
+    if (gloss) pinWord(gloss, wordX, s.box(0, 228, 0, 0).y, 40, FONT_TITLE, "", TEAL, wordMax);
+    let rowX = wordX;
+    const rowY = s.box(0, 276, 0, 0).y;
     if (pos) {
-      pinWord(pos, pen, rowY, 14, FONT_BODY, "500", MUTED, textMax);
-      pen += pos.w + 6 * s.sx;
-      captions.push({ text: "·", x: pen, y: rowY, w: 12 * s.sx, h: 16 * s.sy, color: MUTED, font: 14, family: FONT_BODY, weight: "500" });
-      pen += 16 * s.sx;
+      pinWord(pos, rowX, rowY, 14, FONT_BODY, "500", MUTED, wordMax);
+      rowX += pos.w + 6 * s.sx;
+      captions.push({ text: "·", x: rowX, y: rowY, w: 12 * s.sx, h: 16 * s.sy, color: MUTED, font: 14, family: FONT_BODY, weight: "500" });
+      rowX += 16 * s.sx;
     }
-    if (meta) pinWord(meta, pen, rowY, 14, FONT_BODY, "500", MUTED, Math.max(40, textX + textMax - pen));
+    if (meta) pinWord(meta, rowX, rowY, 14, FONT_BODY, "500", MUTED, Math.max(40, wordX + wordMax - rowX));
     const noted = new Set<PhoneUnit>([word, pos, gloss, meta].filter((unit): unit is PhoneUnit => Boolean(unit)));
-    let noteY = s.box(0, 280, 0, 0).y;
-    const noteLimit = s.box(0, 296, 0, 0).y;
+    let noteY = s.box(0, 246, 0, 0).y;
+    const noteLimit = s.box(0, 300, 0, 0).y;
+    const noteX = s.box(540, 0, 0, 0).x;
+    const noteW = s.box(0, 0, 160, 0).w;
     for (const unit of ctx.units) {
       if (unit.interactive || unit.onPaper || held.has(unit) || noted.has(unit) || !unit.text.trim()) continue;
       if (unit.text.startsWith("学堂") || unit.text === "请选章") {
         hide(unit);
         continue;
       }
-      const lines = phraseLines(ctx, unit.text, 14, textMax, "500", FONT_BODY);
+      const lines = phraseLines(ctx, unit.text, 14, noteW, "500", FONT_BODY);
       const block = lines.length * 16 * s.sy;
       if (noteY + block > noteLimit) {
         hide(unit);
@@ -816,9 +898,9 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       face(unit, FONT_BODY, MUTED, "500");
       unit.lines = lines;
       unit.fontPx = 14;
-      unit.x = textX;
+      unit.x = noteX;
       unit.y = noteY;
-      unit.w = textMax;
+      unit.w = noteW;
       unit.h = block;
       unit.onPaper = true;
       unit.label = undefined;
@@ -834,16 +916,17 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       const box = s.box(x, y, w, h);
       face(unit, FONT_TITLE, INK, "");
       place(unit, box, font, true);
-      chrome.push({ frame, box });
+      chrome.push({ frame, box, layer: "over" });
     };
     const prev = ctx.units.find((unit) => unit.text === "上一个" || unit.node.name === "learn:prev");
     const next = ctx.units.find((unit) => unit.text === "下一个" || unit.node.name === "learn:next");
     const change = ctx.units.find((unit) => unit.interactive && unit.text.includes("换一章"));
-    column(prev, 604, 164, 180, 48, "btn_secondary_normal", 16);
-    column(next, 604, 220, 180, 48, "btn_secondary_normal", 16);
-    column(confirm, 604, 318, 180, 48, "btn_primary_normal", 18);
-    column(change, 56, 318, 120, 48, "btn_secondary_normal", 16);
-    return { hero: null, skipMasks: true, chrome, captions };
+    column(prev, 532, 126, 176, 48, "btn_secondary_normal", 16);
+    column(next, 532, 190, 176, 48, "btn_secondary_normal", 16);
+    column(confirm, 532, 308, 176, 48, "btn_primary_normal", 18);
+    column(change, 72, 308, 120, 48, "btn_secondary_normal", 16);
+    for (const unit of ctx.units) if (!unit.onPaper) hide(unit);
+    return { hero: null, skipMasks: true, chrome, captions, marks };
   }
   if (confirm) place(confirm, s.box(604, 308, 180, 48), 18);
   if (cancel) place(cancel, s.box(480, 308, 112, 48), 16);
@@ -1526,6 +1609,7 @@ const TEAL = "#1F6F64";
 const INK = "#3B2A20";
 const CREAM = "#FFF4DC";
 const MUTED = "#46363A";
+const WOOD = "#9A6B47";
 const NOTE = "#61402D";
 const LOSS_LINE = "打输了不会丢东西，放心再来！";
 

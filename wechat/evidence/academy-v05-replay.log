@@ -1,0 +1,11 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone. viewport 844x390. boot title
+press 继续学习 -> 继续学习 (title -> overworld phase=- picking=undefined)
+press 学堂 -> 学堂 (overworld -> learn phase=study picking=true)
+press 朋友与家人 0/29 -> 朋友与家人 0/29 (learn -> learn phase=study picking=true)
+press 确认 -> 确认 (learn -> learn phase=study picking=false)
+saved chrome-adapter-replay-academy-learn-v05-844x390.png scene=learn phase=study picking=false overflow=0 minFont=14 minHit=48 minGap=-16 overlap=5
+live word=arm gloss=胳膊
+pixels well=162,145,121 aaEdge=255,244,220 aaFace=255,244,220 book=255,244,220 divider=154,107,71 outside=119,145,125
+overlap labels 三年级 · 朋友与家人 on art 383,47 127x12 || 本关 0/29 on frame || 今日 0/5 on frame || 上一个 on frame || 下一个 on frame
+texts 返回@103,40 29x16 f16 | 三年级 · 朋友与家人@289,40 146x16 f16 | 换一章@109,324 47x16 f16 | 本关 0/29@235,92 62x14 f14 | 今日 0/5@325,92 55x14 f14 | arm@220,190 93x54 f52 | n.@220,276 15x16 f14 | 胳膊@220,228 82x42 f40 | 名词 · 三年级 · 要会拼@257,276 155x16 f14 | 本章还可学 29 词@92,92 107x14 f14 | 听一听@218,142 44x16 f16 | 选意思@322,142 44x16 f16 | 拼一拼@426,142 44x16 f16 | 学一学@84,126 104x48 f16 | 上一个@532,126 176x48 f16 | 下一个@532,190 176x48 f16 | 确认@532,308 176x48 f18 | 学堂@202,38 37x20 f20 | Aa@84,196 88x88 f26 | ·@241,276 12x16 f14
+hits 返回@68,24 100x48 | 换一章@72,308 120x48 | 听一听@188,126 104x48 | 选意思@292,126 104x48 | 拼一拼@396,126 104x48 | 学一学@84,126 104x48 | 上一个@532,126 176x48 | 下一个@532,190 176x48 | 确认@532,308 176x48

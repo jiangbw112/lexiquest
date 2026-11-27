@@ -1709,7 +1709,11 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
     })
     : null;
   if (scene) rememberPhone(scene, phone);
-  if (phone?.chrome?.length && scene) emitPhoneChrome(scene, images, phone.chrome);
+  if (phone?.chrome?.length && scene) {
+    emitPhoneChrome(scene, images, phone.chrome.filter((piece) => piece.layer !== "over"));
+    const over = phone.chrome.filter((piece) => piece.layer === "over");
+    if (over.length) phone.faceChrome = over;
+  }
   if (phone?.floats?.length) {
     for (const image of phone.floats) {
       if (image.w > 0 && image.h > 0) images.push(image as DrawImageOp);
@@ -2342,8 +2346,69 @@ export function paintFrame(scene: { children: { list: GameNode[] } } | null, ctx
     ctx.fillRect(fill.x, fill.y, fill.w, fill.h);
   }
   if (scene) paintPhoneRings(scene, ctx);
+  if (scene) paintPhoneMarks(scene, ctx);
+  if (scene) paintPhoneFace(scene, ctx);
   paintItems(ctx, plan);
   return plan;
+}
+
+function traceRound(ctx: PaintContext, x: number, y: number, w: number, h: number, radius: number): boolean {
+  if (!ctx.beginPath || !ctx.moveTo || !ctx.lineTo || !ctx.arc || !ctx.closePath) return false;
+  const r = Math.max(0, Math.min(radius, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arc(x + w - r, y + r, r, -Math.PI / 2, 0);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+  ctx.lineTo(x + r, y + h);
+  ctx.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+  ctx.lineTo(x, y + r);
+  ctx.arc(x + r, y + r, r, Math.PI, (Math.PI * 3) / 2);
+  ctx.closePath();
+  return true;
+}
+
+/** Academy study well, wood rules, and status dot. Painted on the book and under the buttons. */
+function paintPhoneMarks(scene: { children: { list: GameNode[] } }, ctx: PaintContext): void {
+  const marks = phoneLayoutOf(scene)?.marks;
+  if (!marks?.length) return;
+  for (const mark of marks) {
+    if (mark.kind === "well") {
+      const fill = mark.fill || "#F6E6C4";
+      const stroke = mark.stroke || "#9A6B47";
+      const width = mark.strokeWidth || 2;
+      if (traceRound(ctx, mark.x, mark.y, mark.w, mark.h, mark.radius || 14) && ctx.fill && ctx.stroke) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = fill;
+        ctx.fillRect(mark.x, mark.y, mark.w, mark.h);
+      }
+      continue;
+    }
+    if (mark.kind === "dot" && ctx.beginPath && ctx.arc && ctx.fill) {
+      const radius = Math.max(1, Math.min(mark.w, mark.h) / 2);
+      ctx.beginPath();
+      ctx.arc(mark.x, mark.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = mark.fill || "#9A6B47";
+      ctx.fill();
+      continue;
+    }
+    ctx.fillStyle = mark.fill || "#9A6B47";
+    ctx.fillRect(mark.x, mark.y, Math.max(1, mark.w), Math.max(1, mark.h));
+  }
+}
+
+function paintPhoneFace(scene: { children: { list: GameNode[] } }, ctx: PaintContext): void {
+  const face = phoneLayoutOf(scene)?.faceChrome;
+  if (!face?.length) return;
+  const images: DrawImageOp[] = [];
+  emitPhoneChrome(scene, images, face);
+  for (const op of images) paintImage(ctx, op);
 }
 
 /** Selected-class ring from the accepted create board. Inset 2, 3px, radius 12, over the parchment and under the glyphs. */
