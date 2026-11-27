@@ -21,8 +21,19 @@ globalThis.__LEXI_HAS_WORD_AUDIO__ = () => false;
 const NATIVE_FIELDS = ["name-form", "hero-name", "name-error", "spell-form", "spell-input", "spell-give-up", "spell-replay", "pin-form", "pin-input", "pin-confirm", "pin-answer", "pin-error", "pin-title", "pin-forgot-button", "pin-submit", "profile-import"];
 for (const id of NATIVE_FIELDS) game.bindField(id);
 
+function edgeBox(box) {
+  if (!box || typeof box.left !== "number" || typeof box.top !== "number" || typeof box.right !== "number" || typeof box.bottom !== "number") return null;
+  if (!(box.right > box.left) || !(box.bottom > box.top)) return null;
+  return { left: box.left, top: box.top, right: box.right, bottom: box.bottom };
+}
+
 function box(view) {
-  return { w: view && view.w > 0 ? view.w : 844, h: view && view.h > 0 ? view.h : 390 };
+  const next = { w: view && view.w > 0 ? view.w : 844, h: view && view.h > 0 ? view.h : 390 };
+  const safe = edgeBox(view && view.safe);
+  const capsule = edgeBox(view && view.capsule);
+  if (safe) next.safe = safe;
+  if (capsule) next.capsule = capsule;
+  return next;
 }
 
 function attach(canvas, view) {

@@ -115,9 +115,13 @@ export class LearnScene extends Phaser.Scene {
     const stageId = this.forestStageId;
     this.forestStageId = null;
     if (this.practiceGrade && this.practiceChapterId) {
-      const next = confirmLearnSelection(save, this.practiceGrade, this.practiceChapterId);
-      if (next !== save) mutate(() => next);
-      save = getSave() ?? next;
+      const legal = legalLearnChapters(save, this.practiceGrade).some((chapter) => chapter.id === this.practiceChapterId);
+      if (!legal) this.practiceChapterId = null;
+      else {
+        const next = confirmLearnSelection(save, this.practiceGrade, this.practiceChapterId);
+        if (next !== save) mutate(() => next);
+        save = getSave() ?? next;
+      }
     } else if (stageId !== null) {
       const chapter = findPlayChapter(save);
       const stage = chapter.grade === "mixed" ? chapter.stages.find((item) => item.id === stageId) : undefined;
@@ -349,10 +353,23 @@ export class LearnScene extends Phaser.Scene {
     this.scene.start("stages", { chapterId, focusBoss });
   }
 
+  /** A grade practice stays on a listed grade chapter. The independent forest record is not a lesson. */
+  private practiceChapter(save: NonNullable<ReturnType<typeof getSave>>, settlement: LearnSettlement): string | null {
+    if (!settlement.grade) return null;
+    const listed = legalLearnChapters(save, settlement.grade);
+    if (settlement.mapChapterId && listed.some((chapter) => chapter.id === settlement.mapChapterId)) return settlement.mapChapterId;
+    const words = new Set(settlement.wordIds ?? []);
+    return listed.find((chapter) => chapter.wordIds.some((id) => words.has(id)))?.id ?? null;
+  }
+
   private startGradePractice(settlement: LearnSettlement): void {
     const save = getSave();
     if (!save || !settlement.grade || !settlement.wordIds || settlement.wordIds.length === 0) return;
-    const chapterId = settlement.mapChapterId ?? "forest_adventure";
+    const chapterId = this.practiceChapter(save, settlement);
+    if (!chapterId) {
+      this.openChapterSelect(save, null, false);
+      return;
+    }
     const next = confirmLearnSelection(save, settlement.grade, chapterId);
     if (next !== save) mutate(() => next);
     this.practiceGrade = settlement.grade;

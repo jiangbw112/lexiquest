@@ -1,4 +1,6 @@
 import { CATALOG_WORDS } from "../../src/domain/catalog";
+import { PORTRAIT_ATLAS, portraitFrame } from "../../src/game/art/class-atlas";
+import { queueClassPortraits, savedClassId } from "../../src/game/art/class-load";
 import { getSave } from "../../src/game/session";
 import type { GameNode } from "./node";
 import type { TextStyle } from "./text";
@@ -160,6 +162,19 @@ function dropNamed(scene: PadScene, name: string): void {
   scene.children.list = scene.children.list.filter((node) => node.name !== name);
 }
 
+function wrapNamed(scene: PadScene, name: string, after: () => void): void {
+  const host = scene as PadScene & Record<string, unknown>;
+  const raw = host[name];
+  if (typeof raw !== "function" || (raw as { presented?: boolean }).presented) return;
+  const original = (raw as () => void).bind(scene);
+  const wrapped = () => {
+    original();
+    after();
+  };
+  (wrapped as { presented?: boolean }).presented = true;
+  host[name] = wrapped;
+}
+
 function wrapDraw(scene: PadScene, after: () => void): void {
   const raw = scene as PadScene & { draw?: (() => void) & { presented?: boolean } };
   if (!raw.draw || raw.draw.presented) return;
@@ -242,7 +257,19 @@ function bossPortrait(scene: PadScene): { key: string; frame: string } | null {
   return frame ? { key, frame } : null;
 }
 
-function presentExam(scene: PadScene): void {
+function presentExamPlayer(scene: PadScene): void {
+  dropNamed(scene, "exam:player");
+  if (!scene.add.image) return;
+  const host = scene as PadScene & { textures?: { exists: (key: string) => boolean }; load?: { start: () => void; totalToLoad: number } };
+  queueClassPortraits(host as never);
+  if (host.load && host.load.totalToLoad > 0) host.load.start();
+  if (!host.textures?.exists(PORTRAIT_ATLAS)) return;
+  const image = scene.add.image(160, 360, PORTRAIT_ATLAS, portraitFrame(savedClassId(getSave()), "side"));
+  image.name = "exam:player";
+}
+
+function presentExamFrame(scene: PadScene): void {
+  presentExamPlayer(scene);
   const texts = sceneTexts(scene);
   if (texts.some((item) => item === "攻击" || item.includes("意思") || item.includes("怎么说"))) {
     dropNamed(scene, "exam:body");
@@ -267,6 +294,12 @@ function presentExam(scene: PadScene): void {
     if (live.introOpen) return;
     live.act?.();
   });
+}
+
+function presentExam(scene: PadScene): void {
+  wrapNamed(scene, "drawIntro", () => presentExamFrame(scene));
+  wrapNamed(scene, "drawFight", () => presentExamFrame(scene));
+  presentExamFrame(scene);
 }
 
 function glossFor(english: string): string {
@@ -321,6 +354,19 @@ function presentCreate(scene: PadScene): void {
     go.on("pointerup", () => {
       const form = pinNode("name-form");
       if (form) submitForm(form);
+    });
+    dropNamed(scene, "create:back");
+    const back = scene.add.container(0, 0);
+    const backFace = scene.add.text(0, 0, "返回", { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "16px", color: "#3B2A20" });
+    back.add(backFace);
+    back.setSize(100, 44);
+    back.setInteractive();
+    back.name = "create:back";
+    back.on("pointerup", () => {
+      const form = pinNode("name-form") as PinNode & { classList?: { remove?: (name: string) => void } };
+      form?.classList?.remove?.("open");
+      const live = scene as PadScene & { scene?: { start: (key: string) => void } };
+      live.scene?.start("grades");
     });
   };
   wrapDraw(scene, add);

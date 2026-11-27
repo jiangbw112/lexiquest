@@ -222,11 +222,118 @@ interface Safe {
   h: number;
 }
 
-function safeOf(view: ViewBox): Safe {
-  const left = 28;
-  const right = 28;
-  const top = 16;
-  const bottom = 16;
+interface EdgeBox {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Landscape UI spec for an 844×390 frame: content rect (56, 16, 732, 350)
+ * and menu capsule (740, 0, 104, 44). These are design assumptions, not a
+ * reading from a phone or from WeChat DevTools.
+ */
+const ASSUMED_SAFE_844 = { left: 56, top: 16, right: 788, bottom: 366 };
+const ASSUMED_CAPSULE_844 = { left: 740, top: 0, right: 844, bottom: 44 };
+
+function finiteEdge(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function usableEdge(box: EdgeBox | undefined): box is EdgeBox {
+  return Boolean(box && finiteEdge(box.left) && finiteEdge(box.top) && finiteEdge(box.right) && finiteEdge(box.bottom) && box.right > box.left && box.bottom > box.top);
+}
+
+interface WxWindow {
+  getWindowInfo?: () => { windowWidth?: number; windowHeight?: number; safeArea?: EdgeBox };
+  getMenuButtonBoundingClientRect?: () => EdgeBox;
+}
+
+function readWxSafe(view: ViewBox): { edges: EdgeBox; capsule: EdgeBox | null } | null {
+  const wx = (globalThis as { wx?: WxWindow }).wx;
+  if (!wx || typeof wx.getWindowInfo !== "function") return null;
+  let info: { windowWidth?: number; windowHeight?: number; safeArea?: EdgeBox } | null = null;
+  try {
+    info = wx.getWindowInfo();
+  } catch {
+    info = null;
+  }
+  if (!info) return null;
+  const ww = finiteEdge(info.windowWidth) && info.windowWidth > 0 ? info.windowWidth : view.w;
+  const wh = finiteEdge(info.windowHeight) && info.windowHeight > 0 ? info.windowHeight : view.h;
+  const sa = info.safeArea;
+  let edges: EdgeBox = { left: 0, top: 0, right: ww, bottom: wh };
+  if (usableEdge(sa)) {
+    const overflows = sa.left < -1 || sa.top < -1 || sa.right > ww + 1 || sa.bottom > wh + 1;
+    const swapped = { left: sa.top, top: sa.left, right: sa.bottom, bottom: sa.right };
+    const swappedOverflows = swapped.left < -1 || swapped.top < -1 || swapped.right > ww + 1 || swapped.bottom > wh + 1;
+    edges = overflows && !swappedOverflows ? swapped : sa;
+  }
+  const sx = ww > 0 ? view.w / ww : 1;
+  const sy = wh > 0 ? view.h / wh : 1;
+  let capsule: EdgeBox | null = null;
+  if (typeof wx.getMenuButtonBoundingClientRect === "function") {
+    try {
+      const raw = wx.getMenuButtonBoundingClientRect();
+      if (usableEdge(raw)) capsule = { left: raw.left * sx, top: raw.top * sy, right: raw.right * sx, bottom: raw.bottom * sy };
+    } catch {
+      capsule = null;
+    }
+  }
+  return {
+    edges: { left: edges.left * sx, top: edges.top * sy, right: edges.right * sx, bottom: edges.bottom * sy },
+    capsule,
+  };
+}
+
+function assumedFrame(view: ViewBox): { edges: EdgeBox; capsule: EdgeBox } {
+  const sx = view.w / 844;
+  const sy = view.h / 390;
+  return {
+    edges: {
+      left: ASSUMED_SAFE_844.left * sx,
+      top: ASSUMED_SAFE_844.top * sy,
+      right: ASSUMED_SAFE_844.right * sx,
+      bottom: ASSUMED_SAFE_844.bottom * sy,
+    },
+    capsule: {
+      left: ASSUMED_CAPSULE_844.left * sx,
+      top: ASSUMED_CAPSULE_844.top * sy,
+      right: ASSUMED_CAPSULE_844.right * sx,
+      bottom: ASSUMED_CAPSULE_844.bottom * sy,
+    },
+  };
+}
+
+function avoidCapsule(view: ViewBox, edges: EdgeBox, capsule: EdgeBox | null): EdgeBox {
+  if (!usableEdge(capsule ?? undefined)) return edges;
+  const box = capsule as EdgeBox;
+  const overlapsX = box.left < edges.right && box.right > edges.left;
+  const overlapsY = box.top < edges.bottom && box.bottom > edges.top;
+  if (!overlapsX || !overlapsY) return edges;
+  if (box.left >= view.w * 0.5) return { ...edges, right: Math.min(edges.right, box.left) };
+  if (box.right <= view.w * 0.5) return { ...edges, left: Math.max(edges.left, box.right) };
+  return { ...edges, top: Math.max(edges.top, box.bottom) };
+}
+
+/** Where the insets came from. "assumption" is the 844×390 spec, not a device. */
+export function safeInsetSource(view: ViewBox): "window" | "assumption" {
+  if (usableEdge(view.safe)) return "window";
+  return readWxSafe(view) ? "window" : "assumption";
+}
+
+export function safeOf(view: ViewBox): Safe {
+  const passed = usableEdge(view.safe);
+  const fromWindow = passed ? null : readWxSafe(view);
+  const assumed = passed || fromWindow ? null : assumedFrame(view);
+  const edges = passed && view.safe ? view.safe : fromWindow ? fromWindow.edges : assumed!.edges;
+  const capsule = usableEdge(view.capsule) ? view.capsule : fromWindow?.capsule ?? assumed?.capsule ?? null;
+  const cleared = avoidCapsule(view, edges, capsule);
+  const left = Math.max(0, Math.min(view.w, cleared.left));
+  const top = Math.max(0, Math.min(view.h, cleared.top));
+  const right = Math.max(0, Math.min(view.w - left, view.w - cleared.right));
+  const bottom = Math.max(0, Math.min(view.h - top, view.h - cleared.bottom));
   return { x: left, y: top, w: Math.max(44, view.w - left - right), h: Math.max(44, view.h - top - bottom) };
 }
 

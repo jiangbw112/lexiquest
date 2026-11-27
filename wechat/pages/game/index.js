@@ -78,6 +78,7 @@ Page({
     this._viewH = 0;
     this._safeDecision = null;
     this._safeUsed = null;
+    this._capsuleUsed = null;
     this._windowWidth = 0;
     this._windowHeight = 0;
     this._backingW = 0;
@@ -239,6 +240,7 @@ Page({
         const safe = safeAreaInCanvas(decision.safeArea, rect);
         this._safeDecision = decision;
         this._safeUsed = safe;
+        this._capsuleUsed = this.capsuleInCanvas(rect);
         this._layout = layoutView(viewW, viewH, safe);
         if (!this._image && !this._atlasLoading) this.loadAtlas(canvas);
         // 原来：量完窗口只画骨架。
@@ -442,7 +444,7 @@ Page({
         } else if (type === "end") {
           const scrolled = this._port.wordScroll("end", x, y, 0);
           this._resultsLast = null;
-          if (!scrolled) this._port.press(x, y, { w: this._viewW, h: this._viewH });
+          if (!scrolled) this._port.press(x, y, this.gameView());
         } else if (type === "cancel") {
           this._port.wordScroll("end", x, y, 0);
           this._resultsLast = null;
@@ -454,7 +456,7 @@ Page({
           const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
           const x = typeof endTouch.x === "number" ? endTouch.x : endTouch.clientX - left;
           const y = typeof endTouch.y === "number" ? endTouch.y : endTouch.clientY - top;
-          this._port.press(x, y, { w: this._viewW, h: this._viewH });
+          this._port.press(x, y, this.gameView());
         }
       }
       this.draw();
@@ -542,6 +544,34 @@ Page({
     this._portLoop = setTimeout(tick, 16);
   },
 
+  gameView() {
+    const view = { w: this._viewW, h: this._viewH };
+    const safe = this._safeUsed;
+    const capsule = this._capsuleUsed;
+    if (safe && safe.right > safe.left && safe.bottom > safe.top) view.safe = safe;
+    if (capsule && capsule.right > capsule.left && capsule.bottom > capsule.top) view.capsule = capsule;
+    return view;
+  },
+
+  capsuleInCanvas(rect) {
+    let button = null;
+    try {
+      button = wx.getMenuButtonBoundingClientRect && wx.getMenuButtonBoundingClientRect();
+    } catch (err) {
+      button = null;
+    }
+    if (!button || typeof button.left !== "number" || typeof button.top !== "number" || typeof button.right !== "number" || typeof button.bottom !== "number") return null;
+    if (!(button.right > button.left) || !(button.bottom > button.top)) return null;
+    const left = rect && typeof rect.left === "number" ? rect.left : 0;
+    const top = rect && typeof rect.top === "number" ? rect.top : 0;
+    return {
+      left: button.left - left,
+      top: button.top - top,
+      right: button.right - left,
+      bottom: button.bottom - top,
+    };
+  },
+
   readEnvVersion() {
     try {
       const account = wx.getAccountInfoSync();
@@ -563,7 +593,7 @@ Page({
     ctx.fillRect(0, 0, this._viewW, this._viewH);
     if (!this._probeFrame && this._port) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      this._port.paint(ctx, { w: this._viewW, h: this._viewH });
+      this._port.paint(ctx, this.gameView());
       const failures = this._port.runtime && this._port.runtime.failures;
       if (failures && failures.length) {
         const audio = failures.find((item) => String(item).includes("word audio"));

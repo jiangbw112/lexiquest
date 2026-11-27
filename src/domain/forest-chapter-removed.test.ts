@@ -251,6 +251,9 @@ describe("independent forest chapter", () => {
     const map = readFileSync(new URL("../game/scenes/StageMapScene.ts", import.meta.url), "utf8");
     const battle = readFileSync(new URL("../game/scenes/BattleScene.ts", import.meta.url), "utf8");
     const guide = readFileSync(new URL("../game/scenes/GuideScene.ts", import.meta.url), "utf8");
+    const learn = readFileSync(new URL("../game/scenes/LearnScene.ts", import.meta.url), "utf8");
+    expect(learn).not.toContain('?? "forest_adventure"');
+    expect(learn).not.toContain("forest_adventure");
     expect(map).not.toContain('viewChapterId = "forest_adventure"');
     expect(map).toContain("independentForestId");
     expect(battle).not.toContain('battleChapterId = "forest_adventure"');

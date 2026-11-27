@@ -100,7 +100,7 @@ function findActor(scene: PhoneContext["scene"]): GameNode | null {
   let found: GameNode | null = null;
   const visit = (node: GameNode) => {
     const key = (node as GameNode & { texture?: string }).texture ?? "";
-    if (!found && key.startsWith("cls:") && node.parent) found = node.parent;
+    if (!found && key.startsWith("cls:") && !/portrait/i.test(key) && node.name !== "exam:player" && node.parent) found = node.parent;
     const list = (node as GameNode & { list?: GameNode[] }).list;
     if (list) for (const child of list) visit(child);
   };
@@ -330,11 +330,10 @@ function layoutGuide(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   field.y = y;
   if (slots.length === 4) {
     if (dots) hide(dots);
-    const slotW = s.box(0, 0, 44, 48);
-    const gap = 8 * s.sx;
+    chrome.push({ frame: "input_normal", box: field });
+    const slotW = field.w / slots.length;
     slots.forEach((slot, index) => {
-      const box = { x: field.x + index * (slotW.w + gap), y: field.y, w: slotW.w, h: slotW.h };
-      chrome.push({ frame: "input_normal", box });
+      const box = { x: field.x + index * slotW, y: field.y, w: slotW, h: field.h };
       ink(slot);
       place(slot, box, 18, true);
     });
@@ -662,7 +661,12 @@ function layoutCreate(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
   const retry = ctx.units.find((unit) => unit.interactive && unit.text.includes("重选年级"));
   const go = ctx.units.find((unit) => unit.interactive && (unit.text === "出发" || unit.node.name === "name:go"));
   const name = ctx.units.find((unit) => unit.node.name === "name:field" || unit.text === "给角色起个名字");
-  if (back) place(back, s.box(56, 14, 100, 44), 16);
+  if (back) {
+    const box = s.box(56, 14, 100, 44);
+    ink(back, "#3B2A20");
+    place(back, box, 16, true);
+    chrome.push({ frame: "btn_secondary_normal", box });
+  }
   chrome.push({ frame: "panel_wood", box: s.box(156, 14, 186, 40) });
   const cards = ctx.units.filter((unit) => unit.interactive && !unit.text.trim() && unit.design.w >= 80 && unit.design.w < 400).sort((a, b) => a.designY - b.designY || a.designX - b.designX);
   const sheets = walk(ctx.scene).filter((node) => /portrait/i.test(String((node as GameNode & { texture?: string }).texture ?? "")));
@@ -1391,7 +1395,8 @@ function layoutExam(ctx: PhoneContext, chrome: PhoneChrome[], intro: PhoneUnit |
       write(ctx, body, s.box(130, 136, 0, 0).x, s.box(0, 136, 0, 0).y, s.box(0, 0, 420, 0).w, 14);
     }
     placeBoss(ctx, s.box(600, 36, 170, 220));
-    return { hero: placeHero(ctx, s.box(180, 220, 0, 0).x, s.box(0, 220, 0, 0).y, 130 * s.sy), skipMasks: true, chrome };
+    const portraits = placeExamAvatar(ctx, s, true);
+    return { hero: placeHero(ctx, s.box(180, 220, 0, 0).x, s.box(0, 220, 0, 0).y, 130 * s.sy), skipMasks: true, chrome, portraits, skipSheets: portraits.map((item) => item.node) };
   }
   for (const unit of ctx.units) {
     if (!unit.interactive && /准备好了|最近学过|这次练习/.test(unit.text)) hide(unit);
@@ -1436,21 +1441,34 @@ function layoutExam(ctx: PhoneContext, chrome: PhoneChrome[], intro: PhoneUnit |
       named = true;
     }
     ink(unit);
-    hudY = write(ctx, unit, s.box(72, 0, 0, 0).x, hudY, s.box(0, 0, 220, 0).w, 14);
+    hudY = write(ctx, unit, s.box(108, 0, 0, 0).x, hudY, s.box(0, 0, 220, 0).w, 14);
   }
   if (prompt && life.asked != null && !named) {
-    const tag = { x: s.box(72, 0, 0, 0).x, y: hudY, w: 140 * s.sx, h: 22 * s.sy };
+    const tag = { x: s.box(108, 0, 0, 0).x, y: hudY, w: 140 * s.sx, h: 22 * s.sy };
     captions.push({ text: `第${life.asked}题`, x: tag.x, y: tag.y, w: tag.w, h: tag.h, color: "#3B2A20", font: 14 });
     hudY = tag.y + tag.h;
   }
   const bars: PhoneBar[] = [];
   if (prompt) {
     const barH = 16 * s.sy;
-    parkBar(bars, s.box(72, 0, 0, 0).x, hudY + 4 * s.sy, 150 * s.sx, barH, life.player, "teal", s.box(0, 68, 0, 0).y);
+    parkBar(bars, s.box(108, 0, 0, 0).x, hudY + 4 * s.sy, 150 * s.sx, barH, life.player, "teal", s.box(0, 68, 0, 0).y);
     parkBar(bars, s.box(620, 0, 0, 0).x, s.box(0, 50, 0, 0).y, 110 * s.sx, barH, life.enemy, "coral", s.box(0, 70, 0, 0).y);
   }
   placeBoss(ctx, prompt && life.enemy != null ? s.box(620, 70, 150, 148) : s.box(620, 48, 160, 170));
-  return { hero: placeHero(ctx, s.box(150, 190, 0, 0).x, s.box(0, 190, 0, 0).y, 120 * s.sy), skipMasks: true, chrome, bars, captions };
+  const portraits = placeExamAvatar(ctx, s, false);
+  return { hero: placeHero(ctx, s.box(150, 190, 0, 0).x, s.box(0, 190, 0, 0).y, 120 * s.sy), skipMasks: true, chrome, bars, captions, portraits, skipSheets: portraits.map((item) => item.node) };
+}
+
+function placeExamAvatar(ctx: PhoneContext, s: ReturnType<typeof scaler>, intro: boolean): PhonePortrait[] {
+  const node = walk(ctx.scene).find((item) => item.name === "exam:player");
+  if (!node) return [];
+  const image = ctx.images.find((item) => item.node === node);
+  if (image) {
+    image.w = 0;
+    image.h = 0;
+    image.placed = true;
+  }
+  return [{ node, box: intro ? s.box(16, 240, 80, 112) : s.box(16, 48, 72, 100) }];
 }
 
 function layoutGeneric(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {

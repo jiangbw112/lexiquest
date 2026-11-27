@@ -11,6 +11,13 @@ export const WORLD_H = 800;
 export interface ViewBox {
   w: number;
   h: number;
+  /**
+   * Canvas-space safe rectangle from the page's window measurement.
+   * Absent in the Chrome adapter, which has no WeChat window API.
+   */
+  safe?: { left: number; top: number; right: number; bottom: number };
+  /** Canvas-space menu-button capsule, when the page could read it. */
+  capsule?: { left: number; top: number; right: number; bottom: number };
 }
 
 export interface Point {
