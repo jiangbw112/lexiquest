@@ -20,6 +20,6 @@
   现在：页面准备一个原生 input，adjust-position 固定 false，默认不显示。
   为什么：键盘顶起画布还没有真机记录。云端不能把这个节点写成输入法已经测过。
 -->
-<input wx:if="{{showNativeInput}}" class="native-field" adjust-position="{{false}}" hold-keyboard="{{true}}" />
+<input wx:if="{{showNativeInput}}" class="native-field" value="{{spellValue}}" focus="{{spellFocus}}" adjust-position="{{false}}" hold-keyboard="{{true}}" bindinput="onSpellInput" bindblur="onSpellBlur" />
 <view wx:if="{{canvasNodeMissing}}" class="fallback">{{canvasNodeMissingText}}</view>
 <view wx:if="{{canvasContextMissing}}" class="fallback">{{canvasContextMissingText}}</view>

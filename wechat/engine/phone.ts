@@ -29,6 +29,8 @@ export interface PhoneUnit {
   suppressFace?: boolean;
   /** Screen clip for a column that scrolls. Rows outside it are not drawn. */
   clip?: { x: number; y: number; w: number; h: number };
+  /** Extra downward shift for a label that shares the control box. Pressed help uses 2 logical pixels. */
+  labelDy?: number;
   designX: number;
   designY: number;
   design: { x: number; y: number; w: number; h: number };
@@ -58,6 +60,8 @@ export interface PhoneChrome {
    * Other pages leave this unset and stay in the base chrome pass.
    */
   layer?: "over";
+  /** Multiply tint for a low-contrast wood face. Omitted faces stay untinted. */
+  tint?: number;
 }
 
 /** Academy study marks drawn on the book, under the picture-book buttons. */

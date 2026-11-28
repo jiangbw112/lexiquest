@@ -37,6 +37,8 @@ export interface PaintBox {
   fontStyle?: string;
   /** Keeps a scrolling column inside its parchment. */
   clip?: { x: number; y: number; w: number; h: number };
+  /** Shifts a centered label down without moving the hit box. */
+  labelDy?: number;
   polygon?: Array<{ x: number; y: number }>;
   masks?: MaskShape[][];
 }
@@ -273,6 +275,8 @@ interface Unit {
   label?: "center" | "sign";
   signFrac?: number;
   suppressFace?: boolean;
+  clip?: { x: number; y: number; w: number; h: number };
+  labelDy?: number;
   designX: number;
   designY: number;
 }
@@ -1598,7 +1602,7 @@ function emitPhoneChrome(scene: { children: { list: GameNode[] } }, images: Draw
         alpha: 1,
         rotation: 0,
         flipX: false,
-        tint: 0xffffff,
+        tint: piece.tint ?? 0xffffff,
       });
     }
   }
@@ -1757,6 +1761,7 @@ export function layoutFrame(scene: { children: { list: GameNode[] } } | null, vi
       lines: unit.lines,
       onPaper: unit.onPaper,
       clip: unit.clip,
+      labelDy: unit.labelDy,
     });
     if (!unit.interactive) continue;
     const phoneButton = scene ? Boolean(phoneLayoutOf(scene)) : false;
@@ -2268,7 +2273,7 @@ function paintItems(ctx: PaintContext, plan: FramePlan): void {
   for (const item of plan.items) {
     if (item.text && item.fontPx > 0) {
       const lines = item.lines && item.lines.length ? item.lines : [item.text];
-      const draw = () => paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y, item.w, item.h, item.align === "center" ? "center" : "left", item.ink, { family: item.fontFamily, weight: item.fontStyle });
+      const draw = () => paintGlyph(ctx, item.node, lines, item.fontPx, item.x, item.y + (item.labelDy || 0), item.w, item.h, item.align === "center" ? "center" : "left", item.ink, { family: item.fontFamily, weight: item.fontStyle });
       const clip = item.clip;
       if (clip && clip.w > 0 && clip.h > 0 && ctx.save && ctx.restore && ctx.beginPath && ctx.moveTo && ctx.lineTo && ctx.closePath && ctx.clip) {
         ctx.save();
@@ -2452,16 +2457,48 @@ function containsHit(item: PaintBox, x: number, y: number): boolean {
   return true;
 }
 
-export function pressFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
+function topHit(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
   const plan = layoutFrame(scene, view, measure);
   const world = screenToWorld({ x, y }, view);
   const input = (scene as { input?: { activePointer?: { x: number; y: number } } } | null)?.input;
   if (input) input.activePointer = { x: world.x, y: world.y };
   const hits = plan.hits.filter((item) => containsHit(item, x, y));
-  const hit = hits[hits.length - 1] ?? null;
-  if (!hit) return null;
+  return hits[hits.length - 1] ?? null;
+}
+
+function emitPointer(hit: PaintBox, type: "pointerdown" | "pointerup"): void {
   const box = designBox(hit.node);
-  hit.node.emit("pointerdown", { x: box.x + box.w / 2, y: box.y + box.h / 2 });
-  hit.node.emit("pointerup", { x: box.x + box.w / 2, y: box.y + box.h / 2 });
+  hit.node.emit(type, { x: box.x + box.w / 2, y: box.y + box.h / 2 });
+}
+
+export function pressFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
+  const hit = topHit(scene, view, x, y, measure);
+  if (!hit) return null;
+  emitPointer(hit, "pointerdown");
+  emitPointer(hit, "pointerup");
   return hit;
+}
+
+/** Press-down only. Spell help uses this so the inset face shows before a letter is revealed. */
+export function holdFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
+  const hit = topHit(scene, view, x, y, measure);
+  if (!hit || hit.text !== "求助") return null;
+  emitPointer(hit, "pointerdown");
+  return hit;
+}
+
+/**
+ * Release a spell-help press. A release still on 求助 reveals one letter.
+ * A release outside only clears the inset face.
+ */
+export function releaseFrame(scene: { children: { list: GameNode[] } } | null, view: ViewBox, x: number, y: number, measure?: MeasureText): PaintBox | null {
+  const host = scene as { spellHelpPressed?: boolean } | null;
+  if (!host?.spellHelpPressed) return null;
+  const hit = topHit(scene, view, x, y, measure);
+  if (hit && hit.text === "求助") {
+    emitPointer(hit, "pointerup");
+    return hit;
+  }
+  host.spellHelpPressed = false;
+  return null;
 }

@@ -1,10 +1,10 @@
 {
   "source": "filesystem. Not an IDE upload size.",
-  "mainBytes": 1274576,
+  "mainBytes": 1318991,
   "subpackages": {
-    "packages/art-ui": 1498414,
+    "packages/art-ui": 1507484,
     "packages/art-world": 375151,
-    "packages/fonts": 999279,
+    "packages/fonts": 999991,
     "packages/art-extra-01": 586757,
     "packages/art-extra-02": 724247,
     "packages/art-extra-03": 965367,
@@ -23,13 +23,13 @@
     "packages/art-extra-16": 416011,
     "packages/art-json": 1464211
   },
-  "importableBytes": 20615754,
-  "packedFontBytes": 998884,
+  "importableBytes": 20669951,
+  "packedFontBytes": 999596,
   "packedFontFiles": 12,
   "packedMp3": 0,
   "publicBytes": 33613886,
   "publicImages": 297,
-  "artIndexImages": 298,
+  "artIndexImages": 303,
   "requiredButNotPackedImages": 0,
   "requiredButNotPackedBytes": 0,
   "publicWordMp3": 0

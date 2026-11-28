@@ -49,6 +49,8 @@ Page({
   data: {
     showCanvas: true,
     showNativeInput: false,
+    spellValue: "",
+    spellFocus: false,
     canvasNodeMissing: false,
     canvasNodeMissingText: "",
     canvasContextMissing: false,
@@ -81,6 +83,8 @@ Page({
     this._audio = null;
     this._onAudioError = null;
     this._onWindowResize = null;
+    this._helpHold = false;
+    this._wasSpell = false;
   },
 
   onReady() {
@@ -126,6 +130,8 @@ Page({
     this._alive = false;
     if (this._portLoop) clearTimeout(this._portLoop);
     this._portLoop = null;
+    this._helpHold = false;
+    this._wasSpell = false;
     if (this._port) this._port.stop();
     this._port = null;
     if (this._onWindowResize && typeof wx.offWindowResize === "function") {
@@ -416,17 +422,62 @@ Page({
   //       页面兜底只在 end/cancel 之后、且 touches 是长度为 0 的数组、指针仍按下时清空并重绘一次。
   // 为什么：缺失不是“屏上没手指”。把它当成空数组会把还按着的另一指一起取消。
   //       缺失时保持 reducePointer 的旧结果，下一次 start 若带上明确的 liveTouches 再自愈。
+  portPoint(type, event) {
+    const touch = event && ((type === "end" || type === "cancel")
+      ? event.changedTouches && event.changedTouches[0]
+      : event.touches && event.touches[0]);
+    if (!touch) return null;
+    const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
+    const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
+    const x = typeof touch.x === "number" ? touch.x : touch.clientX - left;
+    const y = typeof touch.y === "number" ? touch.y : touch.clientY - top;
+    return { x, y };
+  },
+
+  onSpellInput(event) {
+    const value = event && event.detail && typeof event.detail.value === "string" ? event.detail.value : "";
+    const field = this._port && this._port.field ? this._port.field("spell-input") : null;
+    if (field) field.value = value;
+    if (value !== this.data.spellValue) this.setData({ spellValue: value });
+    this.draw();
+  },
+
+  onSpellBlur() {
+    if (this.data.spellFocus) this.setData({ spellFocus: false });
+  },
+
+  syncSpellField() {
+    if (!this._port || !this._port.runtime || typeof this._port.runtime.active !== "function") return;
+    const scene = this._port.runtime.active();
+    const spell = !!(scene && scene.key === "learn" && scene.phase === "spell");
+    const field = this._port.field ? this._port.field("spell-input") : null;
+    const value = field && typeof field.value === "string" ? field.value : "";
+    if (spell && !this._wasSpell) this.setData({ spellFocus: true });
+    this._wasSpell = spell;
+    if (this.data.showNativeInput === spell && this.data.spellValue === value) return;
+    this.setData({ showNativeInput: spell, spellValue: value });
+  },
+
   onPointer(type, event) {
     if (!this._alive) return;
     if (this._port) {
-      const touch = event && ((type === "end" || type === "cancel")
-        ? event.changedTouches && event.changedTouches[0]
-        : event.touches && event.touches[0]);
+      const point = this.portPoint(type, event);
+      if (type === "start" && point && this._port.holdHelp) {
+        this._helpHold = Boolean(this._port.holdHelp(point.x, point.y, this.gameView()));
+      } else if ((type === "cancel" || (type === "end" && !point)) && this._helpHold) {
+        if (this._port.cancelHelp) this._port.cancelHelp();
+        this._helpHold = false;
+      } else if (type === "end" && this._helpHold && point) {
+        if (this._port.releaseHelp) this._port.releaseHelp(point.x, point.y, this.gameView());
+        this._helpHold = false;
+        this.draw();
+        this.syncSpellField();
+        return;
+      }
+      const touch = point;
       if (touch && this._port.wordScroll) {
-        const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
-        const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
-        const x = typeof touch.x === "number" ? touch.x : touch.clientX - left;
-        const y = typeof touch.y === "number" ? touch.y : touch.clientY - top;
+        const x = touch.x;
+        const y = touch.y;
         if (type === "start") {
           this._resultsLast = { x, y };
           this._port.wordScroll("start", x, y, 0);
@@ -437,22 +488,16 @@ Page({
         } else if (type === "end") {
           const scrolled = this._port.wordScroll("end", x, y, 0);
           this._resultsLast = null;
-          if (!scrolled) this._port.press(x, y, this.gameView());
+          if (!scrolled && !this._helpHold) this._port.press(x, y, this.gameView());
         } else if (type === "cancel") {
           this._port.wordScroll("end", x, y, 0);
           this._resultsLast = null;
         }
-      } else if (type === "end") {
-        const endTouch = event && event.changedTouches && event.changedTouches[0];
-        if (endTouch) {
-          const left = this._canvasRect && this._canvasRect.left ? this._canvasRect.left : 0;
-          const top = this._canvasRect && this._canvasRect.top ? this._canvasRect.top : 0;
-          const x = typeof endTouch.x === "number" ? endTouch.x : endTouch.clientX - left;
-          const y = typeof endTouch.y === "number" ? endTouch.y : endTouch.clientY - top;
-          this._port.press(x, y, this.gameView());
-        }
+      } else if (type === "end" && point && !this._helpHold) {
+        this._port.press(point.x, point.y, this.gameView());
       }
       this.draw();
+      this.syncSpellField();
       return;
     }
     const before = this._pointer ? this._pointer.target : null;
@@ -595,6 +640,7 @@ Page({
         if (other) this._failures.atlas = String(other);
       }
       this.paintStatus(ctx, dpr);
+      this.syncSpellField();
       return;
     }
     if (this._viewH > this._viewW) this.paintPortraitHint(ctx, dpr, layout);

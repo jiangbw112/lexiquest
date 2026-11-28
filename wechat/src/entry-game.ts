@@ -27,7 +27,7 @@ import { StorageLimitError, createMemoryArea, utf8Size, writeLimited } from "../
 import { randomUuid, uuidV4FromBytes, weakRandomUuid } from "../platform/random";
 import { UI_BODY_PX, UI_GAP, UI_HIT, logicalBodySize, screenFontPx, screenToWorld, uiRect, worldScale, worldToScreen } from "../engine/coords";
 import { glyphStats, resetGlyphCache } from "../engine/glyph";
-import { layoutFrame, paintFrame, pressFrame } from "../engine/paint";
+import { holdFrame, layoutFrame, paintFrame, pressFrame, releaseFrame } from "../engine/paint";
 import { learnWord, createSave } from "../../src/domain/progress";
 import { examById } from "../../src/domain/exams";
 import { findPlayChapter, gradeChapters } from "../../src/domain/chapter-plan";
@@ -168,6 +168,8 @@ export {
   layoutFrame,
   paintFrame,
   pressFrame,
+  holdFrame,
+  releaseFrame,
   glyphStats,
   resetGlyphCache,
   createSave,

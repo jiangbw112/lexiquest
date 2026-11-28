@@ -101,6 +101,16 @@ function attach(canvas, view) {
     press(x, y, next) {
       return game.pressFrame(runtime.active(), box(next || view), x, y);
     },
+    holdHelp(x, y, next) {
+      return game.holdFrame(runtime.active(), box(next || view), x, y);
+    },
+    releaseHelp(x, y, next) {
+      return game.releaseFrame(runtime.active(), box(next || view), x, y);
+    },
+    cancelHelp() {
+      const scene = runtime.active();
+      if (scene) scene.spellHelpPressed = false;
+    },
     wordScroll(phase, x, y, dy) {
       const scene = runtime.active();
       if (!scene || (scene.key !== "battle-results" && !scene.__failShare)) return false;

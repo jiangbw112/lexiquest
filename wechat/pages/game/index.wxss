@@ -1,3 +1,13 @@
+/* The spelling field is the existing system input. It stays off the book so the page does not gain a caption or a canvas keyboard. */
+.native-field {
+  position: absolute;
+  left: -240px;
+  top: 0;
+  width: 160px;
+  height: 32px;
+  opacity: 0;
+}
+
 .stage {
   width: 100%;
   height: 100%;

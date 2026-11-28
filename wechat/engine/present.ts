@@ -1,8 +1,15 @@
 import { wordsForResults } from "../../src/domain/battle-results";
-import { CATALOG_WORDS } from "../../src/domain/catalog";
+import { CATALOG_WORDS, GRADE_BANDS, posGloss, wordById } from "../../src/domain/catalog";
+import { assessLearnSelection } from "../../src/domain/chapter-route";
+import { chapterWordsRemaining, learnRemainingLine } from "../../src/domain/learn-batch";
+import { studyNow } from "../../src/domain/progress";
+import { spellingChildLabel } from "../../src/domain/questions";
+import { badgeTone } from "../../src/domain/review";
+import type { PlayChapter } from "../../src/domain/chapter-plan";
+import { getSave } from "../../src/game/session";
+import { spellHelpCovered, spellSlotLetters, syncSpellInput } from "./spell-help";
 import { PORTRAIT_ATLAS, portraitFrame } from "../../src/game/art/class-atlas";
 import { queueClassPortraits, savedClassId } from "../../src/game/art/class-load";
-import { getSave } from "../../src/game/session";
 import type { GameNode } from "./node";
 import type { TextStyle } from "./text";
 
@@ -192,11 +199,17 @@ interface LearnLive {
   picking?: boolean;
   phase?: string;
   batchIds?: string[];
+  practiceWordIds?: string[] | null;
   question?: unknown;
   draw?: () => void;
   showStudy?: () => void;
   startMeaning?: () => void;
+  startListening?: () => void;
   startSpelling?: () => void;
+  spellHelpWord?: string;
+  spellHelpEnglish?: string;
+  spellHelpShown?: number;
+  spellHelpPressed?: boolean;
 }
 
 function stepLearn(scene: LearnLive, delta: number): void {
@@ -212,11 +225,150 @@ function stepLearn(scene: LearnLive, delta: number): void {
   scene.draw?.();
 }
 
+function clearSpellHelp(live: LearnLive): void {
+  live.spellHelpWord = "";
+  live.spellHelpEnglish = "";
+  live.spellHelpShown = 0;
+  live.spellHelpPressed = false;
+}
+
+function hideSpellDeskCopy(scene: PadScene): void {
+  const walk = (node: GameNode) => {
+    const text = String((node as { text?: string }).text ?? "");
+    if (node.type === "text" && (text.includes("用键盘") || text.includes("输入框") || text.includes("连字符"))) node.visible = false;
+    const list = (node as { list?: GameNode[] }).list;
+    if (list) for (const child of list) walk(child);
+  };
+  for (const node of scene.children.list) walk(node);
+}
+
+function spellLesson(chapter: PlayChapter, practice: readonly string[] | null | undefined): PlayChapter {
+  if (!practice || practice.length === 0) return chapter;
+  const allowed = new Set(practice);
+  return {
+    ...chapter,
+    wordIds: chapter.wordIds.filter((id) => allowed.has(id)),
+    stages: chapter.stages.map((stage) => ({
+      ...stage,
+      new_words: stage.new_words.filter((id) => allowed.has(id)),
+    })),
+  };
+}
+
+function currentSpellWord(live: LearnLive) {
+  const save = getSave();
+  if (!save) return null;
+  const id = (live.batchIds ?? []).find((wordId) => !save.wordCards[wordId]);
+  const word = id ? wordById(id) : undefined;
+  return word ? { save, word } : null;
+}
+
+function revealSpellLetter(live: LearnLive): void {
+  const english = live.spellHelpEnglish || "";
+  const letters = spellSlotLetters(english);
+  if (!english || letters.length === 0) return;
+  const cover = spellHelpCovered(english, live.spellHelpShown ?? 0, String(pinNode("spell-input")?.value ?? ""));
+  if (cover >= letters.length) {
+    live.spellHelpShown = cover;
+    return;
+  }
+  live.spellHelpShown = cover + 1;
+  syncSpellInput(english, live.spellHelpShown);
+}
+
+function presentSpellBook(scene: PadScene, live: LearnLive): void {
+  hideSpellDeskCopy(scene);
+  const found = currentSpellWord(live);
+  if (!found) return;
+  const { save, word } = found;
+  if (live.spellHelpWord !== word.id) {
+    live.spellHelpWord = word.id;
+    live.spellHelpEnglish = word.english;
+    live.spellHelpShown = 0;
+    live.spellHelpPressed = false;
+    const input = pinNode("spell-input");
+    if (input) input.value = "";
+  } else live.spellHelpEnglish = word.english;
+  const style = { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "16px", color: "#3B2A20" };
+  const label = (name: string, text: string) => {
+    const node = scene.add.text(0, 0, text, style);
+    node.name = name;
+    return node;
+  };
+  label("learn:spell-word", word.english);
+  label("learn:spell-gloss", word.chinese);
+  if (word.pos) label("learn:spell-pos", word.pos);
+  const lit = badgeTone(save.wordCards[word.id], save.memory[word.id], studyNow(save)) === "bright";
+  const grade = GRADE_BANDS.find((item) => item.id === word.grade)?.label ?? "";
+  const meta = [posGloss(word.pos), grade, spellingChildLabel(word.spelling, lit)].filter((part): part is string => Boolean(part)).join(" · ");
+  if (meta) label("learn:spell-meta", meta);
+  const assessed = assessLearnSelection(save);
+  if (assessed.status === "ready") {
+    const line = learnRemainingLine(chapterWordsRemaining(save, spellLesson(assessed.chapter, live.practiceWordIds)));
+    label("learn:spell-remaining", line);
+  }
+  const button = (name: string, text: string, onPress: () => void) => {
+    const node = scene.add.text(0, 0, text, style);
+    node.name = name;
+    node.setInteractive();
+    node.on("pointerup", onPress);
+  };
+  button("learn:study", "学一学", () => live.showStudy?.());
+  button("learn:prev", "上一个", () => stepLearn(live, -1));
+  button("learn:next", "下一个", () => stepLearn(live, 1));
+  if (!shownText(scene, "听一听")) button("learn:listen", "听一听", () => live.startListening?.());
+  if (!shownText(scene, "选意思")) button("learn:meaning", "选意思", () => live.startMeaning?.());
+  if (!shownText(scene, "拼一拼") && !shownText(scene, "键盘拼写")) button("learn:spell", "拼一拼", () => undefined);
+  if (!shownText(scene, "确认")) {
+    button("learn:confirm", "确认", () => {
+      const form = pinNode("spell-form");
+      if (form) submitForm(form);
+    });
+  }
+  const help = scene.add.text(0, 0, "求助", style);
+  help.name = "learn:help";
+  help.setInteractive();
+  help.on("pointerdown", () => {
+    const letters = spellSlotLetters(live.spellHelpEnglish || "");
+    const cover = spellHelpCovered(live.spellHelpEnglish || "", live.spellHelpShown ?? 0, String(pinNode("spell-input")?.value ?? ""));
+    if (letters.length === 0 || cover >= letters.length) return;
+    live.spellHelpPressed = true;
+  });
+  help.on("pointerup", () => {
+    if (!live.spellHelpPressed) return;
+    live.spellHelpPressed = false;
+    revealSpellLetter(live);
+  });
+  syncSpellInput(word.english, live.spellHelpShown ?? 0);
+}
+
+function wrapLearnDraw(scene: PadScene, after: () => void): void {
+  const raw = scene as PadScene & { draw?: (() => void) & { presented?: boolean }; phase?: string };
+  if (!raw.draw || raw.draw.presented) return;
+  const original = raw.draw.bind(scene);
+  const wrapped = () => {
+    const input = pinNode("spell-input");
+    const kept = String(input?.value ?? "");
+    original();
+    // Desktop spelling redraws empty the field. Keep a typed tail while this word stays in spell.
+    if (raw.phase === "spell" && input && kept && !String(input.value ?? "")) input.value = kept;
+    after();
+  };
+  wrapped.presented = true;
+  raw.draw = wrapped;
+}
+
 function presentLearn(scene: PadScene): void {
   const add = () => {
-    for (const name of ["learn:study", "learn:prev", "learn:next", "learn:confirm", "learn:spell"]) dropNamed(scene, name);
+    for (const name of ["learn:study", "learn:prev", "learn:next", "learn:confirm", "learn:spell", "learn:listen", "learn:meaning", "learn:help", "learn:spell-word", "learn:spell-gloss", "learn:spell-pos", "learn:spell-meta", "learn:spell-remaining"]) dropNamed(scene, name);
     const live = scene as PadScene & LearnLive;
-    if (live.picking || live.phase !== "study") return;
+    if (live.picking) return;
+    if (live.phase === "spell") {
+      presentSpellBook(scene, live);
+      return;
+    }
+    clearSpellHelp(live);
+    if (live.phase !== "study") return;
     const style = { fontFamily: "WenQuanYi Micro Hei, sans-serif", fontSize: "16px", color: "#3B2A20" };
     const button = (name: string, text: string, onPress: () => void) => {
       const node = scene.add.text(0, 0, text, style);
@@ -230,7 +382,7 @@ function presentLearn(scene: PadScene): void {
     if (!shownText(scene, "确认")) button("learn:confirm", "确认", () => live.startMeaning?.());
     if (!shownText(scene, "拼一拼") && !shownText(scene, "键盘拼写")) button("learn:spell", "拼一拼", () => live.startSpelling?.());
   };
-  wrapDraw(scene, add);
+  wrapLearnDraw(scene, add);
   add();
 }
 

@@ -1,0 +1,29 @@
+runtime Chrome canvas, not WeChat DevTools, not a phone. viewport 844x390. boot title
+press 继续学习 -> 继续学习 phase=- shown=- input=
+press 学堂 -> 学堂 phase=study shown=- input=
+press 朋友与家人 0/29 -> 朋友与家人 0/29 phase=study shown=- input=
+press 确认 -> 确认 phase=study shown=0 input=
+press 拼一拼 -> 拼一拼 phase=spell shown=0 input=
+saved chrome-adapter-replay-academy-spell-help-idle-0-844x390.png phase=spell shown=0 pressed=false input= letters= upper=- helpHit=true confirm=true gloss=胳膊
+pixels help=225,212,190 slot0=246,230,196 confirm=233,196,106
+texts 返回@103,40 29x16 f16 | 三年级 · 朋友与家人@289,40 146x16 f16 | 换一章@109,324 47x16 f16 | 本关 0/29@235,92 62x14 f14 | 今日 0/5@325,92 55x14 f14 | 胳膊@220,236 76x42 f40 | n.@220,280 15x16 f14 | 名词 · 三年级 · 要会拼@257,280 155x16 f14 | 本章还可学 29 词@92,92 107x14 f14 | 学一学@84,126 104x48 f16 | 上一个@532,126 176x48 f16 | 下一个@532,190 176x48 f16 | 听一听@188,126 104x48 f16 | 选意思@292,126 104x48 f16 | 拼一拼@396,126 104x48 f16 | 确认@532,308 176x48 f18 | 求助@384,184 120x48 f16 | 学堂@202,38 37x20 f20 | Aa@84,196 88x88 f26 | ·@241,280 12x16 f14
+gesture hold -> {"ok":true,"action":"hold","shown":0,"pressed":true,"input":"","x":444,"y":208}
+saved chrome-adapter-replay-academy-spell-help-pressed-0-844x390.png phase=spell shown=0 pressed=true input= letters= upper=- helpHit=true confirm=true gloss=胳膊
+pixels help=208,195,178 slot0=246,230,196 confirm=233,196,106
+texts 返回@103,40 29x16 f16 | 三年级 · 朋友与家人@289,40 146x16 f16 | 换一章@109,324 47x16 f16 | 本关 0/29@235,92 62x14 f14 | 今日 0/5@325,92 55x14 f14 | 胳膊@220,236 76x42 f40 | n.@220,280 15x16 f14 | 名词 · 三年级 · 要会拼@257,280 155x16 f14 | 本章还可学 29 词@92,92 107x14 f14 | 学一学@84,126 104x48 f16 | 上一个@532,126 176x48 f16 | 下一个@532,190 176x48 f16 | 听一听@188,126 104x48 f16 | 选意思@292,126 104x48 f16 | 拼一拼@396,126 104x48 f16 | 确认@532,308 176x48 f18 | 求助@384,184 120x48 f16 | 学堂@202,38 37x20 f20 | Aa@84,196 88x88 f26 | ·@241,280 12x16 f14
+gesture release -> {"ok":true,"action":"release","shown":1,"pressed":false,"input":"a","x":444,"y":208}
+saved chrome-adapter-replay-academy-spell-help-idle-1-844x390.png phase=spell shown=1 pressed=false input=a letters=a upper=- helpHit=true confirm=true gloss=胳膊
+pixels help=225,212,190 slot0=130,114,94 confirm=233,196,106
+texts 返回@103,40 29x16 f16 | 三年级 · 朋友与家人@289,40 146x16 f16 | 换一章@109,324 47x16 f16 | 本关 0/29@235,92 62x14 f14 | 今日 0/5@325,92 55x14 f14 | 胳膊@220,236 76x42 f40 | n.@220,280 15x16 f14 | 名词 · 三年级 · 要会拼@257,280 155x16 f14 | 本章还可学 29 词@92,92 107x14 f14 | 学一学@84,126 104x48 f16 | 上一个@532,126 176x48 f16 | 下一个@532,190 176x48 f16 | 听一听@188,126 104x48 f16 | 选意思@292,126 104x48 f16 | 拼一拼@396,126 104x48 f16 | 确认@532,308 176x48 f18 | 求助@384,184 120x48 f16 | 学堂@202,38 37x20 f20 | Aa@84,196 88x88 f26 | ·@241,280 12x16 f14 | a@216,184 48x48 f36
+press 求助 -> 求助 phase=spell shown=2 input=ar
+press 求助 -> 求助 phase=spell shown=3 input=arm
+saved chrome-adapter-replay-academy-spell-help-disabled-all-844x390.png phase=spell shown=3 pressed=false input=arm letters=arm upper=- helpHit=false confirm=true gloss=胳膊
+pixels help=192,180,162 slot0=130,114,94 confirm=233,196,106
+texts 返回@103,40 29x16 f16 | 三年级 · 朋友与家人@289,40 146x16 f16 | 换一章@109,324 47x16 f16 | 本关 0/29@235,92 62x14 f14 | 今日 0/5@325,92 55x14 f14 | 胳膊@220,236 76x42 f40 | n.@220,280 15x16 f14 | 名词 · 三年级 · 要会拼@257,280 155x16 f14 | 本章还可学 29 词@92,92 107x14 f14 | 学一学@84,126 104x48 f16 | 上一个@532,126 176x48 f16 | 下一个@532,190 176x48 f16 | 听一听@188,126 104x48 f16 | 选意思@292,126 104x48 f16 | 拼一拼@396,126 104x48 f16 | 确认@532,308 176x48 f18 | 求助@384,184 120x48 f16 | 学堂@202,38 37x20 f20 | Aa@84,196 88x88 f26 | ·@241,280 12x16 f14 | a@216,184 48x48 f36 | r@272,184 48x48 f36 | m@328,184 48x48 f36
+press 学一学 -> 学一学 phase=study shown=0 input=arm
+press 拼一拼 -> 拼一拼 phase=spell shown=0 input=
+typed path before=a afterHelp=ar keptAcrossDraw=ar
+press 学一学 -> 学一学 phase=study shown=0 input=ar
+press 拼一拼 -> 拼一拼 phase=spell shown=0 input=
+wrong letter shown=x replaced=a
+spell help states matched idle-0, pressed-0, idle-1, disabled-all

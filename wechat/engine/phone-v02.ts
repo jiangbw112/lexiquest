@@ -6,6 +6,7 @@
 
 import type { GameNode } from "./node";
 import type { PhoneBar, PhoneCaption, PhoneChrome, PhoneContext, PhoneHero, PhoneImage, PhoneLayout, PhoneMark, PhonePortrait, PhoneUnit } from "./phone";
+import { spellHelpCovered, spellInputValue, spellSlotLetters } from "./spell-help";
 
 interface Box {
   x: number;
@@ -865,12 +866,14 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
       unit.onPaper = true;
       unit.label = undefined;
     };
+    const spelling = phase === "spell";
     const wordX = s.box(220, 0, 0, 0).x;
     const wordMax = Math.max(40, s.box(504, 0, 0, 0).x - wordX);
-    if (word) pinWord(word, wordX, s.box(0, 190, 0, 0).y, 52, FONT_LATIN, "800", INK, wordMax);
-    if (gloss) pinWord(gloss, wordX, s.box(0, 228, 0, 0).y, 40, FONT_TITLE, "", TEAL, wordMax);
+    if (word && spelling) hide(word);
+    if (word && !spelling) pinWord(word, wordX, s.box(0, 190, 0, 0).y, 52, FONT_LATIN, "800", INK, wordMax);
+    if (gloss) pinWord(gloss, wordX, s.box(0, spelling ? 236 : 228, 0, 0).y, 40, FONT_TITLE, "", TEAL, wordMax);
     let rowX = wordX;
-    const rowY = s.box(0, 276, 0, 0).y;
+    const rowY = s.box(0, spelling ? 280 : 276, 0, 0).y;
     if (pos) {
       pinWord(pos, rowX, rowY, 14, FONT_BODY, "500", MUTED, wordMax);
       rowX += pos.w + 6 * s.sx;
@@ -925,6 +928,80 @@ function layoutLearn(ctx: PhoneContext, chrome: PhoneChrome[]): PhoneLayout {
     column(next, 532, 190, 176, 48, "btn_secondary_normal", 16);
     column(confirm, 532, 308, 176, 48, "btn_primary_normal", 18);
     column(change, 72, 308, 120, 48, "btn_secondary_normal", 16);
+    if (spelling && word) {
+      // In-progress spelling only. The study card still shows the full word.
+      // Nunito 800 is the formal slot weight. The packed Nunito face is still 400, so the ink is not extra-bold.
+      const letters = spellSlotLetters(word.text);
+      const typed = spellInputValue();
+      const shown = Number((ctx.scene as { spellHelpShown?: number }).spellHelpShown ?? 0);
+      const cover = spellHelpCovered(word.text, shown, typed);
+      const disabled = letters.length > 0 && cover >= letters.length;
+      const pressed = Boolean((ctx.scene as { spellHelpPressed?: boolean }).spellHelpPressed) && !disabled;
+      const help = ctx.units.find((unit) => unit.node.name === "learn:help" || unit.text === "求助");
+      const rowLeft = 216;
+      const rowTop = 184;
+      const room = 512 - rowLeft;
+      let slot = 48;
+      let gap = 8;
+      let helpW = 120;
+      const rowNeed = (size: number, space: number, button: number) => letters.length * size + Math.max(0, letters.length - 1) * space + space + button;
+      if (letters.length && rowNeed(slot, gap, helpW) > room) {
+        gap = 8;
+        slot = Math.floor((room - gap - helpW - Math.max(0, letters.length - 1) * gap) / letters.length);
+        if (slot < 28) {
+          gap = 4;
+          slot = Math.floor((room - gap - helpW - Math.max(0, letters.length - 1) * gap) / letters.length);
+        }
+        if (slot < 22) {
+          helpW = 96;
+          slot = Math.floor((room - gap - helpW - Math.max(0, letters.length - 1) * gap) / letters.length);
+        }
+        slot = Math.max(16, slot);
+      }
+      letters.forEach((letter, index) => {
+        const box = s.box(rowLeft + index * (slot + gap), rowTop, slot, slot);
+        marks.push({
+          kind: "well",
+          x: box.x,
+          y: box.y,
+          w: box.w,
+          h: box.h,
+          radius: 10 * Math.min(s.sx, s.sy),
+          fill: "#F6E6C4",
+          stroke: WOOD,
+          strokeWidth: Math.max(2, 2 * Math.min(s.sx, s.sy)),
+        });
+        const typedChar = typed.toLowerCase()[letter.index] ?? "";
+        const glyph = index < shown ? letter.ch : typedChar && typedChar !== " " ? typedChar : "";
+        if (!glyph) return;
+        captions.push({
+          text: glyph,
+          x: box.x,
+          y: box.y,
+          w: box.w,
+          h: box.h,
+          color: INK,
+          font: slot >= 48 ? 36 : Math.max(14, Math.round(slot * 0.72)),
+          family: FONT_LATIN,
+          weight: "800",
+        });
+      });
+      if (help && letters.length) {
+        const helpX = rowLeft + letters.length * slot + letters.length * gap;
+        const box = s.box(helpX, rowTop, helpW, 48);
+        face(help, FONT_TITLE, disabled ? "#6D5D51" : INK, "");
+        place(help, box, 16, true);
+        help.labelDy = pressed ? 2 * s.sy : 0;
+        if (disabled) help.interactive = false;
+        chrome.push({
+          frame: pressed ? "btn_secondary_pressed" : "btn_secondary_normal",
+          box,
+          layer: "over",
+          // Cream highlight #FFF4DC times this tint lands on the formal disabled face #CFC4B2.
+          tint: disabled ? 0xcfcdce : undefined,
+        });
+      }
+    }
     for (const unit of ctx.units) if (!unit.onPaper) hide(unit);
     return { hero: null, skipMasks: true, chrome, captions, marks };
   }
