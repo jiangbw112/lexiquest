@@ -455,7 +455,8 @@ assert(pageSource.includes("fields({ node: true, size: true, rect: true })"), "q
 assert(pageSource.includes("replay: false"), "background state refuses replay");
 assert(pageSource.includes("Array.isArray(event.touches)"), "page passes an array or null, not a missing field as empty");
 assert(pageSource.includes("shouldReleasePointer"), "page fallback uses the empty-array gate");
-assert(pageSource.includes("14px sans-serif"), "debug line is 14px");
+assert(layoutSource.includes("const STATUS_DEBUG_FONT = 14"), "debug line is 14px");
+assert(pageSource.includes("${band.debug.font}px sans-serif"), "page draws the debug line from the status font");
 assert(!pageSource.includes("12px"), "page has no 12px readable text");
 
 const onShow = methodBody(pageSource, "onShow");

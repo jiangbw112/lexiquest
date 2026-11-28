@@ -7,7 +7,7 @@
  *
  * 需要复核：node 缺失和 context 缺失分成两条路径。验收记录里 cover-view 和普通 view 在原生画布还在时都看不见。
  * 现在两条都把 canvas 从树上摘掉，再用普通 view 写原因和页面路径。没有新的模拟器截图，可见性仍未验证。
- * 图集和音频失败仍画在 canvas 上。?p06= 探针入口保留。
+ * 图集和音频失败仍画在 canvas 上。
  */
 
 const {
@@ -31,7 +31,6 @@ const {
   CANVAS_NODE_MISSING,
   CANVAS_CONTEXT_MISSING,
 } = require("./layout.js");
-const { isProbeFrame, drawProbe } = require("./probe.js");
 // 原来：require("../../assets/atlas/skeleton-atlas.json")。小程序 require 不解析 .json，
 // DevTools 报 "module 'assets/atlas/skeleton-atlas.json.js' is not defined"，页面加载即失败。
 // 现在：改 require 同内容的 .js 模块。
@@ -56,11 +55,7 @@ Page({
     canvasContextMissingText: "",
   },
 
-  // 原来：页面只有 P0.5 骨架，三种探针只在 Node 里算，页面从不绘制。
-  // 现在：onLoad 读 ?p06=title|grade|battle，命中才进入探针绘制；不带参数时行为完全不变。
-  // 为什么：字号、换行、热区必须在真实画布上验证，Node 只能证明数字自洽。
   onLoad(options) {
-    this._probeFrame = isProbeFrame(options && options.p06) ? options.p06 : "";
     this._devFail = "";
     this.captureDevFail(options);
     this._alive = true;
@@ -158,7 +153,7 @@ Page({
       : wx.createSelectorQuery();
     // 原来：node 和 context 共用 canvasMissing，cover-view 盖在仍存在的原生画布上。
     // 现在：p06fail=node 只在 envVersion 恰好为 develop 时查询一个不存在的 id，让选择器真正返回空。
-    //       p06fail=context 让 getContext 抛错。两条 setData 不共用。?p06= 探针参数不动。
+    //       p06fail=context 让 getContext 抛错。两条 setData 不共用。
     // 为什么：验收里只 setData 时画面没有红字。空字符串和 trial 不当成 develop。cli preview 的 envVersion 本机未核实。
     const selector = this._devFail === "node" ? "#p06-absent-canvas" : "#game-canvas";
     query
@@ -244,8 +239,8 @@ Page({
         this._layout = layoutView(viewW, viewH, safe);
         if (!this._image && !this._atlasLoading) this.loadAtlas(canvas);
         // 原来：量完窗口只画骨架。
-        // 现在：没有 ?p06= 和 p06fail 时，用 port.js 加载 domain 与 game，并画当前场景。
-        // 为什么：探针路径要保持原样。移植入口和检查脚本走同一个 port.js。
+        // 现在：没有 p06fail 时，用 port.js 加载 domain 与 game，并画当前场景。
+        // 为什么：移植入口和检查脚本走同一个 port.js。
         this.ensurePort(canvas);
         this.draw();
       });
@@ -423,8 +418,6 @@ Page({
   //       缺失时保持 reducePointer 的旧结果，下一次 start 若带上明确的 liveTouches 再自愈。
   onPointer(type, event) {
     if (!this._alive) return;
-    // 探针模式只用于看字号和热区，按下不发声、不改骨架状态。
-    if (this._probeFrame) return;
     if (this._port) {
       const touch = event && ((type === "end" || type === "cancel")
         ? event.changedTouches && event.changedTouches[0]
@@ -513,7 +506,7 @@ Page({
   // 现在：ensurePort 在画布就绪后加载 ./port.js。失败时把原因放进状态带，并继续画骨架。
   // 为什么：port.js 同时被页面和 node wechat/tools/check-page-chain.cjs 使用。
   ensurePort(canvas) {
-    if (this._probeFrame || this._devFail || this._port || this._portError) return;
+    if (this._devFail || this._port || this._portError) return;
     try {
       const port = require("./port.js");
       this._port = port.attach(canvas, { w: this._viewW, h: this._viewH, route: "boot" });
@@ -591,7 +584,7 @@ Page({
     ctx.clearRect(0, 0, this._viewW, this._viewH);
     ctx.fillStyle = "#143d2c";
     ctx.fillRect(0, 0, this._viewW, this._viewH);
-    if (!this._probeFrame && this._port) {
+    if (this._port) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this._port.paint(ctx, this.gameView());
       const failures = this._port.runtime && this._port.runtime.failures;
@@ -600,19 +593,6 @@ Page({
         const other = failures.find((item) => !String(item).includes("word audio"));
         if (audio) this._failures.audio = String(audio);
         if (other) this._failures.atlas = String(other);
-      }
-      this.paintStatus(ctx, dpr);
-      return;
-    }
-    if (this._probeFrame) {
-      const problems = drawProbe(ctx, this._probeFrame, this._viewW, this._viewH, this._safeUsed, dpr);
-      if (problems.length) {
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.textBaseline = "top";
-        ctx.fillStyle = "#ff5c5c";
-        ctx.font = "14px sans-serif";
-        const band = statusBoxes(this._safeUsed);
-        ctx.fillText("probe: " + problems.join("; "), band.origin.x, this._viewH - 24);
       }
       this.paintStatus(ctx, dpr);
       return;
@@ -667,7 +647,7 @@ Page({
   //       读不到 envVersion 时不当成 release，调试行仍画。失败行用窗口逻辑像素，不乘设计 scale。
   // 为什么：真机白屏时控制台不一定看得到。正式版不把窗口尺寸和安全区画出来，但失败原因要留下。
   //       canvas node / context 缺失不走这里。需要复核，它不是 canvas 绘制。
-  //       失败行和调试行从 safe.left+12、safe.top+8 起画，骨架标题和探针标题都在这条带下面。
+  //       失败行和调试行从 safe.left+12、safe.top+8 起画，骨架标题在这条带下面。
   paintStatus(ctx, dpr) {
     const failure = joinFailureLine(this._failures && this._failures.atlas, this._failures && this._failures.audio);
     const debug = showsDebugLine(this.readEnvVersion());

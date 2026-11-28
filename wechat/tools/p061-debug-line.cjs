@@ -1,7 +1,7 @@
 /**
  * Pure-function checks for showsDebugLine.
  * Not a release-package test. The task text says cli preview is trial; this file does not check that claim.
- * Not a replacement for tools/p06-adversarial.cjs or tools/p06-probe-smoke.cjs.
+ * Not a replacement for tools/p06-adversarial.cjs.
  */
 
 const fs = require("fs");

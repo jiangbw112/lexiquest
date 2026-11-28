@@ -1,6 +1,6 @@
 /**
  * Node field compare of the existing skeleton-atlas.js against the json.
- * Not a replacement for tools/p06-adversarial.cjs or tools/p06-probe-smoke.cjs.
+ * Not a replacement for tools/p06-adversarial.cjs.
  */
 
 const fs = require("fs");
